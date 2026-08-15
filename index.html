@@ -915,13 +915,7 @@ section{ will-change: auto; }
 }
 .nav-links a:hover::after{ width:100%; }
 
-/* Ambient orbs más suaves */
-.orb{
-  animation: orbFloat var(--orb-dur,18s) ease-in-out infinite;
-  will-change: transform;
-}
-@keyframes orbFloat{
-  0%,100%{ transform:translate(0,0) scale(1); }
+
   33%{ transform:translate(30px,-20px) scale(1.05); }
   66%{ transform:translate(-20px,15px) scale(0.95); }
 }
@@ -1165,6 +1159,44 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 /* Título h2 dos líneas — garantizado */
 .tline1, .tline2{ display:block !important; line-height:0.92; }
 .sec-title .reveal-inner{ display:block !important; }
+
+
+/* ══ DRAGONES DE FONDO (MARCA DE AGUA NEÓN) ══ */
+.sec-dragon-ambient {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 0 15px var(--acc)) drop-shadow(0 0 35px var(--acc2));
+  animation: dragonFloat 8s ease-in-out infinite alternate;
+}
+@keyframes dragonFloat {
+  0%   { transform: translateY(0px)   rotate(0deg)  scale(1);    }
+  50%  { transform: translateY(-15px) rotate(2deg)  scale(1.03); }
+  100% { transform: translateY(10px)  rotate(-2deg) scale(0.98); }
+}
+
+
+/* ══ DRAGONES DE FONDO (MARCA DE AGUA NEÓN) ══ */
+.sec-dragon-ambient {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 0 15px var(--acc)) drop-shadow(0 0 35px var(--acc2));
+  animation: dragonFloat 8s ease-in-out infinite alternate;
+}
+@keyframes dragonFloat {
+  0%   { transform: translateY(0px)   rotate(0deg)  scale(1);    }
+  50%  { transform: translateY(-15px) rotate(2deg)  scale(1.03); }
+  100% { transform: translateY(10px)  rotate(-2deg) scale(0.98); }
+}
 
 </style>
 </head>
@@ -2231,7 +2263,58 @@ dig assets.lime.bike CNAME</div></div></div>
 </footer>
 
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js">
+/* ============================================================
+   AMBIENT DRAGONS per section (Reemplazo de recuadros)
+   ============================================================ */
+if(!reduce) {
+  const dragonConfigs = [
+    { id:'sobre-mi',    size:360, top:'10%',  left:'-40px',  flip: false },
+    { id:'habilidades', size:340, top:'20%',  right:'-40px', flip: true  },
+    { id:'hallazgos',   size:380, top:'5%',   left:'-50px',  flip: false },
+    { id:'osint',       size:340, bottom:'5%',right:'-30px', flip: true  },
+    { id:'cheatsheet',  size:350, top:'35%',  left:'-40px',  flip: false },
+    { id:'arsenal',     size:340, top:'20%',  right:'-40px', flip: true  },
+    { id:'conocimiento',size:360, bottom:'8%',left:'-40px',  flip: false },
+    { id:'contacto',    size:320, top:'15%',  right:'-30px', flip: true  },
+  ];
+
+  const AMBIENT_DRAGON_SVG =
+    '<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
+    '<g fill="var(--acc)" stroke="var(--acc)" stroke-linejoin="round" stroke-linecap="round">' +
+    '<polygon fill-opacity="0.8" points="55,40 88,10 80,28 90,16 80,36 66,40"/>' +
+    '<ellipse cx="48" cy="60" rx="20" ry="16" fill-opacity="0.75"/>' +
+    '<path d="M28 28 C24 36 26 46 32 52 L40 48 C36 44 34 38 34 32 Z"/>' +
+    '<path d="M24 18 C18 14 10 16 10 24 C10 32 18 34 24 30 L32 30 C30 26 26 22 24 18 Z"/>' +
+    '<path fill-opacity="0.9" d="M10 24 L2 27 L4 34 L14 30 Z"/>' +
+    '<polygon points="18,17 14,4 24,14"/>' +
+    '<polygon fill-opacity="0.85" points="23,14 21,5 28,12"/>' +
+    '<circle cx="14" cy="23" r="3" fill="#000" stroke="none"/>' +
+    '<circle cx="15" cy="22" r="1.2" fill="#fff" stroke="none"/>' +
+    '<path fill="none" stroke-width="6" d="M68 62 C80 66 84 76 80 82 C76 88 70 84 72 80"/>' +
+    '<polygon points="80,82 88,77 82,88"/>' +
+    '<path fill="none" stroke-width="3" d="M36 72 L30 84 M42 74 L40 86 M48 74 L50 86 M58 72 L54 82"/>' +
+    '</g></svg>';
+
+  dragonConfigs.forEach(function(cfg) {
+    const sec = document.getElementById(cfg.id);
+    if(!sec) return;
+    const drag = document.createElement('div');
+    drag.className = 'sec-dragon-ambient';
+    drag.innerHTML = AMBIENT_DRAGON_SVG;
+    drag.style.width  = cfg.size + 'px';
+    drag.style.height = cfg.size + 'px';
+    if(cfg.top)    drag.style.top    = cfg.top;
+    if(cfg.bottom) drag.style.bottom = cfg.bottom;
+    if(cfg.left)   drag.style.left   = cfg.left;
+    if(cfg.right)  drag.style.right  = cfg.right;
+    if(cfg.flip)   drag.style.transform = 'scaleX(-1)';
+    drag.style.animationDelay = (Math.random() * 4) + 's';
+    sec.appendChild(drag);
+  });
+}
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <script>
@@ -3761,42 +3844,57 @@ document.querySelectorAll('.finding, .exp-card, .stat-card, .osint-card, .dork-c
 });
 
 /* ============================================================
-   AMBIENT ORBS per section
+   AMBIENT DRAGONS per section (reemplaza recuadros)
    ============================================================ */
 if(!reduce) {
-  const orbConfigs = [
-    { id:'sobre-mi',    color:'#ff1a2e', size:300, top:'20%',  left:'-80px'  },
-    { id:'habilidades', color:'#8a2be2', size:350, top:'30%',  right:'-100px'},
-    { id:'hallazgos',   color:'#ff2d78', size:280, top:'10%',  left:'-60px'  },
-    { id:'osint',       color:'#ff1a2e', size:320, bottom:'0', right:'-80px' },
-    { id:'cheatsheet',  color:'#8a2be2', size:300, top:'50%',  left:'-80px'  },
-    { id:'contacto',    color:'#00ffa3', size:280, top:'20%',  right:'-80px' },
+  const dragonConfigs = [
+    { id:'sobre-mi',    size:360, top:'10%',    left:'-40px',  flip: false },
+    { id:'habilidades', size:340, top:'20%',    right:'-40px', flip: true  },
+    { id:'hallazgos',   size:380, top:'5%',     left:'-50px',  flip: false },
+    { id:'osint',       size:340, bottom:'5%',  right:'-30px', flip: true  },
+    { id:'cheatsheet',  size:350, top:'35%',    left:'-40px',  flip: false },
+    { id:'formacion',   size:320, top:'20%',    right:'-40px', flip: true  },
+    { id:'arsenal',     size:350, bottom:'10%', left:'-30px',  flip: false },
+    { id:'conocimiento',size:340, top:'15%',    right:'-40px', flip: true  },
+    { id:'contacto',    size:320, top:'15%',    right:'-30px', flip: true  },
   ];
-  orbConfigs.forEach(function(cfg) {
-    const sec = document.getElementById(cfg.id);
+
+  const AMBIENT_DRAGON_SVG = [
+    '<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">',
+    '<g fill="var(--acc)" stroke="var(--acc)" stroke-linejoin="round" stroke-linecap="round">',
+    '<polygon fill-opacity="0.8" points="55,40 88,10 80,28 90,16 80,36 66,40"/>',
+    '<path fill-opacity="0.3" d="M80 22 L68 38 M84 14 L72 36" stroke-width="1.5"/>',
+    '<ellipse cx="48" cy="60" rx="20" ry="16" fill-opacity="0.75"/>',
+    '<path d="M28 28 C24 36 26 46 32 52 L40 48 C36 44 34 38 34 32 Z"/>',
+    '<path d="M24 18 C18 14 10 16 10 24 C10 32 18 34 24 30 L32 30 C30 26 26 22 24 18 Z"/>',
+    '<path fill-opacity="0.9" d="M10 24 L2 27 L4 34 L14 30 Z"/>',
+    '<polygon points="18,17 14,4 24,14"/>',
+    '<polygon fill-opacity="0.85" points="23,14 21,5 28,12"/>',
+    '<circle cx="14" cy="23" r="3" fill="#0a0000" stroke="none"/>',
+    '<circle cx="15" cy="22" r="1.2" fill="#ffffff" stroke="none"/>',
+    '<path fill="none" stroke-width="6" d="M68 62 C80 66 84 76 80 82 C76 88 70 84 72 80"/>',
+    '<polygon points="80,82 88,77 82,88"/>',
+    '<path fill="none" stroke-width="3" d="M36 72 L30 84 M42 74 L40 86 M48 74 L50 86 M58 72 L54 82"/>',
+    '</g></svg>',
+  ].join('');
+
+  dragonConfigs.forEach(function(cfg) {
+    var sec = document.getElementById(cfg.id);
     if(!sec) return;
-    const orb = document.createElement('div');
-    orb.className = 'sec-orb';
-    orb.style.cssText = 'width:'+cfg.size+'px;height:'+cfg.size+'px;background:'+cfg.color+';' +
-      (cfg.top    ? 'top:'+cfg.top+';'    : '') +
-      (cfg.bottom ? 'bottom:'+cfg.bottom+';' : '') +
-      (cfg.left   ? 'left:'+cfg.left+';'  : '') +
-      (cfg.right  ? 'right:'+cfg.right+';': '') +
-      'animation-delay:' + (Math.random()*3) + 's;';
-    orb.style.animationDelay = (Math.random()*3) + 's';
-    sec.appendChild(orb);
+    var drag = document.createElement('div');
+    drag.className = 'sec-dragon-ambient';
+    drag.innerHTML = AMBIENT_DRAGON_SVG;
+    drag.style.width  = cfg.size + 'px';
+    drag.style.height = cfg.size + 'px';
+    if(cfg.top)    drag.style.top    = cfg.top;
+    if(cfg.bottom) drag.style.bottom = cfg.bottom;
+    if(cfg.left)   drag.style.left   = cfg.left;
+    if(cfg.right)  drag.style.right  = cfg.right;
+    if(cfg.flip)   drag.style.transform = 'scaleX(-1)';
+    drag.style.animationDelay = (Math.random() * 4) + 's';
+    sec.appendChild(drag);
   });
 }
-
-/* ============================================================
-   WELCOME TOAST on load
-   ============================================================ */
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    showToast('TudelaSec', 'Sistema inicializado. Bienvenido.', 'info', 3500);
-  }, 3200);
-});
-
 
 /* ══ TARGET INPUT INTERACTIVO ══ */
 const AD_TOOLS = new Set([

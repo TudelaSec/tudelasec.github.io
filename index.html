@@ -2291,6 +2291,19 @@ dig assets.lime.bike CNAME</div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" crossorigin="anonymous"></script>
 <script>
+
+
+/* ══ GLOBAL ERROR HANDLER ══ */
+window.onerror = function(msg, src, line, col, err) {
+  console.warn('TudelaSec JS Error:', msg, 'at', src, line+':'+col);
+  return true; // prevenir que el error detenga el resto del JS
+};
+window.addEventListener('unhandledrejection', function(e) {
+  console.warn('Unhandled promise:', e.reason);
+  e.preventDefault();
+});
+
+
 /* ══ DEPLOYMENT GUARD — GSAP/CDN safety ══ */
 (function(){
   if(typeof gsap === 'undefined'){
@@ -2311,6 +2324,18 @@ dig assets.lime.bike CNAME</div></div></div>
   document.body.classList.add('gsap-ready');
   if(typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger);
 })();
+
+
+const toastWrap = document.getElementById('toast-wrap');
+function showToast(title,msg,type,dur){
+  if(!toastWrap) return;
+  const t=document.createElement('div');
+  t.className='toast '+(type||'info');
+  const icons={info:'fa-circle-info',success:'fa-circle-check',warning:'fa-triangle-exclamation',danger:'fa-skull'};
+  t.innerHTML=`<i class="fa ${icons[type]||'fa-circle-info'}"></i><div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>`;
+  toastWrap.appendChild(t);
+  setTimeout(()=>{ t.style.animation='toastIn 0.3s ease reverse forwards'; setTimeout(()=>t.remove(),300); }, dur||4000);
+}
 
 /* ══ DEPLOYMENT FIXES — GSAP + CDN GUARDS ══ */
 (function(){
@@ -2405,7 +2430,9 @@ function heroReveal(){
 }
 
 /* ══ THREE.JS PARTICLE SPHERE ══ */
-if(typeof THREE !== 'undefined' && !reduce){
+(function initThreeJS(){
+  if(typeof THREE === 'undefined' || reduce) return;
+  
   /* ══ CYBERPUNK HOLOGRAPHIC CORE — WebGL Senior Build ══ */
   let scene, camera, renderer, clock;
   let coreMesh, icoMesh, vortexPts, lineSegs, shockMesh;
@@ -2426,7 +2453,14 @@ if(typeof THREE !== 'undefined' && !reduce){
   scene.fog = new THREE.FogExp2(0x080305, 0.055);
   camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
   camera.position.set(0, 0, 9);
-  renderer = new THREE.WebGLRenderer({ canvas, antialias:!isMobile, alpha:true });
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:!isMobile, alpha:true });
+  } catch(e) {
+    console.warn('WebGL not available:', e.message);
+    if(canvas) canvas.style.display='none';
+    return; // legal dentro de la IIFE
+  }
+  if(!renderer) return; // doble check
   renderer.setSize(innerWidth, innerHeight);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearColor(0x000000, 0);
@@ -2701,8 +2735,8 @@ if(typeof THREE !== 'undefined' && !reduce){
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth,innerHeight);
   });
-}
 
+})();
 /* ══ GSAP SCROLL REVEALS ══ */
 if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
   // ScrollTrigger ya registrado al inicio
@@ -2793,16 +2827,6 @@ window.addEventListener('scroll',()=>{
 },{ passive:true });
 
 /* ══ TOAST ══ */
-const toastWrap = document.getElementById('toast-wrap');
-function showToast(title,msg,type,dur){
-  if(!toastWrap) return;
-  const t=document.createElement('div');
-  t.className='toast '+(type||'info');
-  const icons={info:'fa-circle-info',success:'fa-circle-check',warning:'fa-triangle-exclamation',danger:'fa-skull'};
-  t.innerHTML=`<i class="fa ${icons[type]||'fa-circle-info'}"></i><div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>`;
-  toastWrap.appendChild(t);
-  setTimeout(()=>{ t.style.animation='toastIn 0.3s ease reverse forwards'; setTimeout(()=>t.remove(),300); }, dur||4000);
-}
 
 /* ══ OSINT LOOKUP ══ */
 /* ---------- OSINT LOOKUP ---------- */
@@ -5026,6 +5050,8 @@ if(!reduce) {
     sec.appendChild(drag);
   });
 }
+
+
 
 </script>
 </body>

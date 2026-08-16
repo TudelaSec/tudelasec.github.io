@@ -7,7 +7,7 @@
 <title>TudelaSec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
 <style>
 :root{
   --bg:#080305; --bg1:#100508; --bg2:#180a0d; --bg3:#200c10;
@@ -914,10 +914,6 @@ section{ will-change: auto; }
   background:var(--acc); transition:width 0.3s ease;
 }
 .nav-links a:hover::after{ width:100%; }
-
-
-  33%{ transform:translate(30px,-20px) scale(1.05); }
-  66%{ transform:translate(-20px,15px) scale(0.95); }
 }
 
 /* Scroll drag más suave en mobile */
@@ -1196,6 +1192,34 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
   0%   { transform: translateY(0px)   rotate(0deg)  scale(1);    }
   50%  { transform: translateY(-15px) rotate(2deg)  scale(1.03); }
   100% { transform: translateY(10px)  rotate(-2deg) scale(0.98); }
+}
+
+
+/* ══ ANIMATION FALLBACK — funciona sin GSAP ══ */
+@keyframes revealUp{
+  from{ opacity:0; transform:translateY(60px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+/* Cuando GSAP falla, el CSS toma el control */
+.reveal-inner{
+  animation: revealUp 0.8s ease forwards;
+  animation-play-state: paused;
+}
+/* GSAP controla esto via JS — si GSAP funciona, overrides animation */
+.gsap-ready .reveal-inner{
+  animation: none !important;
+}
+/* Hero elements fallback */
+#hero-tag, #hero-sub, #hero-ctas, #hero-scroll{
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+/* Stat bigs siempre visibles (no depender de counter) */
+.stat-big{ opacity:1 !important; }
+
+/* Fix: fr-reveal siempre muestra en deployed */
+.fr-reveal{
+  opacity:1 !important;
+  transform:none !important;
 }
 
 </style>
@@ -2263,61 +2287,66 @@ dig assets.lime.bike CNAME</div></div></div>
 </footer>
 
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js">
-/* ============================================================
-   AMBIENT DRAGONS per section (Reemplazo de recuadros)
-   ============================================================ */
-if(!reduce) {
-  const dragonConfigs = [
-    { id:'sobre-mi',    size:360, top:'10%',  left:'-40px',  flip: false },
-    { id:'habilidades', size:340, top:'20%',  right:'-40px', flip: true  },
-    { id:'hallazgos',   size:380, top:'5%',   left:'-50px',  flip: false },
-    { id:'osint',       size:340, bottom:'5%',right:'-30px', flip: true  },
-    { id:'cheatsheet',  size:350, top:'35%',  left:'-40px',  flip: false },
-    { id:'arsenal',     size:340, top:'20%',  right:'-40px', flip: true  },
-    { id:'conocimiento',size:360, bottom:'8%',left:'-40px',  flip: false },
-    { id:'contacto',    size:320, top:'15%',  right:'-30px', flip: true  },
-  ];
-
-  const AMBIENT_DRAGON_SVG =
-    '<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
-    '<g fill="var(--acc)" stroke="var(--acc)" stroke-linejoin="round" stroke-linecap="round">' +
-    '<polygon fill-opacity="0.8" points="55,40 88,10 80,28 90,16 80,36 66,40"/>' +
-    '<ellipse cx="48" cy="60" rx="20" ry="16" fill-opacity="0.75"/>' +
-    '<path d="M28 28 C24 36 26 46 32 52 L40 48 C36 44 34 38 34 32 Z"/>' +
-    '<path d="M24 18 C18 14 10 16 10 24 C10 32 18 34 24 30 L32 30 C30 26 26 22 24 18 Z"/>' +
-    '<path fill-opacity="0.9" d="M10 24 L2 27 L4 34 L14 30 Z"/>' +
-    '<polygon points="18,17 14,4 24,14"/>' +
-    '<polygon fill-opacity="0.85" points="23,14 21,5 28,12"/>' +
-    '<circle cx="14" cy="23" r="3" fill="#000" stroke="none"/>' +
-    '<circle cx="15" cy="22" r="1.2" fill="#fff" stroke="none"/>' +
-    '<path fill="none" stroke-width="6" d="M68 62 C80 66 84 76 80 82 C76 88 70 84 72 80"/>' +
-    '<polygon points="80,82 88,77 82,88"/>' +
-    '<path fill="none" stroke-width="3" d="M36 72 L30 84 M42 74 L40 86 M48 74 L50 86 M58 72 L54 82"/>' +
-    '</g></svg>';
-
-  dragonConfigs.forEach(function(cfg) {
-    const sec = document.getElementById(cfg.id);
-    if(!sec) return;
-    const drag = document.createElement('div');
-    drag.className = 'sec-dragon-ambient';
-    drag.innerHTML = AMBIENT_DRAGON_SVG;
-    drag.style.width  = cfg.size + 'px';
-    drag.style.height = cfg.size + 'px';
-    if(cfg.top)    drag.style.top    = cfg.top;
-    if(cfg.bottom) drag.style.bottom = cfg.bottom;
-    if(cfg.left)   drag.style.left   = cfg.left;
-    if(cfg.right)  drag.style.right  = cfg.right;
-    if(cfg.flip)   drag.style.transform = 'scaleX(-1)';
-    drag.style.animationDelay = (Math.random() * 4) + 's';
-    sec.appendChild(drag);
-  });
-}
-
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" crossorigin="anonymous"></script>
 <script>
+/* ══ DEPLOYMENT GUARD — GSAP/CDN safety ══ */
+(function(){
+  if(typeof gsap === 'undefined'){
+    document.querySelectorAll('.reveal-inner').forEach(function(el){
+      el.style.opacity='1'; el.style.transform='translateY(0)';
+    });
+    ['#hero-tag','#hero-sub','#hero-ctas','#hero-scroll'].forEach(function(s){
+      var el=document.querySelector(s);
+      if(el){el.style.opacity='1'; el.style.transform='none';}
+    });
+    document.querySelectorAll('#hero-h1 .line span').forEach(function(el){
+      el.style.opacity='1'; el.style.transform='translateY(0)';
+    });
+    var pl=document.getElementById('preloader');
+    if(pl) setTimeout(function(){pl.classList.add('exit');},1500);
+    return;
+  }
+  document.body.classList.add('gsap-ready');
+  if(typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger);
+})();
+
+/* ══ DEPLOYMENT FIXES — GSAP + CDN GUARDS ══ */
+(function(){
+  // Marcar body como gsap-ready cuando está disponible
+  if(typeof gsap !== 'undefined'){
+    document.body.classList.add('gsap-ready');
+  }
+
+  // Fallback: si GSAP no cargó, mostrar todo de una vez con CSS
+  if(typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined'){
+    console.warn('TudelaSec: GSAP/ST not loaded, using CSS fallback');
+    // Mostrar reveal-wraps con CSS animation
+    document.querySelectorAll('.reveal-inner').forEach(function(el){
+      el.style.animation = 'revealUp 0.8s ease forwards';
+      el.style.animationPlayState = 'running';
+    });
+    // Mostrar hero
+    ['#hero-tag','#hero-sub','#hero-ctas','#hero-scroll','#hero-bounty'].forEach(function(s){
+      var el = document.querySelector(s);
+      if(el){ el.style.opacity='1'; el.style.transform='translateY(0)'; }
+    });
+    document.querySelectorAll('#hero-h1 .line span').forEach(function(el){
+      el.style.opacity='1'; el.style.transform='translateY(0)';
+    });
+    // Preloader exit sin GSAP
+    var pl = document.getElementById('preloader');
+    if(pl){ setTimeout(function(){ pl.classList.add('exit'); }, 1500); }
+    return;
+  }
+
+  // Si GSAP SÍ está disponible, registrar ST inmediatamente
+  if(typeof ScrollTrigger !== 'undefined'){
+    gsap.registerPlugin(ScrollTrigger);
+  }
+})();
+
 
 
 const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -2330,11 +2359,15 @@ const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   if(reduce){ pl.classList.add('exit'); return; }
 
   // Stagger letter animation
-  letters.forEach((l,i) => {
-    setTimeout(() => {
-      gsap.to(l, { y:0, opacity:1, duration:0.5, ease:'power3.out' });
-    }, i * 60);
-  });
+  if(typeof gsap !== 'undefined'){
+    letters.forEach((l,i) => {
+      setTimeout(() => {
+        gsap.to(l, { y:0, opacity:1, duration:0.5, ease:'power3.out' });
+      }, i * 60);
+    });
+  } else {
+    letters.forEach(function(l){ l.style.transform='translateY(0)'; l.style.opacity='1'; });
+  }
 
   let pct = 0;
   const iv = setInterval(() => {
@@ -2354,9 +2387,18 @@ const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 /* ══ HERO REVEAL ══ */
 function heroReveal(){
   if(reduce) return;
-  gsap.to('#hero-tag', { opacity:1, y:0, duration:0.7, ease:'power3.out', delay:0.1 });
-  gsap.to('#hero-h1 .line span', { y:0, opacity:1, duration:0.9, ease:'power4.out', stagger:0.12, delay:0.25 });
-  gsap.to('#hero-sub', { opacity:1, y:0, duration:0.7, ease:'power3.out', delay:0.55 });
+  if(typeof gsap !== 'undefined'){
+    gsap.to('#hero-tag', { opacity:1, y:0, duration:0.7, ease:'power3.out', delay:0.1 });
+    gsap.to('#hero-h1 .line span', { y:0, opacity:1, duration:0.9, ease:'power4.out', stagger:0.12, delay:0.25 });
+    gsap.to('#hero-sub', { opacity:1, y:0, duration:0.7, ease:'power3.out', delay:0.55 });
+  } else {
+    ['#hero-tag','#hero-sub','#hero-ctas','#hero-scroll'].forEach(function(s){
+      var el=document.querySelector(s); if(el){el.style.opacity='1';el.style.transform='none';}
+    });
+    document.querySelectorAll('#hero-h1 .line span').forEach(function(el){
+      el.style.opacity='1';el.style.transform='none';
+    });
+  }
   gsap.to('#hero-ctas', { opacity:1, y:0, duration:0.7, ease:'power3.out', delay:0.7 });
   gsap.to('#hero-scroll', { opacity:1, duration:1, delay:1.2 });
   showToast('TudelaSec', 'Sistema inicializado', 'info', 3000);
@@ -2663,7 +2705,7 @@ if(typeof THREE !== 'undefined' && !reduce){
 
 /* ══ GSAP SCROLL REVEALS ══ */
 if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
-  gsap.registerPlugin(ScrollTrigger);
+  // ScrollTrigger ya registrado al inicio
   document.querySelectorAll('.reveal-wrap').forEach(wrap=>{
     const inner = wrap.querySelector('.reveal-inner');
     if(!inner) return;
@@ -3843,59 +3885,6 @@ document.querySelectorAll('.finding, .exp-card, .stat-card, .osint-card, .dork-c
   el.classList.add('beam-card');
 });
 
-/* ============================================================
-   AMBIENT DRAGONS per section (reemplaza recuadros)
-   ============================================================ */
-if(!reduce) {
-  const dragonConfigs = [
-    { id:'sobre-mi',    size:360, top:'10%',    left:'-40px',  flip: false },
-    { id:'habilidades', size:340, top:'20%',    right:'-40px', flip: true  },
-    { id:'hallazgos',   size:380, top:'5%',     left:'-50px',  flip: false },
-    { id:'osint',       size:340, bottom:'5%',  right:'-30px', flip: true  },
-    { id:'cheatsheet',  size:350, top:'35%',    left:'-40px',  flip: false },
-    { id:'formacion',   size:320, top:'20%',    right:'-40px', flip: true  },
-    { id:'arsenal',     size:350, bottom:'10%', left:'-30px',  flip: false },
-    { id:'conocimiento',size:340, top:'15%',    right:'-40px', flip: true  },
-    { id:'contacto',    size:320, top:'15%',    right:'-30px', flip: true  },
-  ];
-
-  const AMBIENT_DRAGON_SVG = [
-    '<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">',
-    '<g fill="var(--acc)" stroke="var(--acc)" stroke-linejoin="round" stroke-linecap="round">',
-    '<polygon fill-opacity="0.8" points="55,40 88,10 80,28 90,16 80,36 66,40"/>',
-    '<path fill-opacity="0.3" d="M80 22 L68 38 M84 14 L72 36" stroke-width="1.5"/>',
-    '<ellipse cx="48" cy="60" rx="20" ry="16" fill-opacity="0.75"/>',
-    '<path d="M28 28 C24 36 26 46 32 52 L40 48 C36 44 34 38 34 32 Z"/>',
-    '<path d="M24 18 C18 14 10 16 10 24 C10 32 18 34 24 30 L32 30 C30 26 26 22 24 18 Z"/>',
-    '<path fill-opacity="0.9" d="M10 24 L2 27 L4 34 L14 30 Z"/>',
-    '<polygon points="18,17 14,4 24,14"/>',
-    '<polygon fill-opacity="0.85" points="23,14 21,5 28,12"/>',
-    '<circle cx="14" cy="23" r="3" fill="#0a0000" stroke="none"/>',
-    '<circle cx="15" cy="22" r="1.2" fill="#ffffff" stroke="none"/>',
-    '<path fill="none" stroke-width="6" d="M68 62 C80 66 84 76 80 82 C76 88 70 84 72 80"/>',
-    '<polygon points="80,82 88,77 82,88"/>',
-    '<path fill="none" stroke-width="3" d="M36 72 L30 84 M42 74 L40 86 M48 74 L50 86 M58 72 L54 82"/>',
-    '</g></svg>',
-  ].join('');
-
-  dragonConfigs.forEach(function(cfg) {
-    var sec = document.getElementById(cfg.id);
-    if(!sec) return;
-    var drag = document.createElement('div');
-    drag.className = 'sec-dragon-ambient';
-    drag.innerHTML = AMBIENT_DRAGON_SVG;
-    drag.style.width  = cfg.size + 'px';
-    drag.style.height = cfg.size + 'px';
-    if(cfg.top)    drag.style.top    = cfg.top;
-    if(cfg.bottom) drag.style.bottom = cfg.bottom;
-    if(cfg.left)   drag.style.left   = cfg.left;
-    if(cfg.right)  drag.style.right  = cfg.right;
-    if(cfg.flip)   drag.style.transform = 'scaleX(-1)';
-    drag.style.animationDelay = (Math.random() * 4) + 's';
-    sec.appendChild(drag);
-  });
-}
-
 /* ══ TARGET INPUT INTERACTIVO ══ */
 const AD_TOOLS = new Set([
   'enum_ad','bloodhound','kerb_atk','responder_relay',
@@ -4987,6 +4976,56 @@ const toolsDB = [
   });
   inp.addEventListener('keydown', function(e){ if(e.key==='Enter') btn.click(); });
 })();
+
+/* ============================================================
+   AMBIENT DRAGONS per section (Reemplazo de recuadros)
+   ============================================================ */
+if(!reduce) {
+  const dragonConfigs = [
+    { id:'sobre-mi',    size:360, top:'10%',  left:'-40px',  flip: false },
+    { id:'habilidades', size:340, top:'20%',  right:'-40px', flip: true  },
+    { id:'hallazgos',   size:380, top:'5%',   left:'-50px',  flip: false },
+    { id:'osint',       size:340, bottom:'5%',right:'-30px', flip: true  },
+    { id:'cheatsheet',  size:350, top:'35%',  left:'-40px',  flip: false },
+    { id:'arsenal',     size:340, top:'20%',  right:'-40px', flip: true  },
+    { id:'conocimiento',size:360, bottom:'8%',left:'-40px',  flip: false },
+    { id:'contacto',    size:320, top:'15%',  right:'-30px', flip: true  },
+  ];
+
+  const AMBIENT_DRAGON_SVG =
+    '<svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
+    '<g fill="var(--acc)" stroke="var(--acc)" stroke-linejoin="round" stroke-linecap="round">' +
+    '<polygon fill-opacity="0.8" points="55,40 88,10 80,28 90,16 80,36 66,40"/>' +
+    '<ellipse cx="48" cy="60" rx="20" ry="16" fill-opacity="0.75"/>' +
+    '<path d="M28 28 C24 36 26 46 32 52 L40 48 C36 44 34 38 34 32 Z"/>' +
+    '<path d="M24 18 C18 14 10 16 10 24 C10 32 18 34 24 30 L32 30 C30 26 26 22 24 18 Z"/>' +
+    '<path fill-opacity="0.9" d="M10 24 L2 27 L4 34 L14 30 Z"/>' +
+    '<polygon points="18,17 14,4 24,14"/>' +
+    '<polygon fill-opacity="0.85" points="23,14 21,5 28,12"/>' +
+    '<circle cx="14" cy="23" r="3" fill="#000" stroke="none"/>' +
+    '<circle cx="15" cy="22" r="1.2" fill="#fff" stroke="none"/>' +
+    '<path fill="none" stroke-width="6" d="M68 62 C80 66 84 76 80 82 C76 88 70 84 72 80"/>' +
+    '<polygon points="80,82 88,77 82,88"/>' +
+    '<path fill="none" stroke-width="3" d="M36 72 L30 84 M42 74 L40 86 M48 74 L50 86 M58 72 L54 82"/>' +
+    '</g></svg>';
+
+  dragonConfigs.forEach(function(cfg) {
+    const sec = document.getElementById(cfg.id);
+    if(!sec) return;
+    const drag = document.createElement('div');
+    drag.className = 'sec-dragon-ambient';
+    drag.innerHTML = AMBIENT_DRAGON_SVG;
+    drag.style.width  = cfg.size + 'px';
+    drag.style.height = cfg.size + 'px';
+    if(cfg.top)    drag.style.top    = cfg.top;
+    if(cfg.bottom) drag.style.bottom = cfg.bottom;
+    if(cfg.left)   drag.style.left   = cfg.left;
+    if(cfg.right)  drag.style.right  = cfg.right;
+    if(cfg.flip)   drag.style.transform = 'scaleX(-1)';
+    drag.style.animationDelay = (Math.random() * 4) + 's';
+    sec.appendChild(drag);
+  });
+}
 
 </script>
 </body>

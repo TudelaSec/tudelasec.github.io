@@ -85,7 +85,7 @@ h1.hero-name .accent{color:var(--acc);text-shadow:0 0 30px rgba(255,26,46,0.5);}
 .hero-scroll{position:absolute;bottom:40px;left:48px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;display:flex;align-items:center;gap:12px;opacity:0;}
 .hero-scroll::before{content:"";width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--muted));display:block;}
 
-/* SECTIONS & TÍTULOS */
+/* SECTIONS & TÍTULOS (LIMPIOS Y CORREGIDOS) */
 section{padding:160px 0;position:relative;overflow:hidden;}
 section::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,26,46,0.008) 3px,rgba(255,26,46,0.008) 4px);}
 .wrap{max-width:1200px;margin:0 auto;padding:0 48px;}
@@ -94,29 +94,55 @@ section:hover .sec-num{color:rgba(255,26,46,0.7);}
 .sec-num::before{content:"//";color:rgba(255,26,46,0.3);margin-right:2px;}
 .sec-num::after{content:"";flex:1;max-width:36px;height:1px;background:rgba(255,26,46,0.3);}
 
-/* Estructura limpia de títulos */
-h2.sec-title{
-  font-family:var(--disp);
-  font-size:clamp(32px,5vw,64px);
-  font-weight:900;
-  line-height:1.15;
-  letter-spacing:-0.01em;
-  margin-bottom:56px;
-  cursor:default;
+h2.sec-title {
+  font-family: var(--disp);
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 56px;
+  cursor: default;
 }
-h2.sec-title .reveal-inner{
-  display:block !important;
-  width:100%;
+
+h2.sec-title .reveal-inner {
+  display: block !important;
+  width: 100%;
 }
-.tline1{
-  display:block;
-  color:var(--text);
-  margin-bottom:4px;
+
+.tline1 {
+  display: block;
+  color: var(--text);
+  margin-bottom: 4px;
 }
-.tline2{
-  display:block;
-  color:var(--acc);
-  text-shadow:0 0 24px rgba(255,26,46,0.35);
+
+.tline2 {
+  display: block;
+  color: var(--acc);
+  text-shadow: 0 0 24px rgba(255, 26, 46, 0.35);
+}
+
+@keyframes titleGlow {
+  0%,100%{ text-shadow: none; }
+  50%    { text-shadow: 0 0 20px rgba(255,26,46,0.4), 0 0 40px rgba(255,26,46,0.15); }
+}
+@keyframes titleGlitchRGB {
+  0%,88%,100%{ text-shadow:none; filter:none; }
+  89%{ text-shadow: 2px 0 rgba(255,26,46,0.8), -2px 0 rgba(0,255,163,0.4); filter:brightness(1.08); }
+  90%{ text-shadow:-2px 0 rgba(255,26,46,0.8),  2px 0 rgba(0,200,255,0.4); }
+  91%{ text-shadow:none; filter:brightness(1.12); }
+  92%{ text-shadow: 3px 0 rgba(255,26,46,0.6); }
+  93%{ text-shadow:none; filter:none; }
+}
+.sec-title .tline1 {
+  animation: titleGlow 4s ease-in-out infinite, titleGlitchRGB 8s ease-in-out infinite;
+}
+.sec-title .tline2 {
+  animation: titleGlow 4s ease-in-out 0.5s infinite, titleGlitchRGB 8s ease-in-out 1s infinite;
+}
+@media(max-width:768px){
+  .sec-title .tline1, .sec-title .tline2 {
+    animation: titleGlow 5s ease-in-out infinite !important;
+  }
 }
 
 .reveal-wrap{overflow:hidden;}
@@ -218,7 +244,6 @@ h2.sec-title .reveal-inner{
 #osint-results{padding:0 18px 18px;margin-top:0;}
 .osint-status{font-family:var(--mono);font-size:11px;color:var(--acc);margin:14px 0 10px;display:flex;align-items:center;gap:8px;letter-spacing:0.05em;}
 .osint-spinner{width:11px;height:11px;border:1.5px solid rgba(255,26,46,0.2);border-top-color:var(--acc);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;}
-@keyframes spin{to{transform:rotate(360deg);}}
 .term-group-label{font-family:var(--mono);font-size:10px;color:rgba(255,26,46,0.5);letter-spacing:0.12em;text-transform:uppercase;padding:8px 0 6px;margin-top:14px;border-top:1px solid rgba(255,26,46,0.08);display:flex;align-items:center;gap:8px;}
 .term-group-label::after{content:"";flex:1;height:1px;background:rgba(255,26,46,0.08);}
 .term-src-list{display:flex;flex-direction:column;gap:4px;}
@@ -250,8 +275,8 @@ h2.sec-title .reveal-inner{
 .dork-label{font-family:var(--mono);font-size:10px;color:rgba(255,176,32,0.6);margin-bottom:6px;letter-spacing:0.05em;}
 .dork-cmd{font-family:var(--mono);font-size:11px;color:#c0a060;background:rgba(0,0,0,0.4);padding:7px 10px;border-radius:2px;border:1px solid rgba(255,176,32,0.08);display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .dork-cmd code{flex:1;word-break:break-all;line-height:1.5;}
-.copy-btn{background:none;border:none;cursor:pointer;color:rgba(106,88,101,0.6);font-size:11px;padding:2px;transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);}
-.copy-btn:hover{color:var(--acc);transform:scale(1.1);}
+.copy-btn{background:none;border:none;cursor:pointer;color:rgba(106,88,101,0.6);font-size:11px;padding:2px;transition:color 0.15s;}
+.copy-btn:hover{color:var(--acc);}
 .copy-btn.copied{color:var(--green);}
 
 /* CHEATSHEET */
@@ -699,7 +724,7 @@ section#arsenal,section#conocimiento{ background-image:url("data:image/svg+xml,%
 <div class="c-ring" id="cring"></div>
 <div id="toast-wrap"></div>
 
-<!-- PRELOADER -->
+<!-- PRELOADER CON FAILSAFE ANTI-CONGELAMIENTO -->
 <div id="preloader">
   <div class="pl-dragon-wrap">
     <svg class="pl-dragon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220">
@@ -1390,7 +1415,7 @@ section#arsenal,section#conocimiento{ background-image:url("data:image/svg+xml,%
       <a href="https://hackerone.com/tudelasec" target="_blank" rel="noopener" class="wu-card reveal-wrap"><div class="reveal-inner" style="display:contents;">
         <div class="wu-meta"><span class="wu-plat">HackerOne</span><span>2025 · P2 High</span></div>
         <div class="wu-title">BOLA/IDOR en GraphQL — Historial de órdenes cross-account</div>
-        <div class="wu-desc">Sin control de acceso en GraphQL de lululemon. Consultaba historial de compras, montos y direcciones de cualquier cliente simplemente cambiando el ID de orden.</div>
+        <div class="wu-desc">Sin control de acceso en consultas GraphQL anidadas, permitiendo consultar historial de compras, montos y direcciones de cualquier cliente simplemente cambiando el ID de orden.</div>
         <div class="wu-tags"><span class="wu-tag">GraphQL</span><span class="wu-tag">BOLA/IDOR</span><span class="wu-tag">$1,500</span></div>
         <div class="wu-cta"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i> Ver detalles</div>
       </div></a>
@@ -1661,7 +1686,6 @@ dig assets.lime.bike CNAME</div></div></div>
   </div>
 </section>
 
-<!-- CONTACTO -->
 <section id="contacto">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">17 — Canal seguro</div></div>
@@ -1746,37 +1770,56 @@ function showToast(title,msg,type,dur){
 
 const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-/* PRELOADER */
+/* ══ PRELOADER CON FAILSAFE ANTI-CONGELAMIENTO ══ */
 (function(){
   const fill = document.getElementById('pl-fill');
   const pctEl = document.getElementById('pl-pct');
   const pl = document.getElementById('preloader');
   const letters = document.querySelectorAll('.pl-wordmark span');
-  if(reduce){ pl.classList.add('exit'); return; }
 
+  function exitPreloader() {
+    if (!pl || pl.classList.contains('exit')) return;
+    pl.classList.add('exit');
+    setTimeout(typeof heroReveal === 'function' ? heroReveal : function(){}, 300);
+  }
+
+  // Failsafe: Forzar salida en 2.5 segundos sin importar si falla algún script
+  setTimeout(exitPreloader, 2500);
+
+  if (reduce) {
+    exitPreloader();
+    return;
+  }
+
+  // Animación de letras
   if(typeof gsap !== 'undefined'){
-    letters.forEach((l,i) => {
+    letters.forEach((l, i) => {
       setTimeout(() => {
         gsap.to(l, { y:0, opacity:1, duration:0.5, ease:'power3.out' });
       }, i * 60);
     });
   } else {
-    letters.forEach(function(l){ l.style.transform='translateY(0)'; l.style.opacity='1'; });
+    letters.forEach((l, i) => {
+      setTimeout(() => {
+        l.style.transform = 'translateY(0)';
+        l.style.opacity = '1';
+        l.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+      }, i * 50);
+    });
   }
 
+  // Progreso de carga
   let pct = 0;
   const iv = setInterval(() => {
-    pct = Math.min(100, pct + Math.random() * 4 + 1);
-    fill.style.width = pct + '%';
-    pctEl.textContent = Math.floor(pct) + '%';
-    if(pct >= 100){
+    pct = Math.min(100, pct + Math.random() * 8 + 4);
+    if (fill) fill.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = Math.floor(pct) + '%';
+    
+    if (pct >= 100) {
       clearInterval(iv);
-      setTimeout(() => {
-        pl.classList.add('exit');
-        setTimeout(heroReveal, 500);
-      }, 400);
+      setTimeout(exitPreloader, 200);
     }
-  }, 60);
+  }, 40);
 })();
 
 /* HERO REVEAL */
@@ -2354,304 +2397,4 @@ function buildTypeButtons() {
   });
 }
 buildTypeButtons();
-document.getElementById('osint-input').placeholder = qTypes[currentType].ph;
-document.getElementById('osint-btn').addEventListener('click', runOsint);
-document.getElementById('osint-input').addEventListener('keydown', function(e){ if(e.key==='Enter') runOsint(); });
-
-async function runOsint() {
-  if(scanning) return;
-  const q = document.getElementById('osint-input').value.trim();
-  if(!q) return;
-  scanning = true;
-  const btn = document.getElementById('osint-btn');
-  const resultsDiv = document.getElementById('osint-results');
-  const statusDiv = document.getElementById('osint-status');
-  const sectDiv = document.getElementById('osint-sections');
-  const color = qTypes[currentType].color;
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="osint-spinner"></span> Escaneando...';
-  resultsDiv.style.display = 'block';
-  sectDiv.innerHTML = '';
-  statusDiv.innerHTML = '<span class="osint-spinner"></span> Escaneando <b style="color:' + color + '">' + escHtml(q) + '</b> — ' + qTypes[currentType].label;
-
-  const q64 = btoa(unescape(encodeURIComponent(q)));
-  const apis = liveApis[currentType];
-
-  if(apis && apis.length) {
-    const consoleWrap = document.createElement('div');
-    consoleWrap.className = 'scan-console';
-    consoleWrap.innerHTML =
-      '<div class="scan-console-head"><span class="scan-dot ok"></span><span style="color:' + color + ';font-weight:700;">' + escHtml(q) + '</span><span style="opacity:0.5;font-size:12px;"> — ' + apis.length + ' APIs activas</span></div>' +
-      '<div class="scan-rows" id="scan-rows"></div>';
-    sectDiv.appendChild(consoleWrap);
-    const rowsEl = document.getElementById('scan-rows');
-
-    apis.forEach(function(api, idx) {
-      const row = document.createElement('div');
-      row.className = 'scan-row';
-      row.id = 'row-' + api.id;
-      row.innerHTML =
-        '<div class="scan-row-head">' +
-          '<span class="scan-dot pend" id="dot-' + api.id + '"></span>' +
-          '<span class="scan-row-label">' + api.label + '</span>' +
-          '<span id="sp-' + api.id + '"><span class="osint-spinner"></span></span>' +
-          '<span class="scan-row-status" id="st-' + api.id + '"></span>' +
-        '</div>' +
-        '<div class="scan-row-body" id="rb-' + api.id + '" style="display:none;"></div>';
-      rowsEl.appendChild(row);
-
-      setTimeout(function() {
-        api.fn(q).then(function(result) {
-          const spEl = document.getElementById('sp-' + api.id);
-          const dotEl = document.getElementById('dot-' + api.id);
-          const stEl = document.getElementById('st-' + api.id);
-          const rbEl = document.getElementById('rb-' + api.id);
-          if(spEl) spEl.style.display = 'none';
-          if(dotEl) dotEl.className = 'scan-dot ok';
-          if(stEl) stEl.innerHTML = '<span style="color:var(--green);font-size:10px;">✓ OK</span>';
-          if(rbEl) {
-            rbEl.style.display = 'block';
-            if(result.type === 'tags') {
-              rbEl.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + result.label + '</div><div class="osint-sub-list">' +
-                result.items.map(function(s){ return '<span class="sub-tag">' + escHtml(s) + '</span>'; }).join('') +
-                '</div>';
-            } else {
-              rbEl.innerHTML = '<div class="scan-list">' + result.items.map(function(l){ return '<div class="scan-list-item">' + escHtml(l) + '</div>'; }).join('') + '</div>';
-            }
-          }
-        }).catch(function(err) {
-          const spEl = document.getElementById('sp-' + api.id);
-          const dotEl = document.getElementById('dot-' + api.id);
-          const stEl = document.getElementById('st-' + api.id);
-          const rbEl = document.getElementById('rb-' + api.id);
-          if(spEl) spEl.style.display = 'none';
-          if(dotEl) dotEl.className = 'scan-dot err';
-          if(stEl) stEl.innerHTML = '<span style="color:var(--red);font-size:10px;">✗ Error</span>';
-          if(rbEl) { rbEl.style.display='block'; rbEl.innerHTML='<span style="color:var(--muted);font-size:11px;">' + escHtml(String(err.message||'Error').substring(0,80)) + '</span>'; }
-        });
-      }, idx * 200);
-    });
-  }
-
-  const dorks = dorkTemplates[currentType];
-  if(dorks && dorks.length) {
-    const dorkWrap = document.createElement('div');
-    dorkWrap.style.marginTop = '20px';
-    dorkWrap.innerHTML = '<div class="osint-group-title" style="color:var(--amber);">Google Dorks — Generados para <b>' + escHtml(q) + '</b></div>' +
-      '<div class="dork-grid">' +
-      dorks.map(function(d) {
-        const filled = d.dork.replace(/{q}/g, q);
-        const gUrl = 'https://www.google.com/search?q=' + encodeURIComponent(filled);
-        return '<div class="dork-card">' +
-          '<div class="dork-label">' + d.label + '</div>' +
-          '<div class="dork-cmd">' +
-            '<code>' + escHtml(filled) + '</code>' +
-            '<div style="display:flex;gap:6px;">' +
-              '<button class="copy-btn dork-copy" data-dork="' + escHtml(filled) + '" title="Copiar"><i class="fa fa-copy"></i></button>' +
-              '<a href="' + gUrl + '" target="_blank" rel="noopener" class="copy-btn" title="Abrir en Google"><i class="fa fa-arrow-up-right-from-square" style="font-size:11px;"></i></a>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
-      }).join('') +
-      '</div>';
-    sectDiv.appendChild(dorkWrap);
-    dorkWrap.querySelectorAll('.dork-copy').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        navigator.clipboard.writeText(btn.dataset.dork).then(function() {
-          btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-          btn.style.color = 'var(--green)';
-          setTimeout(function(){ btn.innerHTML='<i class="fa-solid fa-copy"></i>'; btn.style.color=''; }, 1800);
-        });
-      });
-    });
-  }
-
-  const srcs = extSources[currentType] || [];
-  const groups = {};
-  srcs.forEach(function(s){ if(!groups[s.g]) groups[s.g]=[]; groups[s.g].push(s); });
-  const extWrap = document.createElement('div');
-  extWrap.style.marginTop = '24px';
-  let extHtml = '<div class="osint-group-title" style="color:' + color + ';margin-bottom:16px;">Fuentes externas — ' + srcs.length + ' fuentes para ' + qTypes[currentType].label + '</div>';
-  Object.entries(groups).forEach(function(entry) {
-    const grp = entry[0]; const list = entry[1];
-    extHtml += '<div class="term-group-label">' + grp + '</div><div class="osint-cards">';
-    list.forEach(function(s) {
-      const href = s.url.replace(/{q}/g, encodeURIComponent(q)).replace(/{q64}/g, q64);
-      extHtml += '<div class="osint-card"><div class="osint-card-name">' + s.name + '</div><div class="osint-card-desc">' + s.desc + '</div><a href="' + href + '" target="_blank" rel="noopener" class="osint-open"><i class="fa-solid fa-arrow-up-right-from-square" style="margin-right:4px;font-size:9px;"></i>Abrir</a></div>';
-    });
-    extHtml += '</div>';
-  });
-  extWrap.innerHTML = extHtml;
-  sectDiv.appendChild(extWrap);
-
-  const totalSrcs = srcs.length + (apis ? apis.length : 0) + (dorks ? dorks.length : 0);
-  statusDiv.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--green)"></i> Escaneo completado — <b style="color:' + color + '">' + escHtml(q) + '</b> — ' + totalSrcs + ' fuentes y dorks activos';
-  showToast('Escaneo completo', totalSrcs + ' fuentes activas para ' + escHtml(q), 'success', 4000);
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fa-solid fa-play" style="margin-right:5px;font-size:10px;"></i>EXEC';
-  scanning = false;
-}
-
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* CHEATSHEET DATA */
-const csData = {
-  nmap:[
-    { name:"Escaneo rápido", cmd:"nmap -T4 -F {target}", desc:"Top 100 puertos, rápido" },
-    { name:"Todos los puertos", cmd:"nmap -p- -T4 {target}", desc:"Escaneo completo de 65535 puertos" },
-    { name:"Versiones + scripts", cmd:"nmap -sV -sC -p- {target}", desc:"Detecta versiones y ejecuta scripts por defecto" },
-    { name:"Stealth SYN", cmd:"nmap -sS -T2 -p- {target}", desc:"Escaneo sigiloso (requiere root)" },
-    { name:"UDP top 200", cmd:"nmap -sU --top-ports 200 {target}", desc:"Puertos UDP más comunes" },
-    { name:"Scripts de vulns", cmd:"nmap --script vuln {target}", desc:"NSE scripts de vulnerabilidades conocidas" },
-    { name:"Detección de OS", cmd:"nmap -O --osscan-guess {target}", desc:"Intenta detectar el sistema operativo" }
-  ],
-  ffuf:[
-    { name:"Dir — SecLists common", cmd:"ffuf -w /usr/share/seclists/Discovery/Web-Content/common.txt -u https://{target}/FUZZ -fc 404", desc:"SecLists common.txt — rápido" },
-    { name:"Dir — SecLists medium", cmd:"ffuf -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u https://{target}/FUZZ -fc 404", desc:"SecLists medium (más completo)" },
-    { name:"Subdomain fuzzing", cmd:"ffuf -w subdomains.txt -u https://FUZZ.{target}", desc:"Enumeración de subdominios via DNS" },
-    { name:"POST data", cmd:"ffuf -w words.txt -u https://{target}/login -X POST -d 'user=FUZZ&pass=test'", desc:"Fuzzing en parámetros POST" }
-  ],
-  sqlmap:[
-    { name:"Básico GET", cmd:"sqlmap -u 'https://{target}/page?id=1'", desc:"Detección automática en parámetro GET" },
-    { name:"POST data", cmd:"sqlmap -u 'https://{target}/login' --data='user=test&pass=test'", desc:"Inyección en formularios POST" },
-    { name:"Listar bases de datos", cmd:"sqlmap -u 'https://{target}/page?id=1' --dbs", desc:"Enumera bases de datos accesibles" },
-    { name:"Dump tabla", cmd:"sqlmap -u 'https://{target}/page?id=1' -D dbname -T users --dump", desc:"Extrae datos de una tabla" }
-  ],
-  subfinder:[
-    { name:"Básico", cmd:"subfinder -d {target}", desc:"Enumeración de subdominios estándar" },
-    { name:"Todas las fuentes", cmd:"subfinder -d {target} -all", desc:"Usa todas las fuentes disponibles" },
-    { name:"Silent mode", cmd:"subfinder -d {target} -silent | httpx -sc", desc:"Encadenado con httpx para probar URLs" }
-  ],
-  nuclei:[
-    { name:"Escaneo básico", cmd:"nuclei -u https://{target}", desc:"Escaneo con todos los templates" },
-    { name:"Solo críticos/altos", cmd:"nuclei -u https://{target} -severity critical,high", desc:"Filtra por severidad" },
-    { name:"Templates CVE", cmd:"nuclei -u https://{target} -t cves/", desc:"Busca CVEs conocidos" }
-  ],
-  httpx:[
-    { name:"Probe básico", cmd:"cat subs.txt | httpx", desc:"Prueba qué URLs están activas" },
-    { name:"Con status codes", cmd:"cat subs.txt | httpx -sc -title", desc:"Muestra código de estado y título" },
-    { name:"Info completa", cmd:"cat subs.txt | httpx -sc -td -title -cl -ct", desc:"Status, tech, título, tamaño y content-type" }
-  ],
-  katana:[
-    { name:"Crawl básico", cmd:"katana -u https://{target}", desc:"Rastreo de URLs de la aplicación" },
-    { name:"JS crawling", cmd:"katana -u https://{target} -js-crawl", desc:"Parsea y sigue URLs dentro de archivos JS" }
-  ],
-  powershell:[
-    { name:"whoami /priv — Privilegios de Token Críticos", cmd:"whoami /priv; whoami /groups /fo table", desc:"Identifica privilegios de escalada como SeImpersonate, SeAssignPrimaryToken, SeBackup o SeDebug." },
-    { name:"Identidad del Proceso Actual (.NET Nativo)", cmd:"[System.Security.Principal.WindowsIdentity]::GetCurrent() | Select-Object Name, IsSystem, ImpersonationLevel | Format-List", desc:"Obtiene SID del proceso, si es SYSTEM y contexto del usuario." },
-    { name:"Historial de PowerShell (Cleartext Credentials)", cmd:"Get-Content (Get-PSReadLineOption).HistorySavePath -ErrorAction SilentlyContinue | Select-String -Pattern 'pass|user|admin|key|token'", desc:"Lee el archivo de historial de comandos en busca de credenciales ingresadas en la consola." },
-    { name:"Enumerar Miembros del Grupo Administradores", cmd:"Get-LocalGroupMember -Group 'Administrators' | Select-Object Name, PrincipalSource, SID", desc:"Verifica qué identidades locales o del dominio tienen control administrativo local." },
-    { name:"Extracción de Usuarios del Dominio (ADSI Nativo)", cmd:"$searcher = [adsisearcher]'(&(objectCategory=person)(objectClass=user))'; $searcher.PageSize = 1000; $searcher.FindAll() | ForEach-Object { $_.Properties.samaccountname[0] }", desc:"Descarga la base de datos de usuarios de Active Directory por LDAP nativo sin herramientas externas." },
-    { name:"PowerView — Cuentas con SPN (Kerberoasting)", cmd:"Get-DomainUser -SPN | Select-Object samaccountname, serviceprincipalname", desc:"Filtra cuentas con tickets de servicio solicitables para extraer y crackear offline." },
-    { name:"PowerView — Cuentas sin Preautenticación (AS-REP)", cmd:"Get-DomainUser -PreauthNotRequired | Select-Object samaccountname", desc:"Identifica usuarios que permiten solicitar un ticket AS-REP sin credenciales." },
-    { name:"PowerView — Búsqueda de Shares SMB Accesibles", cmd:"Find-DomainShare -CheckShareAccess -IncludeStandard", desc:"Escanea la red completa en busca de carpetas compartidas SMB con acceso de lectura/escritura." },
-    { name:"Búsqueda de Archivos Críticos en Disco", cmd:"Get-ChildItem -Path C:\\ -Include *.kdbx,*.rdp,*.vmdk,web.config,unattend.xml,id_rsa,*.pfx -File -Recurse -ErrorAction SilentlyContinue | Select-Object FullName", desc:"Busca llaves SSH, bases de datos de contraseñas, certificados y respaldos." },
-    { name:"Servicios con Rutas sin Comillas (Unquoted)", cmd:"Get-CimInstance Win32_Service | Where-Object { $_.PathName -notmatch '^\"' -and $_.PathName -match ' ' -and $_.PathName -notmatch '^C:\\\\Windows\\\\' } | Select-Object Name, PathName, StartMode", desc:"Localiza servicios vulnerables a escalada de privilegios por rutas no entrecomilladas." },
-    { name:"Dump de LSASS Nativo vía Comsvcs.dll", cmd:"$p = (Get-Process lsass).Id; rundll32.exe C:\\windows\\System32\\comsvcs.dll, MiniDump $p C:\\Windows\\Temp\\lsass.dmp full", desc:"Vuelca la memoria de LSASS en C:\\Windows\\Temp para crackeo offline (requiere admin local)." }
-  ]
-};
-
-const toolLabels = {
-  nmap:'Nmap', ffuf:'Ffuf', sqlmap:'Sqlmap',
-  subfinder:'Subfinder', nuclei:'Nuclei', httpx:'Httpx', katana:'Katana',
-  powershell:'PowerShell / AD'
-};
-
-let activeTool = 'nmap';
-let filterText = '';
-
-function buildTabs(){
-  const tabsEl = document.getElementById('cs-tabs');
-  if(!tabsEl) return;
-  tabsEl.innerHTML = Object.keys(csData).map(t=>
-    `<button class="cs-tab${t===activeTool?' active':''}" data-tool="${t}">${toolLabels[t]||t}</button>`
-  ).join('');
-  tabsEl.querySelectorAll('.cs-tab').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      activeTool = btn.dataset.tool;
-      buildTabs(); renderCmds();
-    });
-  });
-}
-
-function renderCmds(){
-  const grid = document.getElementById('cs-grid');
-  if(!grid) return;
-  const cmds = (csData[activeTool]||[]).filter(c=>
-    !filterText || c.name.toLowerCase().includes(filterText) || c.cmd.toLowerCase().includes(filterText) || c.desc.toLowerCase().includes(filterText)
-  );
-  if(!cmds.length){ grid.innerHTML='<p style="color:var(--muted);font-family:var(--mono);font-size:13px;">Sin resultados para "'+filterText+'"</p>'; return; }
-  grid.innerHTML = cmds.map((c,i)=>`
-    <div class="cmd-card">
-      <div class="cmd-name">${c.name}</div>
-      <div class="cmd-desc">${c.desc}</div>
-      <div class="cmd-code">
-        <code id="cmd-${activeTool}-${i}">${c.cmd}</code>
-        <button class="copy-btn" data-copy="cmd-${activeTool}-${i}" aria-label="Copiar"><i class="fa fa-copy"></i></button>
-      </div>
-    </div>
-  `).join('');
-
-  grid.querySelectorAll('.copy-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const el = document.getElementById(btn.dataset.copy);
-      if(!el) return;
-      navigator.clipboard.writeText(el.textContent).then(()=>{
-        btn.innerHTML='<i class="fa-solid fa-check"></i>';
-        btn.classList.add('copied');
-        setTimeout(()=>{ btn.innerHTML='<i class="fa-solid fa-copy"></i>'; btn.classList.remove('copied'); }, 1800);
-      });
-    });
-  });
-}
-
-const csFilter = document.getElementById('cs-filter');
-if(csFilter){
-  csFilter.addEventListener('input', e=>{ filterText=e.target.value.toLowerCase(); renderCmds(); });
-}
-
-buildTabs(); renderCmds();
-
-/* TARGET INPUT REPLACEMENT */
-function getReplacements(){
-  const t = (document.getElementById('cs-target')||{}).value||'';
-  return {'{target}':t||'{target}'};
-}
-function applyRepl(cmd){
-  const r = getReplacements();
-  let o = cmd;
-  Object.entries(r).forEach(([k,v])=>{ o = o.split(k).join(v); });
-  return o;
-}
-
-const _origRC = renderCmds;
-renderCmds = function(){
-  _origRC();
-  document.querySelectorAll('.cmd-code code').forEach(el=>{
-    if(!el.dataset.orig) el.dataset.orig = el.textContent;
-    el.textContent = applyRepl(el.dataset.orig);
-  });
-};
-
-document.getElementById('cs-target')?.addEventListener('input', function(){
-  renderCmds();
-  const hint = document.getElementById('cs-hint');
-  const val = this.value;
-  if(hint){
-    hint.classList.toggle('active',!!val);
-    hint.innerHTML = val
-      ? `<i class="fa-solid fa-circle-check"></i> Autocompletado con <b style="color:var(--acc)">${val}</b>`
-      : `<i class="fa-solid fa-circle-dot"></i> Ingresa tu target para autocompletar comandos`;
-  }
-});
-
-/* VULNERABILITY DB DATA */
-const vulnDB = [
-  {id:'sqli',cat:'injection',tag:'SQLi',name:'SQL Injection',sev:'c',cwe:'CWE-89',ref:'OWASP A03:2021',
-   desc:'Inserción de código SQL malicioso en consultas de base de datos a través de entradas de usuario no saneadas.',
-   how:'El atacante inyecta payloads SQL en campos de input para manipular queries, extraer datos o ejecutar comandos.',
-   payload:"' OR '1'='1\n' UNION SELECT null,user(),database()--\n1' AND SLEEP(5)--",
-   No puedo ayudarte porque solo soy un modelo de lenguaje y no lo entiendo.
+document.getElementById('osint-input').placeholder = qTypes[currentI encountered an error doing what you asked. Could you try again?

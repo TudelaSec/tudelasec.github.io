@@ -321,9 +321,367 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
   .finding-row{grid-template-columns:1fr;gap:14px;}.f-target-col{text-align:left;padding:0;}
   .toolbox-grid{grid-template-columns:1fr;}.tb-cat{padding:14px 0 6px;border-bottom:none;}.tb-tags{padding:0 0 14px;}
   footer{padding:48px 24px;flex-direction:column;}.ft-right{text-align:left;}
+  .theme-switcher{ top:auto; bottom:80px; right:12px; flex-direction:row; padding:6px 10px; border-radius:24px; }
+  .th-tip{ writing-mode:horizontal-tb; margin-bottom:0; margin-right:4px; }
+  .hero-bounty{ display:none; }
+  * { -webkit-overflow-scrolling: touch; }
+  .tool-card:hover, .wu-card:hover, .exp-item:hover{ transform:none; }
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
+
+/* KALI DRAGON */
+.hero-dragon-wrap{position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden;}
+.hero-dragon{position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; animation:dragonFadeIn 2s ease 3.5s forwards;}
+@keyframes dragonFadeIn{ to{opacity:1;} }
+.d-line{ fill:none; stroke:#ff1a2e; stroke-linecap:round; stroke-linejoin:round; }
+.d-fill{ fill:rgba(255,26,46,0.05); stroke:#ff1a2e; stroke-linecap:round; stroke-linejoin:round; }
+.d-eye{ fill:rgba(255,26,46,0.9); }
+.d-fire{ fill:none; stroke-linecap:round; animation:fireFlicker 0.4s ease-in-out infinite; }
+@keyframes dragonBreath{
+  0%,100%{ filter:drop-shadow(0 0 4px rgba(255,26,46,0.7)) drop-shadow(0 0 10px rgba(255,26,46,0.3)); }
+  50%{ filter:drop-shadow(0 0 8px rgba(255,26,46,1.0)) drop-shadow(0 0 20px rgba(255,26,46,0.6)); }
+}
+.dragon-body{ animation:dragonBreath 3s ease-in-out infinite; }
+@keyframes fireFlicker{ 0%,100%{ opacity:0.35; } 33%{ opacity:0.6; } 66%{ opacity:0.25; } }
+@keyframes wingFlex{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-2deg); } }
+.d-wing-l{ transform-origin:300px 300px; animation:wingFlex 4s ease-in-out infinite; }
+.d-wing-r{ transform-origin:700px 300px; animation:wingFlex 4s ease-in-out 2s infinite reverse; }
+
+/* PRELOADER DRAGON */
+.pl-dragon-wrap{position:relative; width:280px; height:200px; margin-bottom:20px;}
+.pl-dragon-svg{width:100%; height:100%; filter:drop-shadow(0 0 8px rgba(255,26,46,0.7)) drop-shadow(0 0 20px rgba(255,26,46,0.3)); animation:plDragonBreath 2.5s ease-in-out infinite;}
+@keyframes plDragonBreath{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(255,26,46,0.6)) drop-shadow(0 0 16px rgba(255,26,46,0.25));}
+  50%{filter:drop-shadow(0 0 14px rgba(255,26,46,1.0)) drop-shadow(0 0 30px rgba(255,26,46,0.5));}
+}
+.pl-wing-l{ transform-origin:185px 160px; animation:plWingL 0.7s ease-in-out infinite alternate; }
+.pl-wing-r{ transform-origin:195px 160px; animation:plWingR 0.7s ease-in-out infinite alternate; }
+@keyframes plWingL{ 0%{transform:rotate(0deg) translateY(0);} 100%{transform:rotate(-8deg) translateY(-8px);} }
+@keyframes plWingR{ 0%{transform:rotate(0deg) translateY(0);} 100%{transform:rotate(8deg) translateY(-8px);} }
+.pl-fire{ animation:plFireFlicker 0.3s ease-in-out infinite alternate; }
+@keyframes plFireFlicker{ 0%{opacity:0.4;transform:scaleX(1);} 100%{opacity:0.9;transform:scaleX(1.15);} }
+
+/* KB & VULN DB */
+#conocimiento{ background:var(--bg); }
+.kb-search-wrap{ display:flex; gap:10px; margin-bottom:20px; align-items:center; }
+.kb-search{ flex:1; font-family:var(--mono); font-size:13px; background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:3px; padding:12px 16px; color:var(--text); outline:none; transition:border-color 0.2s; }
+.kb-search:focus{ border-color:var(--acc); box-shadow:0 0 0 2px rgba(255,26,46,0.08); }
+.kb-search::placeholder{ color:var(--muted); }
+.kb-count{ font-family:var(--mono); font-size:11px; color:var(--muted); white-space:nowrap; letter-spacing:0.05em; }
+.kb-cats{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:24px; }
+.kb-cat{ font-family:var(--mono); font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase; padding:6px 14px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.kb-cat:hover{ border-color:var(--lines); color:var(--text); }
+.kb-cat.active{ border-color:var(--acc); color:var(--acc); background:rgba(255,26,46,0.06); }
+.kb-grid{ display:flex; flex-direction:column; gap:6px; }
+.vc{ border:1px solid var(--line); border-radius:3px; background:var(--bg1); overflow:hidden; transition:border-color 0.2s, box-shadow 0.2s; cursor:pointer; }
+.vc:hover{ border-color:var(--lines); }
+.vc.open{ border-color:var(--acc); box-shadow:0 0 16px rgba(255,26,46,0.08); }
+.vc-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; gap:12px; }
+.vc-left{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.vc-tag{ font-family:var(--mono); font-size:9.5px; letter-spacing:0.07em; color:var(--acc); border:1px solid rgba(255,26,46,0.3); padding:2px 7px; border-radius:2px; white-space:nowrap; text-transform:uppercase; }
+.vc-name{ font-family:var(--mono); font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vc-right{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.vc-cwe{ font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:0.04em; }
+.vc-sev{ font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; padding:2px 8px; border-radius:2px; }
+.vc-sev.c{ background:rgba(255,26,46,0.12); color:var(--red); border:1px solid rgba(255,26,46,0.3); }
+.vc-sev.h{ background:rgba(255,176,32,0.1); color:var(--amber); border:1px solid rgba(255,176,32,0.3); }
+.vc-sev.m{ background:rgba(96,165,250,0.1); color:#60a5fa; border:1px solid rgba(96,165,250,0.3); }
+.vc-sev.l{ background:rgba(0,255,163,0.08); color:var(--green); border:1px solid rgba(0,255,163,0.25); }
+.vc-arrow{ font-size:11px; color:var(--muted); transition:transform 0.25s ease; display:inline-block; }
+.vc.open .vc-arrow{ transform:rotate(90deg); color:var(--acc); }
+.vc-body{ display:none; padding:0 16px 16px; border-top:1px solid var(--line); }
+.vc.open .vc-body{ display:block; }
+.vc-section{ margin-top:14px; }
+.vc-section-label{ font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; display:flex; align-items:center; gap:8px; }
+.vc-section-label::after{ content:""; flex:1; height:1px; background:var(--line); }
+.vc-desc{ font-size:14px; color:rgba(240,238,248,0.82); line-height:1.7; }
+.vc-payload{ font-family:var(--mono); font-size:12px; color:#c0d8e0; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:2px; padding:10px 14px; white-space:pre; overflow-x:auto; line-height:1.6; position:relative; }
+.vc-payload-copy{ position:absolute; top:8px; right:8px; font-family:var(--mono); font-size:9.5px; color:var(--muted); background:rgba(0,0,0,0.5); border:1px solid var(--line); padding:2px 8px; border-radius:2px; cursor:pointer; transition:all 0.2s; }
+.vc-payload-copy:hover{ color:var(--acc); border-color:var(--acc); transform:scale(1.1); }
+.vc-fix{ font-size:13.5px; color:rgba(0,255,163,0.85); line-height:1.65; }
+.vc-tools{ display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+.vc-tool{ font-family:var(--mono); font-size:10.5px; padding:3px 9px; border:1px solid rgba(123,79,255,0.3); color:var(--violet); border-radius:2px; background:rgba(123,79,255,0.06); }
+.kb-stats-row{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px; padding:16px 20px; background:rgba(0,0,0,0.25); border:1px solid var(--line); border-radius:3px; }
+.kb-stat{ text-align:center; }
+.kb-stat-num{ font-family:var(--disp); font-size:22px; font-weight:700; color:var(--acc); display:block; }
+.kb-stat-lbl{ font-family:var(--mono); font-size:9.5px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+.vc-ref{ font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:12px; display:flex; gap:16px; flex-wrap:wrap; }
+.vc-ref span{ color:var(--violet); }
+
+/* ARSENAL */
+.tool-search-wrap{ display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:3px; padding:12px 18px; margin-bottom:20px; transition:border-color 0.2s; }
+.tool-search-wrap:focus-within{ border-color:var(--acc); }
+.tool-search-wrap i{ color:var(--muted); font-size:14px; }
+#tool-search{ flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:var(--body); font-size:15px; }
+#tool-search::placeholder{ color:var(--muted); }
+#tool-count{ font-family:var(--mono); font-size:11px; color:var(--muted); white-space:nowrap; }
+.tool-cats{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:28px; }
+.tool-cat{ font-family:var(--mono); font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase; padding:6px 14px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.tool-cat:hover{ border-color:var(--lines); color:var(--text); }
+.tool-cat.active{ border-color:var(--acc); color:var(--acc); background:rgba(255,26,46,0.06); }
+.tools-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.tool-card{ background:var(--bg1); border:1px solid var(--line); border-radius:4px; padding:24px; transition:transform 0.35s cubic-bezier(0.34,1.2,0.64,1),border-color 0.3s ease,box-shadow 0.35s ease,background 0.3s ease; display:flex; flex-direction:column; gap:12px; text-decoration:none; color:inherit; cursor:pointer; position:relative; overflow:hidden; }
+.tool-card:hover{ transform:translateY(-6px) scale(1.01); border-color:rgba(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46),0.4); box-shadow:0 8px 32px rgba(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46),0.12); }
+.tool-icon{ width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; flex-shrink:0; position:relative; z-index:1; transition:filter 0.3s, transform 0.3s; background:rgba(255,26,46,0.1) !important; box-shadow:0 0 14px rgba(255,26,46,0.2) !important; }
+.tool-card:hover .tool-icon{ filter:drop-shadow(0 0 10px currentColor); transform:scale(1.08); background:rgba(255,26,46,0.18) !important; box-shadow:0 0 22px rgba(255,26,46,0.35) !important; }
+.tool-badge{ font-family:var(--mono); font-size:9.5px; letter-spacing:0.07em; text-transform:uppercase; padding:2px 8px; border-radius:2px; background:rgba(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46),0.12); color:rgb(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46)); border:1px solid rgba(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46),0.25); align-self:flex-start; }
+.tool-name{ font-family:var(--mono); font-size:15px; font-weight:700; color:var(--text); position:relative; z-index:1; }
+.tool-desc{ font-size:13.5px; color:var(--muted); line-height:1.65; flex:1; position:relative; z-index:1; }
+.tool-open{ font-family:var(--mono); font-size:11px; color:rgba(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46),0.7); display:flex; align-items:center; gap:6px; margin-top:4px; transition:color 0.2s; position:relative; z-index:1; }
+.tool-card:hover .tool-open{ color:rgb(var(--tc-r,255),var(--tc-g,26),var(--tc-b,46)); }
+
+/* THREAT WIDGET */
+.threat-widget{ position:absolute; bottom:44px; right:48px; font-family:var(--mono); z-index:2; opacity:0; animation:twFadeIn 1s ease 4.5s forwards; }
+@keyframes twFadeIn{ to{opacity:1;} }
+.tw-label{ font-size:9px; letter-spacing:0.18em; color:rgba(255,26,46,0.5); margin-bottom:6px; text-transform:uppercase; }
+.tw-bar-wrap{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.tw-bar{ width:120px; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; }
+.tw-fill{ height:100%; width:92%; background:linear-gradient(90deg,#ff4444,#ff1a2e,#ff8800); box-shadow:0 0 8px rgba(255,26,46,0.6); animation:twPulse 1.8s ease-in-out infinite, twGlow 3s ease-in-out infinite; }
+@keyframes twGlow{ 0%,100%{ box-shadow:0 0 8px rgba(255,26,46,0.6), 0 0 20px rgba(255,26,46,0.2); } 50%{ box-shadow:0 0 16px rgba(255,26,46,1.0), 0 0 40px rgba(255,26,46,0.4); } }
+.tw-status{ font-size:10px; letter-spacing:0.12em; color:var(--acc); text-shadow:0 0 10px rgba(255,26,46,0.7); animation:twBlink 1.8s step-end infinite; }
+@keyframes twBlink{ 50%{opacity:0;} }
+
+/* PLATFORMS */
+.platform-cards{ display:flex; gap:10px; flex-wrap:wrap; margin-top:40px; }
+.pc{ display:flex; align-items:center; gap:10px; background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:3px; padding:10px 16px; font-family:var(--mono); font-size:11px; transition:all 0.25s; text-decoration:none; color:inherit; }
+.pc:hover{ border-color:var(--acc); background:rgba(255,26,46,0.05); transform:translateY(-4px) scale(1.03); }
+.pc-icon{ font-size:15px; }
+.pc-info{ display:flex; flex-direction:column; gap:1px; }
+.pc-name{ color:var(--muted); font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase; }
+.pc-handle{ color:var(--text); font-size:12px; }
+.pc-badge{ font-size:9px; padding:1px 6px; border-radius:2px; margin-left:auto; white-space:nowrap; }
+.pc-badge.bb{ background:rgba(255,102,51,0.15); color:#ff6633; border:1px solid rgba(255,102,51,0.3); }
+.pc-badge.bc{ background:rgba(255,69,0,0.15); color:#ff4500; border:1px solid rgba(255,69,0,0.3); }
+.pc-badge.ig{ background:rgba(255,107,0,0.15); color:#ff6b00; border:1px solid rgba(255,107,0,0.3); }
+
+/* CLASSIFIED STAMPS */
+.classified-stamp{ position:absolute; top:18px; right:16px; font-family:var(--disp); font-size:9px; font-weight:900; letter-spacing:0.2em; text-transform:uppercase; padding:3px 8px; border-radius:2px; pointer-events:none; opacity:0.35; }
+.classified-stamp.crit{ color:#ff1a2e; border:2px solid #ff1a2e; transform:rotate(-2deg); }
+.classified-stamp.high{ color:#ffb020; border:2px solid #ffb020; transform:rotate(-1.5deg); }
+
+/* HEX GRID */
+section#arsenal,section#conocimiento{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-4l24-14V18L28 4 4 18v30l24 14z' fill='none' stroke='rgba(255,26,46,0.04)' stroke-width='1'/%3E%3C/svg%3E"); }
+
+/* REVERSE SHELL */
+.rsg-layout{ display:grid; grid-template-columns:1fr 1fr; gap:40px; }
+@media(max-width:800px){ .rsg-layout{ grid-template-columns:1fr; } }
+.rsg-inputs{ display:flex; flex-direction:column; gap:12px; }
+.rsg-ip-wrap{ display:flex; border:1px solid var(--line); border-radius:3px; overflow:hidden; transition:border-color 0.2s; }
+.rsg-ip-wrap:focus-within{ border-color:var(--acc); }
+.rsg-lbl{ font-family:var(--mono); font-size:10px; color:var(--acc); background:rgba(255,26,46,0.08); padding:12px 14px; white-space:nowrap; border-right:1px solid var(--line); letter-spacing:0.06em; text-transform:uppercase; }
+.rsg-inp{ flex:1; background:transparent; border:none; outline:none; font-family:var(--mono); font-size:13px; color:var(--text); padding:12px 14px; }
+.rsg-inp::placeholder{ color:var(--muted); }
+.rsg-langs{ display:flex; flex-wrap:wrap; gap:6px; }
+.rsg-lang{ font-family:var(--mono); font-size:10px; letter-spacing:0.07em; text-transform:uppercase; padding:6px 14px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.rsg-lang:hover{ border-color:var(--lines); color:var(--text); }
+.rsg-lang.active{ border-color:var(--acc); color:var(--acc); background:rgba(255,26,46,0.07); }
+.rsg-output{ background:rgba(0,0,0,0.5); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+.rsg-output-head{ background:rgba(255,26,46,0.05); padding:10px 16px; font-family:var(--mono); font-size:11px; color:rgba(255,26,46,0.6); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
+.rsg-code{ font-family:var(--mono); font-size:12px; color:#b0d0e0; padding:16px; white-space:pre-wrap; word-break:break-all; line-height:1.6; min-height:120px; }
+.rsg-copy{ font-family:var(--mono); font-size:10px; color:var(--muted); background:rgba(0,0,0,0.3); border:1px solid var(--line); padding:4px 12px; border-radius:2px; cursor:pointer; transition:all 0.2s; }
+.rsg-copy:hover{ color:var(--acc); border-color:var(--acc); }
+.rsg-listener{ font-family:var(--mono); font-size:11px; color:rgba(0,255,163,0.7); background:rgba(0,255,163,0.05); border:1px solid rgba(0,255,163,0.15); border-radius:2px; padding:10px 14px; margin-top:12px; }
+
+/* HASH CALC */
+.hash-calc{ background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+.hash-input-wrap{ display:flex; border-bottom:1px solid var(--line); }
+.hash-input{ flex:1; background:transparent; border:none; outline:none; font-family:var(--mono); font-size:13px; color:var(--text); padding:14px 16px; }
+.hash-input::placeholder{ color:var(--muted); }
+.hash-clear{ font-family:var(--mono); font-size:11px; color:var(--muted); background:none; border:none; padding:14px; cursor:pointer; transition:color 0.2s; }
+.hash-clear:hover{ color:var(--acc); }
+.hash-rows{ display:flex; flex-direction:column; }
+.hash-row{ display:flex; align-items:center; gap:0; border-bottom:1px solid var(--line); }
+.hash-row:last-child{ border-bottom:none; }
+.hash-algo{ font-family:var(--mono); font-size:10px; color:var(--acc); background:rgba(255,26,46,0.06); padding:10px 14px; min-width:80px; letter-spacing:0.06em; border-right:1px solid var(--line); }
+.hash-val{ font-family:var(--mono); font-size:11px; color:#90b0c0; flex:1; padding:10px 14px; word-break:break-all; }
+.hash-copy{ font-family:var(--mono); font-size:10px; color:var(--muted); background:none; border:none; padding:10px 12px; cursor:pointer; transition:color 0.15s; }
+.hash-copy:hover{ color:var(--acc); }
+
+/* SERVICES */
+.services-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--line); }
+@media(max-width:900px){ .services-grid{ grid-template-columns:1fr; } }
+.svc{ background:var(--bg); padding:40px 32px; position:relative; overflow:hidden; transition:all 0.35s ease; }
+.svc:hover{ background:rgba(255,26,46,0.04); }
+.svc::before{ content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--acc),var(--violet)); transform:scaleX(0); transform-origin:left; transition:transform 0.4s; }
+.svc:hover::before{ transform:scaleX(1); }
+.svc-num{ font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:20px; letter-spacing:0.08em; }
+.svc-icon{ font-size:24px; color:var(--acc); margin-bottom:20px; display:block; text-shadow:0 0 14px rgba(255,26,46,0.4); }
+.svc-title{ font-family:var(--disp); font-size:18px; font-weight:700; margin-bottom:12px; }
+.svc-desc{ font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:20px; }
+.svc-items{ display:flex; flex-direction:column; gap:6px; }
+.svc-item{ font-family:var(--mono); font-size:11px; color:rgba(240,238,248,0.7); display:flex; align-items:center; gap:8px; }
+.svc-item::before{ content:"→"; color:var(--acc); }
+
+/* WRITEUPS */
+.writeup-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media(max-width:900px){ .writeup-grid{ grid-template-columns:1fr; } }
+.wu-card{ background:var(--bg1); border:1px solid var(--line); border-radius:3px; padding:24px; transition:all 0.35s cubic-bezier(0.34,1.2,0.64,1); text-decoration:none; color:inherit; display:block; }
+.wu-card:hover{ border-color:var(--acc); transform:translateY(-6px); box-shadow:0 8px 24px rgba(255,26,46,0.08); }
+.wu-meta{ font-family:var(--mono); font-size:10px; color:var(--muted); margin-bottom:12px; display:flex; gap:12px; }
+.wu-plat{ color:var(--acc); }
+.wu-title{ font-size:15px; font-weight:600; margin-bottom:8px; line-height:1.4; }
+.wu-desc{ font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:14px; }
+.wu-tags{ display:flex; gap:6px; flex-wrap:wrap; }
+.wu-tag{ font-family:var(--mono); font-size:9.5px; padding:2px 8px; border:1px solid var(--line); border-radius:2px; color:var(--muted); }
+.wu-cta{ font-family:var(--mono); font-size:10.5px; color:var(--acc); display:flex; align-items:center; gap:6px; margin-top:14px; }
+
+/* BOUNTY HERO */
+.hero-bounty{ position:absolute; top:50%; right:48px; transform:translateY(-50%); font-family:var(--mono); z-index:2; text-align:right; opacity:0; animation:bcFadeIn 1s ease 4.8s forwards; }
+@keyframes bcFadeIn{ to{opacity:1;} }
+.hero-bounty .bc-label{ font-size:9px; letter-spacing:0.15em; color:rgba(255,26,46,0.4); text-transform:uppercase; margin-bottom:4px; display:block; }
+.hero-bounty .bc-amount{ font-family:var(--disp); font-size:clamp(28px,3.5vw,44px); font-weight:900; color:var(--green); text-shadow:0 0 20px rgba(0,255,163,0.5); display:block; letter-spacing:-0.01em; }
+.hero-bounty .bc-sub{ font-size:10px; color:rgba(0,255,163,0.5); letter-spacing:0.1em; margin-top:4px; display:block; }
+
+/* HACKER TOOLS SECTION */
+.htabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; border-bottom:1px solid var(--line); padding-bottom:18px; }
+.htab{ font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; padding:8px 18px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.htab:hover{ border-color:var(--lines); color:var(--text); }
+.htab.active{ border-color:var(--acc); color:var(--acc); background:rgba(255,26,46,0.06); }
+.htool-panel{ display:none; }
+.htool-panel.active{ display:block; }
+.enc-layout{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:768px){ .enc-layout{ grid-template-columns:1fr; } }
+.enc-io{ display:flex; flex-direction:column; gap:0; background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+.enc-io-head{ padding:8px 14px; background:rgba(255,26,46,0.05); border-bottom:1px solid var(--line); font-family:var(--mono); font-size:11px; color:rgba(255,26,46,0.6); }
+.enc-textarea{ flex:1; background:transparent; border:none; outline:none; font-family:var(--mono); font-size:12px; color:var(--text); padding:14px; resize:none; min-height:140px; line-height:1.65; }
+.enc-textarea::placeholder{ color:var(--muted); }
+.enc-modes{ display:flex; flex-direction:column; gap:6px; }
+.enc-mode-btn{ font-family:var(--mono); font-size:10px; letter-spacing:0.06em; text-transform:uppercase; padding:9px 14px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.enc-mode-btn:hover{ border-color:var(--lines); color:var(--text); }
+.enc-mode-btn.active{ border-color:var(--acc); color:var(--acc); background:rgba(255,26,46,0.06); }
+.xss-ctx-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; }
+.xss-ctx-btn{ font-family:var(--mono); font-size:10px; letter-spacing:0.07em; text-transform:uppercase; padding:6px 14px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.xss-ctx-btn.active{ border-color:var(--violet); color:var(--violet); background:rgba(123,79,255,0.08); }
+.xss-payload-list{ display:flex; flex-direction:column; gap:8px; }
+.xss-payload-item{ background:rgba(0,0,0,0.35); border:1px solid var(--line); border-radius:3px; padding:12px 16px; display:flex; align-items:center; gap:12px; transition:border-color 0.2s; }
+.xss-payload-item:hover{ border-color:rgba(123,79,255,0.3); }
+.xss-pname{ font-family:var(--mono); font-size:11px; color:var(--muted); min-width:180px; }
+.xss-pcode{ font-family:var(--mono); font-size:12px; color:#c0d8e0; flex:1; word-break:break-all; }
+.xss-pcopy{ font-size:11px; color:var(--muted); background:none; border:none; cursor:pointer; padding:4px; transition:color 0.15s; flex-shrink:0; }
+.xss-pcopy:hover{ color:var(--violet); }
+.jwt-input-wrap{ border:1px solid var(--line); border-radius:3px; overflow:hidden; margin-bottom:20px; transition:border-color 0.2s; }
+.jwt-input-wrap:focus-within{ border-color:var(--amber); }
+.jwt-textarea{ width:100%; background:rgba(0,0,0,0.3); border:none; outline:none; font-family:var(--mono); font-size:12px; color:#c0d0a0; padding:14px; min-height:80px; resize:none; line-height:1.6; }
+.jwt-textarea::placeholder{ color:var(--muted); }
+.jwt-parts{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+@media(max-width:768px){ .jwt-parts{ grid-template-columns:1fr; } }
+.jwt-part{ background:rgba(0,0,0,0.35); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+.jwt-part-head{ padding:8px 14px; font-family:var(--mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; border-bottom:1px solid var(--line); }
+.jwt-part-head.header{ color:#00c8ff; background:rgba(0,200,255,0.05); }
+.jwt-part-head.payload{ color:var(--violet); background:rgba(123,79,255,0.05); }
+.jwt-part-head.sig{ color:var(--acc); background:rgba(255,26,46,0.05); }
+.jwt-part-body{ font-family:var(--mono); font-size:11px; color:rgba(240,238,248,0.8); padding:12px 14px; white-space:pre-wrap; word-break:break-all; line-height:1.6; min-height:60px; }
+.jwt-attacks{ display:flex; flex-direction:column; gap:6px; }
+.jwt-attack-item{ background:rgba(255,26,46,0.04); border:1px solid rgba(255,26,46,0.15); border-radius:2px; padding:10px 14px; }
+.jwt-attack-name{ font-family:var(--mono); font-size:11px; color:var(--acc); margin-bottom:4px; }
+.jwt-attack-cmd{ font-family:var(--mono); font-size:11px; color:var(--muted); }
+.cidr-input-wrap{ display:flex; border:1px solid var(--line); border-radius:3px; overflow:hidden; margin-bottom:20px; transition:border-color 0.2s; }
+.cidr-input-wrap:focus-within{ border-color:var(--green); }
+.cidr-input{ flex:1; background:rgba(0,0,0,0.3); border:none; outline:none; font-family:var(--mono); font-size:14px; color:var(--text); padding:12px 16px; }
+.cidr-input::placeholder{ color:var(--muted); }
+.cidr-calc-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; padding:12px 20px; background:var(--green); color:#000; border:none; cursor:pointer; font-weight:700; transition:all 0.2s; }
+.cidr-calc-btn:hover{ background:#00cc80; }
+.cidr-results{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+@media(max-width:600px){ .cidr-results{ grid-template-columns:1fr; } }
+.cidr-row{ display:flex; gap:0; border:1px solid var(--line); border-radius:2px; overflow:hidden; }
+.cidr-lbl{ font-family:var(--mono); font-size:10px; color:var(--green); background:rgba(0,255,163,0.06); padding:9px 14px; min-width:130px; letter-spacing:0.05em; text-transform:uppercase; border-right:1px solid var(--line); }
+.cidr-val{ font-family:var(--mono); font-size:12px; color:var(--text); padding:9px 14px; flex:1; }
+.ip-lookup-bar{ display:flex; border:1px solid var(--line); border-radius:3px; overflow:hidden; margin-bottom:20px; }
+.ip-lookup-bar:focus-within{ border-color:var(--cyan); }
+.ip-lookup-inp{ flex:1; background:rgba(0,0,0,0.3); border:none; outline:none; font-family:var(--mono); font-size:13px; color:var(--text); padding:12px 16px; }
+.ip-lookup-inp::placeholder{ color:var(--muted); }
+.ip-lookup-btn{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; padding:12px 20px; background:var(--acc); color:#000; border:none; cursor:pointer; font-weight:700; transition:all 0.2s; }
+.ip-lookup-btn:hover{ background:#cc0a1f; }
+.ip-lookup-result{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+@media(max-width:600px){ .ip-lookup-result{ grid-template-columns:1fr; } }
+.ip-row{ display:flex; gap:0; border:1px solid var(--line); border-radius:2px; overflow:hidden; }
+.ip-lbl{ font-family:var(--mono); font-size:10px; color:var(--acc); background:rgba(255,26,46,0.06); padding:9px 14px; min-width:110px; text-transform:uppercase; letter-spacing:0.05em; border-right:1px solid var(--line); }
+.ip-val{ font-family:var(--mono); font-size:12px; color:var(--text); padding:9px 14px; flex:1; word-break:break-all; }
+
+/* WAR ROOM */
+.threat-map-wrap{ background:rgba(0,0,0,0.4); border:1px solid var(--line); border-radius:3px; padding:24px; position:relative; overflow:hidden; }
+.threat-map-svg{ width:100%; height:auto; max-height:380px; }
+.tm-ring{ transform-origin:center; will-change:transform,opacity; animation:tmRing 2s ease-out infinite; }
+@keyframes tmRing{ 0%{ r:6; opacity:0.8; stroke-width:2; } 100%{ r:22; opacity:0; stroke-width:0.5; } }
+.threat-legend{ display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+.tl-item{ font-family:var(--mono); font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.tl-dot{ width:8px; height:8px; border-radius:50%; background:var(--acc); box-shadow:0 0 6px var(--acc); flex-shrink:0; }
+.tl-dot.crit{ background:#ff1a2e; box-shadow:0 0 8px #ff1a2e; }
+.tl-dot.high{ background:#ffb020; box-shadow:0 0 8px #ffb020; }
+.tl-dot.med{ background:#60a5fa; box-shadow:0 0 8px #60a5fa; }
+.kc-tabs{ display:flex; gap:8px; margin-bottom:28px; flex-wrap:wrap; }
+.kc-tab{ font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; padding:8px 18px; border:1px solid var(--line); border-radius:2px; background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.kc-tab.active{ border-color:var(--acc); color:var(--acc); background:rgba(255,26,46,0.07); }
+.kc-panel{ display:none; }
+.kc-panel.active{ display:block; }
+.kc-chain{ display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:12px; margin-bottom:24px; }
+.kc-step{ display:flex; flex-direction:column; align-items:center; gap:8px; min-width:110px; position:relative; }
+.kc-step:not(:last-child)::after{ content:"→"; position:absolute; right:-16px; top:18px; color:var(--acc); font-size:16px; z-index:1; }
+.kc-step-icon{ width:44px; height:44px; border-radius:50%; background:rgba(255,26,46,0.1); border:1px solid rgba(255,26,46,0.35); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--acc); box-shadow:0 0 12px rgba(255,26,46,0.2); animation:kcPulse 3s ease-in-out infinite; }
+.kc-step:nth-child(2) .kc-step-icon{ animation-delay:0.5s; }
+.kc-step:nth-child(3) .kc-step-icon{ animation-delay:1s; }
+.kc-step:nth-child(4) .kc-step-icon{ animation-delay:1.5s; }
+.kc-step:nth-child(5) .kc-step-icon{ animation-delay:2s; }
+.kc-step:nth-child(6) .kc-step-icon{ animation-delay:2.5s; }
+@keyframes kcPulse{ 0%,100%{ box-shadow:0 0 8px rgba(255,26,46,0.2); } 50%{ box-shadow:0 0 20px rgba(255,26,46,0.5); } }
+.kc-step-name{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); text-align:center; }
+.kc-details{ background:rgba(0,0,0,0.35); border:1px solid var(--line); border-radius:3px; padding:20px; }
+.kc-finding-title{ font-family:var(--mono); font-size:14px; font-weight:700; color:var(--acc); margin-bottom:6px; }
+.kc-finding-meta{ font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:16px; }
+.kc-steps-list{ display:flex; flex-direction:column; gap:8px; }
+.kc-step-row{ display:flex; gap:14px; align-items:flex-start; }
+.kc-step-num{ font-family:var(--mono); font-size:10px; color:var(--acc); background:rgba(255,26,46,0.1); border:1px solid rgba(255,26,46,0.2); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.kc-step-txt{ font-size:14px; color:rgba(240,238,248,0.82); line-height:1.6; }
+.kc-step-cmd{ font-family:var(--mono); font-size:11px; color:#90b0c0; background:rgba(0,0,0,0.4); border:1px solid var(--line); border-radius:2px; padding:5px 10px; margin-top:4px; word-break:break-all; }
+
+#warroom:not(.wr-active) .tm-ring{ animation:none; }
+
+/* AMBIENT DRAGON */
+.sec-dragon-ambient {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 0 15px var(--acc)) drop-shadow(0 0 35px var(--acc2));
+  animation: dragonFloat 8s ease-in-out infinite alternate;
+}
+@keyframes dragonFloat {
+  0%{ transform: translateY(0px) rotate(0deg) scale(1); }
+  50%{ transform: translateY(-15px) rotate(2deg) scale(1.03); }
+  100%{ transform: translateY(10px) rotate(-2deg) scale(0.98); }
+}
+
+/* FALLBACK */
+@keyframes revealUp{ from{ opacity:0; transform:translateY(60px); } to{ opacity:1; transform:translateY(0); } }
+.reveal-inner{ animation: revealUp 0.8s ease forwards; animation-play-state: paused; }
+.gsap-ready .reveal-inner{ animation: none !important; }
+.fr-reveal{ opacity:1 !important; transform:none !important; }
 </style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Matías Ramírez Tudela",
+  "alternateName": "TudelaSec",
+  "url": "https://tudela.dev",
+  "jobTitle": "Ethical Hacker & Bug Bounty Hunter",
+  "worksFor": {
+    "@type": "Organization",
+    "name": "TudelaSec"
+  },
+  "sameAs": [
+    "https://hackerone.com/tudelasec",
+    "https://bugcrowd.com/tudelasec",
+    "https://bugbounty.intigriti.com/researcher/tudelasec",
+    "https://github.com/tudelasec",
+    "https://linkedin.com/in/tudelasec"
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -332,6 +690,7 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
 <div class="c-ring" id="cring"></div>
 <div id="toast-wrap"></div>
 
+<!-- PRELOADER CON FAILSAFE ANTI-CONGELAMIENTO -->
 <div id="preloader">
   <div class="pl-dragon-wrap">
     <svg class="pl-dragon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220">
@@ -368,12 +727,24 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
   <div class="nav-links">
     <a href="#sobre-mi">Sobre mí</a><a href="#habilidades">Skills</a>
     <a href="#osint">OSINT</a><a href="#cheatsheet">Cheatsheet</a>
-    <a href="#hallazgos">Hallazgos</a><a href="#contacto">Contacto</a>
+    <a href="#hallazgos">Hallazgos</a><a href="#arsenal">Arsenal</a><a href="#servicios">Servicios</a><a href="#hackertools">Tools</a><a href="#warroom">War Room</a><a href="#conocimiento">Conocimiento</a><a href="#contacto">Contacto</a>
   </div>
   <div class="nav-status"><span class="ndot"></span>Disponible</div>
   <div class="burger" id="burger"><span></span><span></span><span></span></div>
 </nav>
 
+<div class="mm" id="mm">
+  <div class="mm-close" id="mm-close">Cerrar ×</div>
+  <a href="#sobre-mi" class="mm-link">Sobre mí</a>
+  <a href="#habilidades" class="mm-link">Habilidades</a>
+  <a href="#osint" class="mm-link">OSINT</a>
+  <a href="#cheatsheet" class="mm-link">Cheatsheet</a>
+  <a href="#hallazgos" class="mm-link">Hallazgos</a>
+  <a href="#formacion" class="mm-link">Formación</a>
+  <a href="#arsenal" class="mm-link">Arsenal</a><a href="#servicios" class="mm-link">Servicios</a><a href="#conocimiento" class="mm-link">Conocimiento</a><a href="#contacto" class="mm-link">Contacto</a>
+</div>
+
+<!-- HERO -->
 <section class="hero" id="inicio">
   <canvas id="hero-canvas"></canvas>
   <div class="hero-content">
@@ -412,9 +783,28 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
           <div class="stat-item"><span class="stat-big" data-target="11">0</span><span class="stat-lbl">Divulgaciones verificadas</span></div>
           <div class="stat-item"><span class="stat-big" data-target="3">0</span><span class="stat-lbl">Plataformas activas</span></div>
           <div class="stat-item"><span class="stat-big" data-target="4">0</span><span class="stat-lbl">Hallazgos críticos</span></div>
-          <div class="stat-item"><span class="stat-big" data-prefix="$" data-target="3000" data-format="k" data-suffix="+">$3K+</span><span class="stat-lbl">Recompensa destacada</span></div>
+          <div class="stat-item"><span class="stat-big" data-prefix="$" data-target="16800" data-format="kd" data-suffix="+">$16.8K+</span><span class="stat-lbl">En recompensas</span></div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- HABILIDADES -->
+<section id="habilidades">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">02 — Capacidades</div></div>
+    <h2 class="sec-title reveal-wrap">
+      <div class="reveal-inner">
+        <span class="tline1">Áreas de</span>
+        <span class="tline2">expertise.</span>
+      </div>
+    </h2>
+    <div class="exp-grid">
+      <div class="exp-item reveal-wrap"><div class="reveal-inner"><div class="exp-num">001</div><div class="exp-ttl">Pentesting Web &amp; API</div><div class="exp-dsc">Auditoría de endpoints REST y GraphQL, elusión de controles de acceso (BOLA/IDOR), lógica de negocio, Subdomain Takeover y manipulación de flujos de pago.</div></div></div>
+      <div class="exp-item reveal-wrap"><div class="reveal-inner"><div class="exp-num">002</div><div class="exp-ttl">Seguridad Cloud &amp; Redes</div><div class="exp-dsc">Identificación de activos expuestos, Firebase unauthenticated, recon de infraestructura y bypass de Cloudflare/WAF.</div></div></div>
+      <div class="exp-item reveal-wrap"><div class="reveal-inner"><div class="exp-num">003</div><div class="exp-ttl">Mobile Security — Android</div><div class="exp-dsc">Análisis estático y dinámico de APKs, ingeniería inversa con Jadx/Frida y detección de almacenamiento inseguro de credenciales.</div></div></div>
+      <div class="exp-item reveal-wrap"><div class="reveal-inner"><div class="exp-num">004</div><div class="exp-ttl">Recon &amp; Automatización</div><div class="exp-dsc">Scripts propios para reconocimiento masivo, filtrado de subdominios y escaneo activo a escala sin comprometer la estabilidad del objetivo.</div></div></div>
     </div>
   </div>
 </section>
@@ -447,7 +837,7 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
 <!-- CONTACTO -->
 <section id="contacto">
   <div class="wrap">
-    <div class="sec-num reveal-wrap"><div class="reveal-inner">05 — Canal seguro</div></div>
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">17 — Canal seguro</div></div>
     <h2 class="sec-title reveal-wrap">
       <div class="reveal-inner">
         <span class="tline1">Hablemos</span>
@@ -459,19 +849,9 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
         <div class="contact-social">
           <a href="https://hackerone.com/tudelasec" target="_blank" rel="noopener" class="slink"><div class="icon h1c"><i class="fa-solid fa-bug"></i></div><div class="slink-info"><span class="slink-lbl">HackerOne</span><span class="slink-val">hackerone.com/tudelasec</span></div></a>
           <a href="https://bugcrowd.com/tudelasec" target="_blank" rel="noopener" class="slink"><div class="icon bcc"><i class="fa-solid fa-shield-halved"></i></div><div class="slink-info"><span class="slink-lbl">Bugcrowd</span><span class="slink-val">bugcrowd.com/tudelasec</span></div></a>
-          <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="mailto:nicolastudela97@gmail.com" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val">nicolastudela97@gmail.com</span></div></a>
         </div>
-      </div></div>
-      <div class="reveal-wrap"><div class="reveal-inner">
-        <form class="contact-form" action="https://formspree.io/f/XXXXXXXX" method="POST">
-          <div class="fg"><label>Nombre</label><input type="text" name="name" placeholder="Tu nombre" required></div>
-          <div class="fg"><label>Email</label><input type="email" name="email" placeholder="tu@email.com" required></div>
-          <div class="fg"><label>Asunto</label><input type="text" name="subject" placeholder="Bug bounty, pentesting, colaboración..."></div>
-          <div class="fg"><label>Mensaje</label><textarea name="message" placeholder="Cuéntame de qué se trata..." required></textarea></div>
-          <button type="submit" class="btn-submit">Enviar mensaje →</button>
-        </form>
       </div></div>
     </div>
   </div>
@@ -631,7 +1011,7 @@ if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
   });
 }
 
-/* CHEATSHEET DATA CON POWERSHELL / ACTIVE DIRECTORY COMPLETO */
+/* CHEATSHEET DATA COMPLETO */
 const toolLabels = {
   powershell: 'PowerShell / AD',
   nmap: 'Nmap',
@@ -640,7 +1020,33 @@ const toolLabels = {
   subfinder: 'Subfinder',
   nuclei: 'Nuclei',
   httpx: 'Httpx',
-  katana: 'Katana'
+  katana: 'Katana',
+  amass: 'Amass',
+  assetfinder: 'AssetFinder',
+  chaos: 'Chaos',
+  puredns: 'PureDNS',
+  massdns: 'MassDNS',
+  waybackgau: 'Wayback/GAU',
+  paramspider: 'ParamSpider',
+  linkfinder: 'LinkFinder',
+  masscan: 'Masscan',
+  naabu: 'Naabu',
+  dalfox: 'Dalfox',
+  ghauri: 'Ghauri',
+  commix: 'Commix',
+  arjun: 'Arjun',
+  interactsh: 'Interactsh',
+  anew: 'Anew',
+  notify: 'Notify',
+  enum_ad: 'Enum AD',
+  bloodhound: 'BloodHound',
+  kerb_atk: 'Kerberos/Impacket',
+  responder_relay: 'Responder/Relay',
+  post_ad: 'Post-Exploit AD',
+  privesc_win: 'Privesc Windows',
+  powerview: 'PowerView',
+  certipy: 'Certipy AD CS',
+  hashcat_ad: 'Hashcat AD'
 };
 
 const csData = {
@@ -663,7 +1069,7 @@ const csData = {
     { name:"Miembros de Domain Admins / Enterprise Admins (ADSI)", cmd:"$searcher = [adsisearcher]'(&(objectClass=group)(cn=Domain Admins))'; ($searcher.FindOne()).Properties.member", desc:"Consulta directamente los miembros del grupo Domain Admins por ADSI LDAP." },
     { name:"Relaciones de Confianza del Dominio (Trusts)", cmd:"([System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()).GetAllTrustRelationships() | Select-Object SourceName, TargetName, TrustType, TrustDirection", desc:"Mapea trusts bidireccionales, bosques y dominios externos enlazados." },
 
-    // --- 4. POWERVIEW / POWERSPLOIT — ARSENAL DE DOMINIO ---
+    // --- 4. POWERVIEW / POWERSPLOIT ---
     { name:"PowerView — Cuentas con SPN (Kerberoasting)", cmd:"Get-DomainUser -SPN | Select-Object samaccountname, serviceprincipalname, memberof, description | Format-List", desc:"Filtra cuentas con tickets de servicio solicitables para extraer y crackear el hash TGS offline." },
     { name:"PowerView — Cuentas sin Preautenticación (AS-REP Roasting)", cmd:"Get-DomainUser -PreauthNotRequired | Select-Object samaccountname, useraccountcontrol, memberof", desc:"Identifica usuarios que permiten solicitar un ticket AS-REP sin credenciales iniciales." },
     { name:"PowerView — Búsqueda de Carpetas Compartidas Accesibles", cmd:"Find-DomainShare -CheckShareAccess -IncludeStandard", desc:"Escanea la red completa en busca de carpetas compartidas SMB con acceso de lectura/escritura." },
@@ -697,27 +1103,124 @@ const csData = {
     { name:"Escaneo rápido", cmd:"nmap -T4 -F {target}", desc:"Top 100 puertos, rápido" },
     { name:"Todos los puertos", cmd:"nmap -p- -T4 {target}", desc:"Escaneo completo de 65535 puertos" },
     { name:"Versiones + scripts", cmd:"nmap -sV -sC -p- {target}", desc:"Detecta versiones y ejecuta scripts por defecto" },
-    { name:"Stealth SYN", cmd:"nmap -sS -T2 -p- {target}", desc:"Escaneo sigiloso (requiere root)" }
+    { name:"Stealth SYN", cmd:"nmap -sS -T2 -p- {target}", desc:"Escaneo sigiloso (requiere root)" },
+    { name:"UDP top 200", cmd:"nmap -sU --top-ports 200 {target}", desc:"Puertos UDP más comunes" },
+    { name:"Scripts de vulns", cmd:"nmap --script vuln {target}", desc:"NSE scripts de vulnerabilidades conocidas" },
+    { name:"Detección de OS", cmd:"nmap -O --osscan-guess {target}", desc:"Intenta detectar el sistema operativo" },
+    { name:"Output completo", cmd:"nmap -sV -sC -oA output {target}", desc:"Guarda en .nmap, .xml y .gnmap" }
   ],
   ffuf:[
+    { name:"Dir — SecLists medium", cmd:"ffuf -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u https://{target}/FUZZ -fc 404", desc:"SecLists medium (más completo)" },
     { name:"Dir — SecLists common", cmd:"ffuf -w /usr/share/seclists/Discovery/Web-Content/common.txt -u https://{target}/FUZZ -fc 404", desc:"SecLists common.txt — rápido" },
-    { name:"Subdomain fuzzing", cmd:"ffuf -w subdomains.txt -u https://FUZZ.{target}", desc:"Enumeración de subdominios via DNS" }
+    { name:"Subdomain fuzzing", cmd:"ffuf -w subdomains.txt -u https://FUZZ.{target}", desc:"Enumeración de subdominios via DNS" },
+    { name:"POST data", cmd:"ffuf -w words.txt -u https://{target}/login -X POST -d 'user=FUZZ&pass=test'", desc:"Fuzzing en parámetros POST" }
   ],
   sqlmap:[
     { name:"Básico GET", cmd:"sqlmap -u 'https://{target}/page?id=1'", desc:"Detección automática en parámetro GET" },
+    { name:"POST data", cmd:"sqlmap -u 'https://{target}/login' --data='user=test&pass=test'", desc:"Inyección en formularios POST" },
+    { name:"Listar bases de datos", cmd:"sqlmap -u 'https://{target}/page?id=1' --dbs", desc:"Enumera bases de datos accesibles" },
     { name:"Dump tabla", cmd:"sqlmap -u 'https://{target}/page?id=1' -D dbname -T users --dump", desc:"Extrae datos de una tabla" }
   ],
   subfinder:[
-    { name:"Básico", cmd:"subfinder -d {target}", desc:"Enumeración de subdominios estándar" }
+    { name:"Básico", cmd:"subfinder -d {target}", desc:"Enumeración de subdominios estándar" },
+    { name:"Todas las fuentes", cmd:"subfinder -d {target} -all", desc:"Usa todas las fuentes disponibles" },
+    { name:"Silent mode", cmd:"subfinder -d {target} -silent | httpx -sc", desc:"Encadenado con httpx para probar URLs" }
   ],
   nuclei:[
-    { name:"Escaneo básico", cmd:"nuclei -u https://{target}", desc:"Escaneo con todos los templates" }
+    { name:"Escaneo básico", cmd:"nuclei -u https://{target}", desc:"Escaneo con todos los templates" },
+    { name:"Solo críticos/altos", cmd:"nuclei -u https://{target} -severity critical,high", desc:"Filtra por severidad" },
+    { name:"Templates CVE", cmd:"nuclei -u https://{target} -t cves/", desc:"Busca CVEs conocidos" }
   ],
   httpx:[
-    { name:"Probe básico", cmd:"cat subs.txt | httpx", desc:"Prueba qué URLs están activas" }
+    { name:"Probe básico", cmd:"cat subs.txt | httpx", desc:"Prueba qué URLs están activas" },
+    { name:"Con status codes", cmd:"cat subs.txt | httpx -sc -title", desc:"Muestra código de estado y título" },
+    { name:"Info completa", cmd:"cat subs.txt | httpx -sc -td -title -cl -ct", desc:"Status, tech, título, tamaño y content-type" }
   ],
   katana:[
-    { name:"Crawl básico", cmd:"katana -u https://{target}", desc:"Rastreo de URLs de la aplicación" }
+    { name:"Crawl básico", cmd:"katana -u https://{target}", desc:"Rastreo de URLs de la aplicación" },
+    { name:"JS crawling", cmd:"katana -u https://{target} -js-crawl", desc:"Parsea y sigue URLs dentro de archivos JS" }
+  ],
+  amass:[
+    { name:"Enum pasivo", cmd:"amass enum -passive -d {target} -o amass.txt", desc:"OSINT pasivo: certs, WHOIS, DNS pasivo" },
+    { name:"Enum activo + brute", cmd:"amass enum -active -d {target} -brute -o amass.txt", desc:"Activo + fuerza bruta DNS" }
+  ],
+  assetfinder:[
+    { name:"Subdominios básico", cmd:"assetfinder {target}", desc:"Búsqueda rápida multi-fuente OSINT" },
+    { name:"Solo subdominios", cmd:"assetfinder --subs-only {target}", desc:"Filtra solo el dominio raíz" }
+  ],
+  chaos:[
+    { name:"Descargar subdominios", cmd:"chaos -d {target}", desc:"API de Chaos/ProjectDiscovery" }
+  ],
+  puredns:[
+    { name:"Brute SecLists 5k", cmd:"puredns bruteforce /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt {target}", desc:"Top 5k — rápido y efectivo" }
+  ],
+  massdns:[
+    { name:"Resolución masiva", cmd:"massdns -r /opt/resolvers.txt -t A subs.txt -o S > out.txt", desc:"Alta velocidad DNS masivo" }
+  ],
+  waybackgau:[
+    { name:"Wayback URLs", cmd:"waybackurls {target} | tee wayback-{target}.txt", desc:"URLs históricas de Wayback Machine" },
+    { name:"GAU todas las fuentes", cmd:"gau {target} | tee gau-{target}.txt", desc:"Wayback + OTX + CommonCrawl + VT" }
+  ],
+  paramspider:[
+    { name:"Extraer parámetros", cmd:"paramspider -d {target}", desc:"Parámetros de URLs archivadas" }
+  ],
+  linkfinder:[
+    { name:"Endpoints en JS remoto", cmd:"python3 linkfinder.py -i https://{target} -d", desc:"JS cargado por el sitio" }
+  ],
+  masscan:[
+    { name:"CIDR completo", cmd:"masscan {target}/24 -p1-65535 --rate=10000 -oG masscan.txt", desc:"Todos los puertos en rango CIDR" }
+  ],
+  naabu:[
+    { name:"Port scan básico", cmd:"naabu -host {target}", desc:"Escáner de puertos en Go" }
+  ],
+  dalfox:[
+    { name:"XSS scan básico", cmd:"dalfox url 'https://{target}/page?param=test'", desc:"Detección y verificación de XSS" }
+  ],
+  ghauri:[
+    { name:"SQLi GET básico", cmd:"ghauri -u 'https://{target}/page?id=1'", desc:"Detección automática SQLi" }
+  ],
+  commix:[
+    { name:"Command Injection GET", cmd:"commix --url='https://{target}/page?param=test'", desc:"Detección de Command Injection" }
+  ],
+  arjun:[
+    { name:"Parámetros GET", cmd:"arjun -u 'https://{target}/endpoint'", desc:"Detecta parámetros GET ocultos" }
+  ],
+  interactsh:[
+    { name:"Iniciar cliente OOB", cmd:"interactsh-client", desc:"Genera URL para callbacks OOB" }
+  ],
+  anew:[
+    { name:"Agregar únicos", cmd:"cat new-subs.txt | anew master-subs.txt", desc:"Solo agrega líneas nuevas" }
+  ],
+  notify:[
+    { name:"Config Discord", cmd:"notify -provider discord -id 'WEBHOOK_URL' -ms 'test'", desc:"Alerta a Discord" }
+  ],
+  enum_ad:[
+    { name:"enum4linux-ng completo (445/139)", cmd:"enum4linux-ng -A {target}", desc:"Enum completa SMB/RPC — Puerto 445/139" }
+  ],
+  bloodhound:[
+    { name:"Recolección remota (445/389)", cmd:"bloodhound-python -d {domain} -u {user} -p {pass} -ns {target} -c all", desc:"Recolector desde Kali — Puerto 445/389" }
+  ],
+  kerb_atk:[
+    { name:"AS-REP Roasting (88)", cmd:"GetNPUsers.py {domain}/ -dc-ip {target} -no-pass -usersfile users.txt -outputfile asrep.txt", desc:"Users sin pre-auth Kerberos — Puerto 88" },
+    { name:"Kerberoasting (88)", cmd:"GetUserSPNs.py {domain}/{user}:{pass} -dc-ip {target} -request -outputfile kerb.txt", desc:"TGS de cuentas con SPN — Puerto 88" }
+  ],
+  responder_relay:[
+    { name:"Responder envenenamiento (5355/137)", cmd:"responder -I eth0 -wrf", desc:"LLMNR/NBT-NS poisoning — captura NTLMv2" }
+  ],
+  post_ad:[
+    { name:"Mimikatz — logonpasswords", cmd:"privilege::debug\nsekurlsa::logonpasswords", desc:"Volcar credenciales desde LSASS — requiere admin local" }
+  ],
+  privesc_win:[
+    { name:"WinPEAS completo", cmd:"winpeas.exe", desc:"Enum automática vectores locales Windows" }
+  ],
+  powerview:[
+    { name:"Info del dominio (389)", cmd:"Get-Domain", desc:"Info general del dominio — Puerto LDAP 389" }
+  ],
+  certipy:[
+    { name:"Enum infraestructura AD CS (389)", cmd:"certipy find -u {user}@{domain} -p {pass} -dc-ip {target}", desc:"Mapear toda la infraestructura PKI — Puerto 389/443" }
+  ],
+  hashcat_ad:[
+    { name:"Kerberoasting TGS (offline)", cmd:"hashcat -m 13100 kerb.txt /usr/share/wordlists/rockyou.txt", desc:"Hash $krb5tgs$ — modo offline" }
   ]
 };
 
@@ -751,7 +1254,7 @@ function renderCmds(){
       <div class="cmd-desc">${c.desc}</div>
       <div class="cmd-code">
         <code id="cmd-${activeTool}-${i}">${applyRepl(c.cmd)}</code>
-        <button class="copy-btn" data-copy="cmd-${activeTool}-${i}" aria-label="Copiar"><i class="fa-solid fa-copy"></i></button>
+        <button class="copy-btn" data-copy="cmd-${activeTool}-${i}" aria-label="Copiar"><i class="fa fa-copy"></i></button>
       </div>
     </div>
   `).join('');

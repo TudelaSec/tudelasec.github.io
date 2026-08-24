@@ -1258,7 +1258,6 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 }
 
 
-/* ═══ FIX DEFINITIVO TÍTULOS MÓVIL ═══ */
 /* Todos los spans dentro de h2 son bloque */
 h2.sec-title span,
 h2.sec-title .acc,
@@ -1275,36 +1274,6 @@ h2.sec-title .acc { margin-top: 0; }
 h2.sec-title .reveal-inner > span:first-child::after { content: " "; }
 
 
-/* ═══ ARSENAL CARDS — VISIBLE EN MOBILE ═══ */
-@media (max-width: 768px) {
-  .tool-card {
-    background: rgba(15,5,10,0.95) !important;
-    border: 1px solid rgba(255,26,46,0.25) !important;
-  }
-  .tool-card:hover { background: rgba(20,5,12,1) !important; }
-  .tool-icon { opacity: 1 !important; }
-  .tool-name { color: var(--text) !important; }
-  .tool-desc { color: rgba(240,238,248,0.7) !important; }
-  .tool-badge { opacity: 1 !important; }
-}
-
-
-/* ═══ TÍTULOS: FLEX COLUMN GARANTIZADO ═══ */
-h2.sec-title .reveal-inner {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-}
-h2.sec-title .reveal-inner span,
-h2.sec-title .reveal-inner .tline1,
-h2.sec-title .reveal-inner .tline2,
-h2.sec-title .reveal-inner .acc {
-  display: block !important;
-  width: 100% !important;
-  line-height: 0.92 !important;
-}
-
-
 /* ═══ TÍTULOS — div blocks (no span) ═══ */
 h2.sec-title .tline1,
 h2.sec-title .tline2,
@@ -1316,23 +1285,6 @@ h2.sec-title .reveal-inner > div {
 }
 
 
-/* ═══ TÍTULOS — span blocks dentro de h2 (DOM correcto) ═══ */
-h2.sec-title > span.reveal-inner,
-h2.sec-title .reveal-inner {
-  display: block !important;
-  width: 100% !important;
-}
-span.tline1, span.tline2,
-h2.sec-title span.tline1,
-h2.sec-title span.tline2,
-h2.sec-title .acc.tline2,
-.sec-title .reveal-inner > span {
-  display: block !important;
-  line-height: 0.92 !important;
-  width: 100% !important;
-}
-
-
 /* ═══ <br> EN TÍTULOS h2 — GARANTIZADO ═══ */
 h2.sec-title .reveal-inner { display:inline-block; width:100%; }
 h2.sec-title .tline1 { display:inline; }
@@ -1340,21 +1292,52 @@ h2.sec-title .acc.tline2 { display:inline; }
 h2.sec-title br { display:block; }
 
 
-/* ═══ H2 TÍTULOS — DOS LÍNEAS CON REVEAL SEPARADO ═══ */
-h2.sec-title { line-height: 0.92; }
-h2.sec-title .reveal-wrap { display: block; overflow: hidden; }
-h2.sec-title .reveal-wrap .reveal-inner { display: block; }
-h2.sec-title .acc { color: var(--acc); }
+/* ══════════════════════════════════════════
+   REVEAL ANIMATIONS — LIMPIO Y DEFINITIVO
+══════════════════════════════════════════ */
 
+/* Por defecto: TODO VISIBLE (fallback sin GSAP) */
+.reveal-inner {
+  opacity: 1;
+  transform: translateY(0);
+  transition: none;
+}
 
-/* ═══ H2: overflow visible para ambas líneas ═══ */
+/* Con GSAP activo: ocultar para animar */
+.gsap-ready .reveal-inner {
+  opacity: 0;
+  transform: translateY(50px);
+}
+
+/* EXCEPCIÓN: h2 títulos animados con CSS (NO dependen de GSAP) */
 h2.sec-title .reveal-wrap { overflow: visible !important; }
-h2.sec-title { overflow: visible; }
+h2.sec-title .reveal-inner {
+  opacity: 1 !important;
+  transform: none !important;
+  display: block !important;
+}
+.gsap-ready h2.sec-title .reveal-inner {
+  opacity: 1 !important;
+  transform: none !important;
+}
 
+/* Animación CSS pura para h2 (sin GSAP) */
+@keyframes titleSlideUp {
+  from { opacity: 0; transform: translateY(35px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+h2.sec-title .reveal-wrap:nth-child(1) .reveal-inner {
+  animation: titleSlideUp 0.75s ease forwards;
+  animation-play-state: paused;
+}
+h2.sec-title .reveal-wrap:nth-child(2) .reveal-inner {
+  animation: titleSlideUp 0.75s 0.15s ease forwards;
+  animation-play-state: paused;
+}
 
-/* ═══ GSAP initial state para h2 — menos translateY ═══ */
-h2.sec-title .gsap-ready .reveal-inner,
-.gsap-ready h2.sec-title .reveal-inner { transform: translateY(40px) !important; }
+/* fr-reveal siempre visible */
+.fr-reveal { opacity: 1 !important; transform: none !important; }
+.gsap-ready .fr-reveal { opacity: 0; transform: translateY(36px); }
 
 </style>
 
@@ -2449,6 +2432,23 @@ dig assets.lime.bike CNAME</div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" crossorigin="anonymous"></script>
 <script>
 
+/* ══ TOAST NOTIFICATIONS ══ */
+const toastWrap = document.getElementById('toast-wrap');
+function showToast(title, msg, type, dur){
+  if(!toastWrap) return;
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + (type||'info');
+  t.innerHTML = '<strong>' + title + '</strong>' + (msg ? '<span>' + msg + '</span>' : '');
+  toastWrap.appendChild(t);
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){ t.remove(); }, 400);
+  }, dur || 3000);
+}
+
+
+
 
 /* ══ GLOBAL ERROR HANDLER ══ */
 window.onerror = function(msg, src, line, col, err) {
@@ -2482,42 +2482,6 @@ window.addEventListener('unhandledrejection', function(e) {
   if(typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger);
 })();
 
-
-/* ══ FORCE TITLE SPANS DISPLAY:BLOCK — garantizado en todos los browsers ══ */
-(function(){
-  function forceTitleLayout(){
-    document.querySelectorAll('.sec-title .reveal-inner, .sec-title > .reveal-inner').forEach(function(wrapper){
-      // Hacer el wrapper flex-column para garantizar líneas separadas
-      wrapper.style.display = 'flex';
-      wrapper.style.flexDirection = 'column';
-      wrapper.style.alignItems = 'flex-start';
-      // Forzar cada span como bloque
-      wrapper.querySelectorAll('span').forEach(function(span){
-        span.style.display = 'block';
-        span.style.lineHeight = '0.95';
-        span.style.width = '100%';
-      });
-    });
-  }
-  // Ejecutar inmediatamente y también después de que cargue GSAP
-  forceTitleLayout();
-  window.addEventListener('DOMContentLoaded', forceTitleLayout);
-  window.addEventListener('load', forceTitleLayout);
-  setTimeout(forceTitleLayout, 500);
-  setTimeout(forceTitleLayout, 1500);
-})();
-
-
-const toastWrap = document.getElementById('toast-wrap');
-function showToast(title,msg,type,dur){
-  if(!toastWrap) return;
-  const t=document.createElement('div');
-  t.className='toast '+(type||'info');
-  const icons={info:'fa-circle-info',success:'fa-circle-check',warning:'fa-triangle-exclamation',danger:'fa-skull'};
-  t.innerHTML=`<i class="fa ${icons[type]||'fa-circle-info'}"></i><div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>`;
-  toastWrap.appendChild(t);
-  setTimeout(()=>{ t.style.animation='toastIn 0.3s ease reverse forwards'; setTimeout(()=>t.remove(),300); }, dur||4000);
-}
 
 /* ══ DEPLOYMENT FIXES — GSAP + CDN GUARDS ══ */
 (function(){
@@ -2941,61 +2905,79 @@ function heroReveal(){
 })();
 /* ══ GSAP SCROLL REVEALS ══ */
 if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
-  // Usar batch para rendimiento (un solo observer para todos)
-  const allInners = Array.from(document.querySelectorAll('.reveal-inner'));
-  ScrollTrigger.batch(allInners, {
-    start: 'top 88%',
-    once: true,
-    onEnter: function(els) {
-      gsap.to(els, {
-        y: 0, opacity: 1, duration: 0.85,
-        ease: 'power3.out', stagger: 0.06
+
+  /* Activar animación CSS en h2 cuando entran al viewport */
+  document.querySelectorAll('h2.sec-title').forEach(function(h2){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          h2.querySelectorAll('.reveal-inner').forEach(function(el){
+            el.style.animationPlayState = 'running';
+          });
+          io.disconnect();
+        }
       });
-    }
+    }, { threshold: 0.1 });
+    io.observe(h2);
   });
 
+  /* Resto de reveals con batch (eficiente) */
+  var nonH2inners = Array.from(
+    document.querySelectorAll('.reveal-inner')
+  ).filter(function(el){ return !el.closest('h2.sec-title'); });
 
-  /* ── Fix hallazgos animation ── */
-  document.querySelectorAll('.fr-reveal').forEach(function(row, i){
-    gsap.fromTo(row,
-      { y:36, opacity:0 },
-      { y:0, opacity:1, duration:0.75, ease:'power3.out',
-        scrollTrigger:{ trigger:row, start:'top 88%', once:true }
+  if(nonH2inners.length){
+    ScrollTrigger.batch(nonH2inners, {
+      start: 'top 88%',
+      once: true,
+      onEnter: function(els){
+        gsap.to(els, { y:0, opacity:1, duration:0.8, ease:'power3.out', stagger:0.07 });
       }
-    );
+    });
+  }
+
+  /* fr-reveal */
+  document.querySelectorAll('.fr-reveal').forEach(function(row, i){
+    gsap.fromTo(row, {y:36,opacity:0},{y:0,opacity:1,duration:0.7,ease:'power3.out',
+      scrollTrigger:{trigger:row, start:'top 88%', once:true}
+    });
   });
 
-  // Stat counters
-  document.querySelectorAll('.stat-big[data-target]').forEach(el=>{
-    const target = +el.dataset.target;
-    const isK = el.dataset.format==='k';
-    const prefix = el.dataset.prefix||'';
-    const suffix = el.dataset.suffix||'';
-    ScrollTrigger.create({
-      trigger:el, start:'top 85%', once:true,
-      onEnter:()=>{
+  /* Stat counters */
+  document.querySelectorAll('.stat-big[data-target]').forEach(function(el){
+    var target = +el.dataset.target;
+    ScrollTrigger.create({ trigger:el, start:'top 85%', once:true,
+      onEnter:function(){
         gsap.to({v:0},{v:target,duration:1.6,ease:'power3.out',
           onUpdate:function(){
-            const v=Math.round(this.targets()[0].v);
-            const isKd = el.dataset.format==='kd';
-            el.textContent = isKd
-              ? prefix+(v/1000).toFixed(1)+'K'+suffix
-              : isK
-                ? prefix+Math.round(v/1000)+'K'+suffix
-                : prefix+Math.round(v)+suffix;
+            var v=Math.round(this.targets()[0].v);
+            var isKd=el.dataset.format==='kd';
+            var isK=el.dataset.format==='k';
+            var pre=el.dataset.prefix||'', suf=el.dataset.suffix||'';
+            el.textContent=isKd?pre+(v/1000).toFixed(1)+'K'+suf:isK?pre+Math.round(v/1000)+'K'+suf:pre+Math.round(v)+suf;
           }
         });
       }
     });
   });
 
-  // Scroll progress
-  const prog = document.getElementById('prog');
-  ScrollTrigger.create({
-    start:'top top', end:'bottom bottom',
-    onUpdate:self=>{ if(prog) prog.style.width=(self.progress*100)+'%'; }
+  /* Scroll progress */
+  var prog=document.getElementById('prog');
+  ScrollTrigger.create({start:'top top',end:'bottom bottom',
+    onUpdate:function(self){ if(prog) prog.style.width=(self.progress*100)+'%'; }
   });
 }
+
+/* ══ FAILSAFE: mostrar todo si GSAP falla ══ */
+setTimeout(function(){
+  document.querySelectorAll('.reveal-inner').forEach(function(el){
+    if(parseFloat(window.getComputedStyle(el).opacity) < 0.5){
+      el.style.opacity='1';
+      el.style.transform='translateY(0)';
+      el.style.transition='opacity 0.4s,transform 0.4s';
+    }
+  });
+}, 3500);
 
 /* ══ CURSOR ══ */
 if(!('ontouchstart' in window) && !reduce){

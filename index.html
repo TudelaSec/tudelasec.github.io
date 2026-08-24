@@ -1346,6 +1346,16 @@ h2.sec-title .reveal-wrap { display: block; overflow: hidden; }
 h2.sec-title .reveal-wrap .reveal-inner { display: block; }
 h2.sec-title .acc { color: var(--acc); }
 
+
+/* ═══ H2: overflow visible para ambas líneas ═══ */
+h2.sec-title .reveal-wrap { overflow: visible !important; }
+h2.sec-title { overflow: visible; }
+
+
+/* ═══ GSAP initial state para h2 — menos translateY ═══ */
+h2.sec-title .gsap-ready .reveal-inner,
+.gsap-ready h2.sec-title .reveal-inner { transform: translateY(40px) !important; }
+
 </style>
 
 <script type="application/ld+json">
@@ -2931,15 +2941,17 @@ function heroReveal(){
 })();
 /* ══ GSAP SCROLL REVEALS ══ */
 if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
-  // ScrollTrigger ya registrado al inicio
-  document.querySelectorAll('.reveal-wrap').forEach(wrap=>{
-    const inner = wrap.querySelector('.reveal-inner');
-    if(!inner) return;
-    gsap.fromTo(inner,
-      { y:60, opacity:0 },
-      { y:0, opacity:1, duration:0.9, ease:'power3.out',
-        scrollTrigger:{ trigger:wrap, start:'top 85%', once:true } }
-    );
+  // Usar batch para rendimiento (un solo observer para todos)
+  const allInners = Array.from(document.querySelectorAll('.reveal-inner'));
+  ScrollTrigger.batch(allInners, {
+    start: 'top 88%',
+    once: true,
+    onEnter: function(els) {
+      gsap.to(els, {
+        y: 0, opacity: 1, duration: 0.85,
+        ease: 'power3.out', stagger: 0.06
+      });
+    }
   });
 
 
@@ -5267,6 +5279,17 @@ if(!reduce) {
 
 
 
+
+/* ══ FAILSAFE ANIMACIONES — mostrar contenido si GSAP no anima ══ */
+setTimeout(function(){
+  var hidden = document.querySelectorAll('.reveal-inner');
+  hidden.forEach(function(el){
+    var style = window.getComputedStyle(el);
+    if(parseFloat(style.opacity) < 0.5){
+      el.style.cssText += ';opacity:1!important;transform:translateY(0)!important;transition:opacity 0.5s,transform 0.5s';
+    }
+  });
+}, 4000);
 </script>
 </body>
 </html>

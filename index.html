@@ -1,4 +1,23 @@
-<!DOCTYPE html>
+<div class="hero-bg-anim" id="hero-bg-anim">
+      <div class="hero-grid"></div>
+      <div class="hero-scan"></div>
+      <div class="hero-particle" style="left:10%;animation-duration:12s;animation-delay:0s;width:3px;height:3px"></div>
+      <div class="hero-particle" style="left:25%;animation-duration:16s;animation-delay:-3s"></div>
+      <div class="hero-particle" style="left:40%;animation-duration:11s;animation-delay:-6s;width:3px;height:3px"></div>
+      <div class="hero-particle" style="left:55%;animation-duration:14s;animation-delay:-1s"></div>
+      <div class="hero-particle" style="left:70%;animation-duration:18s;animation-delay:-8s;width:4px;height:4px"></div>
+      <div class="hero-particle" style="left:82%;animation-duration:13s;animation-delay:-4s"></div>
+      <div class="hero-particle" style="left:90%;animation-duration:15s;animation-delay:-2s;width:3px;height:3px"></div>
+      <div class="hero-particle" style="left:5%;animation-duration:19s;animation-delay:-9s"></div>
+      <div class="hero-hex" style="width:80px;height:80px;top:15%;left:8%;animation-duration:9s;border-radius:12px;transform:rotate(30deg)"></div>
+      <div class="hero-hex" style="width:50px;height:50px;top:60%;left:85%;animation-duration:13s;animation-delay:-4s;border-radius:8px;transform:rotate(15deg)"></div>
+      <div class="hero-hex" style="width:120px;height:120px;top:75%;left:15%;animation-duration:17s;animation-delay:-7s;border-radius:16px;transform:rotate(45deg)"></div>
+      <div class="hero-hex" style="width:60px;height:60px;top:30%;left:75%;animation-duration:11s;animation-delay:-2s;border-radius:10px;transform:rotate(20deg)"></div>
+      <div class="hero-ring" style="width:300px;height:300px;top:20%;left:60%;animation-duration:8s;animation-delay:0s"></div>
+      <div class="hero-ring" style="width:200px;height:200px;top:50%;left:10%;animation-duration:10s;animation-delay:-3s"></div>
+      <div class="hero-ring" style="width:400px;height:400px;top:-10%;left:40%;animation-duration:12s;animation-delay:-6s"></div>
+    </div>
+    <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1582,6 +1601,115 @@ section .wrap { position: relative; z-index: 1; }
   box-shadow: 0 0 8px rgba(255,26,46,.4);
 }
 
+
+/* ══ HERO CANVAS ANIMATION — CSS PURA ══ */
+#hero-canvas { display:none; } /* ocultar canvas de Three.js */
+
+.hero-bg-anim {
+  position:absolute; inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:0;
+}
+/* Grid de líneas animadas */
+.hero-grid {
+  position:absolute; inset:-50%;
+  background-image:
+    linear-gradient(rgba(255,26,46,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,26,46,.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridDrift 20s linear infinite;
+}
+@keyframes gridDrift {
+  from { transform: translateY(0) translateX(0); }
+  to   { transform: translateY(60px) translateX(60px); }
+}
+/* Partículas flotantes */
+.hero-particle {
+  position:absolute;
+  width:2px; height:2px;
+  background:var(--acc);
+  border-radius:50%;
+  box-shadow: 0 0 6px var(--acc);
+  animation: particleFloat linear infinite;
+}
+@keyframes particleFloat {
+  0%   { transform: translateY(100vh) translateX(0) scale(0); opacity:0; }
+  10%  { opacity:1; transform: translateY(90vh) translateX(10px) scale(1); }
+  90%  { opacity:.6; }
+  100% { transform: translateY(-10vh) translateX(-20px) scale(0.5); opacity:0; }
+}
+/* Líneas de escaneo */
+.hero-scan {
+  position:absolute; left:0; right:0;
+  height:2px;
+  background: linear-gradient(90deg, transparent, rgba(255,26,46,.4), transparent);
+  animation: scanLine 6s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(255,26,46,.3);
+}
+@keyframes scanLine {
+  0%   { top:0%; opacity:0; }
+  5%   { opacity:1; }
+  95%  { opacity:1; }
+  100% { top:100%; opacity:0; }
+}
+/* Hexágonos flotantes */
+.hero-hex {
+  position:absolute;
+  border: 1px solid rgba(255,26,46,.12);
+  animation: hexFloat ease-in-out infinite;
+}
+@keyframes hexFloat {
+  0%,100% { transform: translateY(0) rotate(0deg); opacity:.4; }
+  50%      { transform: translateY(-20px) rotate(60deg); opacity:.8; }
+}
+/* Círculos de ondas */
+.hero-ring {
+  position:absolute;
+  border-radius:50%;
+  border: 1px solid rgba(255,26,46,.1);
+  animation: ringExpand ease-out infinite;
+}
+@keyframes ringExpand {
+  0%   { transform:scale(0.8); opacity:.6; }
+  100% { transform:scale(2.5); opacity:0; }
+}
+/* Glitch en el cursor del hero */
+@keyframes heroGlitch {
+  0%,90%,100% { clip-path:none; transform:none; }
+  91% { clip-path:inset(20% 0 30% 0); transform:translateX(-4px); }
+  93% { clip-path:inset(60% 0 10% 0); transform:translateX(4px); }
+  95% { clip-path:inset(40% 0 50% 0); transform:translateX(-2px); }
+}
+#hero-h1 { animation: heroGlitch 8s ease-in-out infinite; }
+
+
+/* ══ CABECERAS HTTP ══ */
+.hdrs-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:28px; }
+.hdrs-tab  { padding:7px 16px; border:1px solid rgba(255,26,46,.2); border-radius:3px; font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.5); cursor:pointer; transition:all .18s; background:transparent; }
+.hdrs-tab:hover { color:rgba(240,238,248,.85); border-color:rgba(255,26,46,.4); }
+.hdrs-tab.active { color:var(--text); border-color:rgba(255,26,46,.6); background:rgba(255,26,46,.07); }
+.hdrs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+.hdr-card  { background:rgba(8,3,8,.7); border:1px solid rgba(255,26,46,.12); border-radius:4px; overflow:hidden; transition:border-color .2s; }
+.hdr-card:hover { border-color:rgba(255,26,46,.3); }
+.hdr-card-top { padding:11px 14px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,26,46,.08); }
+.hdr-name { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); flex:1; }
+.hdr-cat-badge { font-size:9px; padding:2px 7px; border-radius:2px; font-family:var(--mono); font-weight:700; letter-spacing:.06em; }
+.hdr-cat-badge.req  { background:rgba(61,220,132,.1); color:#3ddc84; border:1px solid rgba(61,220,132,.2); }
+.hdr-cat-badge.res  { background:rgba(79,195,247,.1); color:#4fc3f7; border:1px solid rgba(79,195,247,.2); }
+.hdr-cat-badge.sec  { background:rgba(255,26,46,.1);  color:#ff4d6a; border:1px solid rgba(255,26,46,.2); }
+.hdr-cat-badge.cors { background:rgba(206,147,216,.1); color:#ce93d8; border:1px solid rgba(206,147,216,.2); }
+.hdr-cat-badge.pen  { background:rgba(255,204,2,.1);  color:#ffcc02; border:1px solid rgba(255,204,2,.2); }
+.hdr-risk { font-size:9px; padding:2px 7px; border-radius:2px; font-family:var(--mono); }
+.hdr-risk.high { background:rgba(255,82,82,.1); color:#ff5252; border:1px solid rgba(255,82,82,.2); }
+.hdr-risk.med  { background:rgba(255,204,2,.1); color:#ffcc02; border:1px solid rgba(255,204,2,.2); }
+.hdr-risk.low  { background:rgba(61,220,132,.1); color:#3ddc84; border:1px solid rgba(61,220,132,.2); }
+.hdr-body { padding:10px 14px; }
+.hdr-desc { font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.6); line-height:1.6; margin-bottom:8px; }
+.hdr-example { font-family:var(--mono); font-size:10.5px; color:#4fc3f7; background:rgba(79,195,247,.04); border:1px solid rgba(79,195,247,.08); border-radius:2px; padding:5px 9px; word-break:break-all; }
+.hdr-note { font-family:var(--mono); font-size:10px; color:#ffcc02; margin-top:6px; padding:4px 8px; background:rgba(255,204,2,.04); border-left:2px solid rgba(255,204,2,.3); }
+@media(max-width:600px) { .hdrs-grid { grid-template-columns:1fr; } }
+
 </style>
 
 <script type="application/ld+json">
@@ -2643,6 +2771,18 @@ dig assets.lime.bike CNAME</div></div></div>
 
 <section 
 <!-- ══ TERMINAL LAB ══ -->
+<!-- ══ CABECERAS HTTP ══ -->
+<section id="headers">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">20 — Referencia</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Cabeceras" data-l2="HTTP." aria-label="Cabeceras HTTP."></h2>
+    <p style="margin-bottom:36px;color:rgba(240,238,248,.6);max-width:700px;">Referencia completa de todas las cabeceras HTTP — de solicitud, respuesta, seguridad y pentesting. Cada cabecera con su función, ejemplo y riesgo de seguridad.</p>
+    <div class="hdrs-tabs" id="hdrs-tabs"></div>
+    <div class="hdrs-grid" id="hdrs-grid"></div>
+  </div>
+</section>
+
+
 <!-- ══ COMMAND LAB ══ -->
 <section id="termlab">
   <div class="wrap">
@@ -2898,8 +3038,9 @@ function heroReveal(){
 
 /* ══ THREE.JS PARTICLE SPHERE ══ */
 (function initThreeJS(){
+  // Three.js reemplazado por animación 2D liviana — sin errores WebGL
+  return;
   if(typeof THREE === 'undefined' || reduce) return;
-  // Deshabilitar en mobile — WebGL2 en Android genera shader error 'color' redefinition
   const _isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
   if(_isMob){
     const heroCanvas = document.getElementById('hero-canvas');
@@ -6732,6 +6873,334 @@ BURP.forEach(function(card){
     if(orb2) orb2.style.transform = 'translateY(' + y2 + 'px)';
     if(orb3) orb3.style.transform = 'translateY(' + y3 + 'px) translateX(' + (scrolled*0.03) + 'px)';
   }, { passive: true });
+})();
+
+
+/* ══ CABECERAS HTTP ══ */
+(function(){
+var tabs = document.getElementById('hdrs-tabs');
+var grid = document.getElementById('hdrs-grid');
+if(!tabs || !grid) return;
+
+var CATS = [
+  { id:'all',  label:'Todas' },
+  { id:'req',  label:'Solicitud (Request)' },
+  { id:'res',  label:'Respuesta (Response)' },
+  { id:'sec',  label:'Seguridad' },
+  { id:'cors', label:'CORS' },
+  { id:'pen',  label:'Pentesting' },
+];
+
+var HEADERS = [
+  // ══ REQUEST HEADERS ══
+  { name:'Host', cat:'req', risk:'high',
+    desc:'Dominio y puerto del servidor al que va la solicitud. Obligatorio en HTTP/1.1.',
+    example:'Host: api.example.com:443',
+    note:'Vector de Host Header Injection → password reset poisoning, SSRF.' },
+  { name:'User-Agent', cat:'req', risk:'low',
+    desc:'Identifica el cliente: navegador, OS y versión. Usado para fingerprinting.',
+    example:'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    note:'Cambiar el UA puede bypassar bloqueos o WAFs que filtran por navegador.' },
+  { name:'Accept', cat:'req', risk:'low',
+    desc:'Tipos de contenido que el cliente acepta como respuesta (MIME types).',
+    example:'Accept: application/json, text/html, */*' },
+  { name:'Accept-Language', cat:'req', risk:'low',
+    desc:'Idiomas preferidos del cliente en orden de prioridad.',
+    example:'Accept-Language: es-CL,es;q=0.9,en;q=0.8' },
+  { name:'Accept-Encoding', cat:'req', risk:'low',
+    desc:'Algoritmos de compresión que el cliente soporta.',
+    example:'Accept-Encoding: gzip, deflate, br' },
+  { name:'Authorization', cat:'req', risk:'high',
+    desc:'Credenciales para autenticar al cliente ante el servidor.',
+    example:'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    note:'Si se expone en logs o URLs → robo de tokens. Verificar algoritmo "none" en JWTs.' },
+  { name:'Cookie', cat:'req', risk:'high',
+    desc:'Envía las cookies almacenadas al servidor. Puede contener tokens de sesión.',
+    example:'Cookie: session=abc123; _ga=GA1.2.xxx; csrf_token=yyy',
+    note:'Si falta flag HttpOnly → robo via XSS. Sin Secure → intercepción en HTTP.' },
+  { name:'Content-Type', cat:'req', risk:'med',
+    desc:'Tipo MIME del cuerpo de la solicitud. Determina cómo el servidor parsea el body.',
+    example:'Content-Type: application/json',
+    note:'Cambiar a text/xml puede activar parsers XXE. multipart/form-data para file uploads.' },
+  { name:'Content-Length', cat:'req', risk:'med',
+    desc:'Tamaño en bytes del cuerpo de la solicitud.',
+    example:'Content-Length: 348',
+    note:'Discrepancia con Transfer-Encoding → HTTP Request Smuggling.' },
+  { name:'Transfer-Encoding', cat:'req', risk:'high',
+    desc:'Codificación aplicada al body para la transferencia (chunked es la más común).',
+    example:'Transfer-Encoding: chunked',
+    note:'Conflicto con Content-Length → HTTP Request Smuggling (TE.CL, CL.TE).' },
+  { name:'Referer', cat:'req', risk:'med',
+    desc:'URL de la página anterior desde la que se hizo la solicitud.',
+    example:'Referer: https://example.com/dashboard',
+    note:'Puede filtrar URLs internas o tokens en la URL. Verificar validación de CSRF.' },
+  { name:'Origin', cat:'req', risk:'med',
+    desc:'Origen (scheme + host + port) de la solicitud. Usado para CORS y CSRF.',
+    example:'Origin: https://evil.com',
+    note:'Modificar Origin para testear CORS misconfiguration → reflect de credenciales.' },
+  { name:'X-Requested-With', cat:'req', risk:'low',
+    desc:'Indica que la solicitud es AJAX. Muchos frameworks verifican esto para CSRF.',
+    example:'X-Requested-With: XMLHttpRequest',
+    note:'Agregar este header puede bypassar protecciones CSRF en apps mal configuradas.' },
+  { name:'If-None-Match', cat:'req', risk:'low',
+    desc:'ETag del recurso en caché del cliente. El servidor devuelve 304 si no cambió.',
+    example:'If-None-Match: "686897696a7c876b7e"' },
+  { name:'If-Modified-Since', cat:'req', risk:'low',
+    desc:'Fecha de la última copia del recurso. Similar a If-None-Match.',
+    example:'If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT' },
+  { name:'Range', cat:'req', risk:'med',
+    desc:'Solicita solo un rango de bytes del recurso (descarga parcial).',
+    example:'Range: bytes=0-1023',
+    note:'Puede usarse para fuerza bruta de descarga o evadir límites de tamaño.' },
+  { name:'Cache-Control', cat:'req', risk:'low',
+    desc:'Directivas para el comportamiento del caché en la solicitud.',
+    example:'Cache-Control: no-cache, no-store' },
+  { name:'Connection', cat:'req', risk:'low',
+    desc:'Controla si la conexión TCP se mantiene abierta (keep-alive) o se cierra.',
+    example:'Connection: keep-alive' },
+  { name:'Upgrade-Insecure-Requests', cat:'req', risk:'low',
+    desc:'El cliente prefiere respuestas HTTPS y puede manejar redirecciones.',
+    example:'Upgrade-Insecure-Requests: 1' },
+  { name:'Forwarded', cat:'req', risk:'med',
+    desc:'Header estándar para proxies — contiene IP original, proto y host.',
+    example:'Forwarded: for=192.168.1.1; proto=https; host=example.com',
+    note:'Puede ser manipulado para spoofear la IP de origen.' },
+
+  // ══ RESPONSE HEADERS ══
+  { name:'Server', cat:'res', risk:'med',
+    desc:'Identifica el software del servidor web y su versión.',
+    example:'Server: Apache/2.4.51 (Unix)',
+    note:'Fingerprinting del servidor → buscar CVEs. Buena práctica: eliminar o falsear.' },
+  { name:'Date', cat:'res', risk:'low',
+    desc:'Fecha y hora en que el servidor generó la respuesta (RFC 7231).',
+    example:'Date: Tue, 28 Aug 2026 18:00:00 GMT' },
+  { name:'Content-Type', cat:'res', risk:'med',
+    desc:'Tipo MIME del contenido de la respuesta con charset.',
+    example:'Content-Type: text/html; charset=UTF-8',
+    note:'Sin charset → XSS via UTF-7. Tipo incorrecto + MIME sniffing → ataques.' },
+  { name:'Content-Length', cat:'res', risk:'low',
+    desc:'Tamaño en bytes del cuerpo de la respuesta.',
+    example:'Content-Length: 2048' },
+  { name:'Content-Encoding', cat:'res', risk:'low',
+    desc:'Compresión aplicada al cuerpo de la respuesta.',
+    example:'Content-Encoding: gzip' },
+  { name:'Location', cat:'res', risk:'high',
+    desc:'URL de redirección (usada con 3xx). También en 201 Created.',
+    example:'Location: https://example.com/new-resource',
+    note:'Open Redirect si el valor incluye input del usuario sin validar.' },
+  { name:'Set-Cookie', cat:'res', risk:'high',
+    desc:'Establece una cookie en el cliente con sus atributos de seguridad.',
+    example:'Set-Cookie: session=abc; HttpOnly; Secure; SameSite=Strict; Path=/',
+    note:'Sin HttpOnly → XSS roba cookie. Sin Secure → expuesto en HTTP. Sin SameSite → CSRF.' },
+  { name:'WWW-Authenticate', cat:'res', risk:'med',
+    desc:'Indica el esquema de autenticación requerido (respuesta 401).',
+    example:'WWW-Authenticate: Basic realm="Admin Area"',
+    note:'Basic sin HTTPS → credenciales en texto claro. Fingerprinting del sistema.' },
+  { name:'Retry-After', cat:'res', risk:'low',
+    desc:'Tiempo de espera antes de reintentar una solicitud (rate limiting, 503).',
+    example:'Retry-After: 120' },
+  { name:'Last-Modified', cat:'res', risk:'low',
+    desc:'Fecha de la última modificación del recurso.',
+    example:'Last-Modified: Wed, 21 Oct 2025 07:28:00 GMT' },
+  { name:'ETag', cat:'res', risk:'low',
+    desc:'Identificador único del estado actual del recurso. Usado para caché.',
+    example:'ETag: "33a64df551425fcc55e4d42a148795d9f25f89d4"' },
+  { name:'Cache-Control', cat:'res', risk:'med',
+    desc:'Directivas para cachés intermediarios y el cliente sobre este recurso.',
+    example:'Cache-Control: max-age=3600, must-revalidate',
+    note:'Sin no-store en respuestas con datos sensibles → caché en el browser o proxy.' },
+  { name:'Expires', cat:'res', risk:'low',
+    desc:'Fecha de expiración del recurso (legado, prefer Cache-Control).',
+    example:'Expires: Thu, 01 Jan 2026 00:00:00 GMT' },
+  { name:'Vary', cat:'res', risk:'low',
+    desc:'Indica qué headers del request afectan el contenido cacheado.',
+    example:'Vary: Accept-Encoding, Accept-Language' },
+  { name:'X-Powered-By', cat:'res', risk:'med',
+    desc:'Tecnología que potencia el servidor (PHP, Express, ASP.NET, etc.).',
+    example:'X-Powered-By: PHP/8.1.2',
+    note:'Fingerprinting → CVEs. Eliminar siempre en producción.' },
+
+  // ══ SECURITY HEADERS ══
+  { name:'Content-Security-Policy', cat:'sec', risk:'high',
+    desc:'Define fuentes confiables de scripts, estilos, imágenes, etc. Previene XSS.',
+    example:"Content-Security-Policy: default-src 'self'; script-src 'self' cdn.example.com; object-src 'none'",
+    note:"Sin CSP → XSS libre. Con unsafe-inline o unsafe-eval → bypassable. Usar nonces." },
+  { name:'X-Frame-Options', cat:'sec', risk:'high',
+    desc:'Controla si la página puede embeberse en un iframe. Previene Clickjacking.',
+    example:'X-Frame-Options: DENY',
+    note:'Valores: DENY (más seguro), SAMEORIGIN. Reemplazado por CSP frame-ancestors.' },
+  { name:'X-Content-Type-Options', cat:'sec', risk:'med',
+    desc:'Previene que el navegador haga MIME sniffing del Content-Type declarado.',
+    example:'X-Content-Type-Options: nosniff',
+    note:'Sin este header → MIME confusion attacks. XSS via archivos con Content-Type incorrecto.' },
+  { name:'Strict-Transport-Security', cat:'sec', risk:'high',
+    desc:'Fuerza HTTPS por un período determinado (HSTS). Previene downgrade attacks.',
+    example:'Strict-Transport-Security: max-age=31536000; includeSubDomains; preload',
+    note:'Sin HSTS → SSL stripping. Con max-age corto → protección limitada.' },
+  { name:'X-XSS-Protection', cat:'sec', risk:'low',
+    desc:'Habilita el filtro XSS del navegador (obsoleto en navegadores modernos).',
+    example:'X-XSS-Protection: 1; mode=block',
+    note:'Obsoleto — puede crear vulnerabilidades. Usar CSP en su lugar.' },
+  { name:'Referrer-Policy', cat:'sec', risk:'med',
+    desc:'Controla qué información de Referer se envía en solicitudes cross-origin.',
+    example:'Referrer-Policy: strict-origin-when-cross-origin',
+    note:'Sin restricción → URLs con tokens en el Referer llegan a sitios externos.' },
+  { name:'Permissions-Policy', cat:'sec', risk:'med',
+    desc:'Controla qué APIs del browser puede usar la página (cámara, geolocalización, etc.).',
+    example:'Permissions-Policy: camera=(), microphone=(), geolocation=(self)',
+    note:'Sin restricción → páginas embebidas pueden acceder a sensores del dispositivo.' },
+  { name:'Cross-Origin-Embedder-Policy', cat:'sec', risk:'med',
+    desc:'Requiere que recursos cross-origin tengan CORS o CORP explícito.',
+    example:'Cross-Origin-Embedder-Policy: require-corp',
+    note:'Necesario para habilitar SharedArrayBuffer (mitigación Spectre).' },
+  { name:'Cross-Origin-Opener-Policy', cat:'sec', risk:'med',
+    desc:'Aísla el contexto de navegación del opener. Previene ataques entre pestañas.',
+    example:'Cross-Origin-Opener-Policy: same-origin',
+    note:'Protege contra Spectre y cross-origin attacks via window.opener.' },
+  { name:'Cross-Origin-Resource-Policy', cat:'sec', risk:'med',
+    desc:'Restringe qué orígenes pueden cargar el recurso (imágenes, scripts, etc.).',
+    example:'Cross-Origin-Resource-Policy: same-site',
+    note:'Sin CORP → cualquier sitio puede incrustar el recurso (hotlinking, datos privados).' },
+  { name:'Feature-Policy', cat:'sec', risk:'low',
+    desc:'Versión anterior de Permissions-Policy. Aún soportado en algunos browsers.',
+    example:'Feature-Policy: camera none; microphone none' },
+  { name:'Clear-Site-Data', cat:'sec', risk:'low',
+    desc:'Limpia datos del browser (cookies, caché, storage) al hacer logout.',
+    example:'Clear-Site-Data: "cache", "cookies", "storage"' },
+  { name:'Expect-CT', cat:'sec', risk:'low',
+    desc:'Requiere Certificate Transparency para los certificados del sitio (obsoleto).',
+    example:'Expect-CT: enforce, max-age=86400' },
+
+  // ══ CORS HEADERS ══
+  { name:'Access-Control-Allow-Origin', cat:'cors', risk:'high',
+    desc:'Especifica qué orígenes pueden acceder al recurso en solicitudes cross-origin.',
+    example:'Access-Control-Allow-Origin: https://app.example.com',
+    note:'Si es * con credenciales → error de seguridad. Si refleja el Origin sin validar → CORS bypass.' },
+  { name:'Access-Control-Allow-Methods', cat:'cors', risk:'med',
+    desc:'Lista los métodos HTTP permitidos en solicitudes CORS.',
+    example:'Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS' },
+  { name:'Access-Control-Allow-Headers', cat:'cors', risk:'med',
+    desc:'Lista los headers permitidos en solicitudes CORS.',
+    example:'Access-Control-Allow-Headers: Content-Type, Authorization, X-Custom-Header' },
+  { name:'Access-Control-Allow-Credentials', cat:'cors', risk:'high',
+    desc:'Permite enviar cookies y credenciales en solicitudes cross-origin.',
+    example:'Access-Control-Allow-Credentials: true',
+    note:'Con Allow-Origin: * es inválido. Con origen dinámico sin validar → robo de sesión.' },
+  { name:'Access-Control-Expose-Headers', cat:'cors', risk:'low',
+    desc:'Lista de headers de la respuesta que el JS del cliente puede leer.',
+    example:'Access-Control-Expose-Headers: X-Custom-Header, X-Request-Id' },
+  { name:'Access-Control-Max-Age', cat:'cors', risk:'low',
+    desc:'Tiempo en segundos que el navegador puede cachear la respuesta preflight.',
+    example:'Access-Control-Max-Age: 86400' },
+  { name:'Vary: Origin', cat:'cors', risk:'med',
+    desc:'Indica que la respuesta varía según el header Origin. Esencial con CORS dinámico.',
+    example:'Vary: Origin',
+    note:'Sin Vary: Origin con CORS dinámico → respuesta incorrecta cacheada.' },
+
+  // ══ PENTESTING HEADERS ══
+  { name:'X-Forwarded-For', cat:'pen', risk:'high',
+    desc:'IP original del cliente cuando pasa por proxies. Puede ser manipulado.',
+    example:'X-Forwarded-For: 127.0.0.1, 10.0.0.1',
+    note:'Si el servidor lo usa sin validar → bypass de rate limiting o IP whitelist.' },
+  { name:'X-Real-IP', cat:'pen', risk:'high',
+    desc:'IP real del cliente establecida por el proxy/load balancer.',
+    example:'X-Real-IP: 192.168.1.100',
+    note:'Similar a X-Forwarded-For — spoofeable si el servidor confía ciegamente.' },
+  { name:'X-Forwarded-Host', cat:'pen', risk:'high',
+    desc:'Host original de la solicitud cuando hay reverse proxies.',
+    example:'X-Forwarded-Host: evil.com',
+    note:'Host Header Injection → password reset con links que apuntan a evil.com.' },
+  { name:'X-Forwarded-Proto', cat:'pen', risk:'med',
+    desc:'Protocolo original (http/https) antes del proxy.',
+    example:'X-Forwarded-Proto: https',
+    note:'Si el app lo usa para detectar HTTPS y confiar en él → bypass de HSTS interna.' },
+  { name:'X-Override-URL', cat:'pen', risk:'high',
+    desc:'Header no estándar usado por algunos frameworks para override de rutas.',
+    example:'X-Override-URL: /admin',
+    note:'Puede bypassar protecciones de routing en apps que lo soportan.' },
+  { name:'X-HTTP-Method-Override', cat:'pen', risk:'high',
+    desc:'Permite simular métodos HTTP como DELETE o PUT via POST.',
+    example:'X-HTTP-Method-Override: DELETE',
+    note:'Si el servidor lo honra → bypass de WAFs que bloquean DELETE/PATCH.' },
+  { name:'X-Custom-IP-Authorization', cat:'pen', risk:'high',
+    desc:'Header personalizado de algunos sistemas que verifica IP para autorizar.',
+    example:'X-Custom-IP-Authorization: 127.0.0.1',
+    note:'Si el servidor confía en este header → bypass de autenticación por IP.' },
+  { name:'Content-Type (bypass)', cat:'pen', risk:'high',
+    desc:'Cambiar el Content-Type puede activar parsers diferentes y vulnerabilidades.',
+    example:'Content-Type: text/xml (para XXE) | application/x-www-form-urlencoded',
+    note:'JSON → XML puede activar parsers XXE. Cambio de tipo puede bypassar validadores.' },
+  { name:'Origin (CORS test)', cat:'pen', risk:'high',
+    desc:'Manipular el Origin para probar misconfiguraciones CORS.',
+    example:'Origin: https://attacker.com',
+    note:'Si la respuesta refleja el Origin en Allow-Origin → potencial CORS exploit.' },
+  { name:'Referer (CSRF)', cat:'pen', risk:'med',
+    desc:'Algunos sistemas validan el Referer para proteger contra CSRF.',
+    example:'Referer: https://target.com/page',
+    note:'Si se valida Referer pero no se comprueba correctamente → bypass de CSRF.' },
+  { name:'Authorization: null', cat:'pen', risk:'high',
+    desc:'JWT con algoritmo "none" — indica que no hay firma verificable.',
+    example:'Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJhZG1pbiI6dHJ1ZX0.',
+    note:'Si el servidor acepta JWTs con alg:none → bypass de autenticación.' },
+  { name:'Host: interno', cat:'pen', risk:'high',
+    desc:'Host apuntando a servicios internos para SSRF via Host header.',
+    example:'Host: localhost\nHost: 169.254.169.254 (AWS metadata)',
+    note:'Puede acceder a servicios internos, metadata de cloud, o admin panels.' },
+  { name:'Transfer-Encoding: chunked', cat:'pen', risk:'high',
+    desc:'Usado en ataques de HTTP Request Smuggling junto con Content-Length.',
+    example:'Transfer-Encoding: chunked\nContent-Length: 6\n\n3\nPOST\n0',
+    note:'TE.CL o CL.TE smuggling → bypass de WAF, cache poisoning, session hijacking.' },
+];
+
+var activeCat = 'all';
+
+function renderTabs(){
+  tabs.innerHTML = '';
+  CATS.forEach(function(cat){
+    var btn = document.createElement('button');
+    btn.className = 'hdrs-tab' + (activeCat === cat.id ? ' active' : '');
+    btn.textContent = cat.label;
+    btn.onclick = function(){
+      activeCat = cat.id;
+      document.querySelectorAll('.hdrs-tab').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderCards();
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+function renderCards(){
+  var filtered = activeCat === 'all' ? HEADERS : HEADERS.filter(function(h){ return h.cat === activeCat; });
+  grid.innerHTML = '';
+  filtered.forEach(function(h, i){
+    var card = document.createElement('div');
+    card.className = 'hdr-card';
+    card.style.animationDelay = (i * 0.03) + 's';
+    card.style.animation = 'cardIn 0.4s cubic-bezier(.22,1,.36,1) both';
+
+    var catLabel = { req:'REQUEST', res:'RESPONSE', sec:'SECURITY', cors:'CORS', pen:'PENTEST' };
+    var riskLabel = { high:'ALTO RIESGO', med:'RIESGO MEDIO', low:'BAJO RIESGO' };
+
+    var top = '<div class="hdr-card-top">'
+      + '<span class="hdr-name">' + h.name + '</span>'
+      + '<span class="hdr-cat-badge ' + h.cat + '">' + (catLabel[h.cat]||h.cat) + '</span>'
+      + (h.risk ? '<span class="hdr-risk ' + h.risk + '">' + (riskLabel[h.risk]||h.risk) + '</span>' : '')
+      + '</div>';
+
+    var body = '<div class="hdr-body">'
+      + '<div class="hdr-desc">' + h.desc + '</div>'
+      + '<div class="hdr-example">' + h.example.replace(/\n/g,'<br>') + '</div>'
+      + (h.note ? '<div class="hdr-note">⚠ ' + h.note + '</div>' : '')
+      + '</div>';
+
+    card.innerHTML = top + body;
+    grid.appendChild(card);
+  });
+}
+
+renderTabs();
+renderCards();
 })();
 
 </script>

@@ -1801,6 +1801,110 @@ section .wrap { position: relative; z-index: 1; }
 .rdm-cert { font-family:var(--mono); font-size:11px; color:#ffcc02; padding:10px 18px; background:rgba(255,204,2,.04); border-top:1px solid rgba(255,204,2,.1); }
 @media(max-width:600px){ .rdm-timeline{ padding-left:20px; } .rdm-badge{ left:-20px; } .rdm-connector{ left:-12px; width:8px; } .rdm-timeline::before{ left:8px; } .rdm-phase::before{ left:-14px; } }
 
+
+/* ══ MEGA MENÚ ══ */
+.nav-burger { display:flex; flex-direction:column; gap:5px; background:transparent; border:1px solid rgba(255,26,46,.3); border-radius:3px; padding:7px 10px; cursor:pointer; }
+.nav-burger span { display:block; width:20px; height:2px; background:var(--acc); border-radius:1px; transition:all .3s; }
+.nav-burger:hover { border-color:var(--acc); }
+.nav-burger:hover span { box-shadow:0 0 6px var(--acc); }
+
+.mega-menu { position:fixed; inset:0; z-index:10000; background:rgba(5,2,5,.97); display:flex; flex-direction:column; transform:translateY(-100%); transition:transform .45s cubic-bezier(.86,0,.07,1); backdrop-filter:blur(20px); }
+.mega-menu.open { transform:translateY(0); }
+.mega-close { position:absolute; top:20px; right:24px; background:transparent; border:1px solid rgba(255,26,46,.3); color:rgba(240,238,248,.6); font-size:18px; width:40px; height:40px; border-radius:50%; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; }
+.mega-close:hover { border-color:var(--acc); color:var(--acc); transform:rotate(90deg); }
+.mega-inner { display:grid; grid-template-columns:repeat(4,1fr); gap:0; flex:1; padding:60px 40px 20px; }
+.mega-col { padding:0 24px; border-right:1px solid rgba(255,26,46,.06); }
+.mega-col:last-child { border:none; }
+.mega-col-title { font-family:var(--mono); font-size:9px; letter-spacing:.15em; color:rgba(255,26,46,.5); margin-bottom:20px; padding-bottom:8px; border-bottom:1px solid rgba(255,26,46,.1); }
+.mega-link { display:block; font-family:var(--mono); font-size:13px; color:rgba(240,238,248,.55); padding:8px 0; text-decoration:none; transition:all .15s; border-bottom:1px solid rgba(255,255,255,.03); letter-spacing:.02em; }
+.mega-link:hover { color:var(--acc); padding-left:8px; }
+.mega-footer { padding:16px 40px; border-top:1px solid rgba(255,26,46,.1); display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:rgba(240,238,248,.25); }
+.mega-overlay { position:fixed; inset:0; z-index:9999; display:none; }
+.mega-overlay.open { display:block; }
+@media(max-width:900px){
+  .mega-inner { grid-template-columns:repeat(2,1fr); padding:60px 20px 20px; }
+  .mega-col { padding:0 16px; }
+}
+@media(max-width:500px){
+  .mega-inner { grid-template-columns:1fr; overflow-y:auto; }
+  .mega-col { border-right:none; border-bottom:1px solid rgba(255,26,46,.06); padding-bottom:16px; margin-bottom:16px; }
+}
+
+
+/* ══ MEGA BURGER & MENU ══ */
+.mega-burger { display:flex; flex-direction:column; gap:5px; background:transparent; border:1px solid rgba(255,26,46,.3); border-radius:3px; padding:7px 9px; cursor:pointer; transition:all .2s; }
+.mega-burger span { display:block; width:18px; height:2px; background:var(--acc); border-radius:1px; transition:all .3s; }
+.mega-burger:hover { border-color:var(--acc); box-shadow:0 0 12px rgba(255,26,46,.2); }
+
+.mega-menu { position:fixed; inset:0; z-index:10000; background:rgba(4,1,4,.97); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .4s cubic-bezier(.77,0,.175,1); }
+.mega-menu.open { transform:translateX(0); }
+.mega-header { display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid rgba(255,26,46,.12); }
+.mega-close { font-family:var(--mono); font-size:11px; padding:7px 16px; border:1px solid rgba(255,26,46,.3); border-radius:3px; background:transparent; color:rgba(240,238,248,.6); cursor:pointer; transition:all .2s; letter-spacing:.05em; }
+.mega-close:hover { border-color:var(--acc); color:var(--acc); }
+.mega-body { display:grid; grid-template-columns:repeat(4,1fr); gap:0; flex:1; padding:32px; overflow-y:auto; }
+.mega-col { padding:0 20px; border-right:1px solid rgba(255,26,46,.06); }
+.mega-col:last-child { border:none; }
+.mega-col-title { font-family:var(--mono); font-size:9px; letter-spacing:.15em; color:rgba(255,26,46,.5); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid rgba(255,26,46,.08); text-transform:uppercase; }
+.mega-link { display:block; font-family:var(--mono); font-size:13px; color:rgba(240,238,248,.55); padding:9px 0; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.03); transition:all .15s; }
+.mega-link:hover { color:var(--acc); padding-left:10px; }
+.mega-overlay { position:fixed; inset:0; z-index:9999; display:none; background:rgba(0,0,0,.5); }
+.mega-overlay.open { display:block; }
+@media(max-width:900px){
+  .mega-body { grid-template-columns:repeat(2,1fr); }
+  .mega-col { padding:0 16px; margin-bottom:24px; }
+}
+@media(max-width:500px){
+  .mega-body { grid-template-columns:1fr; }
+  .mega-col { border-right:none; border-bottom:1px solid rgba(255,26,46,.08); padding-bottom:16px; }
+}
+
+
+/* ══ CVE SEARCH ══ */
+.cve-searchbar { display:flex; gap:10px; margin-bottom:16px; }
+.cve-input-wrap { flex:1; display:flex; align-items:center; gap:10px; background:rgba(0,0,0,.5); border:1px solid rgba(255,26,46,.25); border-radius:4px; padding:0 14px; transition:border-color .2s; }
+.cve-input-wrap:focus-within { border-color:rgba(255,26,46,.6); }
+.cve-input { flex:1; background:transparent; border:none; outline:none; font-family:var(--mono); font-size:14px; color:var(--text); padding:16px 0; }
+.cve-input::placeholder { color:rgba(240,238,248,.22); }
+.cve-btn { padding:0 24px; background:var(--acc); border:none; border-radius:4px; color:#fff; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.1em; cursor:pointer; transition:all .2s; }
+.cve-btn:hover { background:#cc1528; box-shadow:0 0 20px rgba(255,26,46,.4); }
+.cve-btn:disabled { background:rgba(255,26,46,.3); cursor:not-allowed; }
+.cve-filters { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+.cve-filt { font-family:var(--mono); font-size:10px; padding:5px 14px; border-radius:2px; cursor:pointer; border:1px solid rgba(255,255,255,.08); color:rgba(240,238,248,.45); transition:all .15s; }
+.cve-filt:hover,.cve-filt.active { background:rgba(255,26,46,.1); border-color:rgba(255,26,46,.4); color:var(--text); }
+.cve-filt.crit { border-color:rgba(255,82,82,.3); color:#ff5252; }
+.cve-filt.high { border-color:rgba(255,150,0,.3); color:#ff9600; }
+.cve-filt.med  { border-color:rgba(255,204,2,.3); color:#ffcc02; }
+.cve-filt.low  { border-color:rgba(61,220,132,.3); color:#3ddc84; }
+.cve-prog { height:2px; background:rgba(255,26,46,.1); border-radius:2px; margin-bottom:8px; }
+.cve-prog-fill { height:100%; background:var(--acc); border-radius:2px; transition:width .5s; box-shadow:0 0 6px var(--acc); width:0; }
+.cve-status { margin-bottom:20px; }
+#cve-status-txt { font-family:var(--mono); font-size:11px; color:rgba(255,26,46,.6); }
+.cve-card { background:rgba(8,3,8,.85); border:1px solid rgba(255,26,46,.15); border-radius:5px; margin-bottom:12px; overflow:hidden; transition:border-color .2s; animation:cardIn .35s cubic-bezier(.22,1,.36,1) both; }
+.cve-card:hover { border-color:rgba(255,26,46,.35); }
+.cve-card-head { padding:12px 18px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,26,46,.08); flex-wrap:wrap; }
+.cve-id { font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text); }
+.cve-badge { font-size:10px; padding:3px 9px; border-radius:2px; font-family:var(--mono); font-weight:700; letter-spacing:.06em; }
+.cve-badge.CRITICAL { background:rgba(255,0,0,.15); color:#ff3333; border:1px solid rgba(255,0,0,.3); }
+.cve-badge.HIGH     { background:rgba(255,150,0,.12); color:#ff9600; border:1px solid rgba(255,150,0,.3); }
+.cve-badge.MEDIUM   { background:rgba(255,204,2,.1); color:#ffcc02; border:1px solid rgba(255,204,2,.2); }
+.cve-badge.LOW      { background:rgba(61,220,132,.08); color:#3ddc84; border:1px solid rgba(61,220,132,.2); }
+.cve-badge.NONE     { background:rgba(255,255,255,.05); color:rgba(240,238,248,.5); border:1px solid rgba(255,255,255,.1); }
+.cve-score { font-family:var(--mono); font-size:18px; font-weight:900; min-width:36px; text-align:center; }
+.cve-score.CRITICAL { color:#ff3333; }
+.cve-score.HIGH     { color:#ff9600; }
+.cve-score.MEDIUM   { color:#ffcc02; }
+.cve-score.LOW      { color:#3ddc84; }
+.cve-date { font-family:var(--mono); font-size:10px; color:rgba(240,238,248,.3); margin-left:auto; }
+.cve-card-body { padding:14px 18px; }
+.cve-desc { font-family:var(--mono); font-size:11.5px; color:rgba(240,238,248,.7); line-height:1.7; margin-bottom:12px; }
+.cve-meta { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.cve-meta-item { font-family:var(--mono); font-size:10px; padding:3px 8px; background:rgba(79,195,247,.06); border:1px solid rgba(79,195,247,.12); border-radius:2px; color:rgba(79,195,247,.8); }
+.cve-refs { margin-top:8px; }
+.cve-ref { font-family:var(--mono); font-size:10px; color:rgba(79,195,247,.6); display:block; margin-top:4px; word-break:break-all; }
+.cve-ref:hover { color:#4fc3f7; }
+.cve-empty { font-family:var(--mono); font-size:13px; color:rgba(240,238,248,.3); text-align:center; padding:48px; }
+.cve-count { font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.4); margin-bottom:16px; }
+
 </style>
 
 <script type="application/ld+json">
@@ -1956,15 +2060,66 @@ section .wrap { position: relative; z-index: 1; }
 </div>
 
 <nav id="main-nav">
-  <div class="nav-logo">TudelaSec</div>
+  <div class="nav-logo"><a href="#hero" style="color:inherit;text-decoration:none">TUDELASEC</a></div>
   <div class="nav-links">
-    <a href="#sobre-mi">Sobre mí</a><a href="#habilidades">Skills</a>
-    <a href="#osint">OSINT</a><a href="#cheatsheet">Cheatsheet</a>
-    <a href="#hallazgos">Hallazgos</a><a href="#arsenal">Arsenal</a><a href="#servicios">Servicios</a><a href="#hackertools">Tools</a><a href="#warroom">War Room</a><a href="#conocimiento">Conocimiento</a><a href="#contacto">Contacto</a>
+    <a href="#sobre-mi">Sobre mí</a>
+    <a href="#habilidades">Skills</a>
+    <a href="#osint">OSINT</a>
+    <a href="#hallazgos">Hallazgos</a>
+    <a href="#contacto">Contacto</a>
   </div>
-  <div class="nav-status"><span class="ndot"></span>Disponible</div>
-  <div class="burger" id="burger"><span></span><span></span><span></span></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="nav-status"><span class="ndot"></span>Disponible</div>
+    <button class="mega-burger" id="mega-burger" title="Ver todas las secciones">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </nav>
+
+<!-- ══ MEGA MENU ══ -->
+<div class="mega-menu" id="mega-menu">
+  <div class="mega-header">
+    <span style="font-family:var(--mono);font-size:11px;color:rgba(255,26,46,.6);letter-spacing:.1em">// TUDELASEC — NAVEGACIÓN COMPLETA</span>
+    <button class="mega-close" id="mega-close">✕ CERRAR</button>
+  </div>
+  <div class="mega-body">
+    <div class="mega-col">
+      <div class="mega-col-title">Reconocimiento</div>
+      <a href="#osint"        class="mega-link">⌖ OSINT Lookup</a>
+      <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
+      <a href="#cve-search"   class="mega-link">🛡 CVE Search</a>
+      <a href="#warroom"      class="mega-link">⚡ War Room</a>
+    </div>
+    <div class="mega-col">
+      <div class="mega-col-title">Arsenal Ofensivo</div>
+      <a href="#cheatsheet"   class="mega-link">📖 Cheatsheet</a>
+      <a href="#payloads"     class="mega-link">💣 Payload Library</a>
+      <a href="#burpsuite"    class="mega-link">🔄 Burp Suite</a>
+      <a href="#termlab"      class="mega-link">💻 Command Lab</a>
+      <a href="#rsg"          class="mega-link">🐚 Reverse Shell Gen</a>
+      <a href="#hashcalc"     class="mega-link"># Hash Calculator</a>
+    </div>
+    <div class="mega-col">
+      <div class="mega-col-title">Conocimiento</div>
+      <a href="#conocimiento" class="mega-link">🗄 Vuln Database</a>
+      <a href="#headers"      class="mega-link">📡 HTTP Headers</a>
+      <a href="#arsenal"      class="mega-link">⚙ Hacker Tools</a>
+      <a href="#hackertools"  class="mega-link">🔧 Encoder & Tools</a>
+      <a href="#roadmap"      class="mega-link">🗺 Hacker Roadmap</a>
+    </div>
+    <div class="mega-col">
+      <div class="mega-col-title">Perfil</div>
+      <a href="#sobre-mi"     class="mega-link">👤 Historia</a>
+      <a href="#habilidades"  class="mega-link">🎯 Skills & Áreas</a>
+      <a href="#hallazgos"    class="mega-link">💰 Hallazgos</a>
+      <a href="#formacion"    class="mega-link">🎓 Formación</a>
+      <a href="#writeups"     class="mega-link">✍ Writeups</a>
+      <a href="#servicios"    class="mega-link">💼 Servicios</a>
+      <a href="#contacto"     class="mega-link">📬 Contacto</a>
+    </div>
+  </div>
+</div>
+<div class="mega-overlay" id="mega-overlay"></div>
 <div class="mm" id="mm">
   <div class="mm-close" id="mm-close">Cerrar ×</div>
   <a href="#sobre-mi" class="mm-link">Sobre mí</a>
@@ -2909,6 +3064,39 @@ dig assets.lime.bike CNAME</div></div></div>
 </section>
 
 <!-- ══ PAYLOADS ══ -->
+
+<!-- ══ CVE SEARCH ══ -->
+<section id="cve-search">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">24 — Threat Intelligence</div></div>
+    <h2 class="sec-title h2-anim" data-l1="CVE" data-l2="Search." aria-label="CVE Search."></h2>
+    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Busca vulnerabilidades en la base de datos oficial NIST NVD. Por CVE ID, nombre de software, vendor o descripción. Datos en tiempo real con CVSS score, severidad y referencias.</p>
+
+    <div class="cve-searchbar">
+      <div class="cve-input-wrap">
+        <span style="color:var(--acc);font-size:18px;flex-shrink:0">🛡</span>
+        <input id="cve-input" class="cve-input" type="text" placeholder="CVE-2021-44228  ·  log4j  ·  apache  ·  wordpress  ·  microsoft" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="cve-btn" id="cve-btn">SEARCH</button>
+    </div>
+
+    <div class="cve-filters" id="cve-filters">
+      <span class="cve-filt active" data-sev="all">Todos</span>
+      <span class="cve-filt crit" data-sev="CRITICAL">CRÍTICO</span>
+      <span class="cve-filt high" data-sev="HIGH">ALTO</span>
+      <span class="cve-filt med"  data-sev="MEDIUM">MEDIO</span>
+      <span class="cve-filt low"  data-sev="LOW">BAJO</span>
+    </div>
+
+    <div class="cve-status" id="cve-status" style="display:none">
+      <div class="cve-prog"><div class="cve-prog-fill" id="cve-prog-fill"></div></div>
+      <span id="cve-status-txt">Consultando NVD...</span>
+    </div>
+
+    <div id="cve-results"></div>
+  </div>
+</section>
+
 <section id="payloads">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Arsenal Ofensivo</div></div>
@@ -3632,10 +3820,9 @@ if(!('ontouchstart' in window) && !reduce){
 const burger = document.getElementById('burger');
 const mm = document.getElementById('mm');
 const mmClose = document.getElementById('mm-close');
-burger.addEventListener('click',()=>mm.classList.add('open'));
-mmClose.addEventListener('click',()=>mm.classList.remove('open'));
-document.querySelectorAll('.mm-link').forEach(l=>l.addEventListener('click',()=>mm.classList.remove('open')));
-
+if(burger && mm) burger.addEventListener('click',()=>mm.classList.add('open'));
+if(mmClose && mm) mmClose.addEventListener('click',()=>mm.classList.remove('open'));
+document.querySelectorAll('.mm-link').forEach(function(l){ if(mm) l.addEventListener('click',function(){ mm.classList.remove('open'); }); });
 /* ══ NAV ACTIVE ══ */
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('.nav-links a');
@@ -8221,6 +8408,292 @@ PHASES.forEach(function(phase, i){
 
   timeline.appendChild(el);
 });
+})();
+
+
+/* ══ MEGA MENU ══ */
+(function(){
+  var burger = document.getElementById('mega-burger');
+  var menu   = document.getElementById('mega-menu');
+  var overlay= document.getElementById('mega-overlay');
+  var closeBtn = document.getElementById('mega-close');
+  if(!burger || !menu) return;
+
+  function openMenu(){
+    menu.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu(){
+    menu.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  burger.addEventListener('click', openMenu);
+  if(closeBtn) closeBtn.addEventListener('click', closeMenu);
+  overlay.addEventListener('click', closeMenu);
+
+  /* Cerrar al hacer clic en un link del menú */
+  menu.querySelectorAll('.mega-link').forEach(function(link){
+    link.addEventListener('click', closeMenu);
+  });
+
+  /* Cerrar con Escape */
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeMenu();
+  });
+})();
+
+/* ══ BACKGROUND ANIMATION — HEX MATRIX ══ */
+(function(){
+  /* Crear canvas detrás del hero */
+  var hero = document.getElementById('hero');
+  if(!hero) return;
+  var canvas = document.createElement('canvas');
+  canvas.id = 'hex-matrix-canvas';
+  canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.35;';
+  /* Insertar antes de hero-bg-anim si existe, sino al inicio */
+  var heroBg = document.getElementById('hero-bg-anim');
+  if(heroBg) hero.insertBefore(canvas, heroBg);
+  else hero.insertBefore(canvas, hero.firstChild);
+
+  var ctx = canvas.getContext('2d');
+  var cols, drops, fontSize = 13, chars;
+  /* Hex chars + símbolos hacker */
+  var HEX = '0123456789ABCDEF';
+  var SYM = '01<>{}[]#@!?/\\|&%^~;:=+-*';
+  var ALL = (HEX + SYM).split('');
+
+  /* Reducir en mobile para performance */
+  var isMob = window.innerWidth < 768;
+  if(isMob) fontSize = 10;
+
+  function resize(){
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    cols  = Math.floor(canvas.width / fontSize);
+    drops = new Array(cols).fill(1).map(function(){ return Math.random() * -50; });
+  }
+
+  function draw(){
+    /* Fade trail */
+    ctx.fillStyle = 'rgba(4,1,4,0.08)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    /* Columnas */
+    for(var i = 0; i < cols; i++){
+      /* Solo dibujar algunas columnas por frame para perf */
+      if(Math.random() > 0.7) continue;
+
+      var ch = ALL[Math.floor(Math.random() * ALL.length)];
+      var y  = drops[i] * fontSize;
+
+      /* Color: mayoría dim, algunas brillantes */
+      var bright = Math.random() > 0.95;
+      ctx.fillStyle = bright ? '#ff4d6a' : 'rgba(255,26,46,0.25)';
+      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+      ctx.fillText(ch, i * fontSize, y);
+
+      /* Reset al llegar al fondo */
+      if(y > canvas.height && Math.random() > 0.975){
+        drops[i] = 0;
+      }
+      drops[i] += 0.5;
+    }
+  }
+
+  var animId;
+  var lastTime = 0;
+  var FPS = isMob ? 20 : 30; /* FPS limitado para optimizar */
+  var interval = 1000 / FPS;
+
+  function animate(now){
+    animId = requestAnimationFrame(animate);
+    if(now - lastTime < interval) return;
+    lastTime = now;
+    draw();
+  }
+
+  /* Solo animar cuando el hero es visible */
+  resize();
+  var io = new IntersectionObserver(function(entries){
+    if(entries[0].isIntersecting){
+      if(!animId) animate(0);
+    } else {
+      if(animId){ cancelAnimationFrame(animId); animId = null; }
+    }
+  }, { threshold:0 });
+  io.observe(hero);
+
+  window.addEventListener('resize', function(){
+    cancelAnimationFrame(animId);
+    animId = null;
+    resize();
+    animate(0);
+  }, { passive:true });
+})();
+
+/* ══ CVE SEARCH — NVD API ══ */
+(function(){
+  var inp    = document.getElementById('cve-input');
+  var btn    = document.getElementById('cve-btn');
+  var res    = document.getElementById('cve-results');
+  var status = document.getElementById('cve-status');
+  var fill   = document.getElementById('cve-prog-fill');
+  var statTxt= document.getElementById('cve-status-txt');
+  var filts  = document.querySelectorAll('.cve-filt');
+  if(!inp || !btn) return;
+
+  var activeSev = 'all';
+  var lastResults = [];
+
+  /* Filtros de severidad */
+  filts.forEach(function(f){
+    f.addEventListener('click', function(){
+      filts.forEach(function(x){ x.classList.remove('active'); });
+      f.classList.add('active');
+      activeSev = f.dataset.sev;
+      renderResults(lastResults);
+    });
+  });
+
+  function getSeverity(cvss){
+    if(!cvss) return { sev:'NONE', score:'N/A' };
+    var score = cvss.cvssMetricV31 || cvss.cvssMetricV30 || cvss.cvssMetricV2;
+    if(!score || !score[0]) return { sev:'NONE', score:'N/A' };
+    var data = score[0].cvssData || score[0];
+    var s = parseFloat(data.baseScore || data.cvssScore || 0);
+    var sev;
+    if(s >= 9) sev = 'CRITICAL';
+    else if(s >= 7) sev = 'HIGH';
+    else if(s >= 4) sev = 'MEDIUM';
+    else if(s > 0)  sev = 'LOW';
+    else sev = 'NONE';
+    return { sev:sev, score:s.toFixed(1) };
+  }
+
+  function renderResults(vulns){
+    res.innerHTML = '';
+    var filtered = activeSev === 'all' ? vulns : vulns.filter(function(v){
+      return getSeverity(v.cve.metrics).sev === activeSev;
+    });
+
+    if(!filtered.length){
+      res.innerHTML = '<div class="cve-empty">Sin resultados' + (activeSev !== 'all' ? ' para severidad '+activeSev : '') + '</div>';
+      return;
+    }
+
+    res.innerHTML = '<div class="cve-count">Mostrando '+filtered.length+' de '+vulns.length+' CVEs encontrados</div>';
+
+    filtered.slice(0, 25).forEach(function(v, i){
+      var cve  = v.cve;
+      var id   = cve.id;
+      var desc = (cve.descriptions || []).find(function(d){ return d.lang==='en'; });
+      desc = desc ? desc.value : 'Sin descripción disponible';
+      var pub  = (cve.published || '').slice(0,10);
+      var mod  = (cve.lastModified || '').slice(0,10);
+      var refs = (cve.references || []).slice(0,4);
+      var cvss = getSeverity(cve.metrics);
+      var tags = (cve.configurations || []).length > 0 ? 'Configuraciones afectadas' : '';
+      var cwes = (cve.weaknesses || []).flatMap(function(w){
+        return (w.description || []).map(function(d){ return d.value; });
+      }).slice(0,3);
+
+      var card = document.createElement('div');
+      card.className = 'cve-card';
+      card.style.animationDelay = (i * 0.05) + 's';
+
+      var refsHTML = refs.length ? refs.map(function(r){
+        return '<a href="'+r.url+'" target="_blank" class="cve-ref">→ '+r.url.replace(/^https?:\/\//,'').slice(0,80)+'</a>';
+      }).join('') : '';
+
+      var metaHTML = cwes.map(function(c){ return '<span class="cve-meta-item">'+c+'</span>'; }).join('');
+
+      card.innerHTML =
+        '<div class="cve-card-head">'
+        + '<span class="cve-score '+cvss.sev+'">'+cvss.score+'</span>'
+        + '<span class="cve-id">'+id+'</span>'
+        + '<span class="cve-badge '+cvss.sev+'">'+cvss.sev+'</span>'
+        + '<span class="cve-date">Publicado: '+pub+' · Modificado: '+mod+'</span>'
+        + '</div>'
+        + '<div class="cve-card-body">'
+        + '<div class="cve-desc">'+desc.slice(0, 400)+(desc.length>400?'...':'')+'</div>'
+        + (metaHTML ? '<div class="cve-meta">'+metaHTML+'</div>' : '')
+        + (refsHTML ? '<div class="cve-refs">'+refsHTML+'</div>' : '')
+        + '</div>';
+
+      res.appendChild(card);
+    });
+  }
+
+  function search(){
+    var q = inp.value.trim();
+    if(!q) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Buscando...';
+    status.style.display = 'block';
+    fill.style.width = '10%';
+    statTxt.textContent = 'Consultando NVD API...';
+    res.innerHTML = '';
+
+    /* Detectar si es CVE-ID o búsqueda de keyword */
+    var isCVEid = /^CVE-\d{4}-\d+$/i.test(q);
+    var url;
+
+    if(isCVEid){
+      url = 'https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=' + encodeURIComponent(q.toUpperCase());
+    } else {
+      url = 'https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=' + encodeURIComponent(q) + '&resultsPerPage=30';
+    }
+
+    fill.style.width = '40%';
+    statTxt.textContent = 'Esperando respuesta de NVD (puede tardar 5-10s)...';
+
+    fetch(url)
+      .then(function(r){
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        fill.style.width = '70%';
+        return r.json();
+      })
+      .then(function(data){
+        fill.style.width = '100%';
+        lastResults = data.vulnerabilities || [];
+        var total   = data.totalResults || 0;
+
+        if(!lastResults.length){
+          statTxt.textContent = '⚠ Sin resultados para: "'+q+'"';
+          res.innerHTML = '<div class="cve-empty">Sin CVEs encontrados para "'+q+'"<br><span style="font-size:10px;color:rgba(240,238,248,.3)">Prueba con: apache, log4j, CVE-2021-44228, wordpress, microsoft</span></div>';
+        } else {
+          statTxt.textContent = '✓ ' + total + ' CVEs encontrados — mostrando los primeros 25';
+          renderResults(lastResults);
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'SEARCH';
+      })
+      .catch(function(err){
+        fill.style.width = '100%';
+        statTxt.textContent = '✗ Error: ' + (err.message || 'Error de conexión');
+        res.innerHTML = '<div class="cve-empty">Error consultando NVD. La API puede estar con rate limit — espera 30s e intenta de nuevo.<br><br><a href="https://nvd.nist.gov/vuln/search" target="_blank" style="color:#4fc3f7;font-family:var(--mono);font-size:12px">→ Buscar en NVD directamente</a></div>';
+        btn.disabled = false;
+        btn.textContent = 'SEARCH';
+      });
+  }
+
+  btn.addEventListener('click', search);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter') search(); });
+
+  /* Búsquedas de ejemplo al hacer clic */
+  document.querySelectorAll('.rce-ex').forEach(function(ex){
+    ex.addEventListener('click', function(){
+      if(inp && ex.closest('#cve-search')){
+        inp.value = ex.dataset.val;
+        search();
+      }
+    });
+  });
 })();
 
 </script>

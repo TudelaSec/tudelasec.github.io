@@ -1,22 +1,4 @@
-<div class="hero-bg-anim" id="hero-bg-anim">
-      <div class="hero-grid"></div>
-      <div class="hero-scan"></div>
-      <div class="hero-particle" style="left:10%;animation-duration:12s;animation-delay:0s;width:3px;height:3px"></div>
-      <div class="hero-particle" style="left:25%;animation-duration:16s;animation-delay:-3s"></div>
-      <div class="hero-particle" style="left:40%;animation-duration:11s;animation-delay:-6s;width:3px;height:3px"></div>
-      <div class="hero-particle" style="left:55%;animation-duration:14s;animation-delay:-1s"></div>
-      <div class="hero-particle" style="left:70%;animation-duration:18s;animation-delay:-8s;width:4px;height:4px"></div>
-      <div class="hero-particle" style="left:82%;animation-duration:13s;animation-delay:-4s"></div>
-      <div class="hero-particle" style="left:90%;animation-duration:15s;animation-delay:-2s;width:3px;height:3px"></div>
-      <div class="hero-particle" style="left:5%;animation-duration:19s;animation-delay:-9s"></div>
-      <div class="hero-hex" style="width:80px;height:80px;top:15%;left:8%;animation-duration:9s;border-radius:12px;transform:rotate(30deg)"></div>
-      <div class="hero-hex" style="width:50px;height:50px;top:60%;left:85%;animation-duration:13s;animation-delay:-4s;border-radius:8px;transform:rotate(15deg)"></div>
-      <div class="hero-hex" style="width:120px;height:120px;top:75%;left:15%;animation-duration:17s;animation-delay:-7s;border-radius:16px;transform:rotate(45deg)"></div>
-      <div class="hero-hex" style="width:60px;height:60px;top:30%;left:75%;animation-duration:11s;animation-delay:-2s;border-radius:10px;transform:rotate(20deg)"></div>
-      <div class="hero-ring" style="width:300px;height:300px;top:20%;left:60%;animation-duration:8s;animation-delay:0s"></div>
-      <div class="hero-ring" style="width:200px;height:200px;top:50%;left:10%;animation-duration:10s;animation-delay:-3s"></div>
-      <div class="hero-ring" style="width:400px;height:400px;top:-10%;left:40%;animation-duration:12s;animation-delay:-6s"></div>
-    </div>
+<div class="hero-bg-anim" id="hero-bg-anim"><div class="hero-grid"></div><div class="hero-scan"></div></div>
     <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1971,6 +1953,58 @@ section .wrap { position: relative; z-index: 1; }
 .cve-vendor-tag { font-family:var(--mono); font-size:9px; padding:2px 7px; background:rgba(79,195,247,.06); border:1px solid rgba(79,195,247,.12); border-radius:2px; color:rgba(79,195,247,.7); }
 .cve-exploited { font-family:var(--mono); font-size:9px; padding:2px 7px; background:rgba(255,26,46,.1); border:1px solid rgba(255,26,46,.3); border-radius:2px; color:#ff4d6a; animation:blink 1.5s ease-in-out infinite; }
 
+
+/* ══ THREAT MAP ══ */
+.tm-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; align-items:start; }
+.tm-globe-wrap { position:relative; display:flex; flex-direction:column; align-items:center; background:rgba(2,0,8,.9); border:1px solid rgba(255,26,46,.15); border-radius:8px; padding:20px; overflow:hidden; }
+.tm-globe-wrap::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(0,10,40,.8) 0%, rgba(2,0,8,1) 70%); pointer-events:none; }
+#globe-canvas { width:100%; max-width:560px; height:auto; display:block; position:relative; z-index:1; cursor:grab; }
+#globe-canvas:active { cursor:grabbing; }
+.tm-globe-label { font-family:var(--mono); font-size:9px; letter-spacing:.15em; color:rgba(255,26,46,.4); margin-top:12px; position:relative; z-index:1; }
+
+/* Panel */
+.tm-panel { display:flex; flex-direction:column; gap:16px; }
+.tm-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.tm-stat { background:rgba(8,3,8,.8); border:1px solid rgba(255,26,46,.15); border-radius:4px; padding:12px; text-align:center; }
+.tm-stat-val { font-family:var(--mono); font-size:22px; font-weight:900; color:var(--acc); }
+.tm-stat-lbl { font-family:var(--mono); font-size:9px; color:rgba(240,238,248,.35); margin-top:4px; letter-spacing:.05em; }
+
+/* Tipos */
+.tm-types { background:rgba(8,3,8,.8); border:1px solid rgba(255,26,46,.12); border-radius:4px; padding:14px; }
+.tm-types-title,.tm-top-title,.tm-feed-title { font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:rgba(255,26,46,.5); margin-bottom:10px; }
+.tm-type-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.6); }
+.tm-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; box-shadow:0 0 4px currentColor; }
+.tm-type-bar { flex:1; height:3px; background:rgba(255,255,255,.05); border-radius:2px; overflow:hidden; position:relative; }
+.tm-type-bar::after { content:''; position:absolute; left:0; top:0; height:100%; background:var(--acc); border-radius:2px; transition:width .5s ease; width:0; }
+.tm-type-count { font-family:var(--mono); font-size:10px; color:rgba(240,238,248,.4); min-width:40px; text-align:right; }
+
+/* Top */
+.tm-top { background:rgba(8,3,8,.8); border:1px solid rgba(255,26,46,.12); border-radius:4px; padding:14px; }
+.tm-top-row { display:flex; align-items:center; justify-content:space-between; font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.6); padding:4px 0; border-bottom:1px solid rgba(255,255,255,.03); }
+.tm-top-row:last-child { border:none; }
+.tm-top-flag { font-size:14px; margin-right:6px; }
+.tm-top-bar { height:2px; background:rgba(255,26,46,.3); border-radius:1px; display:inline-block; margin-left:8px; }
+
+/* Feed */
+.tm-feed-title { font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:rgba(255,26,46,.5); }
+.tm-feed { height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; scrollbar-width:thin; scrollbar-color:rgba(255,26,46,.2) transparent; }
+.tm-feed::-webkit-scrollbar { width:3px; }
+.tm-feed::-webkit-scrollbar-thumb { background:rgba(255,26,46,.2); }
+.tm-feed-item { font-family:var(--mono); font-size:10px; padding:5px 8px; background:rgba(255,26,46,.03); border:1px solid rgba(255,26,46,.08); border-radius:2px; display:flex; align-items:center; gap:6px; animation:feedIn .3s ease; flex-shrink:0; }
+@keyframes feedIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:none; } }
+.tm-feed-type { padding:2px 6px; border-radius:2px; font-size:9px; font-weight:700; flex-shrink:0; }
+.tm-feed-type.ddos { background:rgba(255,34,34,.15); color:#ff2222; }
+.tm-feed-type.malware { background:rgba(255,102,0,.15); color:#ff6600; }
+.tm-feed-type.exploit { background:rgba(255,204,0,.12); color:#ffcc00; }
+.tm-feed-type.ransomware { background:rgba(204,68,255,.12); color:#cc44ff; }
+.tm-feed-type.phishing { background:rgba(68,170,255,.12); color:#44aaff; }
+.tm-feed-arrow { color:rgba(255,26,46,.5); flex-shrink:0; }
+.tm-feed-src,.tm-feed-dst { color:rgba(240,238,248,.65); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; }
+.tm-feed-time { color:rgba(240,238,248,.25); margin-left:auto; flex-shrink:0; }
+
+@media(max-width:1000px){ .tm-layout { grid-template-columns:1fr; } .tm-panel { order:-1; } }
+@media(max-width:600px){ .tm-stats { grid-template-columns:repeat(3,1fr); } }
+
 </style>
 
 <script type="application/ld+json">
@@ -3130,6 +3164,63 @@ dig assets.lime.bike CNAME</div></div></div>
 </section>
 
 <!-- ══ PAYLOADS ══ -->
+
+
+<!-- ══ THREAT MAP ══ -->
+<section id="threatmap">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">25 — Live Intelligence</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Cyber" data-l2="Threat Map." aria-label="Cyber Threat Map."></h2>
+    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Mapa de amenazas cibernéticas en tiempo simulado. Ataques DDoS, malware, ransomware y exploits moviéndose entre países en tiempo real.</p>
+
+    <div class="tm-layout">
+      <!-- Globo -->
+      <div class="tm-globe-wrap">
+        <canvas id="globe-canvas" width="600" height="600"></canvas>
+        <div class="tm-globe-label">GLOBAL THREAT MONITOR</div>
+      </div>
+
+      <!-- Panel lateral -->
+      <div class="tm-panel">
+        <!-- Stats -->
+        <div class="tm-stats">
+          <div class="tm-stat">
+            <div class="tm-stat-val" id="tm-total">0</div>
+            <div class="tm-stat-lbl">Ataques hoy</div>
+          </div>
+          <div class="tm-stat">
+            <div class="tm-stat-val" id="tm-active">0</div>
+            <div class="tm-stat-lbl">Activos ahora</div>
+          </div>
+          <div class="tm-stat">
+            <div class="tm-stat-val" id="tm-countries">0</div>
+            <div class="tm-stat-lbl">Países afectados</div>
+          </div>
+        </div>
+
+        <!-- Tipos de ataque -->
+        <div class="tm-types">
+          <div class="tm-types-title">// TIPOS DE ATAQUE</div>
+          <div class="tm-type-row"><span class="tm-dot" style="background:#ff2222"></span><span>DDoS</span><span class="tm-type-bar" id="bar-ddos"></span><span class="tm-type-count" id="cnt-ddos">0</span></div>
+          <div class="tm-type-row"><span class="tm-dot" style="background:#ff6600"></span><span>Malware</span><span class="tm-type-bar" id="bar-mal"></span><span class="tm-type-count" id="cnt-mal">0</span></div>
+          <div class="tm-type-row"><span class="tm-dot" style="background:#ffcc00"></span><span>Exploit</span><span class="tm-type-bar" id="bar-exp"></span><span class="tm-type-count" id="cnt-exp">0</span></div>
+          <div class="tm-type-row"><span class="tm-dot" style="background:#cc44ff"></span><span>Ransomware</span><span class="tm-type-bar" id="bar-ran"></span><span class="tm-type-count" id="cnt-ran">0</span></div>
+          <div class="tm-type-row"><span class="tm-dot" style="background:#44aaff"></span><span>Phishing</span><span class="tm-type-bar" id="bar-phi"></span><span class="tm-type-count" id="cnt-phi">0</span></div>
+        </div>
+
+        <!-- Top atacantes -->
+        <div class="tm-top">
+          <div class="tm-top-title">// TOP FUENTES</div>
+          <div id="tm-sources"></div>
+        </div>
+
+        <!-- Feed de ataques -->
+        <div class="tm-feed-title">// ATAQUES RECIENTES</div>
+        <div class="tm-feed" id="tm-feed"></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ══ CVE SEARCH ══ -->
 <section id="cve-search" class="cve-section-bg">
@@ -8565,96 +8656,7 @@ PHASES.forEach(function(phase, i){
   });
 })();
 
-/* ══ BACKGROUND ANIMATION — HEX MATRIX ══ */
-(function(){
-  /* Crear canvas detrás del hero */
-  var hero = document.getElementById('hero');
-  if(!hero) return;
-  var canvas = document.createElement('canvas');
-  canvas.id = 'hex-matrix-canvas';
-  canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.35;';
-  /* Insertar antes de hero-bg-anim si existe, sino al inicio */
-  var heroBg = document.getElementById('hero-bg-anim');
-  if(heroBg) hero.insertBefore(canvas, heroBg);
-  else hero.insertBefore(canvas, hero.firstChild);
-
-  var ctx = canvas.getContext('2d');
-  var cols, drops, fontSize = 13, chars;
-  /* Hex chars + símbolos hacker */
-  var HEX = '0123456789ABCDEF';
-  var SYM = '01<>{}[]#@!?/\\|&%^~;:=+-*';
-  var ALL = (HEX + SYM).split('');
-
-  /* Reducir en mobile para performance */
-  var isMob = window.innerWidth < 768;
-  if(isMob) fontSize = 10;
-
-  function resize(){
-    canvas.width  = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    cols  = Math.floor(canvas.width / fontSize);
-    drops = new Array(cols).fill(1).map(function(){ return Math.random() * -50; });
-  }
-
-  function draw(){
-    /* Fade trail */
-    ctx.fillStyle = 'rgba(4,1,4,0.08)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    /* Columnas */
-    for(var i = 0; i < cols; i++){
-      /* Solo dibujar algunas columnas por frame para perf */
-      if(Math.random() > 0.7) continue;
-
-      var ch = ALL[Math.floor(Math.random() * ALL.length)];
-      var y  = drops[i] * fontSize;
-
-      /* Color: mayoría dim, algunas brillantes */
-      var bright = Math.random() > 0.95;
-      ctx.fillStyle = bright ? '#ff4d6a' : 'rgba(255,26,46,0.25)';
-      ctx.font = fontSize + 'px "JetBrains Mono", monospace';
-      ctx.fillText(ch, i * fontSize, y);
-
-      /* Reset al llegar al fondo */
-      if(y > canvas.height && Math.random() > 0.975){
-        drops[i] = 0;
-      }
-      drops[i] += 0.5;
-    }
-  }
-
-  var animId;
-  var lastTime = 0;
-  var FPS = isMob ? 20 : 30; /* FPS limitado para optimizar */
-  var interval = 1000 / FPS;
-
-  function animate(now){
-    animId = requestAnimationFrame(animate);
-    if(now - lastTime < interval) return;
-    lastTime = now;
-    draw();
-  }
-
-  /* Solo animar cuando el hero es visible */
-  resize();
-  var io = new IntersectionObserver(function(entries){
-    if(entries[0].isIntersecting){
-      if(!animId) animate(0);
-    } else {
-      if(animId){ cancelAnimationFrame(animId); animId = null; }
-    }
-  }, { threshold:0 });
-  io.observe(hero);
-
-  window.addEventListener('resize', function(){
-    cancelAnimationFrame(animId);
-    animId = null;
-    resize();
-    animate(0);
-  }, { passive:true });
-})();
-
-
+/* Matrix animation replaced with CSS */
 /* ══ CVE DATABASE — PRE-LOADED + NVD SEARCH ══ */
 (function(){
 'use strict';
@@ -8998,6 +9000,464 @@ function nvdSearch(){
 
 if(btn) btn.addEventListener('click', nvdSearch);
 if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') nvdSearch(); });
+
+})();
+
+
+/* ══ CYBER THREAT MAP — GLOBE ══ */
+(function(){
+'use strict';
+var canvas = document.getElementById('globe-canvas');
+if(!canvas) return;
+var ctx = canvas.getContext('2d');
+
+/* ═══ CONFIG ═══ */
+var W = 600, H = 600, CX = 300, CY = 300, R = 230;
+var rotation = 0, rotSpeed = 0.003;
+var isDragging = false, lastX = 0;
+var attacks = [], arcs = [];
+var stats = { total:0, active:0, ddos:0, mal:0, exp:0, ran:0, phi:0 };
+var feedEl = document.getElementById('tm-feed');
+var isMob = window.innerWidth < 768;
+if(isMob){ W=360; H=360; CX=180; CY=180; R=140; canvas.width=360; canvas.height=360; }
+
+/* ═══ CIUDADES / PAÍSES DEL MUNDO ═══ */
+var CITIES = [
+  /* América del Norte */
+  { n:'New York',    cc:'🇺🇸', lat:40.7, lon:-74.0,  w:4 },
+  { n:'Los Angeles', cc:'🇺🇸', lat:34.0, lon:-118.2, w:3 },
+  { n:'Chicago',     cc:'🇺🇸', lat:41.8, lon:-87.6,  w:2 },
+  { n:'Toronto',     cc:'🇨🇦', lat:43.7, lon:-79.4,  w:2 },
+  { n:'Mexico City', cc:'🇲🇽', lat:19.4, lon:-99.1,  w:2 },
+  { n:'Washington',  cc:'🇺🇸', lat:38.9, lon:-77.0,  w:3 },
+  /* América Latina */
+  { n:'São Paulo',   cc:'🇧🇷', lat:-23.5, lon:-46.6, w:3 },
+  { n:'Buenos Aires',cc:'🇦🇷', lat:-34.6, lon:-58.4, w:2 },
+  { n:'Bogotá',      cc:'🇨🇴', lat:4.7,   lon:-74.1, w:2 },
+  { n:'Santiago',    cc:'🇨🇱', lat:-33.4, lon:-70.6, w:2 },
+  { n:'Lima',        cc:'🇵🇪', lat:-12.0, lon:-77.0, w:1 },
+  /* Europa */
+  { n:'London',      cc:'🇬🇧', lat:51.5,  lon:-0.1,  w:4 },
+  { n:'Paris',       cc:'🇫🇷', lat:48.8,  lon:2.3,   w:3 },
+  { n:'Berlin',      cc:'🇩🇪', lat:52.5,  lon:13.4,  w:3 },
+  { n:'Moscow',      cc:'🇷🇺', lat:55.7,  lon:37.6,  w:5 },
+  { n:'Madrid',      cc:'🇪🇸', lat:40.4,  lon:-3.7,  w:2 },
+  { n:'Amsterdam',   cc:'🇳🇱', lat:52.3,  lon:4.9,   w:3 },
+  { n:'Stockholm',   cc:'🇸🇪', lat:59.3,  lon:18.0,  w:2 },
+  { n:'Warsaw',      cc:'🇵🇱', lat:52.2,  lon:21.0,  w:2 },
+  { n:'Kyiv',        cc:'🇺🇦', lat:50.4,  lon:30.5,  w:2 },
+  { n:'Bucharest',   cc:'🇷🇴', lat:44.4,  lon:26.1,  w:2 },
+  /* Asia */
+  { n:'Beijing',     cc:'🇨🇳', lat:39.9,  lon:116.4, w:5 },
+  { n:'Shanghai',    cc:'🇨🇳', lat:31.2,  lon:121.5, w:4 },
+  { n:'Tokyo',       cc:'🇯🇵', lat:35.6,  lon:139.7, w:4 },
+  { n:'Seoul',       cc:'🇰🇷', lat:37.6,  lon:126.9, w:3 },
+  { n:'Mumbai',      cc:'🇮🇳', lat:19.0,  lon:72.8,  w:3 },
+  { n:'Singapore',   cc:'🇸🇬', lat:1.3,   lon:103.8, w:3 },
+  { n:'Hong Kong',   cc:'🇭🇰', lat:22.3,  lon:114.2, w:3 },
+  { n:'Taipei',      cc:'🇹🇼', lat:25.0,  lon:121.5, w:2 },
+  { n:'Jakarta',     cc:'🇮🇩', lat:-6.2,  lon:106.8, w:2 },
+  { n:'Pyongyang',   cc:'🇰🇵', lat:39.0,  lon:125.8, w:3 },
+  { n:'Tehran',      cc:'🇮🇷', lat:35.7,  lon:51.4,  w:3 },
+  /* Medio Oriente / África */
+  { n:'Dubai',       cc:'🇦🇪', lat:25.2,  lon:55.3,  w:2 },
+  { n:'Tel Aviv',    cc:'🇮🇱', lat:32.1,  lon:34.8,  w:2 },
+  { n:'Cairo',       cc:'🇪🇬', lat:30.0,  lon:31.2,  w:2 },
+  { n:'Lagos',       cc:'🇳🇬', lat:6.5,   lon:3.4,   w:2 },
+  { n:'Johannesburg',cc:'🇿🇦', lat:-26.2, lon:28.0,  w:1 },
+  /* Oceanía */
+  { n:'Sydney',      cc:'🇦🇺', lat:-33.8, lon:151.2, w:2 },
+  { n:'Auckland',    cc:'🇳🇿', lat:-36.8, lon:174.7, w:1 },
+];
+
+/* ═══ TIPOS DE ATAQUE ═══ */
+var ATTACK_TYPES = [
+  { id:'ddos',      label:'DDoS',       color:'#ff2222', glow:'rgba(255,34,34,.6)',   prob:0.30 },
+  { id:'malware',   label:'Malware',    color:'#ff6600', glow:'rgba(255,102,0,.6)',   prob:0.25 },
+  { id:'exploit',   label:'Exploit',    color:'#ffcc00', glow:'rgba(255,204,0,.6)',   prob:0.20 },
+  { id:'ransomware',label:'Ransomware', color:'#cc44ff', glow:'rgba(204,68,255,.5)',  prob:0.15 },
+  { id:'phishing',  label:'Phishing',   color:'#44aaff', glow:'rgba(68,170,255,.5)', prob:0.10 },
+];
+
+function rndType(){
+  var r = Math.random(), cum = 0;
+  for(var i=0; i<ATTACK_TYPES.length; i++){
+    cum += ATTACK_TYPES[i].prob;
+    if(r < cum) return ATTACK_TYPES[i];
+  }
+  return ATTACK_TYPES[0];
+}
+
+/* ═══ PROYECCIÓN ORTOGRÁFICA ═══ */
+var DEG = Math.PI / 180;
+function project(lat, lon){
+  var adjLon = lon + rotation * (180/Math.PI);
+  while(adjLon > 180) adjLon -= 360;
+  while(adjLon < -180) adjLon += 360;
+  var x = Math.cos(lat*DEG) * Math.sin(adjLon*DEG);
+  var y = -Math.sin(lat*DEG);
+  var z = Math.cos(lat*DEG) * Math.cos(adjLon*DEG);
+  return { x: CX + x*R, y: CY + y*R, z: z, visible: z > 0 };
+}
+
+/* ═══ PUNTOS DE LA TIERRA (grid de dots) ═══ */
+var EARTH_DOTS = [];
+/* Grid de lat/lon para simular la superficie */
+for(var lat2 = -80; lat2 <= 80; lat2 += 6){
+  var lonStep = Math.max(6, Math.floor(6 / Math.cos(lat2*DEG)));
+  for(var lon2 = -180; lon2 < 180; lon2 += lonStep){
+    if(Math.random() < 0.5) EARTH_DOTS.push({ lat:lat2, lon:lon2 });
+  }
+}
+
+/* ═══ DIBUJAR GLOBO ═══ */
+function drawGlobe(){
+  ctx.clearRect(0, 0, W, H);
+
+  /* Gradiente de fondo del espacio */
+  var space = ctx.createRadialGradient(CX, CY, R*0.3, CX, CY, R*1.8);
+  space.addColorStop(0, 'rgba(0,5,20,0)');
+  space.addColorStop(1, 'rgba(0,0,10,0)');
+  ctx.fillStyle = space;
+  ctx.fillRect(0, 0, W, H);
+
+  /* Esfera base */
+  var globe = ctx.createRadialGradient(CX-R*0.3, CY-R*0.3, R*0.1, CX, CY, R);
+  globe.addColorStop(0, 'rgba(0,15,50,1)');
+  globe.addColorStop(0.4, 'rgba(0,8,30,1)');
+  globe.addColorStop(0.8, 'rgba(0,4,18,1)');
+  globe.addColorStop(1, 'rgba(0,0,8,1)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.fillStyle = globe;
+  ctx.fill();
+
+  /* Borde brillante del globo */
+  var rimGrad = ctx.createRadialGradient(CX, CY, R*0.7, CX, CY, R);
+  rimGrad.addColorStop(0, 'transparent');
+  rimGrad.addColorStop(0.85, 'rgba(255,26,46,.0)');
+  rimGrad.addColorStop(1, 'rgba(255,26,46,.15)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.fillStyle = rimGrad;
+  ctx.fill();
+
+  /* Atmosfera */
+  var atm = ctx.createRadialGradient(CX, CY, R, CX, CY, R*1.06);
+  atm.addColorStop(0, 'rgba(30,60,180,.12)');
+  atm.addColorStop(1, 'rgba(30,60,180,0)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R*1.06, 0, Math.PI*2);
+  ctx.fillStyle = atm;
+  ctx.fill();
+
+  /* Clip para el globo */
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX, CY, R-1, 0, Math.PI*2);
+  ctx.clip();
+
+  /* Líneas de latitud */
+  for(var la=-60; la<=60; la+=30){
+    var y0 = CY - Math.sin(la*DEG)*R;
+    var rx = Math.cos(la*DEG)*R;
+    ctx.beginPath();
+    ctx.ellipse(CX, y0, rx, rx*0.15, 0, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(30,100,200,.06)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  /* Líneas de longitud */
+  for(var lo=0; lo<180; lo+=30){
+    var adjLo = lo + rotation*(180/Math.PI);
+    var x0 = CX + Math.sin(adjLo*DEG)*R;
+    ctx.beginPath();
+    ctx.ellipse(x0, CY, Math.abs(Math.cos(adjLo*DEG))*R*0.15, R, 0, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(30,100,200,.04)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  /* Puntos de la tierra */
+  EARTH_DOTS.forEach(function(d){
+    var p = project(d.lat, d.lon);
+    if(!p.visible) return;
+    var alpha = Math.min(1, p.z * 1.5) * 0.4;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 1, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(50,120,200,' + alpha + ')';
+    ctx.fill();
+  });
+
+  /* Arcos de ataque */
+  arcs.forEach(function(arc){
+    drawArc(arc);
+  });
+
+  /* Ciudades */
+  CITIES.forEach(function(city){
+    var p = project(city.lat, city.lon);
+    if(!p.visible) return;
+    var alpha = Math.min(1, p.z * 2);
+    var size = (city.w * 0.5 + 1) * (isMob ? 0.7 : 1);
+
+    /* Pulso */
+    var pulse = Math.sin(Date.now() * 0.002 + city.lat) * 0.5 + 0.5;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size + pulse * 3, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(100,180,255,' + (alpha * 0.1 * pulse) + ')';
+    ctx.fill();
+
+    /* Punto */
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(100,200,255,' + (alpha * 0.8) + ')';
+    ctx.fill();
+  });
+
+  ctx.restore();
+
+  /* Reflejo en el globo */
+  var refl = ctx.createRadialGradient(CX-R*0.4, CY-R*0.4, 0, CX-R*0.3, CY-R*0.35, R*0.5);
+  refl.addColorStop(0, 'rgba(255,255,255,.04)');
+  refl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R-1, 0, Math.PI*2);
+  ctx.fillStyle = refl;
+  ctx.fill();
+}
+
+/* ═══ DIBUJAR ARCO DE ATAQUE ═══ */
+function drawArc(arc){
+  var src = project(arc.srcLat, arc.srcLon);
+  var dst = project(arc.dstLat, arc.dstLon);
+  if(!src.visible && !dst.visible) return;
+
+  /* Interpolar puntos del arco en el espacio 3D */
+  var steps = 30;
+  var pts = [];
+  for(var i=0; i<=steps; i++){
+    var t = i/steps;
+    /* Interpolación esférica simple */
+    var lat = arc.srcLat + (arc.dstLat - arc.srcLat) * t;
+    var lon = arc.srcLon + (arc.dstLon - arc.srcLon) * t;
+    /* Elevar el arco en el centro */
+    var elevation = Math.sin(t * Math.PI) * 40;
+    var p = project(lat, lon);
+    /* Proyectar la elevación */
+    var dist = Math.sqrt((p.x-CX)*(p.x-CX) + (p.y-CY)*(p.y-CY));
+    var nx = dist > 0 ? (p.x-CX)/dist : 0;
+    var ny = dist > 0 ? (p.y-CY)/dist : 0;
+    pts.push({ x: p.x - nx*elevation*0.5, y: p.y - ny*elevation*0.5, z: p.z, visible: p.visible });
+  }
+
+  /* Dibujar el arco con gradiente de progreso */
+  var progress = arc.progress;
+  var endStep = Math.floor(progress * steps);
+
+  for(var i=0; i<Math.min(endStep, steps-1); i++){
+    var p1 = pts[i], p2 = pts[i+1];
+    if(!p1 || !p2) continue;
+    var alpha = (i/steps) * Math.min(1, (endStep-i)*0.3);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.strokeStyle = arc.color.replace(')', ',' + alpha*0.8 + ')').replace('rgb', 'rgba');
+    ctx.lineWidth = isMob ? 1 : 1.5;
+    ctx.stroke();
+  }
+
+  /* Punta del arco (punto brillante) */
+  if(endStep < steps && pts[endStep]){
+    var tip = pts[endStep];
+    ctx.beginPath();
+    ctx.arc(tip.x, tip.y, isMob ? 2 : 3, 0, Math.PI*2);
+    ctx.fillStyle = arc.color;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = arc.glow;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  /* Si llegó al destino — explosion */
+  if(progress >= 1 && dst.visible){
+    var boom = (arc.progress - 1) * 3;
+    ctx.beginPath();
+    ctx.arc(dst.x, dst.y, boom * 12, 0, Math.PI*2);
+    ctx.strokeStyle = arc.color.replace(')', ',' + Math.max(0, 0.6-boom*0.6) + ')').replace('rgb','rgba');
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+/* ═══ CREAR ATAQUE ═══ */
+function spawnAttack(){
+  var srcIdx = Math.floor(Math.random() * CITIES.length);
+  var dstIdx = Math.floor(Math.random() * CITIES.length);
+  while(dstIdx === srcIdx) dstIdx = Math.floor(Math.random() * CITIES.length);
+  var src = CITIES[srcIdx], dst = CITIES[dstIdx];
+  var type = rndType();
+
+  var arc = {
+    srcLat: src.lat, srcLon: src.lon,
+    dstLat: dst.lat, dstLon: dst.lon,
+    srcName: src.n, srcCC: src.cc,
+    dstName: dst.n, dstCC: dst.cc,
+    color: type.color, glow: type.glow,
+    typeId: type.id, typeLabel: type.label,
+    progress: 0, speed: 0.005 + Math.random() * 0.008,
+  };
+  arcs.push(arc);
+
+  /* Stats */
+  stats.total++;
+  stats.active++;
+  if(type.id === 'ddos')       stats.ddos++;
+  else if(type.id === 'malware') stats.mal++;
+  else if(type.id === 'exploit') stats.exp++;
+  else if(type.id === 'ransomware') stats.ran++;
+  else if(type.id === 'phishing') stats.phi++;
+
+  updateStats();
+  addFeedItem(arc);
+}
+
+/* ═══ ACTUALIZAR STATS ═══ */
+var maxStats = { ddos:0, mal:0, exp:0, ran:0, phi:0 };
+function updateStats(){
+  var set = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+  set('tm-total',     stats.total.toLocaleString());
+  set('tm-active',    stats.active);
+  set('tm-countries', Math.min(stats.total, 195).toString().slice(0,3) > 0 ? Math.min(stats.total, 120) : 0);
+
+  var MAX = Math.max(stats.ddos, stats.mal, stats.exp, stats.ran, stats.phi, 1);
+  var updateBar = function(barId, cntId, val){
+    var bar = document.getElementById(barId);
+    var cnt = document.getElementById(cntId);
+    if(bar) bar.style.setProperty('--w', (val/MAX*100)+'%');
+    if(cnt) cnt.textContent = val;
+    if(bar) bar.querySelector && (bar.style.cssText += ';--w:'+(val/MAX*100)+'%');
+    /* Usar CSS var directamente */
+    if(bar){ var inner = bar; inner.style.position='relative'; }
+  };
+  /* Update bars via direct style */
+  var bars = { 'bar-ddos':stats.ddos, 'bar-mal':stats.mal, 'bar-exp':stats.exp, 'bar-ran':stats.ran, 'bar-phi':stats.phi };
+  var MAX2 = Math.max(stats.ddos, stats.mal, stats.exp, stats.ran, stats.phi, 1);
+  Object.keys(bars).forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    var pct = (bars[id]/MAX2*100).toFixed(1);
+    el.style.background = 'rgba(255,255,255,.05)';
+    el.style.position = 'relative';
+    el.innerHTML = '<span style="position:absolute;left:0;top:0;height:100%;width:'+pct+'%;background:var(--acc);border-radius:2px;transition:width .5s"></span>';
+  });
+  ['cnt-ddos','cnt-mal','cnt-exp','cnt-ran','cnt-phi'].forEach(function(id,i){
+    var el=document.getElementById(id);
+    var vals=[stats.ddos,stats.mal,stats.exp,stats.ran,stats.phi];
+    if(el) el.textContent=vals[i];
+  });
+
+  /* Top sources */
+  var srcEl = document.getElementById('tm-sources');
+  if(srcEl && stats.total > 0){
+    var topSrc = [
+      { n:'China',   cc:'🇨🇳', pct:28 },
+      { n:'USA',     cc:'🇺🇸', pct:22 },
+      { n:'Russia',  cc:'🇷🇺', pct:18 },
+      { n:'Brazil',  cc:'🇧🇷', pct:9  },
+      { n:'Iran',    cc:'🇮🇷', pct:7  },
+    ];
+    srcEl.innerHTML = topSrc.map(function(s){
+      return '<div class="tm-top-row"><span class="tm-top-flag">'+s.cc+'</span><span>'+s.n+'</span>'
+        +'<span class="tm-top-bar" style="width:'+(s.pct*1.5)+'px;height:3px;background:rgba(255,26,46,.4);display:inline-block;border-radius:1px"></span>'
+        +'<span style="font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.4);margin-left:4px">'+s.pct+'%</span></div>';
+    }).join('');
+  }
+}
+
+/* ═══ FEED DE ATAQUES ═══ */
+function addFeedItem(arc){
+  if(!feedEl) return;
+  var now = new Date();
+  var time = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
+  var item = document.createElement('div');
+  item.className = 'tm-feed-item';
+  item.innerHTML =
+    '<span class="tm-feed-type '+arc.typeId+'">'+arc.typeLabel+'</span>'
+    + '<span class="tm-feed-src">'+arc.srcCC+' '+arc.srcName+'</span>'
+    + '<span class="tm-feed-arrow">→</span>'
+    + '<span class="tm-feed-dst">'+arc.dstCC+' '+arc.dstName+'</span>'
+    + '<span class="tm-feed-time">'+time+'</span>';
+  feedEl.insertBefore(item, feedEl.firstChild);
+  /* Limitar a 30 items */
+  while(feedEl.children.length > 30) feedEl.removeChild(feedEl.lastChild);
+}
+
+/* ═══ LOOP PRINCIPAL ═══ */
+var lastFrame = 0, lastSpawn = 0;
+var FPS = isMob ? 25 : 40;
+var FRAME_TIME = 1000/FPS;
+
+function loop(now){
+  requestAnimationFrame(loop);
+  if(now - lastFrame < FRAME_TIME) return;
+  lastFrame = now;
+
+  /* Rotar globo */
+  if(!isDragging) rotation += rotSpeed;
+
+  /* Actualizar arcos */
+  for(var i = arcs.length-1; i >= 0; i--){
+    arcs[i].progress += arcs[i].speed;
+    if(arcs[i].progress > 1.5){
+      arcs.splice(i, 1);
+      stats.active = Math.max(0, stats.active-1);
+    }
+  }
+
+  /* Spawn nuevos ataques */
+  var spawnRate = isMob ? 2500 : 1800;
+  if(now - lastSpawn > spawnRate){
+    spawnAttack();
+    if(Math.random() < 0.3) spawnAttack(); /* A veces 2 a la vez */
+    lastSpawn = now;
+  }
+
+  drawGlobe();
+}
+
+/* ═══ INTERACCIÓN CON MOUSE/TOUCH ═══ */
+canvas.addEventListener('mousedown', function(e){
+  isDragging = true; lastX = e.clientX;
+}, { passive:true });
+canvas.addEventListener('mousemove', function(e){
+  if(!isDragging) return;
+  rotation += (e.clientX - lastX) * 0.005;
+  lastX = e.clientX;
+}, { passive:true });
+canvas.addEventListener('mouseup', function(){ isDragging = false; });
+canvas.addEventListener('touchstart', function(e){
+  isDragging = true; lastX = e.touches[0].clientX;
+}, { passive:true });
+canvas.addEventListener('touchmove', function(e){
+  if(!isDragging) return;
+  rotation += (e.touches[0].clientX - lastX) * 0.005;
+  lastX = e.touches[0].clientX;
+}, { passive:true });
+canvas.addEventListener('touchend', function(){ isDragging = false; });
+
+/* Iniciar solo cuando es visible */
+var started = false;
+var globeIO = new IntersectionObserver(function(entries){
+  if(entries[0].isIntersecting && !started){
+    started = true;
+    /* Pre-cargar algunos ataques */
+    for(var i=0; i<5; i++) setTimeout(spawnAttack, i*200);
+    requestAnimationFrame(loop);
+  }
+}, { threshold:0.1 });
+globeIO.observe(canvas);
 
 })();
 

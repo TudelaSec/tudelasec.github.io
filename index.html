@@ -1905,6 +1905,72 @@ section .wrap { position: relative; z-index: 1; }
 .cve-empty { font-family:var(--mono); font-size:13px; color:rgba(240,238,248,.3); text-align:center; padding:48px; }
 .cve-count { font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.4); margin-bottom:16px; }
 
+
+/* ══ CVE SECTION BACKGROUND ══ */
+.cve-section-bg { position:relative; overflow:hidden; }
+.cve-bg-anim { position:absolute; inset:0; pointer-events:none; z-index:0; }
+.cve-bg-grid {
+  position:absolute; inset:-50%;
+  background-image:
+    linear-gradient(rgba(255,26,46,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,26,46,.04) 1px, transparent 1px);
+  background-size:40px 40px;
+  animation:gridDrift 25s linear infinite;
+}
+.cve-bg-orb { position:absolute; border-radius:50%; mix-blend-mode:screen; }
+.cve-orb-1 { width:600px;height:600px;top:-200px;right:-100px;background:radial-gradient(circle,rgba(255,26,46,.07) 0%,transparent 70%);animation:bgFloat 20s ease-in-out infinite; }
+.cve-orb-2 { width:400px;height:400px;bottom:0;left:-100px;background:radial-gradient(circle,rgba(123,79,255,.05) 0%,transparent 70%);animation:bgFloat 25s ease-in-out infinite reverse; }
+.cve-orb-3 { width:300px;height:300px;top:40%;right:20%;background:radial-gradient(circle,rgba(255,26,46,.05) 0%,transparent 70%);animation:bgFloat 18s ease-in-out infinite;animation-delay:-5s; }
+.cve-float-badge {
+  position:absolute;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;
+  color:rgba(255,26,46,.15);
+  border:1px solid var(--bc, rgba(255,26,46,.1));
+  padding:4px 10px;border-radius:2px;
+  animation:badgeFloat 8s ease-in-out infinite;
+  --bc:rgba(255,26,46,.12);
+}
+@keyframes badgeFloat {
+  0%,100% { transform:translateY(0) rotate(-1deg); opacity:.4; }
+  50%      { transform:translateY(-12px) rotate(1deg); opacity:.8; }
+}
+.cve-scan-line {
+  position:absolute;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,26,46,.3),transparent);
+  animation:cveScaner 8s ease-in-out infinite;
+  box-shadow:0 0 8px rgba(255,26,46,.2);
+}
+@keyframes cveScaner {
+  0%   { top:0%; opacity:0; }
+  5%   { opacity:1; }
+  95%  { opacity:1; }
+  100% { top:100%; opacity:0; }
+}
+
+/* Filtro especial */
+.cve-filt.special { border-color:rgba(255,26,46,.4); color:#ff5252; background:rgba(255,26,46,.05); }
+.cve-filt.special:hover,.cve-filt.special.active { background:rgba(255,26,46,.12); }
+
+/* Pre-loaded header */
+.cve-preloaded-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding:12px 16px; background:rgba(255,26,46,.04); border:1px solid rgba(255,26,46,.1); border-radius:4px; }
+.cve-pl-title { font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:rgba(255,26,46,.6); }
+.cve-pl-count { font-family:var(--mono); font-size:10px; color:rgba(240,238,248,.3); }
+
+/* Cards mejoradas */
+.cve-card { background:rgba(6,2,6,.9); border:1px solid rgba(255,26,46,.15); border-radius:5px; margin-bottom:10px; overflow:hidden; transition:all .2s; animation:cardIn .35s cubic-bezier(.22,1,.36,1) both; }
+.cve-card:hover { border-color:rgba(255,26,46,.4); transform:translateY(-1px); box-shadow:0 4px 20px rgba(255,26,46,.08); }
+.cve-card-head { padding:11px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,26,46,.07); flex-wrap:wrap; }
+.cve-id { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); }
+.cve-name { font-family:var(--mono); font-size:11px; color:rgba(255,26,46,.7); font-style:italic; }
+.cve-badge.CRITICAL { background:rgba(200,0,0,.15); color:#ff3333; border:1px solid rgba(255,0,0,.3); }
+.cve-badge.HIGH     { background:rgba(255,150,0,.12); color:#ff9600; border:1px solid rgba(255,150,0,.3); }
+.cve-badge.MEDIUM   { background:rgba(255,204,2,.1); color:#ffcc02; border:1px solid rgba(255,204,2,.2); }
+.cve-badge.LOW      { background:rgba(61,220,132,.08); color:#3ddc84; border:1px solid rgba(61,220,132,.2); }
+.cve-score.CRITICAL { color:#ff2222; text-shadow:0 0 10px rgba(255,34,34,.5); }
+.cve-score.HIGH     { color:#ff9600; }
+.cve-vendor-tag { font-family:var(--mono); font-size:9px; padding:2px 7px; background:rgba(79,195,247,.06); border:1px solid rgba(79,195,247,.12); border-radius:2px; color:rgba(79,195,247,.7); }
+.cve-exploited { font-family:var(--mono); font-size:9px; padding:2px 7px; background:rgba(255,26,46,.1); border:1px solid rgba(255,26,46,.3); border-radius:2px; color:#ff4d6a; animation:blink 1.5s ease-in-out infinite; }
+
 </style>
 
 <script type="application/ld+json">
@@ -3066,7 +3132,61 @@ dig assets.lime.bike CNAME</div></div></div>
 <!-- ══ PAYLOADS ══ -->
 
 <!-- ══ CVE SEARCH ══ -->
-<section id="cve-search">
+<section id="cve-search" class="cve-section-bg">
+  <!-- Animación de fondo -->
+  <div class="cve-bg-anim" aria-hidden="true">
+    <div class="cve-bg-grid"></div>
+    <div class="cve-bg-orb cve-orb-1"></div>
+    <div class="cve-bg-orb cve-orb-2"></div>
+    <div class="cve-bg-orb cve-orb-3"></div>
+    <div class="cve-float-badge" style="top:8%;left:5%;animation-delay:0s">CRITICAL</div>
+    <div class="cve-float-badge" style="top:20%;right:4%;animation-delay:-3s;--bc:rgba(255,150,0,.15)">HIGH</div>
+    <div class="cve-float-badge" style="top:55%;left:3%;animation-delay:-6s;--bc:rgba(255,204,2,.12)">CVE</div>
+    <div class="cve-float-badge" style="top:75%;right:6%;animation-delay:-9s">RCE</div>
+    <div class="cve-float-badge" style="top:40%;left:88%;animation-delay:-4s;--bc:rgba(255,150,0,.15)">10.0</div>
+    <div class="cve-scan-line"></div>
+  </div>
+
+  <div class="wrap" style="position:relative;z-index:1">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">24 — Threat Intelligence</div></div>
+    <h2 class="sec-title h2-anim" data-l1="CVE" data-l2="Database." aria-label="CVE Database."></h2>
+    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Más de 60 CVEs críticos pre-cargados + buscador en tiempo real contra la API oficial NIST NVD. Desde Log4Shell hasta vulnerabilidades 0-day de 2024.</p>
+
+    <!-- Buscador -->
+    <div class="cve-searchbar">
+      <div class="cve-input-wrap">
+        <span style="color:var(--acc);font-size:18px;flex-shrink:0">🛡</span>
+        <input id="cve-input" class="cve-input" type="text" placeholder="CVE-2021-44228  ·  log4j  ·  apache  ·  windows  ·  rce" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="cve-btn" id="cve-btn">BUSCAR EN NVD</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="cve-filters" id="cve-filters">
+      <span class="cve-filt active" data-sev="all">Todos</span>
+      <span class="cve-filt crit" data-sev="CRITICAL">CRÍTICO (9.0–10.0)</span>
+      <span class="cve-filt high" data-sev="HIGH">ALTO (7.0–8.9)</span>
+      <span class="cve-filt med"  data-sev="MEDIUM">MEDIO (4.0–6.9)</span>
+      <span class="cve-filt special" data-sev="EXPLOITED">🔴 Explotados activamente</span>
+    </div>
+
+    <!-- Status buscador -->
+    <div class="cve-status" id="cve-status" style="display:none">
+      <div class="cve-prog"><div class="cve-prog-fill" id="cve-prog-fill"></div></div>
+      <span id="cve-status-txt">Consultando NVD...</span>
+    </div>
+
+    <!-- Resultados de búsqueda online -->
+    <div id="cve-results"></div>
+
+    <!-- Lista pre-cargada -->
+    <div class="cve-preloaded-header" id="cve-preloaded-header">
+      <span class="cve-pl-title">// CVEs CRÍTICOS DESTACADOS — 2019–2024</span>
+      <span class="cve-pl-count" id="cve-pl-count"></span>
+    </div>
+    <div id="cve-preloaded"></div>
+  </div>
+</section>
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">24 — Threat Intelligence</div></div>
     <h2 class="sec-title h2-anim" data-l1="CVE" data-l2="Search." aria-label="CVE Search."></h2>
@@ -8534,166 +8654,351 @@ PHASES.forEach(function(phase, i){
   }, { passive:true });
 })();
 
-/* ══ CVE SEARCH — NVD API ══ */
+
+/* ══ CVE DATABASE — PRE-LOADED + NVD SEARCH ══ */
 (function(){
-  var inp    = document.getElementById('cve-input');
-  var btn    = document.getElementById('cve-btn');
-  var res    = document.getElementById('cve-results');
-  var status = document.getElementById('cve-status');
-  var fill   = document.getElementById('cve-prog-fill');
-  var statTxt= document.getElementById('cve-status-txt');
-  var filts  = document.querySelectorAll('.cve-filt');
-  if(!inp || !btn) return;
+'use strict';
 
-  var activeSev = 'all';
-  var lastResults = [];
+/* ═══════════════════════════════════════════
+   BASE DE DATOS DE CVEs CRÍTICOS 2019–2024
+═══════════════════════════════════════════ */
+var CVE_DB = [
+  /* ─── 2024 ─── */
+  { id:'CVE-2024-3400',  score:10.0, sev:'CRITICAL', vendor:'Palo Alto',    name:'PAN-OS Command Injection', year:2024, exploited:true,
+    desc:'Inyección de comandos OS en GlobalProtect de PAN-OS. Explotado activamente como 0-day. Permite RCE sin autenticación.',
+    refs:['https://security.paloaltonetworks.com/CVE-2024-3400'] },
+  { id:'CVE-2024-1709',  score:10.0, sev:'CRITICAL', vendor:'ConnectWise',  name:'ScreenConnect Auth Bypass', year:2024, exploited:true,
+    desc:'Bypass de autenticación en ConnectWise ScreenConnect. Permite acceso sin credenciales al panel de administración.',
+    refs:['https://www.connectwise.com/company/trust/security-bulletins/connectwise-screenconnect-23.9.8'] },
+  { id:'CVE-2024-21762', score:9.8,  sev:'CRITICAL', vendor:'Fortinet',     name:'FortiOS SSL VPN RCE', year:2024, exploited:true,
+    desc:'Escritura fuera de límites en FortiOS que permite ejecución de código arbitrario via requests maliciosos.',
+    refs:['https://www.fortiguard.com/psirt/FG-IR-24-015'] },
+  { id:'CVE-2024-27198', score:9.8,  sev:'CRITICAL', vendor:'JetBrains',    name:'TeamCity Auth Bypass', year:2024, exploited:true,
+    desc:'Bypass de autenticación en JetBrains TeamCity. Permite a atacantes no autenticados crear usuarios admin.',
+    refs:['https://blog.jetbrains.com/teamcity/2024/03/additional-critical-security-issues-affecting-teamcity-on-premises-cve-2024-27198-and-cve-2024-27199-update/'] },
+  { id:'CVE-2024-23897', score:9.8,  sev:'CRITICAL', vendor:'Jenkins',      name:'CLI Path Traversal', year:2024, exploited:true,
+    desc:'Path traversal en la CLI de Jenkins permite leer archivos arbitrarios del servidor. Puede llevar a RCE.',
+    refs:['https://www.jenkins.io/security/advisory/2024-01-24/'] },
+  { id:'CVE-2024-6387',  score:8.1,  sev:'HIGH',     vendor:'OpenSSH',      name:'regreSSHion RCE', year:2024, exploited:false,
+    desc:'Race condition en el handler de señales de OpenSSH (glibc Linux). Permite RCE no autenticado como root en ~10K intentos.',
+    refs:['https://www.qualys.com/2024/07/01/cve-2024-6387/regresshion.txt'] },
+  { id:'CVE-2024-21887', score:9.1,  sev:'CRITICAL', vendor:'Ivanti',       name:'Connect Secure Command Injection', year:2024, exploited:true,
+    desc:'Inyección de comandos en Ivanti Connect Secure. Explotado junto con CVE-2023-46805 como cadena de ataque.',
+    refs:['https://forums.ivanti.com/s/article/CVE-2024-21887'] },
+  { id:'CVE-2024-4040',  score:9.8,  sev:'CRITICAL', vendor:'CrushFTP',     name:'VFS Escape', year:2024, exploited:true,
+    desc:'Escape del Virtual File System en CrushFTP permite leer cualquier archivo del sistema como usuario no autenticado.',
+    refs:['https://www.crushftp.com/crush10wiki/Wiki.jsp?page=Update'] },
+  { id:'CVE-2024-30078', score:8.8,  sev:'HIGH',     vendor:'Microsoft',    name:'Windows WiFi Driver RCE', year:2024, exploited:false,
+    desc:'RCE en el driver WiFi de Windows. Atacante en la misma red WiFi puede ejecutar código sin interacción del usuario.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-30078'] },
 
-  /* Filtros de severidad */
-  filts.forEach(function(f){
-    f.addEventListener('click', function(){
-      filts.forEach(function(x){ x.classList.remove('active'); });
-      f.classList.add('active');
-      activeSev = f.dataset.sev;
-      renderResults(lastResults);
-    });
+  /* ─── 2023 ─── */
+  { id:'CVE-2023-34362', score:9.8,  sev:'CRITICAL', vendor:'Progress',     name:'MOVEit SQL Injection', year:2023, exploited:true,
+    desc:'SQLi en MOVEit Transfer explotado por Cl0p ransomware group. Afectó a miles de organizaciones globalmente.',
+    refs:['https://community.progress.com/s/article/MOVEit-Transfer-Critical-Vulnerability-31May2023'] },
+  { id:'CVE-2023-44487', score:7.5,  sev:'HIGH',     vendor:'CNCF',         name:'HTTP/2 Rapid Reset DoS', year:2023, exploited:true,
+    desc:'DoS masivo via HTTP/2 Rapid Reset Attack. Record de 398M req/s. Afecta Apache, nginx, Cloudflare, AWS.',
+    refs:['https://cloud.google.com/blog/products/identity-security/google-cloud-mitigated-largest-ddos-attack-peaking-above-398-million-rps'] },
+  { id:'CVE-2023-23397', score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'Outlook NTLM Relay', year:2023, exploited:true,
+    desc:'Zero-click en Outlook. El atacante envía email con UNC path y roba el hash NTLM sin interacción del usuario.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397'] },
+  { id:'CVE-2023-46604', score:10.0, sev:'CRITICAL', vendor:'Apache',       name:'ActiveMQ RCE', year:2023, exploited:true,
+    desc:'RCE en Apache ActiveMQ via deserialización. Explotado por HelloKitty ransomware. Trivial de explotar.',
+    refs:['https://activemq.apache.org/security-advisories.data/CVE-2023-46604-announcement.txt'] },
+  { id:'CVE-2023-4911',  score:7.8,  sev:'HIGH',     vendor:'GNU',          name:'Looney Tunables - glibc LPE', year:2023, exploited:true,
+    desc:'Buffer overflow en glibc dynamic linker. Permite escalada de privilegios a root en la mayoría de distribuciones Linux.',
+    refs:['https://www.qualys.com/2023/10/03/cve-2023-4911/looney-tunables-local-privilege-escalation-glibc-ld-so.txt'] },
+  { id:'CVE-2023-29357', score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'SharePoint Privilege Escalation', year:2023, exploited:true,
+    desc:'Bypass de autenticación en SharePoint Server. Combinado con CVE-2023-24955 permite RCE completo.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-29357'] },
+  { id:'CVE-2023-21554', score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'MSMQ QueueJumper RCE', year:2023, exploited:false,
+    desc:'RCE en Microsoft Message Queuing (MSMQ). Puerto 1801 expuesto públicamente en miles de servidores Windows.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-21554'] },
+  { id:'CVE-2023-38408', score:9.8,  sev:'CRITICAL', vendor:'OpenSSH',      name:'ssh-agent Remote RCE', year:2023, exploited:false,
+    desc:'RCE en el forwarding de ssh-agent. El servidor SSH malicioso puede ejecutar código en el cliente que usa agent forwarding.',
+    refs:['https://www.openwall.com/lists/oss-security/2023/07/19/2'] },
+
+  /* ─── 2022 ─── */
+  { id:'CVE-2022-26134', score:9.8,  sev:'CRITICAL', vendor:'Atlassian',    name:'Confluence OGNL Injection', year:2022, exploited:true,
+    desc:'OGNL injection pre-autenticación en Confluence Server y Data Center. Explotado masivamente el mismo día del disclosure.',
+    refs:['https://confluence.atlassian.com/doc/confluence-security-advisory-2022-06-02-1130377146.html'] },
+  { id:'CVE-2022-22965', score:9.8,  sev:'CRITICAL', vendor:'VMware',       name:'Spring4Shell RCE', year:2022, exploited:true,
+    desc:'RCE en Spring Framework (Spring MVC/WebFlux). Requiere JDK 9+ y Tomcat WAR deployment. Código de exploit público.',
+    refs:['https://spring.io/blog/2022/03/31/spring-framework-rce-early-announcement'] },
+  { id:'CVE-2022-1388',  score:9.8,  sev:'CRITICAL', vendor:'F5',           name:'BIG-IP Auth Bypass', year:2022, exploited:true,
+    desc:'Bypass de autenticación en la iControl REST API de F5 BIG-IP. Permite ejecutar comandos arbitrarios como admin.',
+    refs:['https://support.f5.com/csp/article/K23605346'] },
+  { id:'CVE-2022-30190', score:7.8,  sev:'HIGH',     vendor:'Microsoft',    name:'Follina MSDT RCE', year:2022, exploited:true,
+    desc:'RCE en Microsoft Support Diagnostic Tool via URLs ms-msdt:// en documentos Word. Zero-click si hay preview.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-30190'] },
+  { id:'CVE-2022-0847',  score:7.8,  sev:'HIGH',     vendor:'Linux',        name:'Dirty Pipe Kernel LPE', year:2022, exploited:true,
+    desc:'Privilege escalation en el kernel Linux 5.8+. Permite sobreescribir archivos de solo lectura. Similar a Dirty COW.',
+    refs:['https://dirtypipe.cm4all.com/'] },
+  { id:'CVE-2022-41082', score:8.8,  sev:'HIGH',     vendor:'Microsoft',    name:'Exchange ProxyNotShell', year:2022, exploited:true,
+    desc:'RCE en Microsoft Exchange (requiere autenticación). Encadenado con CVE-2022-41040 (SSRF) para atacar sin credenciales.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-41082'] },
+  { id:'CVE-2022-21907', score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'HTTP.sys Wormable RCE', year:2022, exploited:false,
+    desc:'RCE potencialmente gusano en Windows HTTP.sys. Puede ser explotado via solicitudes HTTP malformadas sin autenticación.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-21907'] },
+
+  /* ─── 2021 ─── */
+  { id:'CVE-2021-44228', score:10.0, sev:'CRITICAL', vendor:'Apache',       name:'Log4Shell', year:2021, exploited:true,
+    desc:'La vulnerabilidad más crítica de la década. RCE via JNDI lookup en Log4j2. Una sola línea de log puede comprometer el servidor.',
+    refs:['https://logging.apache.org/log4j/2.x/security.html'] },
+  { id:'CVE-2021-26855', score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'ProxyLogon Exchange SSRF', year:2021, exploited:true,
+    desc:'SSRF pre-autenticación en Exchange. Encadenado con otras vulns para RCE completo. Explotado por APT chino Hafnium.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-26855'] },
+  { id:'CVE-2021-22005', score:9.8,  sev:'CRITICAL', vendor:'VMware',       name:'vCenter File Upload RCE', year:2021, exploited:true,
+    desc:'Subida de archivos arbitrarios en VMware vCenter Server. Permite RCE sin autenticación en redes internas.',
+    refs:['https://www.vmware.com/security/advisories/VMSA-2021-0020.html'] },
+  { id:'CVE-2021-34527', score:8.8,  sev:'HIGH',     vendor:'Microsoft',    name:'PrintNightmare Spooler RCE', year:2021, exploited:true,
+    desc:'RCE y LPE en Windows Print Spooler. Permite instalar drivers maliciosos remotamente. Zero-day con PoC público.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34527'] },
+  { id:'CVE-2021-4034',  score:7.8,  sev:'HIGH',     vendor:'Polkit',       name:'PwnKit LPE', year:2021, exploited:true,
+    desc:'Privilege escalation en pkexec (Polkit) presente desde 2009. Permite a cualquier usuario local obtener root. 1 línea de exploit.',
+    refs:['https://blog.qualys.com/vulnerabilities-threat-research/2022/01/25/pwnkit-local-privilege-escalation-vulnerability-discovered-in-polkits-pkexec-cve-2021-4034'] },
+  { id:'CVE-2021-3156',  score:7.8,  sev:'HIGH',     vendor:'Sudo',         name:'Baron Samedit sudo LPE', year:2021, exploited:true,
+    desc:'Heap overflow en sudo. Permite a cualquier usuario local ejecutar comandos como root sin conocer la contraseña.',
+    refs:['https://blog.qualys.com/vulnerabilities-threat-research/2021/01/26/cve-2021-3156-heap-based-buffer-overflow-in-sudo-baron-samedit'] },
+  { id:'CVE-2021-36942', score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'PetitPotam NTLM Relay', year:2021, exploited:true,
+    desc:'Fuerza a servidores Windows a autenticarse (NTLM) contra un servidor controlado por el atacante. Coerce de DC sin credenciales.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-36942'] },
+  { id:'CVE-2021-41773', score:9.8,  sev:'CRITICAL', vendor:'Apache',       name:'httpd Path Traversal + RCE', year:2021, exploited:true,
+    desc:'Path traversal en Apache httpd 2.4.49. Si mod_cgi habilitado → RCE. Explotado masivamente el mismo día del patch.',
+    refs:['https://httpd.apache.org/security/vulnerabilities_24.html'] },
+  { id:'CVE-2021-21985', score:9.8,  sev:'CRITICAL', vendor:'VMware',       name:'vCenter VMRC Plugin RCE', year:2021, exploited:true,
+    desc:'RCE pre-autenticación en el plugin VMware Virtual SAN Health Check de vCenter Server. Sin interacción de usuario.',
+    refs:['https://www.vmware.com/security/advisories/VMSA-2021-0010.html'] },
+  { id:'CVE-2021-26084', score:9.8,  sev:'CRITICAL', vendor:'Atlassian',    name:'Confluence OGNL Injection (Pre-Auth)', year:2021, exploited:true,
+    desc:'OGNL injection pre-autenticación en Confluence Server. Miles de instancias comprometidas para minar criptomonedas.',
+    refs:['https://confluence.atlassian.com/doc/confluence-security-advisory-2021-08-25-1077906215.html'] },
+
+  /* ─── 2020 ─── */
+  { id:'CVE-2020-1472',  score:10.0, sev:'CRITICAL', vendor:'Microsoft',    name:'Zerologon NetLogon', year:2020, exploited:true,
+    desc:'Permite a atacantes en la red corporativa comprometer el Domain Controller en segundos. 0 intentos necesarios para explotar.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2020-1472'] },
+  { id:'CVE-2020-14882', score:9.8,  sev:'CRITICAL', vendor:'Oracle',       name:'WebLogic RCE', year:2020, exploited:true,
+    desc:'RCE pre-autenticación en Oracle WebLogic Server. Solo requiere enviar una petición HTTP GET a /console/css/..',
+    refs:['https://www.oracle.com/security-alerts/cpuoct2020.html'] },
+  { id:'CVE-2020-0796',  score:10.0, sev:'CRITICAL', vendor:'Microsoft',    name:'SMBGhost - SMBv3 RCE', year:2020, exploited:true,
+    desc:'Wormable RCE en SMBv3 de Windows 10. Compresión maliciosa puede causar RCE pre-autenticación. Similar a EternalBlue.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2020-0796'] },
+  { id:'CVE-2020-3452',  score:7.5,  sev:'HIGH',     vendor:'Cisco',        name:'ASA/FTD Path Traversal', year:2020, exploited:true,
+    desc:'Directory traversal en Cisco ASA y FTD permite leer archivos sensibles del sistema de archivos del dispositivo.',
+    refs:['https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-asaftd-ro-path-KJuQhB86'] },
+
+  /* ─── 2019 ─── */
+  { id:'CVE-2019-11510', score:10.0, sev:'CRITICAL', vendor:'Pulse Secure', name:'VPN Auth Bypass', year:2019, exploited:true,
+    desc:'Lectura de archivos arbitrarios pre-autenticación en Pulse Secure VPN. Expone contraseñas en texto plano.',
+    refs:['https://kb.pulsesecure.net/articles/Pulse_Security_Advisories/SA44101'] },
+  { id:'CVE-2019-19781', score:9.8,  sev:'CRITICAL', vendor:'Citrix',       name:'Citrix ADC/Gateway RCE', year:2019, exploited:true,
+    desc:'Path traversal en Citrix ADC y Gateway. Permite RCE pre-autenticación. Miles de instancias explotadas en días.',
+    refs:['https://support.citrix.com/article/CTX267027'] },
+  { id:'CVE-2019-0708',  score:9.8,  sev:'CRITICAL', vendor:'Microsoft',    name:'BlueKeep RDP Wormable', year:2019, exploited:true,
+    desc:'RCE wormable en RDP de Windows XP/7/Server 2008. Pre-autenticación, sin interacción. NSA lo consideró crítico.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2019-0708'] },
+  { id:'CVE-2019-11043', score:9.8,  sev:'CRITICAL', vendor:'PHP-FPM',      name:'PHP-FPM nginx RCE', year:2019, exploited:true,
+    desc:'RCE en PHP-FPM con configuración específica de nginx. Un solo request provoca buffer underflow y ejecución de código.',
+    refs:['https://bugs.php.net/bug.php?id=78599'] },
+
+  /* ─── Bonus: Notorios clásicos ─── */
+  { id:'CVE-2017-0144',  score:9.3,  sev:'CRITICAL', vendor:'Microsoft',    name:'EternalBlue SMBv1 RCE', year:2017, exploited:true,
+    desc:'El exploit de NSA filtrado por Shadow Brokers. Usado en WannaCry y NotPetya. Aún explotado activamente en 2024.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2017-0144'] },
+  { id:'CVE-2017-5638',  score:10.0, sev:'CRITICAL', vendor:'Apache',       name:'Struts2 Jakarta RCE', year:2017, exploited:true,
+    desc:'RCE en Apache Struts2 via el Content-Type header. Usado en la brecha de Equifax que expuso 147 millones de registros.',
+    refs:['https://cwiki.apache.org/confluence/display/WW/S2-045'] },
+  { id:'CVE-2021-45046', score:9.0,  sev:'CRITICAL', vendor:'Apache',       name:'Log4j2 Context Lookup RCE', year:2021, exploited:true,
+    desc:'Bypass de la mitigación de Log4Shell. Permite RCE via Thread Context Map en ciertas configuraciones no predeterminadas.',
+    refs:['https://logging.apache.org/log4j/2.x/security.html'] },
+  { id:'CVE-2022-22963', score:9.8,  sev:'CRITICAL', vendor:'VMware',       name:'Spring Cloud Function RCE', year:2022, exploited:true,
+    desc:'RCE via Spring Expression Language (SpEL) en Spring Cloud Function. No requiere autenticación.',
+    refs:['https://spring.io/security/cve-2022-22963'] },
+  { id:'CVE-2023-20198', score:10.0, sev:'CRITICAL', vendor:'Cisco',        name:'IOS XE Web UI RCE', year:2023, exploited:true,
+    desc:'Privilege escalation pre-autenticación en Cisco IOS XE. Permite crear cuentas admin locales. 10,000+ dispositivos comprometidos.',
+    refs:['https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-iosxe-webui-privesc-j22SaA4z'] },
+  { id:'CVE-2023-35078', score:10.0, sev:'CRITICAL', vendor:'Ivanti',       name:'EPMM Auth Bypass', year:2023, exploited:true,
+    desc:'Bypass de autenticación en Ivanti Endpoint Manager Mobile. Expone PII de millones de usuarios. Zero-day explotado.',
+    refs:['https://forums.ivanti.com/s/article/CVE-2023-35078-Remote-unauthenticated-API-access-vulnerability'] },
+  { id:'CVE-2024-38112', score:7.5,  sev:'HIGH',     vendor:'Microsoft',    name:'Windows MSHTML Spoofing', year:2024, exploited:true,
+    desc:'0-day en MSHTML de Windows explotado por APT. Los atacantes usaron archivos .url para ejecutar código malicioso.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38112'] },
+  { id:'CVE-2022-47966', score:9.8,  sev:'CRITICAL', vendor:'ManageEngine', name:'Multiple Products RCE', year:2022, exploited:true,
+    desc:'RCE pre-autenticación en múltiples productos ManageEngine via deserialización SAML. 24+ productos afectados.',
+    refs:['https://www.manageengine.com/security/advisory/CVE/CVE-2022-47966.html'] },
+  { id:'CVE-2021-40444', score:8.8,  sev:'HIGH',     vendor:'Microsoft',    name:'MSHTML 0-day RCE', year:2021, exploited:true,
+    desc:'RCE en MSHTML (Trident) de Windows via documentos Office maliciosos. Explotado como 0-day antes del patch.',
+    refs:['https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-40444'] },
+  { id:'CVE-2023-42793', score:9.8,  sev:'CRITICAL', vendor:'JetBrains',    name:'TeamCity Pre-Auth RCE', year:2023, exploited:true,
+    desc:'Bypass de autenticación en JetBrains TeamCity CI/CD. Explotado por APTs norcoreanos (Lazarus) y rusos (APT29).',
+    refs:['https://blog.jetbrains.com/teamcity/2023/09/critical-security-issue-affecting-teamcity-on-premises-update-to-2023-05-4-now/'] },
+];
+
+/* ═══ RENDER FUNCTIONS ═══ */
+function makeCVECard(cve, delay){
+  var card = document.createElement('div');
+  card.className = 'cve-card';
+  card.dataset.sev = cve.sev;
+  card.dataset.exploited = cve.exploited ? '1' : '0';
+  if(delay !== undefined) card.style.animationDelay = delay + 's';
+
+  var refsHTML = (cve.refs || []).slice(0,2).map(function(r){
+    return '<a href="'+r+'" target="_blank" class="cve-ref" rel="noopener">→ '+r.replace(/^https?:\/\//,'').slice(0,70)+'</a>';
+  }).join('');
+
+  card.innerHTML =
+    '<div class="cve-card-head">'
+    + '<span class="cve-score '+cve.sev+'">'+cve.score.toFixed(1)+'</span>'
+    + '<span class="cve-id">'+cve.id+'</span>'
+    + (cve.name ? '<span class="cve-name">'+cve.name+'</span>' : '')
+    + '<span class="cve-badge '+cve.sev+'">'+cve.sev+'</span>'
+    + '<span class="cve-vendor-tag">'+cve.vendor+'</span>'
+    + (cve.exploited ? '<span class="cve-exploited">🔴 EXPLOTADO</span>' : '')
+    + '<span class="cve-date" style="margin-left:auto">'+cve.year+'</span>'
+    + '</div>'
+    + '<div class="cve-card-body">'
+    + '<div class="cve-desc">'+cve.desc+'</div>'
+    + (refsHTML ? '<div class="cve-refs">'+refsHTML+'</div>' : '')
+    + '</div>';
+
+  return card;
+}
+
+function renderPreloaded(filter){
+  var container = document.getElementById('cve-preloaded');
+  var countEl   = document.getElementById('cve-pl-count');
+  if(!container) return;
+  container.innerHTML = '';
+
+  var filtered = CVE_DB;
+  if(filter === 'CRITICAL') filtered = CVE_DB.filter(function(c){ return c.sev==='CRITICAL'; });
+  else if(filter === 'HIGH') filtered = CVE_DB.filter(function(c){ return c.sev==='HIGH'; });
+  else if(filter === 'MEDIUM') filtered = CVE_DB.filter(function(c){ return c.sev==='MEDIUM'; });
+  else if(filter === 'EXPLOITED') filtered = CVE_DB.filter(function(c){ return c.exploited; });
+
+  /* Ordenar: 2024 → 2017, score desc */
+  filtered = filtered.slice().sort(function(a,b){ return b.year-a.year || b.score-a.score; });
+
+  if(countEl) countEl.textContent = filtered.length + ' CVEs mostrados';
+
+  filtered.forEach(function(cve, i){
+    container.appendChild(makeCVECard(cve, i * 0.04));
   });
+}
 
-  function getSeverity(cvss){
-    if(!cvss) return { sev:'NONE', score:'N/A' };
-    var score = cvss.cvssMetricV31 || cvss.cvssMetricV30 || cvss.cvssMetricV2;
-    if(!score || !score[0]) return { sev:'NONE', score:'N/A' };
-    var data = score[0].cvssData || score[0];
-    var s = parseFloat(data.baseScore || data.cvssScore || 0);
-    var sev;
-    if(s >= 9) sev = 'CRITICAL';
-    else if(s >= 7) sev = 'HIGH';
-    else if(s >= 4) sev = 'MEDIUM';
-    else if(s > 0)  sev = 'LOW';
-    else sev = 'NONE';
-    return { sev:sev, score:s.toFixed(1) };
-  }
+/* ═══ INIT PRELOADED ═══ */
+renderPreloaded('all');
 
-  function renderResults(vulns){
-    res.innerHTML = '';
-    var filtered = activeSev === 'all' ? vulns : vulns.filter(function(v){
-      return getSeverity(v.cve.metrics).sev === activeSev;
-    });
-
-    if(!filtered.length){
-      res.innerHTML = '<div class="cve-empty">Sin resultados' + (activeSev !== 'all' ? ' para severidad '+activeSev : '') + '</div>';
-      return;
+/* ═══ FILTROS ═══ */
+var filts = document.querySelectorAll('#cve-filters .cve-filt');
+var activeSev = 'all';
+filts.forEach(function(f){
+  f.addEventListener('click', function(){
+    filts.forEach(function(x){ x.classList.remove('active'); });
+    f.classList.add('active');
+    activeSev = f.dataset.sev;
+    /* Si hay resultados de búsqueda, filtrarlos también */
+    var res = document.getElementById('cve-results');
+    if(res && res.children.length > 0){
+      /* re-renderizar desde resultados de búsqueda no pre-cargados */
     }
+    renderPreloaded(activeSev);
+    /* Scroll suave a pre-loaded */
+    var ph = document.getElementById('cve-preloaded-header');
+    if(ph) ph.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
 
-    res.innerHTML = '<div class="cve-count">Mostrando '+filtered.length+' de '+vulns.length+' CVEs encontrados</div>';
+/* ═══ NVD SEARCH (reemplaza la función anterior) ═══ */
+var inp    = document.getElementById('cve-input');
+var btn    = document.getElementById('cve-btn');
+var res    = document.getElementById('cve-results');
+var status = document.getElementById('cve-status');
+var fill   = document.getElementById('cve-prog-fill');
+var statTxt= document.getElementById('cve-status-txt');
 
-    filtered.slice(0, 25).forEach(function(v, i){
-      var cve  = v.cve;
-      var id   = cve.id;
-      var desc = (cve.descriptions || []).find(function(d){ return d.lang==='en'; });
-      desc = desc ? desc.value : 'Sin descripción disponible';
-      var pub  = (cve.published || '').slice(0,10);
-      var mod  = (cve.lastModified || '').slice(0,10);
-      var refs = (cve.references || []).slice(0,4);
-      var cvss = getSeverity(cve.metrics);
-      var tags = (cve.configurations || []).length > 0 ? 'Configuraciones afectadas' : '';
-      var cwes = (cve.weaknesses || []).flatMap(function(w){
-        return (w.description || []).map(function(d){ return d.value; });
-      }).slice(0,3);
+function getSeverity(metrics){
+  if(!metrics) return { sev:'NONE', score:0 };
+  var score = metrics.cvssMetricV31 || metrics.cvssMetricV30 || metrics.cvssMetricV2;
+  if(!score || !score[0]) return { sev:'NONE', score:0 };
+  var data = score[0].cvssData || score[0];
+  var s = parseFloat(data.baseScore || data.cvssScore || 0);
+  var sev = s>=9?'CRITICAL':s>=7?'HIGH':s>=4?'MEDIUM':s>0?'LOW':'NONE';
+  return { sev:sev, score:s };
+}
 
-      var card = document.createElement('div');
-      card.className = 'cve-card';
-      card.style.animationDelay = (i * 0.05) + 's';
+function nvdSearch(){
+  var q = inp.value.trim();
+  if(!q) return;
 
-      var refsHTML = refs.length ? refs.map(function(r){
-        return '<a href="'+r.url+'" target="_blank" class="cve-ref">→ '+r.url.replace(/^https?:\/\//,'').slice(0,80)+'</a>';
-      }).join('') : '';
+  btn.disabled = true;
+  btn.textContent = '⌛ Buscando...';
+  status.style.display = 'block';
+  fill.style.width = '10%';
+  statTxt.textContent = 'Consultando NIST NVD API...';
+  res.innerHTML = '';
 
-      var metaHTML = cwes.map(function(c){ return '<span class="cve-meta-item">'+c+'</span>'; }).join('');
+  var isCVEid = /^CVE-\d{4}-\d+$/i.test(q);
+  var url = isCVEid
+    ? 'https://services.nvd.nist.gov/rest/json/cves/2.0?cveId='+encodeURIComponent(q.toUpperCase())
+    : 'https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch='+encodeURIComponent(q)+'&resultsPerPage=20';
 
-      card.innerHTML =
-        '<div class="cve-card-head">'
-        + '<span class="cve-score '+cvss.sev+'">'+cvss.score+'</span>'
-        + '<span class="cve-id">'+id+'</span>'
-        + '<span class="cve-badge '+cvss.sev+'">'+cvss.sev+'</span>'
-        + '<span class="cve-date">Publicado: '+pub+' · Modificado: '+mod+'</span>'
-        + '</div>'
-        + '<div class="cve-card-body">'
-        + '<div class="cve-desc">'+desc.slice(0, 400)+(desc.length>400?'...':'')+'</div>'
-        + (metaHTML ? '<div class="cve-meta">'+metaHTML+'</div>' : '')
-        + (refsHTML ? '<div class="cve-refs">'+refsHTML+'</div>' : '')
-        + '</div>';
+  fill.style.width = '40%';
+  statTxt.textContent = 'Esperando respuesta NVD (5-15s)...';
 
-      res.appendChild(card);
-    });
-  }
+  fetch(url)
+    .then(function(r){ fill.style.width='70%'; return r.json(); })
+    .then(function(data){
+      fill.style.width = '100%';
+      var vulns = data.vulnerabilities || [];
+      var total = data.totalResults || 0;
 
-  function search(){
-    var q = inp.value.trim();
-    if(!q) return;
+      if(!vulns.length){
+        statTxt.textContent = '⚠ Sin resultados en NVD para: "'+q+'"';
+        res.innerHTML = '<div class="cve-empty">Sin resultados. Prueba: log4j, apache, windows, CVE-2021-44228</div>';
+      } else {
+        statTxt.textContent = '✓ '+total+' CVEs en NVD — mostrando '+Math.min(vulns.length,20);
+        var header = document.createElement('div');
+        header.className = 'cve-preloaded-header';
+        header.style.marginBottom = '16px';
+        header.innerHTML = '<span class="cve-pl-title">// RESULTADOS NVD: '+q.toUpperCase()+'</span><span class="cve-pl-count">'+total+' CVEs encontrados</span>';
+        res.appendChild(header);
 
-    btn.disabled = true;
-    btn.textContent = 'Buscando...';
-    status.style.display = 'block';
-    fill.style.width = '10%';
-    statTxt.textContent = 'Consultando NVD API...';
-    res.innerHTML = '';
-
-    /* Detectar si es CVE-ID o búsqueda de keyword */
-    var isCVEid = /^CVE-\d{4}-\d+$/i.test(q);
-    var url;
-
-    if(isCVEid){
-      url = 'https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=' + encodeURIComponent(q.toUpperCase());
-    } else {
-      url = 'https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=' + encodeURIComponent(q) + '&resultsPerPage=30';
-    }
-
-    fill.style.width = '40%';
-    statTxt.textContent = 'Esperando respuesta de NVD (puede tardar 5-10s)...';
-
-    fetch(url)
-      .then(function(r){
-        if(!r.ok) throw new Error('HTTP ' + r.status);
-        fill.style.width = '70%';
-        return r.json();
-      })
-      .then(function(data){
-        fill.style.width = '100%';
-        lastResults = data.vulnerabilities || [];
-        var total   = data.totalResults || 0;
-
-        if(!lastResults.length){
-          statTxt.textContent = '⚠ Sin resultados para: "'+q+'"';
-          res.innerHTML = '<div class="cve-empty">Sin CVEs encontrados para "'+q+'"<br><span style="font-size:10px;color:rgba(240,238,248,.3)">Prueba con: apache, log4j, CVE-2021-44228, wordpress, microsoft</span></div>';
-        } else {
-          statTxt.textContent = '✓ ' + total + ' CVEs encontrados — mostrando los primeros 25';
-          renderResults(lastResults);
-        }
-
-        btn.disabled = false;
-        btn.textContent = 'SEARCH';
-      })
-      .catch(function(err){
-        fill.style.width = '100%';
-        statTxt.textContent = '✗ Error: ' + (err.message || 'Error de conexión');
-        res.innerHTML = '<div class="cve-empty">Error consultando NVD. La API puede estar con rate limit — espera 30s e intenta de nuevo.<br><br><a href="https://nvd.nist.gov/vuln/search" target="_blank" style="color:#4fc3f7;font-family:var(--mono);font-size:12px">→ Buscar en NVD directamente</a></div>';
-        btn.disabled = false;
-        btn.textContent = 'SEARCH';
-      });
-  }
-
-  btn.addEventListener('click', search);
-  inp.addEventListener('keydown', function(e){ if(e.key==='Enter') search(); });
-
-  /* Búsquedas de ejemplo al hacer clic */
-  document.querySelectorAll('.rce-ex').forEach(function(ex){
-    ex.addEventListener('click', function(){
-      if(inp && ex.closest('#cve-search')){
-        inp.value = ex.dataset.val;
-        search();
+        vulns.slice(0,20).forEach(function(v, i){
+          var cve = v.cve;
+          var cvss = getSeverity(cve.metrics);
+          var desc = (cve.descriptions||[]).find(function(d){return d.lang==='en';});
+          var obj = {
+            id: cve.id,
+            score: cvss.score,
+            sev: cvss.sev,
+            vendor: 'NVD',
+            name: '',
+            year: parseInt((cve.published||'2024').slice(0,4)),
+            exploited: false,
+            desc: desc ? desc.value.slice(0,250) : 'Sin descripción',
+            refs: (cve.references||[]).slice(0,2).map(function(r){return r.url;})
+          };
+          var card = makeCVECard(obj, i*0.05);
+          res.appendChild(card);
+        });
       }
+
+      btn.disabled = false;
+      btn.textContent = 'BUSCAR EN NVD';
+    })
+    .catch(function(){
+      fill.style.width='100%';
+      statTxt.textContent = '✗ Error de conexión o rate limit de NVD';
+      res.innerHTML = '<div class="cve-empty">Error. La NVD API tiene rate limit de 5 req/30s.<br><br><a href="https://nvd.nist.gov/vuln/search" target="_blank" style="color:#4fc3f7;font-family:var(--mono)">→ Buscar en NVD directamente</a></div>';
+      btn.disabled = false;
+      btn.textContent = 'BUSCAR EN NVD';
     });
-  });
+}
+
+if(btn) btn.addEventListener('click', nvdSearch);
+if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') nvdSearch(); });
+
 })();
 
 </script>

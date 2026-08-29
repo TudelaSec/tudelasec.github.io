@@ -9059,639 +9059,511 @@ if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') nvdSear
 
 
 
-/* ══ EPIC GLOBE — PIXEL SPHERE RENDERER ══ */
+
+
+
+/* ══ GLOBE FINAL — OPTIMIZED + SMOOTH BEZIER ══ */
 (function(){
 'use strict';
-var canvas = document.getElementById('globe-canvas');
-if(!canvas) return;
-var ctx = canvas.getContext('2d');
+var cvs = document.getElementById('globe-canvas');
+if(!cvs) return;
+var ctx = cvs.getContext('2d');
 
-var isMob = window.innerWidth < 768;
-var DPR   = Math.min(window.devicePixelRatio||1, 2);
-var W = isMob ? 340 : 600, H = W;
-var CX = W/2, CY = H/2, R = isMob ? 156 : 270;
+var mob = window.innerWidth < 768;
+var DPR = Math.min(window.devicePixelRatio||1, 2);
+var W=mob?320:560, H=W, CX=W/2, CY=H/2, R=mob?140:248;
+cvs.width=W*DPR; cvs.height=H*DPR;
+cvs.style.width=W+'px'; cvs.style.height=H+'px';
 
-canvas.width  = W * DPR;
-canvas.height = H * DPR;
-canvas.style.width  = W + 'px';
-canvas.style.height = H + 'px';
+var D=Math.PI/180, rot=0.9, spd=0.0035;
+var drag=false, lx=0;
+var arcs=[], st={tot:0,act:0,dd:0,ml:0,ex:0,rn:0,ph:0};
+var feed=document.getElementById('tm-feed');
+var MX=720, MY=360;
 
-var MAP_W = 720, MAP_H = 360;
-var DEG   = Math.PI / 180;
-var rotation = 0.3, rotSpeed = 0.004;
-var isDrag = false, lastX = 0;
-var arcs = [], stats = {total:0,active:0,ddos:0,mal:0,exp:0,ran:0,phi:0};
-var feedEl = document.getElementById('tm-feed');
-
-/* ═══════════════════════════════════════════
-   1. WORLD MAP — PAÍSES DETALLADOS
-═══════════════════════════════════════════ */
-var COUNTRIES = {
-  /* NORTEAMÉRICA */
-  usa:[
-    [49,-123],[47,-124],[45,-124],[43,-124],[40,-124],[37,-122],[35,-121],[33,-117],[32,-117],
-    [31,-115],[30,-97],[29,-96],[29,-94],[30,-90],[28,-89],[30,-88],[31,-89],[31,-91],[33,-89],
-    [34,-85],[35,-82],[36,-76],[37,-76],[38,-75],[39,-75],[40,-74],[41,-72],[42,-70],[43,-70],
-    [44,-68],[45,-67],[47,-68],[47,-70],[48,-70],[49,-66],[49,-95],[49,-100],[49,-110],[49,-123]
-  ],
-  canada:[
-    [60,-141],[58,-137],[56,-132],[54,-128],[52,-128],[50,-127],[49,-124],[49,-110],[49,-100],
-    [49,-95],[49,-66],[50,-64],[51,-57],[52,-55],[53,-57],[54,-60],[56,-62],[58,-65],[60,-64],
-    [62,-68],[64,-70],[66,-73],[68,-76],[70,-78],[71,-82],[72,-88],[72,-95],[71,-105],[72,-115],
-    [72,-123],[71,-131],[70,-141],[68,-141],[64,-141],[60,-141]
-  ],
-  mexico:[
-    [32,-117],[29,-115],[26,-110],[22,-107],[19,-104],[16,-99],[15,-92],[15,-88],[16,-89],
-    [18,-88],[18,-90],[21,-90],[23,-90],[25,-89],[28,-96],[30,-97],[31,-103],[31,-115],[32,-117]
-  ],
-  centralAm:[
-    [15,-92],[14,-90],[14,-87],[15,-85],[14,-83],[11,-83],[9,-82],[8,-77],[9,-77],[10,-79],
-    [10,-84],[11,-85],[12,-86],[13,-88],[14,-89],[14,-90],[15,-92]
-  ],
-  /* SUDAMÉRICA */
-  colombia:[
-    [12,-72],[11,-73],[9,-77],[5,-77],[2,-78],[0,-80],[0,-77],[2,-76],[4,-76],[6,-75],
-    [8,-72],[9,-72],[10,-72],[11,-73],[12,-72]
-  ],
-  venezuela:[
-    [12,-72],[10,-62],[10,-61],[11,-62],[11,-64],[10,-66],[9,-69],[8,-72],[9,-72],[10,-72],
-    [11,-73],[12,-72]
-  ],
-  brazil:[
-    [-3,-41],[-5,-35],[-8,-34],[-10,-37],[-12,-37],[-15,-38],[-18,-39],[-22,-41],[-24,-46],
-    [-28,-49],[-32,-52],[-33,-53],[-32,-52],[-28,-49],[-25,-48],[-22,-43],[-20,-40],[- 18,-39],
-    [-15,-39],[-12,-37],[-10,-36],[-8,-34],[-5,-35],[-3,-41],[-1,-50],[0,-51],[2,-50],[4,-52],
-    [5,-51],[3,-52],[1,-57],[2,-58],[3,-59],[4,-60],[4,-63],[5,-62],[6,-60],[7,-58],[6,-56],
-    [5,-53],[3,-52],[1,-52],[-1,-50],[-3,-41]
-  ],
-  peru:[[-1,-80],[-3,-80],[-5,-81],[-8,-79],[-12,-77],[-16,-75],[-18,-71],[-16,-70],[-14,-70],
-    [-10,-72],[-8,-73],[-6,-76],[-4,-77],[-2,-78],[0,-80],[-1,-80]
-  ],
-  chile:[[-17,-70],[-20,-70],[-25,-70],[-30,-72],[-35,-72],[-38,-73],[-42,-73],[-45,-74],
-    [-48,-75],[-50,-75],[-52,-73],[-54,-70],[-55,-68],[-55,-64],[-54,-65],[-52,-68],[-50,-68],
-    [-48,-65],[-45,-65],[-42,-63],[-38,-60],[-35,-57],[-32,-52],[-30,-50],[-25,-48],[-22,-41],
-    [-20,-40],[-18,-39],[-17,-70]
-  ],
-  argentina:[[-22,-65],[-25,-65],[-28,-65],[-30,-65],[-32,-65],[-34,-65],[-36,-66],[-38,-68],
-    [-40,-68],[-42,-65],[-44,-66],[-46,-66],[-48,-65],[-50,-68],[-52,-68],[-54,-70],[-55,-68],
-    [-55,-64],[-54,-65],[-52,-68],[-50,-68],[-48,-65],[-46,-66],[-44,-66],[-42,-64],[-40,-62],
-    [-38,-60],[-35,-57],[-32,-52],[-28,-49],[-25,-65],[-22,-65]
-  ],
-  /* EUROPA */
-  spain:[
-    [44,-9],[43,-9],[43,-7],[42,-9],[41,-8],[38,-9],[36,-6],[36,-5],[37,-2],[40,0],[41,2],
-    [42,3],[43,3],[44,1],[44,-1],[43,-2],[43,-5],[44,-8],[44,-9]
-  ],
-  france:[
-    [51,2],[50,3],[49,4],[48,5],[47,6],[46,7],[45,7],[44,6],[43,5],[43,3],[44,3],[45,2],
-    [46,2],[47,2],[48,1],[49,3],[50,2],[51,2]
-  ],
-  uk:[
-    [58,-5],[57,-6],[56,-5],[55,-5],[54,-5],[53,-4],[52,-4],[51,-3],[50,-1],[51,1],[52,2],
-    [53,1],[54,0],[55,-1],[56,-2],[57,-2],[58,-3],[59,-3],[58,-5]
-  ],
-  ireland:[
-    [55,-7],[54,-8],[53,-10],[52,-10],[51,-9],[52,-6],[53,-6],[55,-7]
-  ],
-  germany:[
-    [55,8],[54,10],[54,14],[52,14],[51,15],[50,16],[50,12],[49,12],[48,13],[48,9],[49,7],
-    [50,6],[51,6],[52,7],[53,8],[55,8]
-  ],
-  italy:[
-    [44,11],[45,11],[46,12],[46,14],[44,13],[43,14],[41,15],[39,16],[37,15],[37,14],[38,13],
-    [39,9],[41,9],[43,10],[44,11]
-  ],
-  netherlands_belgium:[
-    [53,5],[52,5],[51,4],[50,3],[51,3],[52,4],[53,5]
-  ],
-  poland:[
-    [54,14],[52,14],[50,16],[50,18],[50,22],[52,22],[54,22],[54,18],[54,14]
-  ],
-  ukraine:[
-    [50,30],[48,30],[46,30],[44,36],[44,40],[46,40],[48,36],[50,36],[52,32],[50,30]
-  ],
-  scandinavia:[
-    [71,28],[70,26],[68,20],[67,16],[65,14],[64,20],[63,22],[62,24],[61,24],[60,22],[58,16],
-    [56,14],[55,12],[55,10],[56,8],[58,6],[59,10],[60,10],[61,8],[62,5],[64,8],[66,14],[68,18],
-    [70,24],[71,28]
-  ],
-  finland:[
-    [70,28],[68,28],[65,28],[63,30],[62,28],[61,26],[60,22],[62,24],[64,28],[66,28],[68,28],[70,28]
-  ],
-  russia_europe:[
-    [70,30],[68,30],[65,34],[62,36],[60,30],[58,28],[55,36],[55,42],[55,48],[54,52],[52,52],
-    [50,44],[48,44],[46,42],[44,44],[46,48],[48,50],[50,52],[52,55],[55,55],[58,55],[60,58],
-    [63,55],[65,52],[68,44],[70,40],[72,40],[72,30],[70,30]
-  ],
-  russia_siberia:[
-    [72,40],[72,55],[73,60],[73,75],[72,80],[72,95],[70,100],[68,110],[65,115],[62,118],
-    [58,120],[55,122],[52,125],[50,130],[48,135],[45,135],[42,133],[42,130],[44,132],[46,138],
-    [50,140],[54,142],[58,140],[62,150],[65,162],[68,165],[70,168],[72,168],[73,162],[74,155],
-    [76,145],[77,137],[77,120],[77,105],[75,100],[73,90],[72,80],[72,60],[72,40]
-  ],
-  /* ORIENTE MEDIO */
-  turkey:[
-    [42,26],[40,26],[38,26],[36,28],[36,36],[38,40],[40,42],[42,40],[42,35],[43,35],[42,26]
-  ],
-  iran:[
-    [38,44],[35,44],[30,48],[26,58],[28,60],[30,60],[32,60],[36,58],[38,56],[40,52],[40,46],[38,44]
-  ],
-  saudi:[
-    [30,36],[28,34],[22,38],[18,42],[14,50],[18,55],[22,60],[24,58],[26,52],[28,50],[30,48],[30,36]
-  ],
-  /* ASIA */
-  china:[
-    [53,122],[50,117],[48,117],[46,118],[44,120],[42,128],[40,128],[38,126],[36,120],[34,120],
-    [32,120],[30,122],[28,120],[24,118],[22,114],[20,110],[18,108],[20,100],[22,102],[25,100],
-    [28,97],[30,97],[32,100],[35,102],[38,106],[40,110],[42,112],[44,118],[46,118],[48,118],
-    [50,118],[53,120],[55,122],[57,118],[58,110],[58,95],[56,90],[54,82],[52,80],[50,77],
-    [45,80],[40,78],[35,72],[30,68],[25,60],[22,100],[20,100],[18,108],[22,114],[24,120],[28,120],
-    [30,122],[32,120],[36,120],[40,128],[42,130],[44,132],[46,138],[50,140],[53,135],[55,135],
-    [57,130],[58,120],[58,110],[58,95],[56,90],[53,90],[50,88],[48,88],[48,92],[50,100],
-    [52,104],[53,108],[53,122]
-  ],
-  india:[
-    [35,76],[32,74],[30,70],[27,68],[24,68],[20,68],[15,72],[10,76],[8,77],[8,80],[10,80],
-    [14,80],[18,83],[20,86],[22,88],[24,88],[26,90],[28,88],[28,84],[28,80],[30,79],[32,76],[35,76]
-  ],
-  srilanka:[
-    [10,80],[9,81],[7,82],[7,80],[8,80],[10,80]
-  ],
-  southeast_asia:[
-    [20,100],[18,100],[16,102],[14,100],[12,100],[10,100],[6,100],[2,102],[0,104],[1,103],
-    [3,106],[5,118],[8,115],[10,110],[12,108],[14,108],[16,108],[18,106],[20,100]
-  ],
-  japan:[
-    [45,142],[43,142],[41,142],[39,140],[37,137],[35,133],[34,130],[34,131],[35,135],[36,138],
-    [38,140],[40,142],[42,144],[45,142]
-  ],
-  korea:[
-    [40,128],[38,126],[36,126],[35,128],[36,130],[38,130],[40,128]
-  ],
-  /* AFRICA */
-  north_africa:[
-    [37,9],[35,10],[32,24],[30,32],[22,38],[16,38],[12,44],[8,44],[5,40],[2,42],[0,40],
-    [-4,36],[-4,30],[-2,22],[0,15],[2,8],[5,3],[8,2],[10,2],[12,2],[15,0],[18,2],[20,2],
-    [24,5],[28,10],[32,10],[35,8],[37,9]
-  ],
-  west_africa:[
-    [16,0],[12,-15],[8,-15],[4,-8],[4,3],[5,5],[8,3],[10,2],[12,2],[15,2],[16,0]
-  ],
-  central_africa:[
-    [4,8],[4,3],[0,9],[-4,10],[-8,13],[-12,14],[-14,12],[-14,16],[-10,18],[-4,22],[0,22],
-    [2,18],[4,14],[4,8]
-  ],
-  east_africa:[
-    [12,44],[8,44],[4,42],[0,42],[-4,40],[-8,40],[-10,40],[-12,42],[-15,36],[-18,36],
-    [-22,35],[-25,33],[-28,32],[-30,30],[-32,28],[-34,20],[-34,18],[-32,17],[-28,16],
-    [-22,14],[-16,12],[-10,13],[-4,10],[-8,13],[-12,14],[-14,16],[-10,18],[-4,22],[0,22],
-    [2,18],[4,14],[4,8],[4,3],[4,8],[8,3],[12,44]
-  ],
-  /* OCEANÍA */
-  australia:[
-    [-15,130],[-14,125],[-16,122],[-20,119],[-22,114],[-26,114],[-30,115],[-32,116],
-    [-34,118],[-34,122],[-32,126],[-30,132],[-32,134],[-34,138],[-36,140],[-38,142],
-    [-38,146],[-36,148],[-34,151],[-28,153],[-24,152],[-20,148],[-17,146],[-14,142],
-    [-12,136],[-15,130]
-  ],
-  newzealand:[
-    [-34,172],[-36,175],[-38,177],[-40,175],[-42,172],[-44,170],[-46,168],[-44,172],
-    [-42,174],[-40,177],[-38,177],[-36,175],[-34,172]
-  ],
-  /* EXTRAS */
-  greenland:[
-    [83,-30],[82,-18],[80,-18],[78,-22],[76,-22],[74,-26],[72,-24],[70,-22],[68,-24],
-    [65,-40],[64,-52],[66,-54],[68,-54],[70,-52],[72,-54],[74,-60],[76,-66],[78,-70],
-    [80,-68],[82,-52],[83,-30]
-  ],
-  madagascar:[
-    [-12,49],[-15,48],[-18,44],[-22,44],[-25,46],[-24,48],[-20,48],[-16,50],[-12,49]
-  ],
-  philippines:[
-    [18,122],[14,122],[10,124],[8,124],[6,126],[10,126],[14,124],[18,122]
-  ],
+/* ══ PAÍSES ══ */
+var L={
+  usa:[[49,-123],[44,-124],[37,-122],[32,-117],[29,-115],[30,-97],[29,-94],[30,-90],[28,-89],[31,-90],[33,-89],[35,-82],[37,-76],[40,-74],[42,-70],[44,-68],[47,-68],[49,-66],[49,-95],[49,-110],[49,-123]],
+  canada:[[60,-141],[55,-132],[52,-128],[49,-124],[49,-95],[49,-66],[52,-55],[54,-60],[58,-65],[62,-68],[66,-73],[70,-78],[72,-88],[72,-95],[71,-105],[72,-123],[70,-141],[60,-141]],
+  mexico:[[32,-117],[26,-110],[19,-104],[15,-92],[15,-88],[18,-90],[22,-90],[25,-89],[28,-96],[31,-103],[32,-117]],
+  c_am:[[15,-92],[14,-87],[10,-84],[8,-77],[10,-79],[11,-85],[14,-89],[15,-92]],
+  colombia:[[12,-72],[8,-77],[0,-77],[4,-76],[8,-72],[12,-72]],
+  venezuela:[[12,-72],[10,-62],[8,-72],[12,-72]],
+  brazil:[[-3,-41],[-8,-34],[-15,-38],[-22,-41],[-28,-49],[-33,-53],[-1,-50],[2,-50],[4,-52],[1,-57],[4,-63],[6,-60],[5,-53],[-3,-41]],
+  peru:[[-1,-80],[-8,-79],[-18,-71],[-14,-70],[-8,-73],[0,-80]],
+  chile:[[-18,-70],[-30,-72],[-38,-73],[-52,-73],[-55,-68],[-55,-64],[-50,-68],[-42,-63],[-38,-60],[-32,-52],[-18,-70]],
+  argentina:[[-22,-65],[-32,-65],[-38,-68],[-52,-68],[-55,-64],[-50,-68],[-42,-64],[-38,-60],[-32,-52],[-22,-65]],
+  iberia:[[44,-9],[38,-9],[36,-5],[37,-2],[40,0],[42,3],[44,1],[44,-9]],
+  france:[[51,2],[48,5],[46,7],[43,3],[45,2],[48,1],[51,2]],
+  uk:[[58,-5],[54,-5],[51,-3],[51,1],[55,-1],[58,-3],[58,-5]],
+  germany:[[55,8],[52,14],[49,12],[48,9],[51,6],[55,8]],
+  italy:[[44,11],[46,14],[43,14],[38,15],[38,13],[43,10],[44,11]],
+  scandinavia:[[71,28],[68,18],[64,14],[62,24],[59,18],[56,14],[55,10],[58,6],[62,5],[66,14],[70,24],[71,28]],
+  russia_w:[[70,30],[60,30],[55,36],[55,48],[50,44],[46,42],[44,44],[48,50],[55,55],[60,58],[65,52],[70,40],[72,30],[70,30]],
+  russia_e:[[72,40],[72,80],[70,100],[62,118],[55,122],[48,135],[42,130],[46,138],[54,142],[62,150],[68,165],[72,168],[74,155],[77,120],[77,80],[72,60],[72,40]],
+  turkey:[[42,26],[36,28],[36,36],[40,42],[42,40],[42,26]],
+  iran:[[38,44],[26,58],[30,60],[36,58],[40,46],[38,44]],
+  saudi:[[30,36],[22,38],[14,50],[22,60],[26,52],[30,48],[30,36]],
+  china:[[52,120],[42,128],[36,120],[28,120],[22,114],[20,110],[18,108],[20,100],[25,100],[30,97],[38,106],[44,118],[48,118],[52,118],[55,122],[57,118],[58,95],[52,80],[48,88],[48,92],[50,100],[52,120]],
+  india:[[34,76],[28,68],[22,68],[15,72],[8,77],[8,80],[18,83],[22,88],[28,88],[28,80],[34,76]],
+  se_asia:[[20,100],[14,100],[6,100],[2,102],[3,106],[5,118],[10,110],[14,108],[18,106],[20,100]],
+  japan:[[45,142],[38,140],[34,131],[36,138],[40,142],[45,142]],
+  n_africa:[[37,9],[30,32],[12,44],[0,40],[-4,30],[0,15],[5,3],[10,2],[18,2],[24,5],[32,10],[37,9]],
+  w_africa:[[16,0],[8,-15],[4,-8],[4,3],[8,3],[12,2],[16,0]],
+  e_africa:[[12,44],[2,42],[-10,40],[-22,35],[-30,30],[-34,18],[-28,16],[-16,12],[-4,10],[4,8],[12,44]],
+  c_africa:[[4,8],[0,9],[-10,18],[-4,22],[2,18],[4,14],[4,8]],
+  australia:[[-14,126],[-16,122],[-26,114],[-34,118],[-34,138],[-38,142],[-34,151],[-24,152],[-14,142],[-12,136],[-14,126]],
+  newzealand:[[-36,175],[-42,172],[-42,174],[-36,175]],
+  greenland:[[83,-30],[80,-18],[72,-24],[64,-52],[68,-54],[72,-54],[76,-66],[82,-52],[83,-30]],
 };
 
-/* ═══════════════════════════════════════════
-   2. CIUDADES CON LUCES NOCTURNAS
-═══════════════════════════════════════════ */
-var CITIES = [
-  {n:'New York',cc:'🇺🇸',lat:40.7,lon:-74,w:5},{n:'Los Angeles',cc:'🇺🇸',lat:34,lon:-118,w:4},
-  {n:'Chicago',cc:'🇺🇸',lat:41.8,lon:-87.6,w:3},{n:'Washington',cc:'🇺🇸',lat:38.9,lon:-77,w:3},
-  {n:'Toronto',cc:'🇨🇦',lat:43.7,lon:-79.4,w:3},{n:'Mexico City',cc:'🇲🇽',lat:19.4,lon:-99.1,w:3},
-  {n:'São Paulo',cc:'🇧🇷',lat:-23.5,lon:-46.6,w:4},{n:'Buenos Aires',cc:'🇦🇷',lat:-34.6,lon:-58.4,w:3},
-  {n:'London',cc:'🇬🇧',lat:51.5,lon:-0.1,w:5},{n:'Paris',cc:'🇫🇷',lat:48.8,lon:2.3,w:4},
-  {n:'Berlin',cc:'🇩🇪',lat:52.5,lon:13.4,w:3},{n:'Moscow',cc:'🇷🇺',lat:55.7,lon:37.6,w:5},
-  {n:'Madrid',cc:'🇪🇸',lat:40.4,lon:-3.7,w:3},{n:'Rome',cc:'🇮🇹',lat:41.9,lon:12.5,w:3},
-  {n:'Amsterdam',cc:'🇳🇱',lat:52.3,lon:4.9,w:3},{n:'Kyiv',cc:'🇺🇦',lat:50.4,lon:30.5,w:2},
-  {n:'Beijing',cc:'🇨🇳',lat:39.9,lon:116.4,w:5},{n:'Shanghai',cc:'🇨🇳',lat:31.2,lon:121.5,w:5},
-  {n:'Tokyo',cc:'🇯🇵',lat:35.6,lon:139.7,w:5},{n:'Seoul',cc:'🇰🇷',lat:37.6,lon:126.9,w:4},
-  {n:'Mumbai',cc:'🇮🇳',lat:19,lon:72.8,w:4},{n:'Delhi',cc:'🇮🇳',lat:28.6,lon:77.2,w:4},
-  {n:'Singapore',cc:'🇸🇬',lat:1.3,lon:103.8,w:4},{n:'Hong Kong',cc:'🇭🇰',lat:22.3,lon:114.2,w:4},
-  {n:'Bangkok',cc:'🇹🇭',lat:13.7,lon:100.5,w:3},{n:'Jakarta',cc:'🇮🇩',lat:-6.2,lon:106.8,w:3},
-  {n:'Pyongyang',cc:'🇰🇵',lat:39,lon:125.8,w:3},{n:'Tehran',cc:'🇮🇷',lat:35.7,lon:51.4,w:3},
-  {n:'Dubai',cc:'🇦🇪',lat:25.2,lon:55.3,w:3},{n:'Istanbul',cc:'🇹🇷',lat:41,lon:29,w:3},
-  {n:'Cairo',cc:'🇪🇬',lat:30,lon:31.2,w:3},{n:'Lagos',cc:'🇳🇬',lat:6.5,lon:3.4,w:3},
-  {n:'Sydney',cc:'🇦🇺',lat:-33.8,lon:151.2,w:3},{n:'Santiago',cc:'🇨🇱',lat:-33.4,lon:-70.6,w:2},
+/* ══ CIUDADES ══ */
+var CT=[
+  {n:'New York',   cc:'🇺🇸',la:40.7, lo:-74.0, w:5},
+  {n:'Los Angeles',cc:'🇺🇸',la:34.0, lo:-118.2,w:4},
+  {n:'Chicago',    cc:'🇺🇸',la:41.8, lo:-87.6, w:3},
+  {n:'Washington', cc:'🇺🇸',la:38.9, lo:-77.0, w:3},
+  {n:'Toronto',    cc:'🇨🇦',la:43.7, lo:-79.4, w:3},
+  {n:'Mexico City',cc:'🇲🇽',la:19.4, lo:-99.1, w:3},
+  {n:'São Paulo',  cc:'🇧🇷',la:-23.5,lo:-46.6, w:4},
+  {n:'Buenos Aires',cc:'🇦🇷',la:-34.6,lo:-58.4,w:3},
+  {n:'Bogotá',     cc:'🇨🇴',la:4.7,  lo:-74.1, w:2},
+  {n:'Santiago',   cc:'🇨🇱',la:-33.4,lo:-70.6, w:2},
+  {n:'London',     cc:'🇬🇧',la:51.5, lo:-0.1,  w:5},
+  {n:'Paris',      cc:'🇫🇷',la:48.8, lo:2.3,   w:4},
+  {n:'Berlin',     cc:'🇩🇪',la:52.5, lo:13.4,  w:3},
+  {n:'Moscow',     cc:'🇷🇺',la:55.7, lo:37.6,  w:5},
+  {n:'Madrid',     cc:'🇪🇸',la:40.4, lo:-3.7,  w:3},
+  {n:'Rome',       cc:'🇮🇹',la:41.9, lo:12.5,  w:3},
+  {n:'Kyiv',       cc:'🇺🇦',la:50.4, lo:30.5,  w:2},
+  {n:'Istanbul',   cc:'🇹🇷',la:41.0, lo:29.0,  w:3},
+  {n:'Beijing',    cc:'🇨🇳',la:39.9, lo:116.4, w:5},
+  {n:'Shanghai',   cc:'🇨🇳',la:31.2, lo:121.5, w:5},
+  {n:'Tokyo',      cc:'🇯🇵',la:35.6, lo:139.7, w:5},
+  {n:'Seoul',      cc:'🇰🇷',la:37.6, lo:126.9, w:4},
+  {n:'Mumbai',     cc:'🇮🇳',la:19.0, lo:72.8,  w:4},
+  {n:'Delhi',      cc:'🇮🇳',la:28.6, lo:77.2,  w:4},
+  {n:'Singapore',  cc:'🇸🇬',la:1.3,  lo:103.8, w:4},
+  {n:'Hong Kong',  cc:'🇭🇰',la:22.3, lo:114.2, w:4},
+  {n:'Bangkok',    cc:'🇹🇭',la:13.7, lo:100.5, w:3},
+  {n:'Jakarta',    cc:'🇮🇩',la:-6.2, lo:106.8, w:3},
+  {n:'Pyongyang',  cc:'🇰🇵',la:39.0, lo:125.8, w:3},
+  {n:'Tehran',     cc:'🇮🇷',la:35.7, lo:51.4,  w:3},
+  {n:'Dubai',      cc:'🇦🇪',la:25.2, lo:55.3,  w:3},
+  {n:'Cairo',      cc:'🇪🇬',la:30.0, lo:31.2,  w:3},
+  {n:'Lagos',      cc:'🇳🇬',la:6.5,  lo:3.4,   w:3},
+  {n:'Sydney',     cc:'🇦🇺',la:-33.8,lo:151.2, w:3},
+  {n:'Nairobi',    cc:'🇰🇪',la:-1.3, lo:36.8,  w:2},
 ];
 
-/* ═══════════════════════════════════════════
-   3. PRE-RENDERIZAR EL MAPA MUNDIAL
-═══════════════════════════════════════════ */
-var mapCanvas  = document.createElement('canvas');
-var nightCanvas= document.createElement('canvas');
-mapCanvas.width = nightCanvas.width = MAP_W;
-mapCanvas.height= nightCanvas.height= MAP_H;
-var mc = mapCanvas.getContext('2d');
-var nc = nightCanvas.getContext('2d');
+/* ══ MAPA OFFSCREEN ══ */
+var mc=document.createElement('canvas'), nc=document.createElement('canvas');
+mc.width=nc.width=MX; mc.height=nc.height=MY;
+var mC=mc.getContext('2d'), nC=nc.getContext('2d');
 
-function ll2xy(lat,lon){
-  return { x:(lon+180)/360*MAP_W, y:(90-lat)/180*MAP_H };
-}
+function ll2p(lat,lon){ return{x:(lon+180)/360*MX, y:(90-lat)/180*MY}; }
 
-/* Fondo océano de día */
-var oceanGrad = mc.createLinearGradient(0,0,0,MAP_H);
-oceanGrad.addColorStop(0,'#001525');oceanGrad.addColorStop(0.5,'#001e3c');oceanGrad.addColorStop(1,'#001525');
-mc.fillStyle = oceanGrad;
-mc.fillRect(0,0,MAP_W,MAP_H);
+/* Océano */
+var og=mC.createLinearGradient(0,0,0,MY);
+og.addColorStop(0,'#01131f'); og.addColorStop(0.5,'#01264a'); og.addColorStop(1,'#01131f');
+mC.fillStyle=og; mC.fillRect(0,0,MX,MY);
+nC.fillStyle='#00030a'; nC.fillRect(0,0,MX,MY);
 
-/* Fondo noche */
-nc.fillStyle='#000308'; nc.fillRect(0,0,MAP_W,MAP_H);
-
-/* Dibujar cada país en el mapa de día */
-var countryColors = {
-  usa:'#1a5c2a',canada:'#174f24',mexico:'#1e6030',centralAm:'#1a5525',
-  colombia:'#1e6030',venezuela:'#1d5c2d',brazil:'#1a5828',peru:'#1c5c2a',
-  chile:'#175224',argentina:'#196028',
-  spain:'#2a6b38',france:'#2d7040',uk:'#2a6838',ireland:'#2d7042',
-  germany:'#286038',italy:'#2a6538',netherlands_belgium:'#2c6e40',
-  poland:'#2a6238',ukraine:'#286038',scandinavia:'#2a6540',finland:'#2a6440',
-  russia_europe:'#1c5c28',russia_siberia:'#1a5525',
-  turkey:'#2e7040',iran:'#2c6838',saudi:'#c8a84b',
-  china:'#1f6830',india:'#226e34',srilanka:'#246038',
-  southeast_asia:'#206830',japan:'#2a6c3c',korea:'#2a6838',
-  north_africa:'#c4a042',west_africa:'#1a5c28',central_africa:'#1e6430',
-  east_africa:'#1c6030',
-  australia:'#b8956a',newzealand:'#1e6438',
-  greenland:'#c8dce0',madagascar:'#1e6030',philippines:'#1e6030',
+/* Colores tierra — ALTO CONTRASTE */
+var LC={
+  usa:'#2f8244',canada:'#2a7a3e',mexico:'#36924c',c_am:'#339048',
+  colombia:'#3a9c52',venezuela:'#389050',brazil:'#2e8844',
+  peru:'#329048',chile:'#2d8042',argentina:'#2d8042',
+  iberia:'#40a05a',france:'#3d9c58',uk:'#40a05c',germany:'#3c9856',
+  italy:'#40a05a',scandinavia:'#3c9a58',
+  russia_w:'#307a3e',russia_e:'#2c7038',
+  turkey:'#40a05a',iran:'#3c9c58',saudi:'#d6b248',
+  china:'#329048',india:'#3ca055',se_asia:'#3aa056',
+  japan:'#3ea05c',
+  n_africa:'#ccaa3c',w_africa:'#2f8044',e_africa:'#2d7c40',
+  c_africa:'#309046',australia:'#c89e60',
+  newzealand:'#30904a',greenland:'#daeef5',
 };
 
-/* Día */
-Object.keys(COUNTRIES).forEach(function(name){
-  var pts = COUNTRIES[name];
-  mc.beginPath();
-  pts.forEach(function(p,i){
-    var xy=ll2xy(p[0],p[1]);
-    if(i===0) mc.moveTo(xy.x,xy.y); else mc.lineTo(xy.x,xy.y);
+/* Función para dibujar países */
+function fl(c2d, getF, sc, lw){
+  Object.keys(L).forEach(function(k){
+    var pts=L[k];
+    c2d.beginPath();
+    pts.forEach(function(p,i){ var xy=ll2p(p[0],p[1]); i?c2d.lineTo(xy.x,xy.y):c2d.moveTo(xy.x,xy.y); });
+    c2d.closePath();
+    c2d.fillStyle=getF(k); c2d.fill();
+    if(sc){ c2d.strokeStyle=sc; c2d.lineWidth=lw||0.7; c2d.stroke(); }
   });
-  mc.closePath();
-  mc.fillStyle   = countryColors[name]||'#1e6030';
-  mc.fill();
-  mc.strokeStyle = 'rgba(255,255,255,0.12)';
-  mc.lineWidth   = 0.4;
-  mc.stroke();
-});
-
-/* Líneas de costa más visibles */
-Object.keys(COUNTRIES).forEach(function(name){
-  var pts = COUNTRIES[name];
-  mc.beginPath();
-  pts.forEach(function(p,i){
-    var xy=ll2xy(p[0],p[1]);
-    if(i===0) mc.moveTo(xy.x,xy.y); else mc.lineTo(xy.x,xy.y);
-  });
-  mc.closePath();
-  mc.strokeStyle = 'rgba(150,220,160,0.25)';
-  mc.lineWidth   = 0.6;
-  mc.stroke();
-});
-
-/* Noche — tierra oscura */
-Object.keys(COUNTRIES).forEach(function(name){
-  var pts = COUNTRIES[name];
-  nc.beginPath();
-  pts.forEach(function(p,i){
-    var xy=ll2xy(p[0],p[1]);
-    if(i===0) nc.moveTo(xy.x,xy.y); else nc.lineTo(xy.x,xy.y);
-  });
-  nc.closePath();
-  nc.fillStyle='#050808';nc.fill();
-});
-
-/* Luces de ciudades en el mapa nocturno */
-CITIES.forEach(function(city){
-  var xy=ll2xy(city.lat,city.lon);
-  var size=city.w*0.5+0.5;
-  var grd=nc.createRadialGradient(xy.x,xy.y,0,xy.x,xy.y,size*4);
-  grd.addColorStop(0,'rgba(255,200,80,0.95)');
-  grd.addColorStop(0.3,'rgba(255,160,40,0.6)');
-  grd.addColorStop(1,'rgba(255,120,20,0)');
-  nc.beginPath();nc.arc(xy.x,xy.y,size*4,0,Math.PI*2);
-  nc.fillStyle=grd;nc.fill();
-  nc.beginPath();nc.arc(xy.x,xy.y,size,0,Math.PI*2);
-  nc.fillStyle='rgba(255,230,150,0.9)';nc.fill();
-});
-
-/* Obtener pixel data */
-var dayPixels   = mc.getImageData(0,0,MAP_W,MAP_H).data;
-var nightPixels = nc.getImageData(0,0,MAP_W,MAP_H).data;
-
-/* ═══════════════════════════════════════════
-   4. SPHERE RENDERER — PIXEL BY PIXEL
-═══════════════════════════════════════════ */
-var imgBuffer = new Uint8ClampedArray(W*DPR * H*DPR * 4);
-var WD = W*DPR, HD = H*DPR, RD = R*DPR, CXD=CX*DPR, CYD=CY*DPR;
-
-/* Sun position (simulado — gira lentamente) */
-var sunLon = 20;
-
-function renderSphere(){
-  sunLon += 0.05; // Sol se mueve
-
-  var sLat = 15, sLon = sunLon;
-  var sunX = Math.cos(sLat*DEG)*Math.sin(sLon*DEG);
-  var sunY = Math.sin(sLat*DEG);
-  var sunZ = Math.cos(sLat*DEG)*Math.cos(sLon*DEG);
-
-  var rotDeg = rotation * (180/Math.PI);
-
-  for(var py=0; py<HD; py++){
-    var dy = (py-CYD)/RD;
-    if(dy<-1||dy>1) continue;
-    var lat = Math.asin(-dy) / DEG;
-    var cosLat = Math.cos(lat*DEG);
-    var sinLat = Math.sin(lat*DEG);
-    var hw = Math.sqrt(1-dy*dy) * RD;
-
-    for(var px=Math.ceil(CXD-hw); px<CXD+hw; px++){
-      var dx = (px-CXD)/RD;
-      var z  = Math.sqrt(Math.max(0, 1-dx*dx-dy*dy));
-
-      /* Lon en el globo */
-      var lonRad = Math.atan2(dx, z);
-      var lon = lonRad/DEG - rotDeg;
-      while(lon>180) lon-=360; while(lon<-180) lon+=360;
-
-      /* Muestrear el mapa */
-      var mapX = ((lon+180)/360*MAP_W)|0;
-      var mapY = ((90-lat)/180*MAP_H)|0;
-      mapX = Math.max(0, Math.min(MAP_W-1, mapX));
-      mapY = Math.max(0, Math.min(MAP_H-1, mapY));
-      var mi = (mapY*MAP_W+mapX)*4;
-
-      /* Normal de la esfera */
-      var nx = cosLat*Math.sin(lonRad);
-      var ny = sinLat;
-      var nz = cosLat*Math.cos(lonRad);
-
-      /* Iluminación difusa */
-      var NdotL = nx*sunX + ny*sunY + nz*sunZ;
-      var day   = Math.max(0, NdotL);
-      var amb   = 0.12;
-
-      /* Especular en océano */
-      var isOcean = dayPixels[mi]<50 && dayPixels[mi+1]<60 && dayPixels[mi+2]>60;
-      var spec    = 0;
-      if(isOcean && day>0){
-        var hx=nx+sunX, hy=ny+sunY, hz=nz+sunZ;
-        var hl=Math.sqrt(hx*hx+hy*hy+hz*hz);
-        if(hl>0){ hx/=hl;hy/=hl;hz/=hl; }
-        var NdotH=Math.max(0,nx*hx+ny*hy+nz*hz);
-        spec = Math.pow(NdotH, 48)*0.6;
-      }
-
-      /* Mezcla día/noche */
-      var blend = Math.max(0, Math.min(1, (NdotL+0.1)/0.25));
-      var light = amb + day*0.88;
-
-      var pidx = (py*WD+px)*4;
-      imgBuffer[pidx]   = Math.min(255,(dayPixels[mi]  *light*(1-0)+nightPixels[mi]  *(1-blend)*0.95)*blend + dayPixels[mi]  *light*blend + nightPixels[mi]  *(1-blend) + spec*255);
-      imgBuffer[pidx+1] = Math.min(255, dayPixels[mi+1]*light*blend + nightPixels[mi+1]*(1-blend) + spec*220);
-      imgBuffer[pidx+2] = Math.min(255, dayPixels[mi+2]*light*blend + nightPixels[mi+2]*(1-blend) + spec*200);
-      imgBuffer[pidx+3] = 255;
-    }
-  }
-
-  ctx.putImageData(new ImageData(imgBuffer, WD, HD), 0, 0);
 }
 
-/* ═══════════════════════════════════════════
-   5. EFECTOS DE POST-PROCESO (sobre el globe)
-═══════════════════════════════════════════ */
-function drawEffects(){
-  /* Atmósfera */
-  var atm=ctx.createRadialGradient(CXD,CYD,RD*0.95,CXD,CYD,RD*1.08);
-  atm.addColorStop(0,'rgba(30,100,220,0.22)');
-  atm.addColorStop(1,'rgba(30,100,220,0)');
-  ctx.beginPath();ctx.arc(CXD,CYD,RD*1.08,0,Math.PI*2);
-  ctx.fillStyle=atm;ctx.fill();
+fl(mC, function(k){return LC[k]||'#2e8040';}, 'rgba(180,255,160,0.2)', 0.8);
+fl(nC, function(){return '#030807';}, null);
 
-  /* Clip al globo para los arcos */
+/* Luces nocturnas */
+CT.forEach(function(c){
+  var p=ll2p(c.la,c.lo), s=c.w*0.8+0.6;
+  var g=nC.createRadialGradient(p.x,p.y,0,p.x,p.y,s*6);
+  g.addColorStop(0,'rgba(255,225,100,1)');
+  g.addColorStop(0.4,'rgba(255,165,45,0.7)');
+  g.addColorStop(1,'rgba(255,90,10,0)');
+  nC.beginPath(); nC.arc(p.x,p.y,s*6,0,Math.PI*2); nC.fillStyle=g; nC.fill();
+  nC.beginPath(); nC.arc(p.x,p.y,s*1.4,0,Math.PI*2); nC.fillStyle='rgba(255,248,185,0.95)'; nC.fill();
+});
+
+var dp=mC.getImageData(0,0,MX,MY).data;
+var np=nC.getImageData(0,0,MX,MY).data;
+
+/* ══ PIXEL SPHERE ══ */
+var WD=W*DPR, HD=H*DPR, RD=R*DPR, XD=CX*DPR, YD=CY*DPR;
+var buf=new Uint8ClampedArray(WD*HD*4);
+var sunLon=30;
+
+function renderSphere(){
+  sunLon+=0.025;
+  var sLat=22;
+  var sX=Math.cos(sLat*D)*Math.sin(sunLon*D);
+  var sY=Math.sin(sLat*D);
+  var sZ=Math.cos(sLat*D)*Math.cos(sunLon*D);
+  var rD=rot*180/Math.PI;
+
+  for(var py=0;py<HD;py++){
+    var dy=(py-YD)/RD;
+    if(dy<-1||dy>1) continue;
+    var lat=Math.asin(-dy)/D;
+    var cL=Math.cos(lat*D), sL=Math.sin(lat*D);
+    var hw=(Math.sqrt(1-dy*dy)*RD)|0;
+
+    for(var dpx=-hw;dpx<=hw;dpx++){
+      var px=(XD+dpx)|0;
+      var dx=dpx/RD;
+      var z=Math.sqrt(Math.max(0,1-dx*dx-dy*dy));
+      var lr=Math.atan2(dx,z);
+      var lon=lr/D-rD;
+      while(lon>180)lon-=360; while(lon<-180)lon+=360;
+
+      var mx=((lon+180)/360*MX)|0, my=((90-lat)/180*MY)|0;
+      mx=mx<0?0:mx>=MX?MX-1:mx; my=my<0?0:my>=MY?MY-1:my;
+      var mi=(my*MX+mx)*4;
+
+      var nx=cL*Math.sin(lr), ny=sL, nz=cL*Math.cos(lr);
+      var NL=nx*sX+ny*sY+nz*sZ;
+      /* Luz ambiente alta para que la tierra se vea siempre */
+      var li=0.30+Math.max(0,NL)*0.75;
+      var bl=Math.max(0,Math.min(1,(NL+0.18)/0.35));
+
+      /* Especular oceánico */
+      var sp=0;
+      var ocean=dp[mi+2]>dp[mi]+25;
+      if(ocean&&NL>0.15){
+        var hx=nx+sX,hy=ny+sY,hz=nz+sZ,hl=Math.sqrt(hx*hx+hy*hy+hz*hz)||1;
+        var nh=Math.max(0,nx*hx/hl+ny*hy/hl+nz*hz/hl);
+        sp=Math.pow(nh,50)*1.0;
+      }
+
+      var pi=(py*WD+px)*4;
+      buf[pi  ]=Math.min(255,dp[mi  ]*li*bl+np[mi  ]*(1-bl)+sp*255)|0;
+      buf[pi+1]=Math.min(255,dp[mi+1]*li*bl+np[mi+1]*(1-bl)+sp*200)|0;
+      buf[pi+2]=Math.min(255,dp[mi+2]*li*bl+np[mi+2]*(1-bl)+sp*160)|0;
+      buf[pi+3]=255;
+    }
+  }
+  ctx.putImageData(new ImageData(buf,WD,HD),0,0);
+}
+
+/* ══ POST-PROCESO ══ */
+function drawPost(){
+  /* Atmósfera */
+  var a=ctx.createRadialGradient(XD,YD,RD*0.93,XD,YD,RD*1.1);
+  a.addColorStop(0,'rgba(20,110,255,0.22)');
+  a.addColorStop(0.6,'rgba(20,110,255,0.08)');
+  a.addColorStop(1,'rgba(20,110,255,0)');
+  ctx.beginPath();ctx.arc(XD,YD,RD*1.1,0,Math.PI*2);ctx.fillStyle=a;ctx.fill();
+
+  /* Arcos y ciudades dentro del globo */
   ctx.save();
-  ctx.beginPath();ctx.arc(CXD,CYD,RD-1,0,Math.PI*2);ctx.clip();
+  ctx.beginPath();ctx.arc(XD,YD,RD-1,0,Math.PI*2);ctx.clip();
   arcs.forEach(drawArc);
   drawCities();
   ctx.restore();
 
-  /* Reflejo especular extra */
-  var refl=ctx.createRadialGradient(CXD-RD*0.38,CYD-RD*0.38,0,CXD-RD*0.3,CYD-RD*0.3,RD*0.45);
-  refl.addColorStop(0,'rgba(255,255,255,0.06)');
-  refl.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.beginPath();ctx.arc(CXD,CYD,RD,0,Math.PI*2);
-  ctx.fillStyle=refl;ctx.fill();
+  /* Borde */
+  ctx.beginPath();ctx.arc(XD,YD,RD,0,Math.PI*2);
+  ctx.strokeStyle='rgba(70,160,255,0.4)';ctx.lineWidth=2*DPR;ctx.stroke();
 
-  /* Borde brillante */
-  ctx.beginPath();ctx.arc(CXD,CYD,RD,0,Math.PI*2);
-  ctx.strokeStyle='rgba(80,160,255,0.3)';ctx.lineWidth=1.5;ctx.stroke();
+  /* Reflejo */
+  var rl=ctx.createRadialGradient(XD-RD*.42,YD-RD*.42,0,XD-RD*.3,YD-RD*.3,RD*.5);
+  rl.addColorStop(0,'rgba(255,255,255,0.07)');rl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.beginPath();ctx.arc(XD,YD,RD,0,Math.PI*2);ctx.fillStyle=rl;ctx.fill();
 }
 
-/* ═══════════════════════════════════════════
-   6. CIUDADES EN EL GLOBO 3D
-═══════════════════════════════════════════ */
-function project(lat,lon){
-  var adjLon=lon+rotation*(180/Math.PI);
-  while(adjLon>180)adjLon-=360;while(adjLon<-180)adjLon+=360;
-  var x=Math.cos(lat*DEG)*Math.sin(adjLon*DEG);
-  var y=-Math.sin(lat*DEG);
-  var z=Math.cos(lat*DEG)*Math.cos(adjLon*DEG);
-  return{x:CXD+x*RD,y:CYD+y*RD,z:z,vis:z>0.05};
+/* ══ PROYECCIÓN ══ */
+function pr(la,lo){
+  var al=lo+rot*180/Math.PI;
+  while(al>180)al-=360; while(al<-180)al+=360;
+  var x=Math.cos(la*D)*Math.sin(al*D);
+  var y=-Math.sin(la*D);
+  var z=Math.cos(la*D)*Math.cos(al*D);
+  return{x:XD+x*RD,y:YD+y*RD,z:z,v:z>0.04};
 }
 
+/* ══ CIUDADES ══ */
 function drawCities(){
-  CITIES.forEach(function(city){
-    var p=project(city.lat,city.lon);
-    if(!p.vis) return;
-    var alpha=Math.min(1,p.z*2.5);
-    var size=(city.w*0.35+0.6)*(isMob?0.75:1)*DPR;
-    var pulse=Math.sin(Date.now()*0.002+city.lon)*0.5+0.5;
-    /* Pulso */
-    ctx.beginPath();ctx.arc(p.x,p.y,size+pulse*5*DPR,0,Math.PI*2);
-    ctx.fillStyle='rgba(120,220,255,'+(alpha*0.07*pulse)+')';ctx.fill();
-    /* Punto */
-    ctx.beginPath();ctx.arc(p.x,p.y,size,0,Math.PI*2);
-    ctx.fillStyle='rgba(180,230,255,'+(alpha*0.9)+')';ctx.fill();
+  var t=Date.now();
+  CT.forEach(function(c){
+    var p=pr(c.la,c.lo); if(!p.v) return;
+    var al=Math.min(1,p.z*2.5), s=(c.w*.38+.7)*(mob?.72:1)*DPR;
+    var pulse=Math.sin(t*.0018+c.lo)*.5+.5;
+    ctx.beginPath();ctx.arc(p.x,p.y,s+pulse*5*DPR,0,Math.PI*2);
+    ctx.fillStyle='rgba(100,220,255,'+(al*.07*pulse)+')';ctx.fill();
+    ctx.beginPath();ctx.arc(p.x,p.y,s,0,Math.PI*2);
+    ctx.fillStyle='rgba(200,240,255,'+(al*.93)+')';ctx.fill();
+    ctx.beginPath();ctx.arc(p.x,p.y,s*.4,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,'+al+')';ctx.fill();
   });
 }
 
-/* ═══════════════════════════════════════════
-   7. ARCOS DE ATAQUE
-═══════════════════════════════════════════ */
-var ATTACK_TYPES=[
-  {id:'ddos',label:'DDoS',color:'#ff2222',glow:'rgba(255,34,34,.8)',prob:.28},
-  {id:'malware',label:'Malware',color:'#ff6600',glow:'rgba(255,102,0,.7)',prob:.24},
-  {id:'exploit',label:'Exploit',color:'#ffcc00',glow:'rgba(255,204,0,.6)',prob:.20},
-  {id:'ransomware',label:'Ransomware',color:'#cc44ff',glow:'rgba(204,68,255,.7)',prob:.15},
-  {id:'phishing',label:'Phishing',color:'#44aaff',glow:'rgba(68,170,255,.8)',prob:.13},
+/* ══ ARCOS ══
+   Cada arco pre-calcula puntos lat/lon (una vez al spawner).
+   Cada frame solo proyecta 2D esos puntos → muy eficiente.
+*/
+var AT=[
+  {id:'ddos',      lb:'DDoS',      col:'#ff2020',gl:'rgba(255,30,30,.95)',  prob:.26},
+  {id:'malware',   lb:'Malware',   col:'#ff5500',gl:'rgba(255,85,0,.9)',    prob:.22},
+  {id:'exploit',   lb:'Exploit',   col:'#ffcc00',gl:'rgba(255,200,0,.9)',   prob:.18},
+  {id:'ransomware',lb:'Ransomware',col:'#dd00ff',gl:'rgba(221,0,255,.9)',   prob:.14},
+  {id:'phishing',  lb:'Phishing',  col:'#00bbff',gl:'rgba(0,187,255,.95)', prob:.20},
 ];
-function rndType(){var r=Math.random(),c=0;for(var i=0;i<ATTACK_TYPES.length;i++){c+=ATTACK_TYPES[i].prob;if(r<c)return ATTACK_TYPES[i];}return ATTACK_TYPES[0];}
 
-function hexToRgba(h,a){var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return'rgba('+r+','+g+','+b+','+a+')';}
+function rT(){var r=Math.random(),c=0;for(var i=0;i<AT.length;i++){c+=AT[i].prob;if(r<c)return AT[i];}return AT[0];}
+
+function h2a(h,a){
+  var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  return'rgba('+r+','+g+','+b+','+a+')';
+}
+
+/* Pre-calcular puntos lat/lon del arco (solo interpolación, sin proyectar) */
+function precompLatLon(sLa,sLo,dLa,dLo,STEPS){
+  var pts=[];
+  for(var i=0;i<=STEPS;i++){
+    var t=i/STEPS;
+    pts.push([sLa+(dLa-sLa)*t, sLo+(dLo-sLo)*t]);
+  }
+  return pts;
+}
+
+/* Proyectar lat/lon → 2D con elevación (POR FRAME) */
+function projectArc(llPts){
+  var RD2=RD;
+  return llPts.map(function(ll,i){
+    var p=pr(ll[0],ll[1]);
+    var n=llPts.length-1;
+    var t=i/n;
+    var lift=Math.sin(t*Math.PI)*50*(mob?.6:1)*DPR;
+    if(p.v&&lift>0){
+      var dx=p.x-XD, dy=p.y-YD;
+      var dl=Math.sqrt(dx*dx+dy*dy)||1;
+      p.x-=dx/dl*lift*.35;
+      p.y-=dy/dl*lift*.35;
+    }
+    return p;
+  });
+}
 
 function drawArc(arc){
-  var steps=36, pts=[];
-  for(var i=0;i<=steps;i++){
-    var t=i/steps;
-    var lat=arc.sLat+(arc.dLat-arc.sLat)*t;
-    var lon=arc.sLon+(arc.dLon-arc.sLon)*t;
-    var elev=Math.sin(t*Math.PI)*55*(isMob?.7:1)*DPR;
-    var p=project(lat,lon);
-    var dist=Math.sqrt((p.x-CXD)*(p.x-CXD)+(p.y-CYD)*(p.y-CYD));
-    var nx=dist>0?(p.x-CXD)/dist:0, ny=dist>0?(p.y-CYD)/dist:0;
-    pts.push({x:p.x-nx*elev*.4,y:p.y-ny*elev*.4,z:p.z,vis:p.vis});
+  /* Proyectar en tiempo real (solo multiplicaciones, sin trig) */
+  var pts=projectArc(arc.ll);
+  var N=pts.length-1;
+  var endI=Math.min(N, Math.floor(arc.prog*(N+1)));
+  if(endI<2) return;
+
+  /* Encontrar segmento visible continuo para Bezier */
+  ctx.save();
+  ctx.lineJoin='round'; ctx.lineCap='round';
+
+  /* Glow exterior */
+  ctx.beginPath();
+  var mv=true;
+  for(var i=0;i<endI;i++){
+    var a=pts[i], b=pts[i+1]; if(!a||!b) continue;
+    if(!a.v&&!b.v){mv=true;continue;}
+    if(mv){ctx.moveTo(a.x,a.y);mv=false;}
+    var mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    ctx.quadraticCurveTo(a.x,a.y,mx,my);
   }
-  var end=Math.floor(arc.prog*steps);
-  for(var i=0;i<Math.min(end,steps-1);i++){
-    var p1=pts[i],p2=pts[i+1];
-    if(!p1||!p2||(!p1.vis&&!p2.vis)) continue;
-    var a=((i/steps)*0.7+0.2)*Math.min(1,(end-i)*0.3);
-    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);
-    ctx.strokeStyle=hexToRgba(arc.color,a);
-    ctx.lineWidth=(isMob?1.2:1.8)*DPR;ctx.stroke();
+  ctx.strokeStyle=h2a(arc.col,0.3);
+  ctx.lineWidth=(arc.fat?8:5)*DPR;
+  ctx.stroke();
+
+  /* Línea central brillante */
+  ctx.beginPath(); mv=true;
+  for(var i=0;i<endI;i++){
+    var a=pts[i], b=pts[i+1]; if(!a||!b) continue;
+    if(!a.v&&!b.v){mv=true;continue;}
+    if(mv){ctx.moveTo(a.x,a.y);mv=false;}
+    var mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    ctx.quadraticCurveTo(a.x,a.y,mx,my);
   }
-  if(end<steps&&pts[end]&&pts[end].vis){
-    var tip=pts[end];
-    ctx.beginPath();ctx.arc(tip.x,tip.y,(isMob?2:2.5)*DPR,0,Math.PI*2);
-    ctx.fillStyle=arc.color;ctx.shadowBlur=14;ctx.shadowColor=arc.glow;ctx.fill();ctx.shadowBlur=0;
+  ctx.strokeStyle=h2a(arc.col,0.95);
+  ctx.lineWidth=(arc.fat?2:1.3)*DPR;
+  ctx.stroke();
+
+  /* Punta */
+  var tip=endI<=N?pts[endI]:null;
+  if(tip&&tip.v){
+    var ts=(arc.fat?3.8:2.8)*DPR;
+    ctx.beginPath();ctx.arc(tip.x,tip.y,ts*3.5,0,Math.PI*2);
+    ctx.fillStyle=h2a(arc.col,.18);ctx.fill();
+    ctx.beginPath();ctx.arc(tip.x,tip.y,ts*1.7,0,Math.PI*2);
+    ctx.fillStyle=h2a(arc.col,.5);ctx.fill();
+    ctx.shadowBlur=20; ctx.shadowColor=arc.gl;
+    ctx.beginPath();ctx.arc(tip.x,tip.y,ts,0,Math.PI*2);
+    ctx.fillStyle=arc.col;ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(tip.x,tip.y,ts*.4,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
   }
+
+  /* Explosión en destino */
   if(arc.prog>=1){
-    var dst=project(arc.dLat,arc.dLon);
-    if(dst.vis){
-      var boom=(arc.prog-1)*2;
-      ctx.beginPath();ctx.arc(dst.x,dst.y,boom*12*DPR,0,Math.PI*2);
-      ctx.strokeStyle=hexToRgba(arc.color,Math.max(0,.55-boom*.55));
-      ctx.lineWidth=1.5*DPR;ctx.stroke();
+    var dp2=pr(arc.dLa,arc.dLo);
+    if(dp2.v){
+      var bm=(arc.prog-1)*2.5;
+      var al2=Math.max(0,.7-bm*.7);
+      ctx.beginPath();ctx.arc(dp2.x,dp2.y,bm*14*DPR,0,Math.PI*2);
+      ctx.strokeStyle=h2a(arc.col,al2);ctx.lineWidth=2*DPR;ctx.stroke();
+      ctx.beginPath();ctx.arc(dp2.x,dp2.y,bm*7*DPR,0,Math.PI*2);
+      ctx.strokeStyle=h2a(arc.col,al2*.5);ctx.lineWidth=DPR;ctx.stroke();
     }
   }
+  ctx.restore();
 }
 
-/* ═══════════════════════════════════════════
-   8. SPAWN ATAQUES
-═══════════════════════════════════════════ */
-function spawnAttack(forceType){
-  var si=Math.floor(Math.random()*CITIES.length);
-  var di=Math.floor(Math.random()*CITIES.length);
-  while(di===si) di=Math.floor(Math.random()*CITIES.length);
-  var src=CITIES[si],dst=CITIES[di],type=forceType||rndType();
-  arcs.push({sLat:src.lat,sLon:src.lon,dLat:dst.lat,dLon:dst.lon,
-    srcName:src.n,srcCC:src.cc,dstName:dst.n,dstCC:dst.cc,
-    color:type.color,glow:type.glow,typeId:type.id,typeLabel:type.label,
-    prog:0,speed:0.006+Math.random()*0.007});
-  stats.total++;stats.active++;
-  if(type.id==='ddos')stats.ddos++;
-  else if(type.id==='malware')stats.mal++;
-  else if(type.id==='exploit')stats.exp++;
-  else if(type.id==='ransomware')stats.ran++;
-  else if(type.id==='phishing')stats.phi++;
-  updateStats();
-  addFeed({srcCC:src.cc,srcName:src.n,dstCC:dst.cc,dstName:dst.n,typeId:type.id,typeLabel:type.label});
-}
+/* ══ SPAWN ══ */
+var STEPS=mob?32:44;
 
-function spawnPhishingBlast(){
-  var phType=ATTACK_TYPES.find(function(t){return t.id==='phishing';});
-  var si=Math.floor(Math.random()*CITIES.length);
-  var count=8+Math.floor(Math.random()*7);
-  for(var i=0;i<count;i++){
-    var di=Math.floor(Math.random()*CITIES.length);
-    while(di===si) di=Math.floor(Math.random()*CITIES.length);
-    var src=CITIES[si],dst=CITIES[di];
-    arcs.push({sLat:src.lat,sLon:src.lon,dLat:dst.lat,dLon:dst.lon,
-      srcName:src.n,srcCC:src.cc,dstName:dst.n,dstCC:dst.cc,
-      color:phType.color,glow:phType.glow,typeId:'phishing',typeLabel:'Phishing',
-      prog:0,speed:0.007+Math.random()*0.006});
-    stats.total++;stats.active++;stats.phi++;
-  }
-  updateStats();
-  addFeed({srcCC:CITIES[si].cc,srcName:CITIES[si].n,dstCC:'🌍',dstName:'GLOBAL BLAST ('+count+')',typeId:'phishing',typeLabel:'Phishing'});
-}
-
-function updateStats(){
-  var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
-  s('tm-total',stats.total.toLocaleString());s('tm-active',arcs.length);s('tm-countries',Math.min(stats.total,120));
-  var MAX=Math.max(stats.ddos,stats.mal,stats.exp,stats.ran,stats.phi,1);
-  var colors={ddos:'#ff2222',mal:'#ff6600',exp:'#ffcc00',ran:'#cc44ff',phi:'#44aaff'};
-  var bars={ddos:stats.ddos,mal:stats.mal,exp:stats.exp,ran:stats.ran,phi:stats.phi};
-  Object.keys(bars).forEach(function(k){
-    var b=document.getElementById('bar-'+k),c=document.getElementById('cnt-'+k);
-    if(b) b.innerHTML='<span style="position:absolute;left:0;top:0;height:100%;width:'+(bars[k]/MAX*100).toFixed(0)+'%;background:'+colors[k]+';border-radius:2px;transition:width .5s"></span>';
-    if(c) c.textContent=bars[k];
+function spawn(ft,fat){
+  var si=Math.floor(Math.random()*CT.length);
+  var di=Math.floor(Math.random()*CT.length);
+  while(di===si) di=Math.floor(Math.random()*CT.length);
+  var s=CT[si], d=CT[di], t=ft||rT();
+  arcs.push({
+    sLa:s.la,sLo:s.lo,dLa:d.la,dLo:d.lo,
+    srcCC:s.cc,srcN:s.n,dstCC:d.cc,dstN:d.n,
+    col:t.col,gl:t.gl,id:t.id,lb:t.lb,
+    prog:0, speed:.0065+Math.random()*.008,
+    fat:!!fat,
+    ll:precompLatLon(s.la,s.lo,d.la,d.lo,STEPS)
   });
-  var srcEl=document.getElementById('tm-sources');
-  if(srcEl&&stats.total>5){
-    var top=[{n:'China',cc:'🇨🇳',p:28},{n:'USA',cc:'🇺🇸',p:22},{n:'Russia',cc:'🇷🇺',p:18},{n:'Brazil',cc:'🇧🇷',p:9},{n:'N. Korea',cc:'🇰🇵',p:7}];
-    srcEl.innerHTML=top.map(function(t){return'<div class="tm-top-row"><span class="tm-top-flag">'+t.cc+'</span><span>'+t.n+'</span><span style="display:inline-block;height:3px;width:'+(t.p*1.8)+'px;background:rgba(255,26,46,.4);border-radius:1px;margin:0 6px"></span><span style="font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.4)">'+t.p+'%</span></div>';}).join('');
+  st.tot++;st.act++;
+  if(t.id==='ddos')st.dd++;
+  else if(t.id==='malware')st.ml++;
+  else if(t.id==='exploit')st.ex++;
+  else if(t.id==='ransomware')st.rn++;
+  else st.ph++;
+  upStats();
+  addFeed(s.cc,s.n,d.cc,d.n,t.id,t.lb);
+}
+
+/* PHISHING BLAST */
+var lastSrc=-1;
+function phish(){
+  var phT=AT.find(function(t){return t.id==='phishing';});
+  var ns=2+Math.floor(Math.random()*2);
+  for(var s=0;s<ns;s++){
+    var si=Math.floor(Math.random()*CT.length);
+    while(si===lastSrc) si=Math.floor(Math.random()*CT.length);
+    lastSrc=si;
+    var src=CT[si];
+    var cnt=16+Math.floor(Math.random()*12);
+    for(var i=0;i<cnt;i++){
+      var di=Math.floor(Math.random()*CT.length);
+      while(di===si) di=Math.floor(Math.random()*CT.length);
+      var dst=CT[di];
+      arcs.push({
+        sLa:src.la,sLo:src.lo,dLa:dst.la,dLo:dst.lo,
+        srcCC:src.cc,srcN:src.n,dstCC:dst.cc,dstN:dst.n,
+        col:phT.col,gl:phT.gl,id:'phishing',lb:'Phishing',
+        prog:Math.random()*.1,
+        speed:.009+Math.random()*.007,
+        fat:false,
+        ll:precompLatLon(src.la,src.lo,dst.la,dst.lo,STEPS)
+      });
+      st.tot++;st.act++;st.ph++;
+    }
+  }
+  upStats();
+  addFeed('🌐','PHISHING BLAST','🌍','ALL TARGETS','phishing','Phishing');
+}
+
+function upStats(){
+  var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  s('tm-total',st.tot.toLocaleString());s('tm-active',arcs.length);s('tm-countries',Math.min(st.tot,120));
+  var M=Math.max(st.dd,st.ml,st.ex,st.rn,st.ph,1);
+  var C={ddos:'#ff2020',mal:'#ff5500',exp:'#ffcc00',ran:'#dd00ff',phi:'#00bbff'};
+  var B={ddos:st.dd,mal:st.ml,exp:st.ex,ran:st.rn,phi:st.ph};
+  Object.keys(B).forEach(function(k){
+    var b=document.getElementById('bar-'+k),c=document.getElementById('cnt-'+k);
+    if(b)b.innerHTML='<span style="position:absolute;inset:0 auto 0 0;width:'+(B[k]/M*100).toFixed(0)+'%;background:'+C[k]+';border-radius:2px;transition:width .5s;box-shadow:0 0 6px '+C[k]+'80"></span>';
+    if(c)c.textContent=B[k];
+  });
+  var se=document.getElementById('tm-sources');
+  if(se&&st.tot>5){
+    var top=[{n:'China',cc:'🇨🇳',p:28},{n:'USA',cc:'🇺🇸',p:22},{n:'Russia',cc:'🇷🇺',p:18},{n:'Brazil',cc:'🇧🇷',p:9},{n:'N.Korea',cc:'🇰🇵',p:7}];
+    se.innerHTML=top.map(function(t){return'<div class="tm-top-row"><span class="tm-top-flag">'+t.cc+'</span><span>'+t.n+'</span><span style="display:inline-block;height:3px;width:'+(t.p*1.8)+'px;background:rgba(255,26,46,.4);border-radius:1px;margin:0 6px;vertical-align:middle"></span><span style="font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.4)">'+t.p+'%</span></div>';}).join('');
   }
 }
 
-function addFeed(a){
-  if(!feedEl) return;
-  var now=new Date();
-  var time=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
-  var item=document.createElement('div');item.className='tm-feed-item';
-  item.innerHTML='<span class="tm-feed-type '+a.typeId+'">'+a.typeLabel+'</span><span class="tm-feed-src">'+a.srcCC+' '+a.srcName+'</span><span class="tm-feed-arrow">→</span><span class="tm-feed-dst">'+a.dstCC+' '+a.dstName+'</span><span class="tm-feed-time">'+time+'</span>';
-  feedEl.insertBefore(item,feedEl.firstChild);
-  while(feedEl.children.length>30) feedEl.removeChild(feedEl.lastChild);
+function addFeed(sc,sn,dc,dn,tid,tlb){
+  if(!feed)return;
+  var t=new Date(),tm=('0'+t.getHours()).slice(-2)+':'+('0'+t.getMinutes()).slice(-2)+':'+('0'+t.getSeconds()).slice(-2);
+  var it=document.createElement('div');it.className='tm-feed-item';
+  it.innerHTML='<span class="tm-feed-type '+tid+'">'+tlb+'</span><span class="tm-feed-src">'+sc+' '+sn+'</span><span class="tm-feed-arrow">→</span><span class="tm-feed-dst">'+dc+' '+dn+'</span><span class="tm-feed-time">'+tm+'</span>';
+  feed.insertBefore(it,feed.firstChild);
+  while(feed.children.length>30)feed.removeChild(feed.lastChild);
 }
 
-/* ═══════════════════════════════════════════
-   9. MAIN LOOP
-═══════════════════════════════════════════ */
-var lastF=0, lastSpawn=0, lastPhi=0;
-var FPS=isMob?20:30, FT=1000/FPS;
+/* ══ LOOP PRINCIPAL ══ */
+var lF=0,lS=0,lP=0, FPS=mob?20:28, FT=1000/FPS;
 
 function loop(now){
   requestAnimationFrame(loop);
-  if(now-lastF<FT) return; lastF=now;
-  if(!isDrag) rotation+=rotSpeed;
+  if(now-lF<FT) return; lF=now;
+  if(!drag) rot+=spd;
+
   for(var i=arcs.length-1;i>=0;i--){
     arcs[i].prog+=arcs[i].speed;
-    if(arcs[i].prog>1.6){arcs.splice(i,1);stats.active=Math.max(0,stats.active-1);}
+    if(arcs[i].prog>1.7){arcs.splice(i,1);st.act=Math.max(0,st.act-1);}
   }
-  var rate=isMob?3500:2200;
-  if(now-lastSpawn>rate){spawnAttack();if(Math.random()<.35)spawnAttack();lastSpawn=now;}
-  if(now-lastPhi>14000+Math.random()*8000){spawnPhishingBlast();lastPhi=now;}
+
+  if(now-lS>2300){
+    spawn(); if(Math.random()<.38)spawn(null,true);
+    if(Math.random()<.22)spawn(); lS=now;
+  }
+  if(now-lP>7000+Math.random()*5000){phish(); lP=now;}
+
   renderSphere();
-  drawEffects();
+  drawPost();
 }
 
-/* ═══════════════════════════════════════════
-   10. INTERACCIÓN
-═══════════════════════════════════════════ */
-canvas.addEventListener('mousedown',function(e){isDrag=true;lastX=e.clientX;},{passive:true});
-window.addEventListener('mousemove',function(e){if(!isDrag)return;rotation+=(e.clientX-lastX)*0.006;lastX=e.clientX;},{passive:true});
-window.addEventListener('mouseup',function(){isDrag=false;});
-canvas.addEventListener('touchstart',function(e){isDrag=true;lastX=e.touches[0].clientX;},{passive:true});
-canvas.addEventListener('touchmove',function(e){if(!isDrag)return;rotation+=(e.touches[0].clientX-lastX)*0.006;lastX=e.touches[0].clientX;},{passive:true});
-canvas.addEventListener('touchend',function(){isDrag=false;});
+/* ══ DRAG ══ */
+cvs.addEventListener('mousedown',function(e){drag=true;lx=e.clientX;},{passive:true});
+window.addEventListener('mousemove',function(e){if(!drag)return;rot+=(e.clientX-lx)*.006;lx=e.clientX;},{passive:true});
+window.addEventListener('mouseup',function(){drag=false;});
+cvs.addEventListener('touchstart',function(e){drag=true;lx=e.touches[0].clientX;},{passive:true});
+cvs.addEventListener('touchmove',function(e){if(!drag)return;rot+=(e.touches[0].clientX-lx)*.006;lx=e.touches[0].clientX;},{passive:true});
+cvs.addEventListener('touchend',function(){drag=false;});
 
+/* ══ INIT ══ */
 var started=false;
 new IntersectionObserver(function(e){
   if(e[0].isIntersecting&&!started){
     started=true;
-    for(var i=0;i<8;i++) setTimeout(spawnAttack,i*180);
-    setTimeout(spawnPhishingBlast,3000);
+    for(var i=0;i<10;i++) setTimeout(spawn,i*200);
+    setTimeout(phish,3000);
     requestAnimationFrame(loop);
   }
-},{threshold:.02}).observe(canvas);
+},{threshold:.02}).observe(cvs);
 
 })();
 

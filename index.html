@@ -11085,6 +11085,27 @@ if(!inp||!btn) return;
 var PROXY = 'https://scanner-proxy.matias-ramireztu.workers.dev';
 var PROXY_OK = false;
 
+/* Verificar proxy al cargar la página */
+(function checkProxy(){
+  var badge = document.getElementById('scan-mode-badge');
+  if(badge) badge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando proxy CF...';
+  fetch(PROXY + '?url=' + encodeURIComponent('https://example.com/'))
+    .then(function(r){
+      PROXY_OK = true;
+      if(badge){
+        badge.innerHTML = '<i class="fa-solid fa-shield-halved" style="color:#3fb950"></i> <span style="color:#3fb950">Cloudflare Worker activo — Sin restricciones CORS</span>';
+        badge.style.color = '#3fb950';
+      }
+    })
+    .catch(function(){
+      PROXY_OK = false;
+      if(badge){
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#d29922"></i> <span style="color:#d29922">Proxy offline — modo directo</span>';
+        badge.style.color = '#d29922';
+      }
+    });
+})();
+
 /* Helper: fetch a través del Worker (evita CORS) */
 async function pFetch(url, opts){
  opts = opts || {};
@@ -14122,6 +14143,15 @@ statMed.textContent='0';statMed.closest('.scan-stat').classList.add('zero');
 statLow.textContent='0';statLow.closest('.scan-stat').classList.add('zero');
 findings.innerHTML='';
 buildP();
+/* Actualizar badge con estado real del proxy */
+var _mb = document.getElementById('scan-mode-badge');
+if(_mb){
+  if(PROXY_OK){
+    _mb.innerHTML = '<i class="fa-solid fa-shield-halved" style="color:#3fb950"></i> <span style="color:#3fb950">Cloudflare Worker activo — CORS bypass ON</span>';
+  } else {
+    _mb.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#d29922"></i> <span style="color:#d29922">Proxy offline — CORS limitado</span>';
+  }
+}
 run(t).then(function(){btn.disabled=false;btn.textContent='\uD83D\uDEF0\uFE0F DESATAR LEVIATAN';});
 }
 if(modalAccept)modalAccept.addEventListener('click',function(){if(modalCountdown){clearInterval(modalCountdown);modalCountdown=null;}doScan();});

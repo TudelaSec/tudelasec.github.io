@@ -2300,6 +2300,56 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);margin:0;}
   .lab-windows{overflow-x:auto;flex-wrap:nowrap;}
 }
 
+
+/* ══ SCANNER — HALLAZGOS LIVE + CTA + PDF ══ */
+.scan-findings-wrap{max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,26,46,.2) transparent;padding:2px;}
+.scan-findings-wrap::-webkit-scrollbar{width:4px;}
+.scan-findings-wrap::-webkit-scrollbar-thumb{background:rgba(255,26,46,.25);border-radius:2px;}
+
+.scan-findings-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:36px 20px;color:var(--muted);font-family:var(--mono);font-size:11px;text-align:center;line-height:1.6;}
+.scan-findings-empty i{font-size:32px;color:rgba(255,26,46,.2);}
+
+/* Tarjeta de hallazgo en vivo */
+.sf-card{border:1px solid var(--line);border-radius:3px;padding:9px 11px;margin-bottom:6px;background:rgba(0,0,0,.2);animation:sfIn .3s ease both;position:relative;overflow:hidden;}
+.sf-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;}
+.sf-card.crit{border-color:rgba(255,68,85,.4);}.sf-card.crit::before{background:var(--red);}
+.sf-card.high{border-color:rgba(255,176,32,.35);}.sf-card.high::before{background:var(--amber);}
+.sf-card.med{border-color:rgba(123,79,255,.3);}.sf-card.med::before{background:var(--violet);}
+.sf-card.low{border-color:rgba(96,165,250,.2);}.sf-card.low::before{background:#60a5fa;}
+@keyframes sfIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+
+.sf-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.sf-badge{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.07em;padding:2px 6px;border-radius:2px;}
+.sf-badge.crit{background:rgba(255,68,85,.15);color:var(--red);border:1px solid rgba(255,68,85,.35);}
+.sf-badge.high{background:rgba(255,176,32,.12);color:var(--amber);border:1px solid rgba(255,176,32,.3);}
+.sf-badge.med{background:rgba(123,79,255,.12);color:var(--violet);border:1px solid rgba(123,79,255,.25);}
+.sf-badge.low{background:rgba(96,165,250,.08);color:#60a5fa;border:1px solid rgba(96,165,250,.2);}
+.sf-name{font-family:var(--mono);font-size:10.5px;color:var(--text);font-weight:600;flex:1;line-height:1.3;}
+.sf-detail{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;word-break:break-all;line-height:1.4;}
+.sf-time{font-family:var(--mono);font-size:8px;color:rgba(106,88,101,.5);margin-top:3px;}
+
+/* Botón PDF */
+.scan-pdf-btn{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 9px;background:rgba(255,26,46,.1);border:1px solid rgba(255,26,46,.35);color:var(--acc);border-radius:2px;cursor:pointer;transition:all .2s;letter-spacing:.05em;}
+.scan-pdf-btn:hover{background:rgba(255,26,46,.2);box-shadow:0 0 10px rgba(255,26,46,.3);}
+
+/* ── CTA Auditoría ── */
+.scan-audit-cta{background:var(--bg1);border:1px solid rgba(255,26,46,.2);border-radius:4px;padding:20px 18px;position:relative;overflow:hidden;}
+.scan-cta-glow{position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(255,26,46,.12) 0%,transparent 70%);pointer-events:none;}
+.scan-cta-badge{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:rgba(255,26,46,.6);margin-bottom:10px;}
+.scan-cta-title{font-family:var(--disp);font-size:18px;font-weight:900;color:var(--text);line-height:1.25;margin-bottom:10px;}
+.scan-cta-title span{color:var(--acc);text-shadow:0 0 20px rgba(255,26,46,.3);}
+.scan-cta-desc{font-size:11.5px;color:var(--muted);line-height:1.65;margin-bottom:14px;}
+.scan-cta-features{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+.scan-cta-feat{font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.6);display:flex;align-items:center;gap:7px;}
+.scan-cta-feat i{color:var(--green);font-size:9px;}
+.scan-cta-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:var(--acc);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:3px;text-decoration:none;transition:all .25s;border:none;cursor:pointer;}
+.scan-cta-btn:hover{background:#ff3344;box-shadow:0 0 24px rgba(255,26,46,.45);transform:translateY(-1px);}
+.scan-cta-handle{font-family:var(--mono);font-size:9px;color:rgba(106,88,101,.5);text-align:center;margin-top:10px;letter-spacing:.05em;}
+
+/* stat badge sin cero */
+.scan-stat:not(.zero){animation:statPop .4s ease both;}
+@keyframes statPop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+
 </style>
 
 <script type="application/ld+json">
@@ -2790,11 +2840,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);margin:0;}
           </div>
         </div>
         <div class="scan-card">
-          <div class="scan-card-head"><i class="fa-solid fa-list-check"></i> Hallazgos Auditados</div>
-          <div class="scan-card-body scan-findings" id="scan-findings">
-            <div style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;padding:30px 10px;">Los hallazgos aparecen aqui durante el escaneo...</div>
+          <div class="scan-card-head">
+            <i class="fa-solid fa-list-check"></i> Hallazgos Auditados
+            <button class="scan-pdf-btn" id="scan-pdf-btn" title="Descargar reporte PDF" style="display:none;">
+              <i class="fa-solid fa-file-pdf"></i> PDF
+            </button>
+          </div>
+          <div class="scan-findings-wrap" id="scan-findings">
+            <div class="scan-findings-empty" id="scan-findings-empty-init">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>Inicia un escaneo para<br>ver los hallazgos en vivo</span>
+            </div>
           </div>
         </div>
+
+        <!-- CTA AUDITORÍA PROFESIONAL -->
+        <div class="scan-audit-cta" id="scan-audit-cta">
+          <div class="scan-cta-glow"></div>
+          <div class="scan-cta-badge">// AUDITORÍA NIVEL EXPERTO</div>
+          <div class="scan-cta-title">¿Necesitas una<br><span>Auditoría Profesional?</span></div>
+          <div class="scan-cta-desc">Análisis ofensivo completo — reporte técnico detallado, PoC reproducible y recomendaciones de remediación por prioridad de impacto real.</div>
+          <div class="scan-cta-features">
+            <div class="scan-cta-feat"><i class="fa-solid fa-check"></i> Pentest Web & API</div>
+            <div class="scan-cta-feat"><i class="fa-solid fa-check"></i> Reporte ejecutivo + técnico</div>
+            <div class="scan-cta-feat"><i class="fa-solid fa-check"></i> PoC con CVSS scoring</div>
+            <div class="scan-cta-feat"><i class="fa-solid fa-check"></i> Retesteo post-remediación</div>
+          </div>
+          <a href="#contacto" class="scan-cta-btn">
+            <i class="fa-solid fa-shield-halved"></i>
+            Solicitar Auditoría
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <div class="scan-cta-handle">TudelaSec · HackerOne · Bugcrowd · Intigriti</div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -11080,31 +11159,58 @@ function logFind(sev, msg){ log('  ['+sev+'] ' + msg, sev.toLowerCase()); }
 
 /* ── FINDINGS ── */
 var counts = {crit:0, high:0, med:0, low:0};
+var allFindings = [];
+
 function addFinding(sev, name, detail){
   sev = sev.toLowerCase();
   if(sev==='critical') sev='crit';
   counts[sev] = (counts[sev]||0) + 1;
-  /* Actualizar stats */
+  allFindings.push({sev:sev, name:name, detail:detail||'', ts:new Date()});
+
+  /* Actualizar stats con animación */
+  var statEls = {crit:statCrit, high:statHigh, med:statMed, low:statLow};
+  var statEl = statEls[sev];
+  if(statEl){
+    var parent = statEl.closest ? statEl.closest('.scan-stat') : null;
+    statEl.textContent = counts[sev];
+    if(parent){ parent.classList.remove('zero'); parent.style.animation='none'; setTimeout(function(){parent.style.animation='';},10); }
+  }
   if(statCrit) statCrit.textContent = counts.crit;
   if(statHigh) statHigh.textContent = counts.high;
   if(statMed)  statMed.textContent  = counts.med;
   if(statLow)  statLow.textContent  = counts.low;
-  /* Colorear stat badge */
-  var el = {crit:statCrit, high:statHigh, med:statMed, low:statLow}[sev];
-  if(el){ el.closest('.scan-stat') && el.closest('.scan-stat').classList.remove('zero'); }
 
-  var sevLabels={crit:'CRITICAL',high:'HIGH',med:'MEDIUM',low:'LOW'};
-  var sevClass ={crit:'crit',    high:'high', med:'med',  low:'low'};
   if(!findings) return;
+
+  /* Quitar el empty state */
+  var empty = document.getElementById('scan-findings-empty');
+  if(empty) empty.style.display='none';
+
+  /* Mostrar botón PDF */
+  var pdfBtn = document.getElementById('scan-pdf-btn');
+  if(pdfBtn) pdfBtn.style.display='inline-flex';
+
+  /* Crear tarjeta de hallazgo en tiempo real */
+  var sevLabels={crit:'CRITICAL',high:'HIGH',med:'MEDIUM',low:'LOW'};
+  var ts = new Date();
+  var timeStr = ('0'+ts.getHours()).slice(-2)+':'+('0'+ts.getMinutes()).slice(-2)+':'+('0'+ts.getSeconds()).slice(-2);
   var card = document.createElement('div');
-  card.className = 'scan-finding ' + (sevClass[sev]||'low');
+  card.className = 'sf-card '+sev;
   card.innerHTML =
-    '<div class="scan-finding-top">'
-    +'<span class="scan-sev-badge '+(sevClass[sev]||'low')+'">'+(sevLabels[sev]||sev.toUpperCase())+'</span>'
-    +'<span class="scan-finding-name">'+escHtml(name)+'</span>'
+    '<div class="sf-top">'
+    +'<span class="sf-badge '+sev+'">'+(sevLabels[sev]||sev.toUpperCase())+'</span>'
+    +'<span class="sf-name">'+escHtml(name)+'</span>'
     +'</div>'
-    +(detail ? '<div class="scan-finding-detail">'+escHtml(detail)+'</div>' : '');
-  findings.insertBefore(card, findings.firstChild);
+    +(detail?'<div class="sf-detail">'+escHtml(detail.slice(0,90))+'</div>':'')
+    +'<div class="sf-time">'+timeStr+'</div>';
+  /* Críticos y altos van arriba */
+  if(sev==='crit'||sev==='high'){
+    findings.insertBefore(card, findings.firstChild);
+  } else {
+    findings.appendChild(card);
+  }
+  /* Auto-scroll al último */
+  findings.scrollTop = (sev==='crit'||sev==='high') ? 0 : findings.scrollHeight;
 }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -11853,11 +11959,19 @@ async function startScan(){
   currentAC = new AbortController();
   var sig = currentAC.signal;
   counts = {crit:0, high:0, med:0, low:0};
-  if(statCrit) statCrit.textContent='0';
-  if(statHigh) statHigh.textContent='0';
-  if(statMed)  statMed.textContent='0';
-  if(statLow)  statLow.textContent='0';
-  if(findings) findings.innerHTML='<div class="scan-empty"><i class="fa-solid fa-radar"></i><br>Escaneando...</div>';
+  allFindings = [];
+  if(statCrit){ statCrit.textContent='0'; statCrit.closest('.scan-stat')&&statCrit.closest('.scan-stat').classList.add('zero'); }
+  if(statHigh){ statHigh.textContent='0'; statHigh.closest('.scan-stat')&&statHigh.closest('.scan-stat').classList.add('zero'); }
+  if(statMed) { statMed.textContent='0';  statMed.closest('.scan-stat')&&statMed.closest('.scan-stat').classList.add('zero'); }
+  if(statLow) { statLow.textContent='0';  statLow.closest('.scan-stat')&&statLow.closest('.scan-stat').classList.add('zero'); }
+  var pdfBtnR = document.getElementById('scan-pdf-btn');
+  if(pdfBtnR) pdfBtnR.style.display='none';
+  if(findings){
+    findings.innerHTML='<div class="scan-findings-empty" id="scan-findings-empty">'
+      +'<i class="fa-solid fa-shield-halved"></i>'
+      +'<span>Analizando...<br>Los hallazgos aparecerán en vivo</span>'
+      +'</div>';
+  }
   if(termBody) termBody.innerHTML='';
   PROXY_OK = false;
 
@@ -11955,6 +12069,70 @@ btn.addEventListener('click', function(){
 });
 inp.addEventListener('keydown', function(e){ if(e.key==='Enter') startScan(); });
 
+})();
+
+/* ── PDF EXPORT ── */
+(function(){
+var pdfBtn = document.getElementById('scan-pdf-btn');
+var scanInp = document.getElementById('scan-input');
+if(!pdfBtn) return;
+pdfBtn.addEventListener('click', function(){
+  var target = (scanInp?scanInp.value.trim():'') || 'Target desconocido';
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('es-CL')+' '+now.toLocaleTimeString('es-CL');
+  var countEls = {crit:document.getElementById('stat-crit'),high:document.getElementById('stat-high'),med:document.getElementById('stat-med'),low:document.getElementById('stat-low')};
+  var cts = {};
+  Object.keys(countEls).forEach(function(k){ cts[k]=parseInt((countEls[k]&&countEls[k].textContent)||'0')||0; });
+  /* Recopilar hallazgos desde el DOM */
+  var cards = document.querySelectorAll('#scan-findings .sf-card');
+  if(!cards.length){ alert('No hay hallazgos para exportar. Realiza un escaneo primero.'); return; }
+  var sevLabels={crit:'CRITICAL',high:'HIGH',med:'MEDIUM',low:'LOW'};
+  var sevColors={crit:'#ff4455',high:'#d29922',med:'#a371f7',low:'#60a5fa'};
+  var rows='';
+  /* Orden: crit > high > med > low */
+  ['crit','high','med','low'].forEach(function(sev){
+    document.querySelectorAll('#scan-findings .sf-card.'+sev).forEach(function(card){
+      var name = card.querySelector('.sf-name') ? card.querySelector('.sf-name').textContent : '';
+      var detail = card.querySelector('.sf-detail') ? card.querySelector('.sf-detail').textContent : '';
+      var c = sevColors[sev]||'#888';
+      rows+='<tr>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #1e1e2e"><span style="background:'+c+'22;color:'+c+';border:1px solid '+c+'55;border-radius:2px;padding:2px 8px;font-size:11px;font-weight:700;font-family:monospace">'+(sevLabels[sev]||sev)+'</span></td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #1e1e2e;font-family:monospace;font-size:13px;color:#e0dff0">'+name+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #1e1e2e;font-family:monospace;font-size:11px;color:#8b949e">'+(detail.slice(0,120))+'</td>'
+        +'</tr>';
+    });
+  });
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>TudelaSec Report</title>'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0e17;color:#e0dff0;font-family:\'JetBrains Mono\',monospace;padding:40px}'
+    +'h1{font-size:22px;color:#ff1a2e;margin-bottom:4px;letter-spacing:.05em}'
+    +'.meta{font-size:12px;color:#6a5865;margin-bottom:24px;line-height:1.9}'
+    +'.summary{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}'
+    +'.sc{background:#161b22;border:1px solid #30363d;border-radius:4px;padding:14px 22px;text-align:center;min-width:88px}'
+    +'.sc .n{font-size:32px;font-weight:900;line-height:1}.sc .l{font-size:9px;color:#6a5865;margin-top:5px;letter-spacing:.12em}'
+    +'.crit .n{color:#ff4455}.high .n{color:#d29922}.med .n{color:#a371f7}.low .n{color:#60a5fa}'
+    +'table{width:100%;border-collapse:collapse;background:#161b22;border:1px solid #30363d;border-radius:4px;overflow:hidden;margin-bottom:24px}'
+    +'th{background:#0d1117;padding:10px 12px;text-align:left;font-size:10px;letter-spacing:.12em;color:#ff1a2e;border-bottom:1px solid #30363d}'
+    +'.footer{font-size:10px;color:#6a5865;border-top:1px solid #1e1e2e;padding-top:14px;line-height:1.9}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:18mm}}'
+    +'</style></head><body>'
+    +'<h1>&#x2B21; SECURITY AUDIT REPORT</h1>'
+    +'<div class="meta"><b>Target:</b> '+target+'<br><b>Fecha:</b> '+dateStr+'<br><b>Auditor:</b> Matias Ramirez Tudela &mdash; TudelaSec<br><b>Plataformas:</b> HackerOne &middot; Bugcrowd &middot; Intigriti</div>'
+    +'<div class="summary">'
+    +'<div class="sc crit"><div class="n">'+cts.crit+'</div><div class="l">CRITICAL</div></div>'
+    +'<div class="sc high"><div class="n">'+cts.high+'</div><div class="l">HIGH</div></div>'
+    +'<div class="sc med"><div class="n">'+cts.med+'</div><div class="l">MEDIUM</div></div>'
+    +'<div class="sc low"><div class="n">'+cts.low+'</div><div class="l">LOW</div></div>'
+    +'</div>'
+    +'<table><thead><tr><th style="width:110px">SEVERIDAD</th><th>HALLAZGO</th><th>DETALLE</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="footer">Este reporte es confidencial y de uso exclusivo del cliente solicitante.<br>Generado por <b style="color:#ff1a2e">TudelaSec</b> &mdash; Ethical Hacker &amp; Bug Bounty Hunter.</div>'
+    +'</body></html>';
+  var win=window.open('','_blank','width=1000,height=750');
+  if(!win){alert('Permite ventanas emergentes para generar el PDF');return;}
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function(){win.print();},600);
+});
 })();
 
 

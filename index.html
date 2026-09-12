@@ -1218,10 +1218,7 @@ h2.sec-title .reveal-inner span[style*="display:block"]{
 .stat-big{ opacity:1 !important; }
 
 /* Fix: fr-reveal siempre muestra en deployed */
-.fr-reveal{
-  opacity:1 !important;
-  transform:none !important;
-}
+
 
 
 /* ══ HACKER GLOW EN TÍTULOS — CSS puro, sin layout shift ══ */
@@ -1319,13 +1316,16 @@ h2.sec-title .reveal-wrap:nth-child(2) .reveal-inner {
 }
 
 /* fr-reveal siempre visible */
-.fr-reveal { opacity: 1 !important; transform: none !important; }
-.gsap-ready .fr-reveal { opacity: 0; transform: translateY(36px); }
 
 
 /* ══════════════════════════════════════════
    ANIMACIONES TUDELASEC — CSS PURO, LIGERO
 ══════════════════════════════════════════ */
+
+.fr-reveal{opacity:0;transform:translateY(22px);transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1);}
+.fr-reveal.is-visible{opacity:1!important;transform:none!important;}
+.gsap-ready .fr-reveal{opacity:0;transform:translateY(22px);}
+.gsap-ready .fr-reveal.is-visible{opacity:1!important;transform:none!important;}
 
 /* ── Reveal general ── */
 .reveal { opacity:0; transform:translateY(28px); transition:opacity .65s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1); }
@@ -1345,8 +1345,6 @@ h2.sec-title { line-height:0.95; }
 .gsap-ready .reveal-inner { opacity:0; transform:translateY(40px); }
 
 /* ── fr-reveal ── */
-.fr-reveal { opacity:0; transform:translateY(28px); transition:opacity .6s ease, transform .6s ease; }
-.fr-reveal.is-visible { opacity:1; transform:none; }
 
 /* ── stat-big ── */
 .stat-big { opacity:0; transform:scale(0.85); transition:opacity .5s ease, transform .5s ease; }
@@ -4296,6 +4294,13 @@ function heroReveal(){
   document.querySelectorAll('.reveal, .fr-reveal, .stat-big[data-target]').forEach(function(el){
     io.observe(el);
   });
+
+  /* ── FAILSAFE: fr-reveal garantizado visible tras 400ms ── */
+  setTimeout(function(){
+    document.querySelectorAll('.fr-reveal').forEach(function(el){
+      el.classList.add('is-visible');
+    });
+  }, 400);
 
   /* Registrar reveal-wrap legacy (secciones que aún los usan) */
   document.querySelectorAll('.reveal-wrap').forEach(function(wrap){

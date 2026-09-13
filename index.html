@@ -11009,18 +11009,6 @@ var PROXY_OK = false;
   /* Badge ya tiene el texto de advertencia desde el HTML */
 })();
 
-/* Helper: fetch a trav\u00E9s del Worker (evita CORS) */
-async function pFetchOld(url, opts){
- opts = opts || {};
- try{
- var pUrl = PROXY + '?url=' + encodeURIComponent(url);
- if(opts.method && opts.method !== 'GET')
-  pUrl += '&method=' + encodeURIComponent(opts.method);
- var res = await fetch(pUrl, { signal: opts.signal });
- return res;
- }catch(e){ return null; }
-}
-
 /* Helper: fetch directo con fallback a proxy */
 async function smartFetch(url, opts){
  try {

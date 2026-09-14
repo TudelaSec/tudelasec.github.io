@@ -2225,6 +2225,14 @@ a{color:inherit;text-decoration:none;}
 .scan-input:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(255,26,46,.08);}
 .scan-input::placeholder{color:rgba(106,88,101,.5);}
 .scan-input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;}
+.tier-select{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.tier-btn{flex:1;min-width:140px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:3px;padding:10px 14px;cursor:pointer;transition:all .2s;text-align:center;font-family:var(--mono);color:var(--text);}
+.tier-btn:hover{border-color:var(--acc);background:rgba(255,26,46,.06);}
+.tier-btn.active{border-color:var(--acc);background:rgba(255,26,46,.12);box-shadow:0 0 12px rgba(255,26,46,.2);}
+.tier-btn .tier-icon{display:block;font-size:20px;margin-bottom:4px;}
+.tier-btn .tier-name{display:block;font-size:13px;font-weight:700;letter-spacing:.06em;}
+.tier-btn .tier-desc{display:block;font-size:10px;color:rgba(240,238,248,.5);margin-top:2px;text-transform:none;letter-spacing:0;}
+@media(max-width:600px){.tier-select{flex-direction:column;}}
 .scan-btn{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:0 36px;background:var(--acc);color:#000;border:none;cursor:pointer;border-radius:2px;transition:all .25s;display:flex;align-items:center;gap:8px;white-space:nowrap;position:relative;overflow:hidden;}
 .scan-btn::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);animation:btnSlash 2s ease-in-out infinite;}
 @keyframes btnSlash{0%{left:-100%;}50%{left:100%;}100%{left:100%;}}
@@ -2814,6 +2822,17 @@ a{color:inherit;text-decoration:none;}
     <p class="scan-sub">Motor de auditoría ofensiva de <b class="r">AGRESIVIDAD ABSOLUTA</b>. Ingresa una URL y el <b>Leviatán v9.0</b> despliega <b class="r">306 FASES REALES DE ANIQUILACIÓN TOTAL</b>: resolución DNS, transporte SSL/TLS, headers, CORS, <b class="r">adaptive wordlists + parameter mining</b>, robots/sitemap, parámetros peligrosos, fingerprint, <b class="r">cookies (cookie injection, session fixation, JWT decode, cookie tossing, auth bypass)</b>, <b class="r">métodos HTTP agresivos (PUT/DELETE/PATCH/TRACE/CONNECT con payloads reales, method override, verb tampering, WebDAV)</b>, <b>enumeración de subdominios</b>, <b>escaneo de puertos</b>, <b>mutation engine + OOB callbacks (interactsh)</b>, <b>CRLF / Header Injection</b>, <b>NoSQL Injection</b>, <b>Prototype Pollution</b>, <b>HTTP Request Smuggling</b>, <b>Race Conditions</b>, <b>API Abuse / IDOR / Mass Assignment</b>, <b>XXE Injection</b>, <b>SSTI</b>, <b>LDAP Injection</b>, <b>XPath Injection</b>, <b>Host Header Injection</b>, <b>Insecure Deserialization</b>, <b>File Upload Abuse</b>, <b>WebSocket Abuse (CSWSH)</b>, <b>OAuth/SSO Misconfiguration</b>, <b>LLM Prompt Injection</b>, <b>ReDoS</b>, <b>HTTP Parameter Pollution (HPP)</b>, <b>DNS Rebinding</b>, <b>Source Map Exposure</b>, <b>Cloud Bucket Enumeration</b>, <b>Open Redirect</b>, <b>Path Traversal / LFI</b>, <b>Command Injection</b>, <b>JWT Analysis</b>, <b>SSRF Deep Scan</b>, <b>Subdomain Takeover</b>, <b>Cache Poisoning</b>, <b>WordPress</b>, <b>GraphQL</b>, <b>SQLi Blind</b>, <b>XSS DOM</b>, <b>CSRF</b>, <b>Session Hijacking</b>, <b>Business Logic Abuse</b>, <b>HTTP/2 Rapid Reset</b>, <b>Clickjacking</b>, <b>IPv6 Enum</b>, <b>Virtual Host Brute</b>, <b>Backup File Discovery</b>, <b>Config File Exposure</b>, <b>WAF Evasion</b>, <b>Container Escape</b>, <b>Kubernetes API</b>, <b>Docker Registry</b>, <b>.git/.svn/.hg Exposure</b>, <b>OOB/Blind Callbacks (interactsh, DNS exfil)</b>, <b>Auth Context Engine (multi-rol, IDOR activo, Mass Assignment real)</b>, <b>JWT Advanced (alg confusion, jku/x5u, kid traversal)</b>, <b>OAuth/OIDC/SAML Abuse</b>, <b>MFA/OTP Bypass</b>, <b>HTTP/1.1 + HTTP/2 Smuggling real (CL.TE, TE.CL, single-packet race)</b>, <b>Cloud Metadata SSRF (IMDSv1/v2, GCP, Azure)</b>, <b>Kubernetes/Docker/CI-CD Attack Surface</b>, <b>Supply Chain (dependency confusion, secrets verificados)</b>, <b>Parameter Mining (Arjun-style)</b>, <b>Adaptive Wordlists + Mutation Engine</b>, <b>Headless Browser (DOM XSS real, postMessage, prototype pollution client-side)</b>, <b>GraphQL Deep + gRPC + OpenAPI Abuse</b>, <b>WAF Fingerprint + Encoding Diferencial</b>, <b>Crypto Attacks (padding oracle, CBC bit-flip, hash length extension)</b>, <b>Correlation Engine (27 cadenas de exploit)</b>, <b>PoC Verificado No Destructivo</b>, <b>Proxy Rotation + Distributed Scanning</b>, <b>Evidence Capture + Compliance Mapping (OWASP/CWE/CVSS)</b>, <b>SQLi 2nd Order + WAF Bypass</b>, <b>Mutation XSS (mXSS)</b>, <b>Service Worker Exploitation</b>, <b>SSRF Internal Port Scan + Redis RCE</b>, <b>SSRF Cloud Takeover Chain</b>, <b>TOCTOU + DB Race Conditions</b>, <b>Deser Multi-lang (Java/.NET/PHP/Python)</b>, <b>GraphQL Batching + Depth DoS</b>, <b>S3 Bucket Takeover + IAM Privesc + Lambda Abuse</b>, <b>API Gateway Bypass</b>, <b>Prompt Injection Chain + RAG Poisoning + Model Extraction</b>, <b>DNSSEC Zone Walk</b>, <b>Web Cache Deception + CDN Bypass</b>, <b>Password Reset ATO Chain + MFA Fatigue</b>, <b>HTTP/3 QUIC + WebRTC Leak</b>, <b>PostMessage + CORS Exploitation Chains</b>, <b>Content-Type + MIME Sniffing Confusion</b>, <b>WebDAV Deep + Git/SVN/Mercurial Exploitation</b>, <b>Cloudflare/Akamai/ModSecurity WAF Bypass</b>, <b>JA3/JA4 TLS Fingerprinting</b>, <b>Certificate Transparency + Wayback Machine + Shodan Correlation</b>, <b>CVE Matching + 0-Day Hunting</b>, <b>Host Header Poisoning Deep</b>, <b>Prototype Pollution Server-Side</b>, <b>HPP Deep</b>, <b>WebSocket CSWSH</b>, <b>gRPC/OpenAPI Abuse</b>, <b>DNS Rebinding Protection</b>, <b>K8s/Docker API Deep</b>, <b>LLM Prompt Injection + RAG Poisoning</b>, <b>Web Cache Deception</b>, <b>CVE Exploit Correlation (107 CVEs)</b>, análisis de contenido (<b>207 patrones de secretos</b>), <b class="r">GraphQL Alias Abuse, OAuth Redirect URI Hijacking, JWT RS256/HS256 Confusion, 2FA/OTP Race Condition, Password Reset Token Enumeration, API Rate Limit Bypass, CRLF Parameter Injection, Blind SSRF Error-based, Certificate Transparency Subdomain Enum, Cloud Metadata Deep (AWS/GCP/Azure), Container Runtime Detection, API Versioning Abuse, Web Cache Deception Deep, DNS Rebinding Bypass, Server-Side PP via JSON, GraphQL Mutation Abuse, HTTP/2 H2C Desync, CORS Credential Theft Chain, JWT Claim Manipulation, Session Puzzle Attack, IDOR Deep Enum, Business Logic Flow Bypass, API Parameter Pollution, Blind Command Injection (time-based), Second-order SQLi, Stored XSS, HTTP Method Override Bypass, API Key Enumeration, SAML Assertion Injection, Open Redirect→SSRF Chain, Path Traversal Encoding Bypass, NoSQLi via JSON, HTTP CL.TE Desync, HTTP/2 Single-Packet Race, GraphQL Introspection Alternatives, Cloud Bucket Misconfig Deep, Docker API Exposure, K8s API Exposure, Etcd/Redis/MongoDB/Elasticsearch/Memcached Exposure, Jenkins/GitLab/Consul/Spring Boot Actuator Deep, AWS IAM Role Enum, GCP Service Account Detection, Azure Managed Identity Detection, OAuth Token Theft, SAML XSW Attack, OpenID Connect Abuse, Password Reset Poisoning Chain, MFA Fatigue Attack, HTTP/3 QUIC Detection, WebRTC IP Leak, Service Worker Abuse, Web Cache Deception via Path, CDN Origin IP Discovery, WAF Bypass via Encoding, SQLi via JSON, XSS via SVG Upload, CSRF via WebSocket, Race Condition on Balance/Credits, IDOR via UUID Prediction, Mass Data Export Abuse, GraphQL Cost Analysis Bypass, Blind XSS Detection, SSRF via PDF Generators (Server-Side XSS), BaaS & IdP Exploitation (Firebase/Cognito/Supabase), GraphQL CSRF (Bypass de Preflight), Fat GET Cache Poisoning, Client-Side Dependency Hijacking, H2.TE/H2.CL Smuggling (Downgrade Attacks), Final Destrozo Correlation Engine</b>, heurísticas y reporte. <b class="r">DESTROZO ABSOLUTO. 306 FASES REALES. Agresividad absoluta. Prepárate para la aniquilación. 💀🔥</b></p>
     <div class="scan-info-badge danger"><i class="fa-solid fa-skull-crossbones">☠️</i> MODO LEVIATÁN v9.0 — AGRESIVIDAD ABSOLUTA ACTIVADA</div>
     <div class="scan-info-badge abyss">⚡ 306 FASES REALES · HTTP REAL · ANIQUILACIÓN TOTAL</div>
+    <div class="tier-select" id="tier-select">
+      <button type="button" class="tier-btn" data-mode="basico" id="tier-basico">
+        <span class="tier-icon">⚡</span><span class="tier-name">BÁSICO</span><span class="tier-desc">~30 fases · recon + comunes</span>
+      </button>
+      <button type="button" class="tier-btn" data-mode="pro" id="tier-pro">
+        <span class="tier-icon">🛡️</span><span class="tier-name">PRO</span><span class="tier-desc">~166 fases · cobertura amplia</span>
+      </button>
+      <button type="button" class="tier-btn active" data-mode="furia" id="tier-furia">
+        <span class="tier-icon">💀</span><span class="tier-name">FURIA</span><span class="tier-desc">294 fases · todo</span>
+      </button>
+    </div>
     <div class="scan-bar">
       <div class="scan-input-wrap">
         <span class="scan-input-icon">🎯</span>
@@ -11007,6 +11026,72 @@ var CF_PROXY='https://scanner-proxy.matias-ramireztu.workers.dev';
 var S={subs:[],jsFiles:[],endpoints:[],secrets:[],techs:[],waf:false,body:'',headers:{},status:0,host:'',forms:[],cookies:''};
 async function pfx(url,opts){opts=opts||{};try{var pu=CF_PROXY+'?url='+encodeURIComponent(url);if(opts.method&&opts.method!=='GET')pu+='&method='+encodeURIComponent(opts.method);if(opts.origin)pu+='&origin='+encodeURIComponent(opts.origin);var ctrl=new AbortController();var tid=setTimeout(function(){ctrl.abort();},15000);var r=await fetch(pu,{signal:ctrl.signal});clearTimeout(tid);return r;}catch(e){return null;}}
 async function get(url){var t0=performance.now();try{var r=await pfx(url);var el=performance.now()-t0;if(!r)return{ok:false,status:0,headers:{},body:'',time:el};var t='';try{t=await r.text();}catch(e){}var h={};if(r.headers&&r.headers.forEach)r.headers.forEach(function(v,k){h[k.toLowerCase()]=v;});return{ok:r.ok,status:r.status,headers:h,body:t.slice(0,150000),time:el};}catch(e){return{ok:false,status:0,headers:{},body:'',time:performance.now()-t0};}}
+
+/* ==== Validacion por firmas (content matching) para reducir falsos positivos de soft-404 ==== */
+function sfHash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return h;}
+async function soft404Baseline(target){
+var probe='/tudelasec-check-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+var r=await get(target+probe);
+return{status:r.status,len:r.body.length,hash:sfHash(r.body.slice(0,500))};
+}
+var SF_SIGNATURES={
+'/.env':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY|API_KEY\s*=/i,
+'/.env.local':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.production':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.production.local':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.development':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.staging':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.docker':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.bak':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.env.backup':/DB_PASSWORD|APP_KEY|AWS_ACCESS|DATABASE_URL|SECRET_KEY/i,
+'/.git/config':/\[core\]/,
+'/.git/HEAD':/^ref:\s*refs\//i,
+'/.git/refs/heads/master':/^[0-9a-f]{40}\s*$/i,
+'/.git/refs/heads/main':/^[0-9a-f]{40}\s*$/i,
+'/.git/logs/HEAD':/[0-9a-f]{40}\s+[0-9a-f]{40}/,
+'/.git/packed-refs':/refs\/(heads|tags)\//,
+'/.git/info/refs':/refs\//,
+'/.git/objects/info/packs':/pack-[0-9a-f]{40}/,
+'/.git/index':/DIRC/,
+'/.svn/wc.db':/^SQLite format 3/,
+'/web.config':/<configuration/i,
+'/web.config.bak':/<configuration/i,
+'/wp-config.php.bak':/DB_PASSWORD|define\(\s*['"]DB_/i,
+'/wp-config.php.old':/DB_PASSWORD|define\(\s*['"]DB_/i,
+'/wp-config.php~':/DB_PASSWORD|define\(\s*['"]DB_/i,
+'/.htpasswd':/:\{?\$apr1\$|:\{SHA\}|:\$2y\$/,
+'/terraform.tfstate':/"terraform_version"|"resources"\s*:/,
+'/terraform.tfstate.backup':/"terraform_version"|"resources"\s*:/,
+'/docker-compose.yml':/^(version|services)\s*:/im,
+'/docker-compose.yaml':/^(version|services)\s*:/im,
+'/Dockerfile':/^FROM\s+\S+/im,
+'/package.json':/"name"\s*:|"dependencies"\s*:/,
+'/composer.json':/"require"\s*:/,
+'/.aws/credentials':/aws_access_key_id/i,
+'/.aws/config':/\[default\]|region\s*=/i,
+'/.ssh/id_rsa':/BEGIN (RSA|OPENSSH) PRIVATE KEY/,
+'/.ssh/id_ed25519':/BEGIN OPENSSH PRIVATE KEY/,
+'/private.key':/BEGIN (RSA|EC|OPENSSH)? ?PRIVATE KEY/,
+'/private_key.pem':/BEGIN (RSA|EC|OPENSSH)? ?PRIVATE KEY/,
+'/id_rsa':/BEGIN (RSA|OPENSSH) PRIVATE KEY/,
+'/id_ecdsa':/BEGIN EC PRIVATE KEY/,
+'/server.key':/BEGIN (RSA|EC)? ?PRIVATE KEY/,
+'/client.key':/BEGIN (RSA|EC)? ?PRIVATE KEY/,
+'/cert.key':/BEGIN (RSA|EC)? ?PRIVATE KEY/,
+'/ca.key':/BEGIN (RSA|EC)? ?PRIVATE KEY/
+};
+var SF_BACKUP_EXT=/\.(zip|tar|gz|tgz|tar\.gz|tar\.bz2|sql|bak|dump|rar|7z|bz2)(\?.*)?$/i;
+function sfVerify(path,resp,baseline){
+var body=resp.body||'';
+var ctype=(resp.headers&&resp.headers['content-type'])||'';
+var looksHtml=/<html[\s>]/i.test(body)||/text\/html/i.test(ctype);
+if(SF_BACKUP_EXT.test(path)&&looksHtml)return false;
+var sig=SF_SIGNATURES[path];
+if(sig)return sig.test(body);
+if(baseline&&resp.status===baseline.status&&Math.abs(body.length-baseline.len)<40&&sfHash(body.slice(0,500))===baseline.hash)return false;
+if(looksHtml)return false;
+return body.length>0;
+}
 async function reqM(url,method,origin){var t0=performance.now();try{var r=await pfx(url,{method:method,origin:origin});var el=performance.now()-t0;if(!r)return{ok:false,status:0,headers:{},body:'',time:el};var t='';try{t=await r.text();}catch(e){}var h={};if(r.headers&&r.headers.forEach)r.headers.forEach(function(v,k){h[k.toLowerCase()]=v;});return{ok:r.ok,status:r.status,headers:h,body:t.slice(0,80000),time:el};}catch(e){return{ok:false,status:0,headers:{},body:'',time:performance.now()-t0};}}
 async function doh(name,type){try{var r=await fetch('https://1.1.1.1/dns-query?name='+encodeURIComponent(name)+'&type='+type,{headers:{'Accept':'application/dns-json'}});return await r.json();}catch(e){return null;}}
 async function batch(urls){return Promise.allSettled(urls.map(function(u){return get(u);}));}
@@ -11023,7 +11108,11 @@ function logOk(m){log('  \u2713 '+m,'ok');}function logWarn(m){log('  \u26A0 '+m
 function addF(sev,name,detail){sev=sev.toLowerCase();counts[sev]=(counts[sev]||0)+1;var e={crit:statCrit,high:statHigh,med:statMed,low:statLow}[sev];if(e){e.textContent=counts[sev];e.closest('.scan-stat').classList.remove('zero');}var em=findings.querySelector('.scan-empty');if(em)em.style.display='none';var lb={crit:'CRITICAL',high:'HIGH',med:'MEDIUM',low:'LOW'};var ts=new Date(),t=('0'+ts.getHours()).slice(-2)+':'+('0'+ts.getMinutes()).slice(-2)+':'+('0'+ts.getSeconds()).slice(-2);var c=document.createElement('div');c.className='sf-card '+sev;c.innerHTML='<div class="sf-top"><span class="sf-badge '+sev+'">'+lb[sev]+'</span><span class="sf-name">'+esc(name)+'</span></div>'+(detail?'<div class="sf-detail">'+esc(detail.slice(0,140))+'</div>':'')+'<div class="sf-time">'+t+'</div>';if(sev==='crit'||sev==='high')findings.insertBefore(c,findings.firstChild);else findings.appendChild(c);}
 function markCrit(id){var el=document.getElementById('sph-'+id);if(el)el.classList.add('crit');}
 function sl(m){return new Promise(function(r){setTimeout(r,m);});}
-function tp(n){setP(n);return sl(150);}
+var scanMode='furia';
+var MODE_LIMITS={basico:30,pro:166,furia:Infinity};
+var _tpCallCount=0;
+function ModeStopSignal(){this.tudelasecModeStop=true;}
+function tp(n){_tpCallCount++;if(_tpCallCount>MODE_LIMITS[scanMode]){throw new ModeStopSignal();}setP(n);return sl(150);}
 var SP=[[/AIza[0-9A-Za-z\-_]{35}/g,'Google API Key','crit'],[/AKIA[0-9A-Z]{16}/g,'AWS Access Key','crit'],[/sk_live_[0-9a-zA-Z]{24,}/g,'Stripe Live Key','crit'],[/ghp_[0-9a-zA-Z]{36}/g,'GitHub Token','crit'],[/eyJ[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}/g,'JWT Token','high'],[/-----BEGIN (RSA |EC )?PRIVATE KEY-----/g,'Private Key','crit'],[/pk\.eyJ[a-zA-Z0-9_-]+/g,'Mapbox Key','high'],[/SG\.[a-zA-Z0-9_-]{22}\.[a-zA-Z0-9_-]{43}/g,'SendGrid Key','high'],[/xox[baprs]-[0-9a-zA-Z\-]+/g,'Slack Token','high'],[/["']password["']\s*[:=]\s*["'][^"']{4,}/gi,'Password hardcoded','crit'],[/["']api[_\-]?key["']\s*[:=]\s*["'][^"']{8,}/gi,'API Key','high'],[/["']secret["']\s*[:=]\s*["'][^"']{4,}/gi,'Secret','high'],[/DB_PASSWORD\s*=\s*[^\s]+/g,'DB_PASSWORD','crit'],[/mongodb:\/\/[^"'\s]+/g,'MongoDB URL','crit'],[/postgresql:\/\/[^"'\s]+/g,'PostgreSQL URL','crit'],[/mysql:\/\/[^"'\s]+/g,'MySQL URL','crit'],[/SK[0-9a-fA-F]{32,}/g,'Sk-Live Crypto Key','crit'],[/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g,'JWT frag','med'],[/api[_\-]?secret[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'API Secret','high'],[/client[_\-]?secret["']\s*[:=]["'][^"']{6,}/gi,'Client Secret','high'],[/GOCSPX-[a-zA-Z0-9_-]{20,}/g,'Google OAuth Secret','crit'],[/squid[_\-]?proxy["']\s*[:=]["'][^"']{4,}/gi,'Proxy Config','med'],[/stripe[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Stripe Key','high'],[/BEGIN OPENSSH PRIVATE KEY/g,'SSH Private Key','crit'],[/BEGIN PGP PRIVATE KEY BLOCK/g,'PGP Private Key','crit'],[/aws[_\-]?secret["']\s*[:=]["'][^"']{8,}/gi,'AWS Secret','crit'],[/braintree[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Braintree Token','high'],[/twilio[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Twilio Key','high'],[/mailgun[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Mailgun Key','high'],[/npm_[a-zA-Z0-9]{36,}/g,'NPM Token','high'],[/pypi-[a-zA-Z0-9]{60,}/g,'PyPI Token','high'],[/dckr_pat_[a-zA-Z0-9_-]{20,}/g,'Docker Token','high'],[/xox[baprs]-[a-zA-Z0-9-]+/g,'Slack Token v2','high'],[/hooks\.slack\.com\/services\/T[a-zA-Z0-9]+\/B[a-zA-Z0-9]+\/[a-zA-Z0-9]+/g,'Slack Webhook','high'],[/SKAGI[a-zA-Z0-9]{32,}/g,'Sk-Aggregate','crit'],[/AKIA[0-9A-Z]{16}/g,'AWS Key v2','crit'],[/amzn\.mws\.[a-zA-Z0-9-]{20,}/g,'Amazon MWS','high'],[/AIza[0-9A-Za-z\-_]{35}/g,'Google Key v2','crit'],[/ya29\.[a-zA-Z0-9_-]{20,}/g,'Google OAuth Token','high'],[/1\/\/[a-zA-Z0-9_-]{20,}/g,'Google Refresh','high'],[/sk_test_[0-9a-zA-Z]{24,}/g,'Stripe Test Key','med'],[/rk_live_[0-9a-zA-Z]{24,}/g,'Stripe Restricted','crit'],[/gitlab[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'GitLab Token','high'],[/DDN_API_KEY["']\s*[:=]["'][^"']{8,}/gi,'Datadog Key','med'],[/grafana[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Grafana Key','med'],[/pagerduty[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'PagerDuty Key','med'],[/splunk[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Splunk Key','med'],[/vault[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Vault Token','high'],[/consul[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Consul Token','med'],[/nomad[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Nomad Token','med'],[/terraform[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Terraform Token','med'],[/circle[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'CircleCI Key','med'],[/travis[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Travis Token','med'],[/heroku[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Heroku Key','high'],[/digitalocean[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'DigitalOcean Token','high'],[/linode[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Linode Key','med'],[/vultr[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Vultr Key','med'],[/scaleway[_\-]?token["']\s*[:=]["'][^"']{8,}/gi,'Scaleway Token','med'],[/azure[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Azure Key','high'],[/gcp[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'GCP Key','high'],[/firebase[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Firebase Key','high'],[/supabase[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Supabase Key','med'],[/auth0[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Auth0 Key','med'],[/cognito[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Cognito Key','med'],[/okta[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Okta Key','med'],[/authy[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Authy Key','med'],[/twilio[_\-]?sid["']\s*[:=]["'][^"']{8,}/gi,'Twilio SID','med'],[/sendgrid[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'SendGrid Key','med'],[/mailchimp[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Mailchimp Key','med'],[/hubspot[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'HubSpot Key','med'],[/intercom[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Intercom Key','med'],[/zendesk[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Zendesk Key','med'],[/shopify[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Shopify Key','med'],[/bigcommerce[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'BigCommerce Key','med'],[/woocommerce[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'WooCommerce Key','med'],[/magento[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Magento Key','med'],[/stripe[_\-]?secret["']\s*[:=]["'][^"']{8,}/gi,'Stripe Secret','crit'],[/paypal[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'PayPal Key','high'],[/coinbase[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Coinbase Key','med'],[/binance[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Binance Key','med'],[/kraken[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Kraken Key','med'],[/bitfinex[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Bitfinex Key','med'],[/gemini[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Gemini Key','med'],[/bittrex[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Bittrex Key','med'],[/kucoin[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'KuCoin Key','med'],[/poloniex[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Poloniex Key','med'],[/etherscan[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Etherscan Key','med'],[/infura[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Infura Key','med'],[/alchemy[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Alchemy Key','med'],[/moralis[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Moralis Key','med'],[/figma[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Figma Key','med'],[/notion[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Notion Key','med'],[/airtable[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Airtable Key','med'],[/linear[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Linear Key','med'],[/asana[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Asana Key','med'],[/trello[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Trello Key','med'],[/jira[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Jira Key','med'],[/confluence[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Confluence Key','med'],[/sentry[_\-]?dsn["']\s*[:=]["'][^"']{8,}/gi,'Sentry DSN','med'],[/bugsnag[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Bugsnag Key','med'],[/rollbar[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Rollbar Key','med'],[/logrocket[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'LogRocket Key','med'],[/datadog[_\-]?api[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Datadog API Key','med'],[/newrelic[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'NewRelic Key','med'],[/dynatrace[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Dynatrace Key','med'],[/appdynamics[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'AppDynamics Key','med'],[/elastic[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'Elastic Key','med'],[/splunk[_\-]?hec["']\s*[:=]["'][^"']{8,}/gi,'Splunk HEC','med'],[/gho_[a-zA-Z0-9]{36,}/g,'GitHub OAuth Token','high'],[/ghs_[a-zA-Z0-9]{36,}/g,'GitHub Server Token','high'],[/ghr_[a-zA-Z0-9]{36,}/g,'GitHub Refresh Token','high'],[/github_pat_[a-zA-Z0-9_]{82,}/g,'GitHub Fine-Grained PAT','crit'],[/glpat-[a-zA-Z0-9_-]{20,}/g,'GitLab PAT','high'],[/glpt-[a-zA-Z0-9_-]{20,}/g,'GitLab Pipeline Token','high'],[/xoxe.[0-9a-zA-Z-]+/g,'Slack Workflow Token','high'],[/T[a-zA-Z0-9]+\/B[a-zA-Z0-9]+\/[a-zA-Z0-9]{24,}/g,'Slack Webhook v2','high'],[/hooks\.slack\.com\/workflows/g,'Slack Workflow Hook','high'],[/T[a-zA-Z0-9_]+\/[a-zA-Z0-9_]+\/[a-zA-Z0-9_]{24,}/g,'Slack Webhook v3','high'],[/EAACEdEose0cBA[0-9A-Za-z]+/g,'Facebook Access Token','high'],[/ya29\.[a-zA-Z0-9_-]{100,}/g,'Google OAuth Token v2','high'],[/AIza[0-9A-Za-z\-_]{35}/g,'Google API v3','crit'],[/AIZA[0-9A-Z]{16}/g,'AWS Key v3','crit'],[/ASIA[0-9A-Z]{16}/g,'AWS STS Key','crit'],[/AGPA[0-9A-Z]{16}/g,'AWS Role Key','high'],[/AIDA[0-9A-Z]{16}/g,'AWS User Key','high'],[/AROA[0-9A-Z]{16}/g,'AWS Role ARN','high'],[/AIP A[0-9A-Z]{16}/g,'AWS Policy','high'],[/AKIA[0-9A-Z]{16}/g,'AWS Access v3','crit'],[/amzn1\.requestid\.[a-zA-Z0-9-]+/g,'AWS Request ID','low'],[/amzn1\.oidc\.[a-zA-Z0-9-]+/g,'AWS OIDC','med'],[/sk-ant-[a-zA-Z0-9_-]{93,}/g,'Anthropic API Key','crit'],[/sk-[a-zA-Z0-9]{48,}/g,'OpenAI API Key','crit'],[/sk-proj-[a-zA-Z0-9_-]{40,}/g,'OpenAI Project Key','crit'],[/sk-org-[a-zA-Z0-9_-]{40,}/g,'OpenAI Org Key','crit'],[/AIza[0-9A-Za-z\-_]{35}/g,'Google AI Key','crit'],[/hf_[a-zA-Z0-9]{34,}/g,'HuggingFace Token','high'],[/cfg_[a-zA-Z0-9_-]{20,}/g,'Cohere API Key','high'],[/sk-[a-zA-Z0-9]{20,}/g,'Generic API Key v2','high'],[/sk_live_[0-9a-zA-Z]{24,}/g,'Stripe Live v2','crit'],[/sk_test_[0-9a-zA-Z]{24,}/g,'Stripe Test v2','med'],[/rk_live_[0-9a-zA-Z]{24,}/g,'Stripe Restricted v2','crit'],[/rk_test_[0-9a-zA-Z]{24,}/g,'Stripe Restricted Test','med'],[/ic_[a-zA-Z0-9]{24,}/g,'Stripe Issuing Key','high'],[/pyb-[a-zA-Z0-9_-]{20,}/g,'Paypal Braintree','high'],[/access_token$production_[a-zA-Z0-9]{32,}/g,'PayPal Prod Token','crit'],[/ATATT3[A-Za-z0-9_-]{100,}/g,'Atlassian Token','high'],[/ari_api_[a-zA-Z0-9]{32,}/g,'Ari API Key','med'],[/Api-[a-zA-Z0-9]{40,}/g,'AssemblyAI Key','high'],[/sl_[a-zA-Z0-9]{32,}/g,'Snyk Token','high'],[/dc_[a-zA-Z0-9_]{30,}/g,'Discord Token','high'],[/MT[a-zA-Z0-9_-]{40,}\.[a-zA-Z0-9_-]{20,}/g,'Discord Bot Token','high'],[/T[a-zA-Z0-9]{17}\.[a-zA-Z0-9]{16}\.[a-zA-Z0-9_-]{20,}/g,'Discord Webhook','high'],[/sk-frontend-[a-zA-Z0-9]{20,}/g,'Frontend Key','high'],[/sk-backend-[a-zA-Z0-9]{20,}/g,'Backend Key','high'],[/xox[baprs]-[0-9a-zA-Z-]+/g,'Slack Token v3','high'],[/ghp_[a-zA-Z0-9]{36}/g,'GitHub PAT v2','crit'],[/gho_[a-zA-Z0-9]{36}/g,'GitHub OAuth v2','high'],[/ghu_[a-zA-Z0-9]{36}/g,'GitHub User Token','high'],[/ghs_[a-zA-Z0-9]{36}/g,'GitHub App Token','high'],[/ghr_[a-zA-Z0-9]{36}/g,'GitHub Refresh v2','high'],[/glpat-[a-zA-Z0-9_-]{20,}/g,'GitLab PAT v2','high'],[/xox[baprs]-[a-zA-Z0-9-]+/g,'Slack Token v4','high'],[/EAA[A-Za-z0-9]{100,}/g,'Facebook Page Token','high'],[/IG[A-Za-z0-9]{30,}/g,'Instagram Token','high'],[/qa_[a-zA-Z0-9]{20,}/g,'QA Token','med'],[/uat_[a-zA-Z0-9]{20,}/g,'UAT Token','med'],[/prod_[a-zA-Z0-9]{20,}/g,'Prod Token','high'],[/staging_[a-zA-Z0-9]{20,}/g,'Staging Token','med'],[/dev_[a-zA-Z0-9]{20,}/g,'Dev Token','med'],[/test_[a-zA-Z0-9]{20,}/g,'Test Token','med'],[/live_[a-zA-Z0-9]{20,}/g,'Live Token','high'],[/sandbox_[a-zA-Z0-9]{20,}/g,'Sandbox Token','med'],[/demo_[a-zA-Z0-9]{20,}/g,'Demo Token','low'],[/private[_\-]?key["']\s*[:=]["'][^"']{20,}/gi,'Private Key String','crit'],[/public[_\-]?key["']\s*[:=]["'][^"']{20,}/gi,'Public Key String','med'],[/access[_\-]?token["']\s*[:=]["'][^"']{20,}/gi,'Access Token','high'],[/refresh[_\-]?token["']\s*[:=]["'][^"']{20,}/gi,'Refresh Token','high'],[/bearer["']\s*[:=]["'][^"']{20,}/gi,'Bearer Token','high'],[/authorization["']\s*[:=]["'][^"']{20,}/gi,'Authorization Header','high'],[/x[_\-]?api[_\-]?key["']\s*[:=]["'][^"']{8,}/gi,'X-API-Key Header','high'],[/connection[_\-]?string["']\s*[:=]["'][^"']{10,}/gi,'Connection String','crit'],[/database[_\-]?url["']\s*[:=]["'][^"']{10,}/gi,'Database URL','crit'],[/redis:\/\/[^"'\s]+/g,'Redis URL','crit'],[/amqp:\/\/[^"'\s]+/g,'AMQP URL','crit'],[/amqps:\/\/[^"'\s]+/g,'AMQPS URL','crit'],[/kafka:\/\/[^"'\s]+/g,'Kafka URL','crit'],[/ldap:\/\/[^"'\s]+/g,'LDAP URL','high'],[/ldaps:\/\/[^"'\s]+/g,'LDAPS URL','high'],[/ftp:\/\/[^"'\s]+/g,'FTP URL','med'],[/sftp:\/\/[^"'\s]+/g,'SFTP URL','high'],[/ssh:\/\/[^"'\s]+/g,'SSH URL','high'],[/vnc:\/\/[^"'\s]+/g,'VNC URL','med'],[/rdp:\/\/[^"'\s]+/g,'RDP URL','med'],[/BEGIN EC PRIVATE KEY/g,'EC Private Key','crit'],[/BEGIN DSA PRIVATE KEY/g,'DSA Private Key','crit'],[/BEGIN OPENSSH PRIVATE KEY/g,'OpenSSH Key v2','crit'],[/BEGIN RSA PRIVATE KEY/g,'RSA Private Key','crit'],[/BEGIN ENCRYPTED PRIVATE KEY/g,'Encrypted Private Key','crit'],[/BEGIN PRIVATE KEY/g,'Generic Private Key','crit'],[/ssh-rsa [a-zA-Z0-9+/]+/g,'SSH RSA Public Key','med'],[/ssh-ed25519 [a-zA-Z0-9+/]+/g,'SSH Ed25519 Key','med'],[/ecdsa-sha2-[a-zA-Z0-9]+ [a-zA-Z0-9+/]+/g,'SSH ECDSA Key','med'],[/-----BEGIN CERTIFICATE-----/g,'Certificate','low'],[/eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g,'JWT Token v2','high'],[/Bearer [a-zA-Z0-9_.-]{20,}/g,'Bearer Header','med']];
 function scanSecrets(txt,src){var sf=0;SP.forEach(function(sp){var m=txt.match(sp[0]);if(m){sf++;logErr('SECRET: '+sp[1]+' in '+src+' — '+m[0].slice(0,50));addF(sp[2],sp[1]+' en '+src,m[0].slice(0,60));}});return sf;}
 var PHASES=[
@@ -11119,7 +11208,7 @@ var PHASES=[
 {id:'p281',i:'\uD83C\uDF9F',n:'OAUThtk'},{id:'p282',i:'\uD83C\uDF9F',n:'SAMLxsw'},{id:'p283',i:'\uD83C\uDF9F',n:'OIDCabuse'},{id:'p284',i:'\uD83D\uDD11',n:'ResetPsn'},{id:'p285',i:'\uD83D\uDD11',n:'MFAFtg'},
 {id:'p286',i:'\u26A1',n:'HTTP3QIC'},{id:'p287',i:'\uD83C\uDF10',n:'WebRTCleak'},{id:'p288',i:'\uD83D\uDD27',n:'SWabuse'},{id:'p289',i:'\uD83E\uDD89',n:'CacheDp3'},{id:'p290',i:'\uD83C\uDF10',n:'CDNorig'},
 {id:'p291',i:'\uD83D\uDEA7',n:'WAFenc2'},{id:'p292',i:'\uD83D\uDD0F',n:'SQLiJSON'},{id:'p293',i:'\uD83D\uDC75',n:'XSSsvg'},{id:'p294',i:'\u21A9\uFE0F',n:'CSRFws'},{id:'p295',i:'\u23F1',n:'RaceBal'},
-{id:'p296',i:'\uD83D\uDD11',n:'IDORuuid'},{id:'p297',i:'\uD83D\uDCCB',n:'MassExport'},{id:'p298',i:'\uD83D\uDCCA',n:'GQLCost'},{id:'p299',i:'\uD83D\uDC75',n:'BlindXSS'},{id:'p301',i:'\\uD83D\\uDCC4',n:'PDFssrf'},{id:'p302',i:'\\u2601',n:'BaaSxpl'},{id:'p303',i:'\\uD83D\\uDD10',n:'GQLcsrf'},{id:'p304',i:'\\uD83D\\uDCC8',n:'FatGET'},{id:'p305',i:'\\uD83D\\uDCBE',n:'DepHjck'},{id:'p306',i:'\\uD83D\\uDE80',n:'H2smugl'},{id:'p300',i:'\uD83D\uDD25',n:'DestrozoF'},
+{id:'p296',i:'\uD83D\uDD11',n:'IDORuuid'},{id:'p297',i:'\uD83D\uDCCB',n:'MassExport'},{id:'p298',i:'\uD83D\uDCCA',n:'GQLCost'},{id:'p299',i:'\uD83D\uDC75',n:'BlindXSS'},{id:'p301',i:'\uD83D\uDCC4',n:'PDFssrf'},{id:'p302',i:'\u2601',n:'BaaSxpl'},{id:'p303',i:'\uD83D\uDD10',n:'GQLcsrf'},{id:'p304',i:'\uD83D\uDCC8',n:'FatGET'},{id:'p305',i:'\uD83D\uDCBE',n:'DepHjck'},{id:'p306',i:'\uD83D\uDE80',n:'H2smugl'},{id:'p300',i:'\uD83D\uDD25',n:'DestrozoF'},
 {id:'p201',i:'\uD83D\uDC80',n:'Reporte'}
 ];
 var totalP=PHASES.length;
@@ -11128,10 +11217,12 @@ function setP(n){var ph=PHASES[n];if(!ph)return;PHASES.forEach(function(p,i){var
 function doneAll(){PHASES.forEach(function(p){var el=document.getElementById('sph-'+p.id);if(el){el.classList.remove('active');if(!el.classList.contains('crit'))el.classList.add('done');}});progFill.style.width='100%';progPct.textContent='100%';progPhase.textContent='\u2713 LEVIATÁN v9.0 COMPLETO';stopTimer();if(progIcon)progIcon.textContent=PHASES[totalP-1]?PHASES[totalP-1].i:'';if(progLabel)progLabel.textContent='LEVIATAN v9.0 — ANIQUILACION TOTAL COMPLETADA';if(progNum)progNum.textContent='F'+totalP;if(progCounter)progCounter.textContent=totalP+' / '+totalP+' fases';if(progStatus){progStatus.className='scan-prog-status done';progStatus.innerHTML='<span class="dot"></span> COMPLETADO';}}
 function host(u){try{return new URL(u).hostname;}catch(e){return u;}}
 async function run(target){
+_tpCallCount=0;
 var h=host(target);
 log('\u250C'+'\u2500'.repeat(48),'section');
 log('\u2502  TUDELASEC — MODO LEVIATÁN v9.0 — TARGET: '+h,'section');
 log('\u2502  306 FASES REALES | PROXY: '+CF_PROXY.split('/')[2],'white');
+log('\u2502  MODO: '+scanMode.toUpperCase()+' — '+(scanMode==='furia'?'294':MODE_LIMITS[scanMode])+' fases maximo','amber');
 log('\u2514'+'\u2500'.repeat(48),'section');
 
 /* F00: Cloudflare / WAF Pre-Scan Detection */
@@ -11175,6 +11266,8 @@ if(preOpen.length>0){logWarn('PRE-SCAN: '+preOpen.length+' puertos HTTP abiertos
 else logOk('PRE-SCAN: no se detectaron puertos HTTP adicionales abiertos');
 }
 logOk('Pre-scan completado — continuando con fases principales');
+
+try{
 
 /* F01: DNS */
 await tp(0);logSep('F01 — Resolución DNS');
@@ -11255,13 +11348,14 @@ await sl(150);
 /* F06: Paths */
 await tp(5);logSep('F06 — Paths Sensibles');
 var paths=[['/.env','crit','/.env expuesto','Credenciales y API keys'],['/.git/HEAD','crit','.git/ expuesto','Repositorio Git accesible'],['/.git/config','crit','.git/config','URL del repositorio'],['/wp-config.php.bak','crit','wp-config.php.bak','Backup WordPress'],['/backup.zip','high','backup.zip','Dump del sitio'],['/api/v1/users','high','/api/v1/users','Endpoint sin auth'],['/swagger-ui.html','high','Swagger UI expuesto','Documentación API pública'],['/actuator/health','high','Spring Actuator','Info interna'],['/phpinfo.php','high','phpinfo()','Info sensible'],['/server-status','high','Apache server-status','Info servidor'],['/.DS_Store','low','.DS_Store','Metadatos macOS'],['/.svn/entries','crit','.svn/ expuesto','Repositorio SVN'],['/admin','med','/admin existe','Panel admin'],['/graphql','high','GraphQL expuesto','Endpoint sin auth'],['/phpmyadmin','high','phpMyAdmin','Panel BD expuesto'],['/.well-known/security.txt','low','security.txt','Política de seguridad'],['/.env.local','crit','/.env.local','Variables de entorno locales'],['/.env.production','crit','/.env.production','Credenciales de producción'],['/.git/index','crit','.git/index','Índice del repositorio Git'],['/.svn/wc.db','crit','.svn/wc.db','Base de datos SVN'],['/.htaccess','med','.htaccess expuesto','Configuración Apache'],['/.htpasswd','crit','.htpasswd expuesto','Credenciales HTTP Basic'],['/web.config','high','web.config','Configuración IIS'],['/composer.json','low','composer.json','Dependencias PHP'],['/composer.lock','low','composer.lock','Versiones exactas PHP'],['/package.json','low','package.json','Dependencias Node'],['/package-lock.json','low','package-lock.json','Versiones exactas Node'],['/yarn.lock','low','yarn.lock','Versiones Yarn'],['/Gemfile','low','Gemfile','Dependencias Ruby'],['/requirements.txt','low','requirements.txt','Dependencias Python'],['/Pipfile','low','Pipfile','Dependencias Python'],['/go.mod','low','go.mod','Dependencias Go'],['/pom.xml','low','pom.xml','Configuración Maven'],['/build.gradle','low','build.gradle','Configuración Gradle'],['/docker-compose.yml','high','docker-compose.yml','Orquestación de contenedores'],['/Dockerfile','med','Dockerfile','Imagen de contenedor'],['/terraform.tfstate','crit','terraform.tfstate','Estado de infraestructura'],['/.terraform/','crit','.terraform/','Configuración Terraform'],['/jenkins/','high','Jenkins expuesto','CI/CD sin auth'],['/.gitlab-ci.yml','high','.gitlab-ci.yml','Pipeline CI/CD'],['/Jenkinsfile','high','Jenkinsfile','Pipeline Jenkins'],['/api/swagger.json','med','Swagger JSON','Spec de API'],['/api-docs','med','API Docs','Documentación API'],['/actuator/env','crit','Spring Actuator env','Variables de entorno Spring'],['/actuator/heapdump','crit','Spring Heapdump','Dump de memoria Java'],['/actuator/mappings','high','Spring Mappings','Endpoints internos'],['/actuator/beans','high','Spring Beans','Componentes internos'],['/actuator/configprops','high','Spring Config','Configuración interna'],['/actuator/loggers','high','Spring Loggers','Configuración de logs'],['/actuator/threaddump','med','Thread Dump','Estado de hilos'],['/metrics','med','Metrics expuesto','Métricas internas'],['/debug','med','Debug endpoint','Modo debug activo'],['/trace','high','Trace endpoint','Traza de peticiones'],['/health','low','Health endpoint','Estado del servicio'],['/info','low','Info endpoint','Info del servicio'],['/console','high','Console expuesto','Consola administrativa'],['/manager/html','high','Tomcat Manager','Panel admin Tomcat'],['/manager/status','high','Tomcat Status','Estado Tomcat'],['/solr/admin','high','Solr Admin','Panel Solr'],['/elasticsearch/','crit','Elasticsearch expuesto','Búsqueda sin auth'],['/_cat/indices','crit','ES _cat/indices','Indices Elasticsearch'],['/kibana','high','Kibana expuesto','Dashboard ES'],['/admin/login','med','Admin login','Panel de login'],['/wp-admin/','med','WordPress admin','Panel admin WP'],['/wp-json/','med','WP REST API','API WordPress'],['/wp-content/uploads/','med','WP uploads','Archivos subidos'],['/wp-content/plugins/','med','WP plugins','Plugins instalados'],['/xmlrpc.php','high','WordPress XML-RPC','Interfaz XML-RPC'],['/auth/realms','high','Keycloak realms','Configuración Keycloak'],['/auth/admin','crit','Keycloak admin','Panel admin Keycloak'],['/.well-known/openid-configuration','low','OIDC config','Configuración OpenID'],['/api/v1/swagger','med','Swagger v1','Spec API v1'],['/api/v2/swagger','med','Swagger v2','Spec API v2'],['/graphql/playground','high','GraphQL Playground','UI de GraphQL'],['/graphiql','high','GraphiQL','UI de GraphQL'],['/altair/','high','Altair GraphQL','UI de GraphQL'],['/.well-known/security.txt','low','security.txt','Política de seguridad'],['/api/v2/users','high','/api/v2/users','API sin auth'],['/api/v3','med','/api/v3','API v3 expuesta'],['/api/graphql','high','/api/graphql','GraphQL alternativo'],['/api/v1/config','high','/api/v1/config','Config de API expuesto'],['/api/v1/settings','high','/api/v1/settings','Settings de API'],['/api/internal','high','/api/internal','Endpoint interno'],['/internal','high','/internal','Sección interna'],['/private','med','/private','Sección privada'],['/secret','med','/secret','Sección secreta'],['/api/v1/tokens','crit','/api/v1/tokens','Tokens expuestos'],['/api/v1/keys','crit','/api/v1/keys','API keys expuestas'],['/api/v1/secrets','crit','/api/v1/secrets','Secretos de API'],['/api/v1/admin/config','crit','/api/v1/admin/config','Config admin expuesto'],['/api/v1/debug','high','/api/v1/debug','Debug de API'],['/api/v1/metrics','med','/api/v1/metrics','Métricas de API'],['/api/v1/health','low','/api/v1/health','Health de API'],['/api/v1/status','low','/api/v1/status','Status de API'],['/api/v1/version','low','/api/v1/version','Versión de API'],['/api/v1/info','med','/api/v1/info','Info de API'],['/struts/webconsole','crit','Struts webconsole','Consola Struts'],['/struts/devmode','crit','Struts devmode','Modo dev Struts'],['/CFIDE/administrator','crit','CFIDE admin','Panel ColdFusion'],['/manager/text','high','Tomcat text','Tomcat manager text'],['/v3/api-docs','med','OpenAPI v3','Spec OpenAPI v3'],['/.well-known/change-password','low','change-password','Cambio de password OIDC'],['/.well-known/jwks.json','med','JWKS expuesto','Keys públicas'],['/auth/realms/master/account','high','Keycloak account','Cuenta Keycloak'],['/api/v1/export','high','API export','Export de datos'],['/api/v1/import','high','API import','Import de datos'],['/api/v1/logs','high','API logs','Logs expuestos'],['/api/v1/audit','high','API audit','Audit log expuesto'],['/api/v1/sessions','high','API sessions','Sesiones expuestas'],['/api/v1/webhooks','high','API webhooks','Webhooks expuestos']];
-logInfo('Probando '+paths.length+' rutas criticas...');
+logInfo('Probando '+paths.length+' rutas criticas (con validacion por firmas)...');
 var pathFound=0;
+var baseline06=await soft404Baseline(target);
 for(var pi=0;pi<paths.length;pi++){var pa=paths[pi];var rp=await get(target+pa[0]);
-if(rp.status===200){pathFound++;logErr('[200] '+pa[0]+' — EXPUESTO!');addF(pa[1],pa[2],pa[3]);markCrit('p06');}
+if(rp.status===200&&sfVerify(pa[0],rp,baseline06)){pathFound++;logErr('[200] '+pa[0]+' — EXPUESTO (contenido verificado)!');addF(pa[1],pa[2],pa[3]);markCrit('p06');}
 else if(rp.status===403){logWarn('[403] '+pa[0]+' bloqueado');if(pa[0]==='/admin')addF('med','/admin bloqueado (403)','Posible bypass');}}
-if(pathFound===0)logOk('No se encontraron rutas sensibles expuestas');
-else logErr(pathFound+' rutas sensibles expuestas!');
+if(pathFound===0)logOk('No se encontraron rutas sensibles expuestas (o eran falsos positivos de soft-404, descartados)');
+else logErr(pathFound+' rutas sensibles expuestas (verificadas por contenido)!');
 
 /* F07: Params */
 await tp(6);logSep('F07 — Parámetros peligrosos');
@@ -11984,9 +12078,11 @@ logOk('Race condition probado ('+raceOk+'/10 OK)');
 /* F29: API Abuse / IDOR */
 await tp(28);logSep('F29 — API Abuse / IDOR');
 var idorTests=[target+'/api/v1/users/1',target+'/api/v1/users/2',target+'/api/v1/users/admin',target+'/api/users/1',target+'/api/account/1',target+'/api/v2/orders/1',target+'/api/v1/products/1',target+'/user/1',target+'/account/1',target+'/api/v1/admin',target+'/api/v1/users/1/settings',target+'/api/v1/users/2/settings',target+'/api/v1/users/1/password',target+'/api/v1/users/1/role',target+'/api/v1/users/1/email',target+'/api/v1/users/1/session',target+'/api/v1/users/1/tokens',target+'/api/v1/users/1/permissions',target+'/api/v2/users/1',target+'/api/v2/users/2',target+'/api/v2/users/admin',target+'/api/v2/accounts/1',target+'/api/v2/orders/1',target+'/api/users/1',target+'/api/accounts/1',target+'/admin/users/1',target+'/admin/accounts/1',target+'/api/v1/organizations/1',target+'/api/v1/teams/1',target+'/api/v1/projects/1',target+'/api/v1/documents/1',target+'/api/v1/files/1',target+'/api/v1/messages/1',target+'/api/v1/payments/1',target+'/api/v1/invoices/1',target+'/api/v1/customers/1',target+'/api/v1/settings/1',target+'/api/v1/tokens/1',target+'/api/v1/keys/1',target+'/api/v1/secrets/1',target+'/api/v1/users/1?role=admin',target+'/user/profile?uid=1',target+'/profile/view?id=1'];
+var baseline29=await soft404Baseline(target);
 for(var ii=0;ii<idorTests.length;ii++){var ri4=await get(idorTests[ii]);
-if(ri4.status===200&&ri4.body.length>50){logWarn('Endpoint accesible: '+idorTests[ii].split(h)[1]);addF('med','Posible IDOR: '+idorTests[ii].split(h)[1],'Endpoint de API sin auth aparente');}await sl(50);}
-logOk('IDOR probado con '+idorTests.length+' endpoints');
+var idorPath29=idorTests[ii].split(h)[1]||idorTests[ii];
+if(ri4.status===200&&ri4.body.length>50&&sfVerify(idorPath29,ri4,baseline29)){logWarn('Endpoint accesible: '+idorPath29);addF('med','Posible IDOR: '+idorPath29,'Endpoint de API sin auth aparente');}await sl(50);}
+logOk('IDOR probado con '+idorTests.length+' endpoints (falsos positivos de soft-404 descartados)');
 
 /* F30: XXE */
 await tp(29);logSep('F30 — XXE Injection');
@@ -12198,16 +12294,18 @@ logOk('Virtual hosts probados');
 /* F54: Backups */
 await tp(53);logSep('F54 — Backup Files');
 var backupFiles=[['/backup.sql','crit'],['/database.sql','crit'],['/db.sql','crit'],['/backup.zip','high'],['/backup.tar.gz','high'],['/backup.tar','high'],['/site.zip','high'],['/dump.sql','crit'],['/config.php.bak','high'],['/web.config.bak','high'],['/.bak','low'],['/index.php.bak','med'],['/index.html.bak','low'],['/config.json.bak','high'],['/backup/','med'],['/old/','med'],['/backup.tar.bz2','high'],['/site.tar.gz','high'],['/www.zip','high'],['/html.zip','high'],['/public.zip','high'],['/web.zip','high'],['/app.zip','high'],['/data.sql','crit'],['/db_backup.sql','crit'],['/mysql.sql','crit'],['/postgres.sql','crit'],['/db_dump.sql','crit'],['/database_backup.sql','crit'],['/backup_2023.sql','crit'],['/backup_2024.sql','crit'],['/backup_old.sql','crit'],['/config.bak','high'],['/settings.bak','high'],['/.env.bak','crit'],['/.env.backup','crit'],['/config.php.old','high'],['/config.php~','high'],['/index.php~','med'],['/.swp','low'],['/admin.php.bak','high'],['/wp-config.php.old','crit'],['/wp-config.php~','crit'],['/settings.php.bak','high'],['/database.yml.bak','high'],['/application.properties.bak','high'],['/backup_2025.sql','crit'],['/backup_latest.sql','crit'],['/dump_2024.sql','crit'],['/db_backup_2024.sql','crit'],['/database_2024.sql','crit'],['/site_backup.zip','high'],['/www_backup.tar.gz','high'],['/html_backup.zip','high'],['/web_backup.tar','high'],['/app_backup.zip','high'],['/config_backup.json','high'],['/settings_backup.yml','high'],['/.env.example','low'],['/.env.development','crit'],['/.env.staging','crit'],['/.env.test','med'],['/.env.docker','crit'],['/.env.production.local','crit'],['/config.local.php','high'],['/settings.local.json','high'],['/appsettings.local.json','high'],['/database.local.yml','crit'],['/docker-compose.local.yml','high'],['/.htaccess','med'],['/.htpasswd','high'],['/web.config','high'],['/.git/config','crit'],['/.svn/entries','high'],['/.hg/store','high'],['/old.zip','high'],['/archive.zip','high'],['/archives.zip','high']];
+var baseline54=await soft404Baseline(target);
 for(var bi3=0;bi3<backupFiles.length;bi3++){var rbk3=await get(target+backupFiles[bi3][0]);
-if(rbk3.status===200&&rbk3.body.length>10){logErr('[200] '+backupFiles[bi3][0]+' accesible!');addF(backupFiles[bi3][1],backupFiles[bi3][0]+' expuesto','Backup accesible');markCrit('p54');}await sl(40);}
-logOk('Backups probados');
+if(rbk3.status===200&&rbk3.body.length>10&&sfVerify(backupFiles[bi3][0],rbk3,baseline54)){logErr('[200] '+backupFiles[bi3][0]+' accesible (contenido verificado)!');addF(backupFiles[bi3][1],backupFiles[bi3][0]+' expuesto','Backup accesible');markCrit('p54');}await sl(40);}
+logOk('Backups probados (falsos positivos de soft-404 descartados)');
 
 /* F55: Config Files */
 await tp(54);logSep('F55 — Config File Exposure');
 var configFiles=[['/config.php','crit'],['/config.yml','high'],['/config.yaml','high'],['/application.properties','crit'],['/config/database.yml','crit'],['/docker-compose.yml','high'],['/docker-compose.yaml','high'],['/Dockerfile','med'],['/package.json','low'],['/composer.json','low'],['/Gemfile','low'],['/requirements.txt','low'],['/Makefile','low'],['/.travis.yml','low'],['/.env','crit'],['/.env.local','crit'],['/.env.production','crit'],['/config/database.php','crit'],['/settings.py','high'],['/settings.json','high'],['/appsettings.json','high'],['/appsettings.Development.json','high'],['/appsettings.Production.json','high'],['/connectionstrings.json','crit'],['/.gitlab-ci.yml','high'],['/Jenkinsfile','high'],['/.github/workflows','high'],['/azure-pipelines.yml','high'],['/.circleci/config.yml','high'],['/.drone.yml','high'],['/bitbucket-pipelines.yml','high'],['/ansible.cfg','high'],['/inventory.ini','crit'],['/hosts.ini','crit'],['/terraform.tfvars','crit'],['/values.yaml','high'],['/Chart.yaml','med'],['/Chart.lock','low'],['/docker-compose.override.yml','high'],['/phpunit.xml','med'],['/phpspec.yml','low'],['/.eslintrc.js','low'],['/webpack.config.js','low'],['/babel.config.js','low'],['/tsconfig.json','low'],['/vite.config.js','low'],['/nginx.conf','high'],['/httpd.conf','high'],['/apache2.conf','high'],['/my.cnf','crit'],['/postgresql.conf','crit'],['/redis.conf','high'],['/mongod.conf','high'],['/supervisord.conf','med'],['/crontab','med'],['/.npmrc','med'],['/.yarnrc','med'],['/.dockercfg','med'],['/credentials','crit'],['/credentials.json','crit'],['/service-account.json','crit'],['/.aws/credentials','crit'],['/.aws/config','med'],['/.ssh/id_rsa','crit'],['/.ssh/id_ed25519','crit'],['/.ssh/config','high'],['/.ssh/known_hosts','low'],['/.ssh/authorized_keys','high'],['/kubeconfig','crit'],['/.kube/config','crit'],['/vault-token','crit'],['/.vault-token','crit'],['/consul.json','med'],['/nomad.hcl','med'],['/terraform.tfstate','crit'],['/terraform.tfstate.backup','crit'],['/.terraform/','high'],['/secrets.yml','crit'],['/secrets.yaml','crit'],['/secrets.json','crit'],['/secrets.properties','crit'],['/secrets.env','crit'],['/config/secrets.yml','crit'],['/config/secrets.json','crit'],['/app/secret.js','high'],['/app/config/secret.js','high'],['/private.key','crit'],['/private_key.pem','crit'],['/id_rsa','crit'],['/id_ecdsa','crit'],['/id_dsa','crit'],['/ca.key','crit'],['/ca.pem','high'],['/server.key','crit'],['/server.pem','high'],['/client.key','crit'],['/client.pem','high'],['/cert.key','crit'],['/cert.pem','high'],['/ssl/key.pem','crit'],['/ssl/cert.pem','high'],['/tls/key','crit'],['/tls/cert','high'],['/pki/key','crit'],['/pki/cert','high'],['/.npmrc','med'],['/.yarnrc','med'],['/.pypirc','high'],['/.netrc','crit'],['/.git-credentials','crit'],['/.gitconfig','med'],['/.docker/config.json','crit'],['/.dockercfg','high'],['/kaniko-config.json','high'],['/buildkitd.toml','med'],['/containerd/config.toml','med'],['/crictl.yaml','med'],['/fluentd.conf','med'],['/fluent-bit.conf','med'],['/vector.toml','med'],['/otel-collector.yaml','med'],['/prometheus.yml','med'],['/alertmanager.yml','med'],['/grafana.ini','high'],['/loki-config.yaml','med'],['/tempo.yaml','med'],['/mimir.yaml','med'],['/otelcol-config.yaml','med']];
+var baseline55=await soft404Baseline(target);
 for(var cf=0;cf<configFiles.length;cf++){var rcf=await get(target+configFiles[cf][0]);
-if(rcf.status===200&&rcf.body.length>5){logErr('[200] '+configFiles[cf][0]+' expuesto!');addF(configFiles[cf][1],configFiles[cf][0]+' expuesto','Configuración accesible');markCrit('p55');}await sl(30);}
-logOk('Config files probados');
+if(rcf.status===200&&rcf.body.length>5&&sfVerify(configFiles[cf][0],rcf,baseline55)){logErr('[200] '+configFiles[cf][0]+' expuesto (contenido verificado)!');addF(configFiles[cf][1],configFiles[cf][0]+' expuesto','Configuración accesible');markCrit('p55');}await sl(30);}
+logOk('Config files probados (falsos positivos de soft-404 descartados)');
 
 /* F56: WAF Evasion */
 await tp(55);logSep('F56 — WAF Evasion');
@@ -12370,9 +12468,11 @@ logOk('Auth context probado');
 /* F79: IDOR */
 await tp(78);logSep('F79 — IDOR Enumeration');
 var idorIds=['1','2','3','100','999','admin','root','0','null','*'];
+var baseline79=await soft404Baseline(target);
 for(var id=0;id<idorIds.length;id++){var rid=await get(target+'/api/v1/users/'+idorIds[id]);
-if(rid.ok&&rid.body&&/email|name|phone|address/i.test(rid.body)){logWarn('IDOR: /api/v1/users/'+idorIds[id]+' expone datos');addF('high','IDOR: users/'+idorIds[id],'Datos de usuario accesibles');markCrit('p79');break;}await sl(50);}
-logOk('IDOR probado');
+var isBaseline79=baseline79&&rid.status===baseline79.status&&Math.abs(rid.body.length-baseline79.len)<40&&sfHash(rid.body.slice(0,500))===baseline79.hash;
+if(rid.ok&&rid.body&&/email|name|phone|address/i.test(rid.body)&&!isBaseline79){logWarn('IDOR: /api/v1/users/'+idorIds[id]+' expone datos');addF('high','IDOR: users/'+idorIds[id],'Datos de usuario accesibles');markCrit('p79');break;}await sl(50);}
+logOk('IDOR probado (falsos positivos de soft-404 descartados)');
 
 /* F80: Mass Assignment */
 await tp(79);logSep('F80 — Mass Assignment');
@@ -12992,16 +13092,18 @@ logOk('WebDAV probado');
 /* F168: Git Deep */
 await tp(167);logSep('F168 — Git Deep Exploitation');
 var gitDeep=['/.git/refs/heads/master','/.git/refs/heads/main','/.git/objects/info/packs','/.git/logs/HEAD','/.git/packed-refs','/.git/info/refs','/.git/HEAD'];
+var baseline168=await soft404Baseline(target);
 for(var gd=0;gd<gitDeep.length;gd++){var rgd=await get(target+gitDeep[gd]);
-if(rgd&&rgd.status===200&&rgd.body.length>0){logErr('Git deep: '+gitDeep[gd]+' accesible ('+rgd.body.length+' bytes)');addF('crit','Git deep: '+gitDeep[gd],'Reconstrucción del repo posible');markCrit('p168');}await sl(50);}
-logOk('Git deep probado');
+if(rgd&&rgd.status===200&&rgd.body.length>0&&sfVerify(gitDeep[gd],rgd,baseline168)){logErr('Git deep: '+gitDeep[gd]+' accesible ('+rgd.body.length+' bytes, contenido verificado)');addF('crit','Git deep: '+gitDeep[gd],'Reconstrucción del repo posible');markCrit('p168');}await sl(50);}
+logOk('Git deep probado (falsos positivos de soft-404 descartados)');
 
 /* F169: SVN Deep */
 await tp(168);logSep('F169 — SVN Deep');
 var svnTests=['/.svn/entries','/.svn/wc.db','/.svn/prop-base/','/.svn/text-base/','/.svn/tmp/','/.svn/all-wcprops'];
+var baseline169=await soft404Baseline(target);
 for(var sv=0;sv<svnTests.length;sv++){var rsv=await get(target+svnTests[sv]);
-if(rsv&&rsv.status===200&&rsv.body.length>0){logErr('SVN: '+svnTests[sv]+' accesible!');addF('crit','SVN expuesto: '+svnTests[sv],'Repositorio SVN accesible');markCrit('p169');}await sl(50);}
-logOk('SVN deep probado');
+if(rsv&&rsv.status===200&&rsv.body.length>0&&sfVerify(svnTests[sv],rsv,baseline169)){logErr('SVN: '+svnTests[sv]+' accesible (contenido verificado)!');addF('crit','SVN expuesto: '+svnTests[sv],'Repositorio SVN accesible');markCrit('p169');}await sl(50);}
+logOk('SVN deep probado (falsos positivos de soft-404 descartados)');
 
 /* F170: Mercurial Deep */
 await tp(169);logSep('F170 — Mercurial Deep');
@@ -15068,8 +15170,14 @@ logInfo('Correlation: '+fcorrChains.length+' cadenas de exploit detectadas');
 if(fcorrChains.length>=3){logCrit('DESTROZO LEVEL: MAXIMUM — '+fcorrChains.length+' cadenas de exploit activas');addF('crit','DESTROZO LEVEL: MAXIMUM',fcorrChains.length+' cadenas de exploit activas en el target');markCrit('p300');}
 await sl(100);
 
+}catch(e){
+if(e&&e.tudelasecModeStop){
+logSep('Modo '+scanMode.toUpperCase()+' completado');
+logOk('Escaneo detenido segun el modo elegido ('+(_tpCallCount-1)+' de 294 fases ejecutadas)');
+}else{throw e;}
+}
 
-await tp(304);logSep('F201 — Reporte Final Mejorado');
+setP(304);await sl(150);logSep('F201 — Reporte Final Mejorado');
 var total=counts.crit+counts.high+counts.med+counts.low;
 var score=0;var scoreRaw=counts.crit*10+counts.high*5+counts.med*2+counts.low*1;
 if(scoreRaw>50)score=95;else if(scoreRaw>30)score=80;else if(scoreRaw>15)score=60;else if(scoreRaw>5)score=40;else score=15;
@@ -15155,6 +15263,13 @@ if(modalAccept)modalAccept.addEventListener('click',function(){if(modalCountdown
 if(modal2Accept)modal2Accept.addEventListener('click',function(){if(modal2Countdown){clearInterval(modal2Countdown);modal2Countdown=null;}doScan();});
 if(modal2Cancel)modal2Cancel.addEventListener('click',function(){if(modal2Countdown){clearInterval(modal2Countdown);modal2Countdown=null;}if(modal2)modal2.classList.remove('show');pendingTarget=null;if(modal2Timer)modal2Timer.textContent='El ataque final aguarda tu orden...';});
 if(modalCancel)modalCancel.addEventListener('click',function(){if(modalCountdown){clearInterval(modalCountdown);modalCountdown=null;}if(modal)modal.classList.remove('show');pendingTarget=null;if(modalTimer)modalTimer.textContent='El Leviatán espera tu orden...';});
+document.querySelectorAll('.tier-btn').forEach(function(tb){
+tb.addEventListener('click',function(){
+scanMode=tb.getAttribute('data-mode');
+document.querySelectorAll('.tier-btn').forEach(function(x){x.classList.remove('active');});
+tb.classList.add('active');
+});
+});
 if(btn)btn.addEventListener('click',startScan);
 if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')startScan();});
 document.querySelectorAll('.scan-ex').forEach(function(el){el.addEventListener('click',function(){inp.value=el.dataset.val||el.textContent;});});
@@ -15206,7 +15321,7 @@ html+='.risk-banner.med{background:rgba(204,136,153,.1);border:2px solid #cc8899
 html+='.risk-banner.low{background:rgba(96,165,250,.08);border:2px solid #60a5fa;color:#60a5fa;}';
 html+='.section{margin-bottom:35px;}';
 html+='.section h2{font-size:14px;color:#ffb020;letter-spacing:.05em;margin-bottom:15px;padding-bottom:8px;border-bottom:1px solid rgba(255,26,46,.15);}';
-html+='.section h2::before{content:"\\u2620  ";color:#ff1a2e;}';
+html+='.section h2::before{content:"\u2620  ";color:#ff1a2e;}';
 html+='.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px;}';
 html+='.summary-card{padding:18px;border-radius:4px;text-align:center;}';
 html+='.summary-card .num{font-size:36px;font-weight:900;line-height:1;}';
@@ -15252,18 +15367,18 @@ html+='.remediation.med{background:rgba(204,136,153,.04);border-left:3px solid #
 html+='.remediation h3{font-size:12px;margin-bottom:8px;}';
 html+='.remediation ul{list-style:none;padding-left:0;}';
 html+='.remediation li{font-size:11px;color:#6a5865;padding:3px 0 3px 16px;position:relative;}';
-html+='.remediation li::before{content:"\\u2192";position:absolute;left:0;color:#ff1a2e;}';
+html+='.remediation li::before{content:"\u2192";position:absolute;left:0;color:#ff1a2e;}';
 html+='.footer{padding:30px 50px;text-align:center;font-size:10px;color:#4a3a45;border-top:1px solid rgba(255,26,46,.1);margin-top:40px;}';
 html+='.destrozo{font-size:16px;color:#ff1a2e;text-align:center;padding:20px;letter-spacing:.1em;font-weight:700;}';
 html+='@media print{body{background:#fff;color:#000;}.header{background:#1a0a0d;-webkit-print-color-adjust:exact;}.section h2{color:#cc0a1f;}.summary-card,.owasp-bar .bar{background:#f5f5f5;}}';
 html+='</style></head><body>';
 /* Header */
-html+='<div class="header"><h1>\\u2620 TUDELASEC \\u2014 LEVIATAN v9.0</h1><div class="sub">REPORTE DE AUDITORIA OFENSIVA \\u2014 306 FASES DE ANIQUILACION TOTAL</div>';
+html+='<div class="header"><h1>\u2620 TUDELASEC \u2014 LEVIATAN v9.0</h1><div class="sub">REPORTE DE AUDITORIA OFENSIVA \u2014 306 FASES DE ANIQUILACION TOTAL</div>';
 html+='<div class="meta"><div class="meta-item"><b>Fecha:</b> '+dt+' '+tm+'</div><div class="meta-item"><b>Target:</b> '+(S.host||'N/A')+'</div><div class="meta-item"><b>Server:</b> '+(S.headers['server']||'desconocido')+'</div><div class="meta-item"><b>Stack:</b> '+(S.techs.join(', ')||'no identificado')+'</div><div class="meta-item"><b>WAF:</b> '+(S.waf?'DETECTADO':'no detectado')+'</div><div class="meta-item"><b>Fases ejecutadas:</b> 300</div></div></div>';
 /* Risk banner */
 html+='<div class="container">';
 var rbClass=riskScore>80?'crit':riskScore>60?'high':riskScore>40?'med':'low';
-html+='<div class="risk-banner '+rbClass+'">\\u2620 RIESGO '+riskLabel+' \\u2014 Score: '+riskScore+'/100 \\u2014 CVSS Promedio: '+cvssAvg.toFixed(1)+'/10 \\u2014 '+total+' hallazgos totales</div>';
+html+='<div class="risk-banner '+rbClass+'">\u2620 RIESGO '+riskLabel+' \u2014 Score: '+riskScore+'/100 \u2014 CVSS Promedio: '+cvssAvg.toFixed(1)+'/10 \u2014 '+total+' hallazgos totales</div>';
 /* Summary cards */
 html+='<div class="section"><h2>Resumen de Severidad</h2><div class="summary-grid">';
 html+='<div class="summary-card crit"><div class="num">'+counts.crit+'</div><div class="lbl">CRITICAL</div></div>';
@@ -15276,7 +15391,7 @@ html+='<div style="font-size:11px;color:#6a5865;margin-bottom:5px;">Risk Score: 
 html+='<div class="score-bar"><div class="score-fill" style="width:'+riskScore+'%;background:'+riskColor+';"></div></div>';
 html+='</div>';
 /* OWASP mapping */
-html+='<div class="section"><h2>OWASP Top 10 \\u2014 Mapeo de Vulnerabilidades</h2>';
+html+='<div class="section"><h2>OWASP Top 10 \u2014 Mapeo de Vulnerabilidades</h2>';
 var maxOwasp=Math.max.apply(null,Object.keys(owaspCounts).map(function(k){return owaspCounts[k];}).concat([1]));
 Object.keys(owaspCounts).sort(function(a,b){return owaspCounts[b]-owaspCounts[a];}).forEach(function(cat){
 var w=(owaspCounts[cat]/maxOwasp)*100;
@@ -15285,11 +15400,11 @@ html+='<div class="owasp-bar"><div class="label">'+cat+'</div><div class="bar"><
 if(Object.keys(owaspCounts).length===0)html+='<div style="color:#6a5865;font-size:11px;">Sin mapeo OWASP disponible</div>';
 html+='</div>';
 /* CVE section */
-if(cveCards.length>0){html+='<div class="section"><h2>CVEs Detectados \\u2014 Versiones Vulnerables ('+cveCards.length+')</h2><table><tr><th>CVE</th><th>Producto/Version</th><th>Detalle</th></tr>';
+if(cveCards.length>0){html+='<div class="section"><h2>CVEs Detectados \u2014 Versiones Vulnerables ('+cveCards.length+')</h2><table><tr><th>CVE</th><th>Producto/Version</th><th>Detalle</th></tr>';
 cveCards.forEach(function(c){var sev=c.className.split(' ').filter(function(s){return['crit','high','med','low'].indexOf(s)>-1;})[0]||'low';var name=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';var detail=c.querySelector('.sf-detail')?c.querySelector('.sf-detail').textContent:'';html+='<tr><td><span class="sev-badge '+sev+'">'+sev.toUpperCase()+'</span> '+name+'</td><td>'+name+'</td><td>'+detail+'</td></tr>';});
 html+='</table></div>';}
 /* Attack chains */
-if(chainCards.length>0){html+='<div class="section"><h2>Cadenas de Exploit \\u2014 Correlation Engine ('+chainCards.length+')</h2><table><tr><th>Cadena</th><th>Detalle</th></tr>';
+if(chainCards.length>0){html+='<div class="section"><h2>Cadenas de Exploit \u2014 Correlation Engine ('+chainCards.length+')</h2><table><tr><th>Cadena</th><th>Detalle</th></tr>';
 chainCards.forEach(function(c){var sev=c.className.split(' ').filter(function(s){return['crit','high','med','low'].indexOf(s)>-1;})[0]||'low';var name=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';var detail=c.querySelector('.sf-detail')?c.querySelector('.sf-detail').textContent:'';html+='<tr><td><span class="sev-badge '+sev+'">'+sev.toUpperCase()+'</span> '+name+'</td><td>'+detail+'</td></tr>';});
 html+='</table></div>';}
 /* Technology stack */
@@ -15298,26 +15413,26 @@ if(S.techs.length>0)S.techs.forEach(function(t){html+='<span class="tech-tag">'+
 html+='</div></div>';
 /* WAF status */
 html+='<div class="section"><h2>WAF / Proteccion</h2>';
-if(S.waf)html+='<div class="waf-status yes">\\u26a0 WAF DETECTADO \\u2014 Cloudflare/CDN activo. Resultados pueden estar filtrados. Bypass aplicado en fases 56/171/172/291.</div>';
-else html+='<div class="waf-status no">\\u2620 SIN WAF \\u2014 Acceso directo al origin. IP expuesta. Mayor superficie de ataque.</div>';
+if(S.waf)html+='<div class="waf-status yes">\u26a0 WAF DETECTADO \u2014 Cloudflare/CDN activo. Resultados pueden estar filtrados. Bypass aplicado en fases 56/171/172/291.</div>';
+else html+='<div class="waf-status no">\u2620 SIN WAF \u2014 Acceso directo al origin. IP expuesta. Mayor superficie de ataque.</div>';
 html+='</div>';
 /* All findings table */
 html+='<div class="section"><h2>Hallazgos Completos ('+total+')</h2><table><tr><th>Sev</th><th>Nombre</th><th>Detalle</th><th>Hora</th></tr>';
 cards.forEach(function(c){var sev=c.className.split(' ').filter(function(s){return['crit','high','med','low'].indexOf(s)>-1;})[0]||'low';var name=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';var detail=c.querySelector('.sf-detail')?c.querySelector('.sf-detail').textContent:'';var time=c.querySelector('.sf-time')?c.querySelector('.sf-time').textContent:'';html+='<tr><td><span class="sev-badge '+sev+'">'+sev.toUpperCase()+'</span></td><td>'+name+'</td><td>'+detail+'</td><td>'+time+'</td></tr>';});
 html+='</table></div>';
 /* Remediation */
-html+='<div class="section"><h2>Plan de Remediacion \\u2014 Prioridad Critica</h2>';
-if(counts.crit>0){html+='<div class="remediation crit"><h3>\\u26d4 CRITICAL ('+counts.crit+') \\u2014 Patch inmediato (0-24h)</h3><ul><li>Validar y sanitizar TODOS los inputs en server-side (allowlist, no blocklist)</li><li>Implementar CSP estricta, X-Frame-Options, HSTS, X-Content-Type-Options</li><li>Actualizar software vulnerable a ultima version (CVEs detectados: '+cveCards.length+')</li><li>Restringir metodos HTTP peligrosos (PUT/DELETE/TRACE/CONNECT)</li><li>Parchar RCE/SQLi/SSTI inmediatamente \\u2014 compromiso total posible</li><li>Aislar servicios internos expuestos (Redis, MongoDB, Docker, K8s)</li></ul></div>';}
-if(counts.high>0){html+='<div class="remediation high"><h3>\\u26a0 HIGH ('+counts.high+') \\u2014 Resolver en 7 dias</h3><ul><li>Implementar rate limiting y reglas WAF custom</li><li>Endurecer configuracion de cookies: HttpOnly + Secure + SameSite=Strict</li><li>Revisar headers de seguridad faltantes</li><li>Cerrar endpoints de API sin autenticacion (IDOR)</li><li>Validar configuracion CORS \\u2014 no reflejar origenes arbitrarios</li><li>Desactivar debug/actuator endpoints en produccion</li></ul></div>';}
-if(counts.med>0){html+='<div class="remediation med"><h3>\\u2139 MEDIUM ('+counts.med+') \\u2014 Resolver en 30 dias</h3><ul><li>Revisar politicas de CORS y cache</li><li>Implementar validacion de entrada robusta en todos los endpoints</li><li>Remover headers de information disclosure (X-Powered-By, X-AspNet-Version)</li><li>Configurar log monitoring y alerting</li></ul></div>';}
-if(counts.low>0){html+='<div class="remediation"><h3 style="color:#60a5fa;">\\u2139 LOW ('+counts.low+') \\u2014 Hardening continuo</h3><ul><li>Implementar mejores practicas de hardening general</li><li>Auditar dependencias regularmente</li><li>Documentar politicas de seguridad</li></ul></div>';}
+html+='<div class="section"><h2>Plan de Remediacion \u2014 Prioridad Critica</h2>';
+if(counts.crit>0){html+='<div class="remediation crit"><h3>\u26d4 CRITICAL ('+counts.crit+') \u2014 Patch inmediato (0-24h)</h3><ul><li>Validar y sanitizar TODOS los inputs en server-side (allowlist, no blocklist)</li><li>Implementar CSP estricta, X-Frame-Options, HSTS, X-Content-Type-Options</li><li>Actualizar software vulnerable a ultima version (CVEs detectados: '+cveCards.length+')</li><li>Restringir metodos HTTP peligrosos (PUT/DELETE/TRACE/CONNECT)</li><li>Parchar RCE/SQLi/SSTI inmediatamente \u2014 compromiso total posible</li><li>Aislar servicios internos expuestos (Redis, MongoDB, Docker, K8s)</li></ul></div>';}
+if(counts.high>0){html+='<div class="remediation high"><h3>\u26a0 HIGH ('+counts.high+') \u2014 Resolver en 7 dias</h3><ul><li>Implementar rate limiting y reglas WAF custom</li><li>Endurecer configuracion de cookies: HttpOnly + Secure + SameSite=Strict</li><li>Revisar headers de seguridad faltantes</li><li>Cerrar endpoints de API sin autenticacion (IDOR)</li><li>Validar configuracion CORS \u2014 no reflejar origenes arbitrarios</li><li>Desactivar debug/actuator endpoints en produccion</li></ul></div>';}
+if(counts.med>0){html+='<div class="remediation med"><h3>\u2139 MEDIUM ('+counts.med+') \u2014 Resolver en 30 dias</h3><ul><li>Revisar politicas de CORS y cache</li><li>Implementar validacion de entrada robusta en todos los endpoints</li><li>Remover headers de information disclosure (X-Powered-By, X-AspNet-Version)</li><li>Configurar log monitoring y alerting</li></ul></div>';}
+if(counts.low>0){html+='<div class="remediation"><h3 style="color:#60a5fa;">\u2139 LOW ('+counts.low+') \u2014 Hardening continuo</h3><ul><li>Implementar mejores practicas de hardening general</li><li>Auditar dependencias regularmente</li><li>Documentar politicas de seguridad</li></ul></div>';}
 html+='</div>';
 /* Terminal log */
-html+='<div class="section"><h2>Log de Consola \\u2014 Traza Completa del Escaneo</h2><div class="terminal"><pre>'+termHtml+'</pre></div></div>';
+html+='<div class="section"><h2>Log de Consola \u2014 Traza Completa del Escaneo</h2><div class="terminal"><pre>'+termHtml+'</pre></div></div>';
 /* Destrozo level */
-if(chainCards.length>=3){html+='<div class="destrozo">\\u2620 DESTROZO LEVEL: MAXIMUM \\u2014 '+chainCards.length+' CADENAS DE EXPLOIT ACTIVAS \\u2620</div>';}
+if(chainCards.length>=3){html+='<div class="destrozo">\u2620 DESTROZO LEVEL: MAXIMUM \u2014 '+chainCards.length+' CADENAS DE EXPLOIT ACTIVAS \u2620</div>';}
 /* Footer */
-html+='</div><div class="footer">TudelaSec Leviatan v9.0 \\u2014 Generado automaticamente el '+dt+' a las '+tm+'<br>306 fases reales ejecutadas \\u2014 Cero teatro \\u2014 Agresividad absoluta<br>\\u2620 Este reporte es confidencial. Usar solo sobre targets con autorizacion explicita.</div>';
+html+='</div><div class="footer">TudelaSec Leviatan v9.0 \u2014 Generado automaticamente el '+dt+' a las '+tm+'<br>306 fases reales ejecutadas \u2014 Cero teatro \u2014 Agresividad absoluta<br>\u2620 Este reporte es confidencial. Usar solo sobre targets con autorizacion explicita.</div>';
 html+='</body></html>';
 rpt.document.write(html);rpt.document.close();
 /* Auto-trigger print dialog */

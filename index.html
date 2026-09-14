@@ -11162,17 +11162,18 @@ await sl(200);
 
 /* PRE-SCAN: Detección rápida de puertos abiertos (HTTP) */
 logSep('PRE-SCAN — Detección rápida de puertos');
+if(S.waf){
+logInfo('WAF/CDN detectado — se omite el pre-scan de puertos (el hostname resuelve al edge de Cloudflare, no al origin real)');
+addF('low','Pre-scan de puertos omitido (WAF/CDN)','Target detras de WAF/CDN — escanear puertos del hostname publico no aporta señal real');
+}else{
 var prePorts=[80,443,8080,8443,8000,8888,3000,5000,9000,2082,2083,2086,2087,2095,2096,2052,2053,8880];
-logInfo('Probando '+prePorts.length+' puertos HTTP comunes via proxy...');
+logInfo('Probando '+prePorts.length+' puertos HTTP comunes via proxy (en paralelo)...');
 var preOpen=[];
-for(var pp=0;pp<prePorts.length;pp++){
-var pUrl=prePorts[pp]===443?('https://'+h+':'+prePorts[pp]+'/'):('http://'+h+':'+prePorts[pp]+'/');
-var pRes=await get(pUrl);
-if(pRes&&(pRes.ok||pRes.status>0)){preOpen.push(prePorts[pp]);logWarn('Puerto '+prePorts[pp]+' ABIERTO (HTTP responde)');}
-await sl(20);
-}
+var preResults=await batch(prePorts.map(function(p){return p===443?('https://'+h+':'+p+'/'):('http://'+h+':'+p+'/');}));
+preResults.forEach(function(r,i){if(r.status==='fulfilled'&&r.value&&r.value.ok){preOpen.push(prePorts[i]);logWarn('Puerto '+prePorts[i]+' ABIERTO (HTTP responde)');}});
 if(preOpen.length>0){logWarn('PRE-SCAN: '+preOpen.length+' puertos HTTP abiertos: '+preOpen.join(', '));addF('med','Puertos abiertos detectados',preOpen.join(', '));}
 else logOk('PRE-SCAN: no se detectaron puertos HTTP adicionales abiertos');
+}
 logOk('Pre-scan completado — continuando con fases principales');
 
 /* F01: DNS */
@@ -11747,18 +11748,33 @@ else logInfo('crt.sh no respondio');
 
 /* F12: Puertos */
 await tp(11);logSep('F12 — Puertos comunes');
-var commonPorts=[80,443,8080,8443,3000,3001,5000,8000,8888,9000,9090,4000,4443,2082,2083,2086,2087,2095,2096,27017,3306,5432,6379,11211,9200,5601,8500,2375,2376,4243,10250,10255,2379,6443,8200,4001,4002,4040,4041,7080,7443,9443,9999,10000,15672,5672,15692,9300,8161,61616,5060,5061,69,161,162,123,1900,5353,5355,1883,8883,5671,6370,7000,7001,7474,7687,8086,8088,8333,9001,9042,9418,25565,32400,8983,7547,4369,61613,61614,1830,1831,1840,1841,1842,1843,1880,1901,8081,8082,9201,11211,27018,27019,21,22,23,25,53,110,143,389,636,873,1080,1194,1433,1521,1723,1883,2049,2375,2376,2484,3128,3268,3306,3389,3478,5060,5061,5222,5269,5432,5672,5800,5900,5984,6379,6443,6660,6661,6666,6667,6697,7000,7001,7077,7180,7474,7547,7687,7777,8000,8008,8009,8042,8060,8080,8081,8082,8086,8088,8089,8090,8091,8161,8181,8200,8333,8443,8500,8530,8649,8765,8787,8800,8834,8880,8888,8889,9000,9001,9009,9042,9080,9090,9091,9100,9200,9300,9418,9443,9600,9800,9999,10000,10250,11211,15672,18888,27017,27018,27019,32400,50070,50090,61616];
-logInfo('Probando '+commonPorts.length+' puertos via HTTP...');
+if(S.waf){
+logInfo('WAF/CDN detectado — se omite el escaneo de puertos (el hostname resuelve al edge de Cloudflare, no al origin real; probar puertos aqui solo generaria ruido/falsos positivos)');
+addF('low','Escaneo de puertos omitido (WAF/CDN)','Target detras de Cloudflare — se necesitaria descubrir la IP del origin real (crt.sh, historico DNS, subdominios sin proxy) antes de escanear puertos con sentido');
+logOk('F12 omitido por WAF/CDN activo');
+}else{
+var commonPortsRaw=[80,443,8080,8443,3000,3001,5000,8000,8888,9000,9090,4000,4443,2082,2083,2086,2087,2095,2096,27017,3306,5432,6379,11211,9200,5601,8500,2375,2376,4243,10250,10255,2379,6443,8200,4001,4002,4040,4041,7080,7443,9443,9999,10000,15672,5672,15692,9300,8161,61616,5060,5061,69,161,162,123,1900,5353,5355,1883,8883,5671,6370,7000,7001,7474,7687,8086,8088,8333,9001,9042,9418,25565,32400,8983,7547,4369,61613,61614,1830,1831,1840,1841,1842,1843,1880,1901,8081,8082,9201,27018,27019,21,22,23,25,53,110,143,389,636,873,1080,1194,1433,1521,1723,2049,2484,3128,3268,3389,3478,5222,5269,5800,5900,5984,6443,6660,6661,6666,6667,6697,7077,7180,7777,8008,8009,8042,8060,8089,8090,8091,8181,8530,8649,8765,8787,8800,8834,8889,9080,9091,9100,9600,9800,18888,50070,50090];
+var commonPorts=commonPortsRaw.filter(function(p,i){return commonPortsRaw.indexOf(p)===i;});
+logInfo('Probando '+commonPorts.length+' puertos via HTTP (en paralelo, por lotes de 20)...');
 var portHit=0;
-for(var po=0;po<commonPorts.length;po++){var portUrl='https://'+h+':'+commonPorts[po]+'/';var rp2=await get(portUrl);
-if(rp2.status>0||rp2.ok){portHit++;logWarn('Puerto '+commonPorts[po]+' responde');if(commonPorts[po]===2375||commonPorts[po]===2376){addF('crit','Docker API expuesto en puerto '+commonPorts[po],'Acceso no autenticado a Docker daemon');markCrit('p12');}
-if(commonPorts[po]===10250)addF('high','K8s API en puerto '+commonPorts[po],'kubelet API expuesto');
-if(commonPorts[po]===6379)addF('high','Redis en puerto '+commonPorts[po],'Redis sin auth posible');
-if(commonPorts[po]===27017)addF('high','MongoDB en puerto '+commonPorts[po],'MongoDB sin auth posible');
-if(commonPorts[po]===9200)addF('high','Elasticsearch en '+commonPorts[po],'Elasticsearch sin auth posible');}
-await sl(30);}
+var portBatchSize=20;
+for(var pb=0;pb<commonPorts.length;pb+=portBatchSize){
+var portChunk=commonPorts.slice(pb,pb+portBatchSize);
+var portChunkResults=await batch(portChunk.map(function(p){return 'https://'+h+':'+p+'/';}));
+portChunkResults.forEach(function(r,ci){
+if(r.status==='fulfilled'&&r.value&&r.value.ok){
+var pnum=portChunk[ci];portHit++;logWarn('Puerto '+pnum+' responde');
+if(pnum===2375||pnum===2376){addF('crit','Docker API expuesto en puerto '+pnum,'Acceso no autenticado a Docker daemon');markCrit('p12');}
+if(pnum===10250)addF('high','K8s API en puerto '+pnum,'kubelet API expuesto');
+if(pnum===6379)addF('high','Redis en puerto '+pnum,'Redis sin auth posible');
+if(pnum===27017)addF('high','MongoDB en puerto '+pnum,'MongoDB sin auth posible');
+if(pnum===9200)addF('high','Elasticsearch en '+pnum,'Elasticsearch sin auth posible');
+}
+});
+}
 if(portHit===0)logOk('No se detectaron puertos adicionales abiertos');
 else logWarn(portHit+' puertos respondiendo');
+}
 
 /* F13: Injection */
 await tp(12);logSep('F13 — Inyección básica');

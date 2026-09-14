@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="TudelaSec — Matías Ramírez Tudela. Ethical Hacker & Bug Bounty Hunter.">
 <title>TudelaSec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,6 +23,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:auto;}
 body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:hidden;line-height:1.6;}
+#scroll-bar{position:fixed;top:0;left:0;height:2px;width:0%;background:var(--acc);z-index:99999;transition:width .1s linear;pointer-events:none;}
 ::selection{background:var(--acc);color:#000;}
 a{color:inherit;text-decoration:none;}
 
@@ -2220,6 +2221,7 @@ a{color:inherit;text-decoration:none;}
 .scan-wrap::before{content:"";position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:92%;height:2px;background:linear-gradient(90deg,transparent,var(--acc2),var(--acc),#ff4444,var(--acc),transparent);box-shadow:0 0 20px rgba(255,26,46,.4);opacity:.5;}
 
 .scan-bar{display:flex;gap:12px;margin-bottom:28px;align-items:stretch;}
+@media(max-width:600px){.scan-bar{flex-direction:column;}.scan-bar .scan-btn{width:100%;padding:14px 20px;}}
 .scan-input-wrap{flex:1;position:relative;}
 .scan-input{width:100%;background:var(--bg1);border:1px solid var(--line);border-radius:3px;padding:16px 20px 16px 48px;color:var(--text);font-family:var(--mono);font-size:15px;outline:none;transition:border-color .2s;}
 .scan-input:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(255,26,46,.08);}
@@ -2290,7 +2292,8 @@ a{color:inherit;text-decoration:none;}
 .scan-term-dots{display:flex;gap:6px;margin-left:auto;}
 .scan-term-dot{width:10px;height:10px;border-radius:50%;}
 .scan-term-dot.r{background:#ff3355;}.scan-term-dot.y{background:#ffb020;}.scan-term-dot.g{background:#00ffa3;}
-.scan-term-body{padding:16px;font-family:var(--mono);font-size:11.5px;line-height:1.65;min-height:560px;max-height:760px;overflow-y:auto;position:relative;z-index:4;}
+.scan-term-body{padding:16px;font-family:var(--mono);font-size:11.5px;line-height:1.65;min-height:560px;max-height:760px;overflow-y:auto;position:relative;z-index:4;word-break:break-word;overflow-wrap:anywhere;}
+@media(max-width:600px){.scan-term-body{font-size:10.5px;padding:12px;min-height:400px;}}
 
 .scan-ln{margin-bottom:2px;}
 .scan-ln.section{color:rgba(255,26,46,.65);font-weight:700;}
@@ -2401,6 +2404,7 @@ a{color:inherit;text-decoration:none;}
 
 </head>
 <body>
+<div id="scroll-bar"></div>
 <div class="hero-bg-anim" id="hero-bg-anim"><div class="hero-grid"></div><div class="hero-scan"></div></div>
 <div class="side-progress" id="side-progress"></div>
 <div class="bg-orb bg-orb-1"></div>

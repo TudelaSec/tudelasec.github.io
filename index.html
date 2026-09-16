@@ -1764,6 +1764,7 @@ section .wrap { position: relative; z-index: 1; }
 
 /* ══ PASSIVE RECON ENGINE ══ */
 .rce-searchbar { display:flex; gap:12px; margin-bottom:28px; align-items:stretch; }
+@media(max-width:700px){.rce-searchbar{flex-direction:column;}.rce-searchbar select,.rce-searchbar .rce-btn{width:100%;}.rce-searchbar .rce-btn{padding:14px 20px;justify-content:center;}}
 .rce-input-wrap { flex:1; background:rgba(0,0,0,.5); border:1px solid rgba(255,26,46,.25); border-radius:4px; display:flex; align-items:center; gap:10px; padding:0 14px; transition:border-color .2s; }
 .rce-input-wrap:focus-within { border-color:rgba(255,26,46,.6); box-shadow:0 0 20px rgba(255,26,46,.08); }
 .rce-input-icon { color:var(--acc); font-size:18px; flex-shrink:0; }
@@ -1797,9 +1798,9 @@ section .wrap { position: relative; z-index: 1; }
 .rce-results { display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:16px; }
 .rce-card { background:rgba(8,3,8,.8); border:1px solid rgba(255,26,46,.15); border-radius:5px; overflow:hidden; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }
 .rce-card:hover { border-color:rgba(255,26,46,.3); }
-.rce-card-head { padding:12px 16px; background:rgba(255,26,46,.05); border-bottom:1px solid rgba(255,26,46,.1); display:flex; align-items:center; gap:10px; }
+.rce-card-head { padding:12px 16px; background:rgba(255,26,46,.05); border-bottom:1px solid rgba(255,26,46,.1); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .rce-card-icon { font-size:16px; }
-.rce-card-title { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); flex:1; letter-spacing:.04em; }
+.rce-card-title { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text); flex:1; min-width:140px; letter-spacing:.04em; }
 .rce-card-count { font-family:var(--mono); font-size:10px; color:var(--acc); }
 .rce-card-body { padding:12px 16px; max-height:320px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(255,26,46,.2) transparent; }
 .rce-card-body::-webkit-scrollbar { width:3px; }
@@ -2981,7 +2982,7 @@ a{color:inherit;text-decoration:none;}
           <span class="rce-ex" data-val="https://example.com">example.com</span>
         </div>
       </div>
-      <select id="crw-depth" style="background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 14px;border-radius:3px;cursor:pointer;">
+      <select id="crw-depth" style="background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:12px 14px;border-radius:3px;cursor:pointer;">
         <option value="1">Profundidad 1</option>
         <option value="2" selected>Profundidad 2</option>
         <option value="3">Profundidad 3</option>
@@ -21267,8 +21268,17 @@ async function crwFetch(url){
 
 /* Extraccion de links/forms/scripts via DOMParser real — mucho mas confiable que
    regex para HTML (maneja atributos con comillas simples/dobles, HTML malformado, etc). */
+function crwNormalizeUrl(url){
+  try{
+    var u = new URL(url);
+    u.hash = '';
+    if(u.pathname.length>1 && u.pathname.charAt(u.pathname.length-1)==='/') u.pathname = u.pathname.slice(0,-1);
+    return u.href;
+  }catch(e){ return url; }
+}
+
 function crwExtractFromHTML(html, baseUrl){
-  var out = { links: [], forms: [], scripts: [], external: [] };
+  var out = { links: [], forms: [], scripts: [], external: [], inlineJS: [] };
   var origin;
   try{ origin = new URL(baseUrl).origin; }catch(e){ return out; }
   var doc;
@@ -21277,7 +21287,7 @@ function crwExtractFromHTML(html, baseUrl){
   function pushResolved(raw, bucket){
     if(!raw) return;
     var abs;
-    try{ abs = new URL(raw, baseUrl).href; }catch(e){ return; }
+    try{ abs = crwNormalizeUrl(new URL(raw, baseUrl).href); }catch(e){ return; }
     if(abs.indexOf('javascript:')===0||abs.indexOf('mailto:')===0||abs.indexOf('tel:')===0) return;
     var u;
     try{ u = new URL(abs); }catch(e){ return; }
@@ -21290,10 +21300,17 @@ function crwExtractFromHTML(html, baseUrl){
   doc.querySelectorAll('a[href]').forEach(function(a){ pushResolved(a.getAttribute('href'), 'links'); });
   doc.querySelectorAll('script[src]').forEach(function(s){ pushResolved(s.getAttribute('src'), 'scripts'); });
   doc.querySelectorAll('link[href]').forEach(function(l){ pushResolved(l.getAttribute('href'), 'links'); });
+  /* Scripts INLINE (sin src): las SPA modernas (Next.js __NEXT_DATA__, configs de API
+     embebidos, etc) esconden endpoints reales aca. No requiere fetch extra — el contenido
+     ya esta en el HTML descargado. */
+  doc.querySelectorAll('script:not([src])').forEach(function(s){
+    var txt = s.textContent||'';
+    if(txt.length>20) out.inlineJS.push(txt);
+  });
   doc.querySelectorAll('form[action]').forEach(function(f){
     var action = f.getAttribute('action')||'';
     var method = (f.getAttribute('method')||'GET').toUpperCase();
-    try{ var abs = new URL(action||baseUrl, baseUrl).href; out.forms.push({ url: abs, method: method }); }catch(e){}
+    try{ var abs = crwNormalizeUrl(new URL(action||baseUrl, baseUrl).href); out.forms.push({ url: abs, method: method }); }catch(e){}
   });
   doc.querySelectorAll('form:not([action])').forEach(function(f){
     out.forms.push({ url: baseUrl, method: (f.getAttribute('method')||'GET').toUpperCase() });
@@ -21327,6 +21344,83 @@ function crwExtractFromJS(jsCode, baseUrl){
 
 var CRW_INTERESTING_RE = /admin|api[_\-]?key|secret|token|password|internal|debug|config|backup|\.env|graphql|swagger|actuator|console|private/i;
 
+/* Semillas pasivas: robots.txt (Disallow suele apuntar a rutas que el admin queria
+   ocultar de buscadores, no de un atacante) + sitemap.xml (mapa completo declarado
+   por el propio sitio). Se piden ANTES de crawlear activamente — igual filosofia que
+   el OSINT: la fuente mas barata primero. */
+async function crwFetchSeeds(origin){
+  var seeds = []; var disallowed = []; var sitemapUrls = [origin+'/sitemap.xml'];
+  var robotsRes = await crwFetch(origin+'/robots.txt');
+  if(robotsRes && robotsRes.ok && robotsRes.body){
+    robotsRes.body.split(/\r?\n/).forEach(function(line){
+      var m = line.match(/^\s*Disallow:\s*(\S+)/i);
+      if(m && m[1] && m[1]!=='/'){ try{ var full=crwNormalizeUrl(new URL(m[1],origin).href); seeds.push(full); disallowed.push(full); }catch(e){} }
+      var sm = line.match(/^\s*Sitemap:\s*(\S+)/i);
+      if(sm && sm[1]) sitemapUrls.push(sm[1]);
+    });
+  }
+  sitemapUrls = Array.from(new Set(sitemapUrls)).slice(0,3);
+  for(var i=0;i<sitemapUrls.length;i++){
+    var smRes = await crwFetch(sitemapUrls[i]);
+    if(smRes && smRes.ok && smRes.body){
+      var locs = smRes.body.match(/<loc>([^<]+)<\/loc>/g)||[];
+      locs.forEach(function(lm){ var u=lm.replace(/<\/?loc>/g,'').trim(); if(u) seeds.push(crwNormalizeUrl(u)); });
+    }
+  }
+  return { seeds: Array.from(new Set(seeds)), disallowed: disallowed };
+}
+
+/* Source maps: si un JS minificado declara //# sourceMappingURL=algo.js.map, ese archivo
+   .map suele traer el array "sources" con la estructura ORIGINAL del proyecto antes de
+   compilar — nombres de archivo/ruta reales que jamas apareceran en el bundle minificado. */
+async function crwCheckSourceMap(jsUrl, jsCode){
+  var m = jsCode.match(/\/\/[#@]\s*sourceMappingURL=(\S+)/);
+  if(!m) return null;
+  var mapUrl;
+  try{ mapUrl = new URL(m[1], jsUrl).href; }catch(e){ return null; }
+  var mapRes = await crwFetch(mapUrl);
+  if(!mapRes || !mapRes.ok || !mapRes.body) return null;
+  try{
+    var mapJson = JSON.parse(mapRes.body);
+    var sources = (mapJson.sources||[]).filter(function(s){ return s && s.indexOf('node_modules')===-1; }).slice(0,100);
+    return sources.length ? { mapUrl: mapUrl, sources: sources } : null;
+  }catch(e){ return null; }
+}
+
+/* Mutacion inteligente: en vez de tirar una wordlist generica, se generan variantes
+   SOLO a partir de patrones /api/.../ realmente encontrados en este target puntual.
+   Si se descubrio /api/v1/users, se prueban /api/v1/{admin,config,debug,...} — mucho
+   mas dirigido que fuzzear a ciegas, porque nace de lo que el target YA demostro tener. */
+var CRW_MUTATION_SUFFIXES = ['admin','config','settings','debug','health','status','docs','swagger','schema','test','internal','backup','users','me','stats','metrics'];
+function crwGenerateMutations(discoveredUrls, origin){
+  var basePaths = new Set();
+  discoveredUrls.forEach(function(u){
+    if(!/\/api\/|\/v[0-9]+\//i.test(u)) return;
+    try{
+      var segs = new URL(u).pathname.split('/').filter(Boolean);
+      if(segs.length>0){ segs.pop(); basePaths.add('/'+segs.join('/')); }
+    }catch(e){}
+  });
+  var mutations = [];
+  basePaths.forEach(function(base){
+    CRW_MUTATION_SUFFIXES.forEach(function(suf){ mutations.push(origin+base+'/'+suf); });
+  });
+  return Array.from(new Set(mutations)).slice(0,150);
+}
+
+/* Parametros de query unicos vistos en toda la corrida — insumo directo para fuzzing
+   de SQLi/XSS/IDOR en el escaner principal. */
+function crwExtractParams(urls){
+  var params = {};
+  urls.forEach(function(u){
+    try{
+      var qs = new URL(u).searchParams;
+      qs.forEach(function(v,k){ params[k] = true; });
+    }catch(e){}
+  });
+  return Object.keys(params);
+}
+
 function crwEscHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
 }
@@ -21335,51 +21429,117 @@ async function runCrawler(startUrl, maxDepth){
   var origin;
   try{ origin = new URL(startUrl).origin; }catch(e){ return null; }
   var visited = {};
-  var queue = [{ url: startUrl, depth: 0 }];
   var pages = [];
   var jsFiles = {};
   var forms = [];
   var external = {};
+  var allInlineJS = [];
   var maxPages = 60;
   var concurrency = 6;
 
+  /* Fase 0: semillas pasivas (robots.txt + sitemap.xml) antes de gastar presupuesto
+     de crawling activo — mismo orden de prioridad que el OSINT: lo pasivo primero. */
+  statusText.textContent = 'Buscando semillas pasivas (robots.txt, sitemap.xml)...';
+  var seedData = await crwFetchSeeds(origin);
+  var startNorm = crwNormalizeUrl(startUrl);
+  var queue = [{ url: startNorm, depth: 0, seedPriority: 2 }];
+  seedData.seeds.forEach(function(s){
+    try{
+      if(new URL(s).origin === origin && s !== startNorm){
+        queue.push({ url: s, depth: 0, seedPriority: seedData.disallowed.indexOf(s)>-1 ? 3 : 1 });
+      }
+    }catch(e){}
+  });
+
+  /* Fase 1: BFS activo con priorizacion (URLs con pinta de interesante van primero en
+     la cola, no al final) y poda por rama muerta (early exit si se acumulan fallos). */
+  var consecutiveDead = 0;
   while(queue.length > 0 && pages.length < maxPages){
+    queue.sort(function(a,b){
+      var ai = CRW_INTERESTING_RE.test(a.url) ? 1 : 0;
+      var bi = CRW_INTERESTING_RE.test(b.url) ? 1 : 0;
+      if(ai !== bi) return bi - ai;
+      return (b.seedPriority||0) - (a.seedPriority||0);
+    });
     var batch = queue.splice(0, concurrency).filter(function(item){ return !visited[item.url]; });
     if(!batch.length) continue;
     batch.forEach(function(item){ visited[item.url] = true; });
-    statusText.textContent = 'Crawleando... '+pages.length+' paginas · '+Object.keys(jsFiles).length+' JS · profundidad actual: '+batch[0].depth;
-    progFill.style.width = Math.min(95, (pages.length/maxPages)*100)+'%';
+    statusText.textContent = 'Crawleando... '+pages.length+' paginas · '+Object.keys(jsFiles).length+' JS · profundidad '+batch[0].depth;
+    progFill.style.width = Math.min(70, (pages.length/maxPages)*70)+'%';
     var settled = await Promise.allSettled(batch.map(function(item){ return crwFetch(item.url); }));
     for(var i=0;i<settled.length;i++){
       var item = batch[i];
       var res = settled[i].status==='fulfilled' ? settled[i].value : null;
-      if(!res || !res.ok || !res.body) continue;
+      if(!res || !res.ok || !res.body){ consecutiveDead++; continue; }
+      consecutiveDead = 0;
       pages.push({ url: item.url, status: res.status });
       var ctype = (res.headers && res.headers['content-type']) || '';
       if(ctype.indexOf('html') === -1 && res.body.slice(0,15).indexOf('<')===-1) continue;
       var ext = crwExtractFromHTML(res.body, item.url);
       ext.links.forEach(function(l){
-        if(!visited[l] && item.depth < maxDepth) queue.push({ url: l, depth: item.depth+1 });
+        if(!visited[l] && item.depth < maxDepth) queue.push({ url: l, depth: item.depth+1, seedPriority: 0 });
       });
       ext.scripts.forEach(function(s){ jsFiles[s] = true; });
       ext.forms.forEach(function(f){ forms.push(f); });
       ext.external.forEach(function(e){ external[e] = true; });
+      ext.inlineJS.forEach(function(js){ allInlineJS.push({ code: js, baseUrl: item.url }); });
     }
+    if(consecutiveDead >= 8) break;
   }
 
-  statusText.textContent = 'Parseando '+Object.keys(jsFiles).length+' archivos JS en busca de endpoints ocultos...';
+  /* Fase 2: JS externos + inline -> endpoints ocultos, y deteccion de source maps
+     (revelan la estructura original del proyecto antes de minificar/compilar). */
+  statusText.textContent = 'Parseando '+Object.keys(jsFiles).length+' archivos JS + scripts inline...';
   var jsUrls = Object.keys(jsFiles).slice(0, 40);
   var jsEndpoints = {};
   var jsResults = await Promise.allSettled(jsUrls.map(function(u){ return crwFetch(u); }));
-  jsResults.forEach(function(r, i){
-    if(r.status==='fulfilled' && r.value && r.value.ok && r.value.body){
-      crwExtractFromJS(r.value.body, jsUrls[i]).forEach(function(e){ jsEndpoints[e] = true; });
+  var jsBodies = [];
+  for(var ji=0;ji<jsResults.length;ji++){
+    var jr = jsResults[ji];
+    if(jr.status==='fulfilled' && jr.value && jr.value.ok && jr.value.body){
+      crwExtractFromJS(jr.value.body, jsUrls[ji]).forEach(function(e){ jsEndpoints[e]=true; });
+      jsBodies.push({ url: jsUrls[ji], code: jr.value.body });
     }
+  }
+  allInlineJS.forEach(function(inl){
+    crwExtractFromJS(inl.code, inl.baseUrl).forEach(function(e){ jsEndpoints[e]=true; });
   });
+
+  statusText.textContent = 'Buscando source maps...';
+  progFill.style.width = '80%';
+  var smResults = await Promise.allSettled(jsBodies.slice(0,15).map(function(jb){ return crwCheckSourceMap(jb.url, jb.code); }));
+  var sourceMapFindings = [];
+  smResults.forEach(function(r){ if(r.status==='fulfilled' && r.value) sourceMapFindings.push(r.value); });
+
+  /* Fase 3: mutacion inteligente — variantes derivadas de los patrones /api/ REALES
+     que este target mostro tener, no una wordlist ciega. Con poda por rama muerta. */
+  var allUrlsSoFar = pages.map(function(p){return p.url;}).concat(Object.keys(jsEndpoints));
+  var mutations = crwGenerateMutations(allUrlsSoFar, origin);
+  var mutationFound = [];
+  if(mutations.length){
+    statusText.textContent = 'Probando '+mutations.length+' mutaciones inteligentes derivadas de patrones API...';
+    progFill.style.width = '90%';
+    var mutDead = 0;
+    for(var mb=0; mb<mutations.length && mutDead<3; mb+=concurrency){
+      var mutBatch = mutations.slice(mb, mb+concurrency);
+      var mutSettled = await Promise.allSettled(mutBatch.map(function(u){ return crwFetch(u); }));
+      var batchAllDead = true;
+      mutSettled.forEach(function(r,ri){
+        if(r.status==='fulfilled' && r.value && (r.value.status===200||r.value.status===401||r.value.status===403)){
+          batchAllDead = false;
+          mutationFound.push({ url: mutBatch[ri], status: r.value.status });
+        }
+      });
+      mutDead = batchAllDead ? mutDead+1 : 0;
+    }
+  }
+
+  var params = crwExtractParams(allUrlsSoFar.concat(mutationFound.map(function(m){return m.url;})));
 
   var allDiscovered = {};
   pages.forEach(function(p){ allDiscovered[p.url] = true; });
   Object.keys(jsEndpoints).forEach(function(e){ allDiscovered[e] = true; });
+  mutationFound.forEach(function(m){ allDiscovered[m.url] = true; });
 
   return {
     pages: pages,
@@ -21387,16 +21547,23 @@ async function runCrawler(startUrl, maxDepth){
     jsEndpoints: Object.keys(jsEndpoints),
     forms: forms,
     external: Object.keys(external),
+    sourceMaps: sourceMapFindings,
+    mutations: mutationFound,
+    params: params,
+    seedsFromRobots: seedData.disallowed,
     total: Object.keys(allDiscovered).length,
   };
 }
+
+var lastCrawlData = null;
 
 function renderCrawlResults(data, startUrl){
   progFill.style.width = '100%';
   statusText.textContent = 'Crawl completo.';
   resultsEl.style.display = 'block';
+  lastCrawlData = data;
 
-  var interesting = data.pages.map(function(p){return p.url;}).concat(data.jsEndpoints)
+  var interesting = data.pages.map(function(p){return p.url;}).concat(data.jsEndpoints).concat(data.mutations.map(function(m){return m.url;}))
     .filter(function(u, i, arr){ return arr.indexOf(u)===i; })
     .filter(function(u){ return CRW_INTERESTING_RE.test(u); });
 
@@ -21404,9 +21571,10 @@ function renderCrawlResults(data, startUrl){
     if(!items.length) return '';
     var body = items.slice(0,150).map(function(it){
       var isInteresting = CRW_INTERESTING_RE.test(typeof it==='string'?it:it.url);
-      var label = typeof it==='string' ? it : ('['+it.method+'] '+it.url);
+      var label = typeof it==='string' ? it : (it.method ? ('['+it.method+'] '+it.url) : (it.status ? ('['+it.status+'] '+it.url) : it.url));
+      var href = typeof it==='string' ? it : it.url;
       return '<div class="rce-row" style="align-items:center;gap:10px;flex-wrap:wrap;'+(isInteresting?'border-left:2px solid var(--acc);padding-left:8px;':'')+'">' +
-        '<a href="'+crwEscHtml(typeof it==='string'?it:it.url)+'" target="_blank" rel="noopener noreferrer" style="color:'+(isInteresting?'var(--acc)':'rgba(240,238,248,.75)')+';word-break:break-all;flex:1;min-width:180px;font-family:var(--mono);font-size:11.5px;">'+crwEscHtml(label)+'</a>' +
+        '<a href="'+crwEscHtml(href)+'" target="_blank" rel="noopener noreferrer" style="color:'+(isInteresting?'var(--acc)':'rgba(240,238,248,.75)')+';word-break:break-all;flex:1;min-width:180px;font-family:var(--mono);font-size:11.5px;">'+crwEscHtml(label)+'</a>' +
         (isInteresting?'<span class="rce-tag crit" style="font-size:9px;">INTERESANTE</span>':'') +
         '</div>';
     }).join('');
@@ -21419,17 +21587,72 @@ function renderCrawlResults(data, startUrl){
 
   var html = '<div class="rce-card" style="margin-bottom:16px;border-color:var(--acc);">' +
     '<div class="rce-card-head"><span class="rce-card-icon">🕸</span><span class="rce-card-title">Crawl completo — '+crwEscHtml(startUrl)+'</span><span class="rce-card-count">'+data.total+' endpoints unicos</span></div>' +
-    '<div class="rce-card-body"><div class="rce-row">'+data.pages.length+' paginas rastreadas · '+data.jsFiles.length+' archivos JS analizados · '+data.jsEndpoints.length+' endpoints extraidos de JS · '+data.forms.length+' formularios · '+interesting.length+' marcados como interesantes</div></div>' +
+    '<div class="rce-card-body"><div class="rce-row">'+data.pages.length+' paginas · '+data.jsFiles.length+' JS analizados · '+data.jsEndpoints.length+' endpoints en JS · '+data.forms.length+' formularios · '+data.mutations.length+' mutaciones confirmadas · '+data.sourceMaps.length+' source maps · '+interesting.length+' interesantes</div>' +
+    '<div class="rce-row" style="margin-top:10px;"><button class="rce-btn" id="crw-export-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">⬇</span> EXPORTAR TODO (.txt)</button></div></div>' +
   '</div>';
 
-  html += section('Endpoints interesantes (admin/api/secret/config/debug...)', '🎯', interesting, interesting.length);
-  html += section('Paginas rastreadas (HTML)', '📄', data.pages.map(function(p){return p.url;}), data.pages.length);
-  html += section('Endpoints extraidos de JS', '⚙', data.jsEndpoints, data.jsEndpoints.length);
-  html += section('Archivos JS analizados', '📜', data.jsFiles, data.jsFiles.length);
-  html += section('Formularios encontrados', '📝', data.forms, data.forms.length);
-  html += section('Recursos externos (otro dominio)', '🔗', data.external, data.external.length);
+  html += section('🎯 Endpoints interesantes (admin/secret/config/debug...)', '🎯', interesting, interesting.length);
+  html += section('🧬 Mutaciones inteligentes confirmadas (patrones derivados del target)', '🧬', data.mutations, data.mutations.length);
+  html += section('🗺 Rutas de robots.txt (Disallow — el admin las quiso ocultar)', '🗺', data.seedsFromRobots, data.seedsFromRobots.length);
+  html += section('🧩 Source maps encontrados (estructura original del proyecto)', '🧩', data.sourceMaps.map(function(sm){ return sm.mapUrl+' — '+sm.sources.length+' archivos fuente'; }), data.sourceMaps.length);
+  html += section('🔑 Parametros de query unicos (insumo para fuzzing)', '🔑', data.params, data.params.length);
+  html += section('📄 Paginas rastreadas (HTML)', '📄', data.pages.map(function(p){return p.url;}), data.pages.length);
+  html += section('⚙ Endpoints extraidos de JS (externo + inline)', '⚙', data.jsEndpoints, data.jsEndpoints.length);
+  html += section('📜 Archivos JS analizados', '📜', data.jsFiles, data.jsFiles.length);
+  html += section('📝 Formularios encontrados', '📝', data.forms, data.forms.length);
+  html += section('🔗 Recursos externos (otro dominio)', '🔗', data.external, data.external.length);
 
   resultsEl.innerHTML = html;
+
+  var exportBtn = document.getElementById('crw-export-btn');
+  if(exportBtn) exportBtn.addEventListener('click', function(){ crwExportResults(data, startUrl); });
+}
+
+function crwExportResults(data, startUrl){
+  var lines = [];
+  lines.push('# Endpoint Crawler — reporte de '+startUrl);
+  lines.push('# Generado: '+new Date().toISOString());
+  lines.push('');
+  lines.push('## Paginas ('+data.pages.length+')');
+  data.pages.forEach(function(p){ lines.push(p.url); });
+  lines.push('');
+  lines.push('## Endpoints en JS ('+data.jsEndpoints.length+')');
+  data.jsEndpoints.forEach(function(e){ lines.push(e); });
+  lines.push('');
+  lines.push('## Mutaciones confirmadas ('+data.mutations.length+')');
+  data.mutations.forEach(function(m){ lines.push('['+m.status+'] '+m.url); });
+  lines.push('');
+  lines.push('## Rutas de robots.txt ('+data.seedsFromRobots.length+')');
+  data.seedsFromRobots.forEach(function(s){ lines.push(s); });
+  lines.push('');
+  lines.push('## Source maps ('+data.sourceMaps.length+')');
+  data.sourceMaps.forEach(function(sm){ lines.push(sm.mapUrl); sm.sources.forEach(function(s){ lines.push('  - '+s); }); });
+  lines.push('');
+  lines.push('## Parametros de query ('+data.params.length+')');
+  data.params.forEach(function(p){ lines.push(p); });
+  lines.push('');
+  lines.push('## Formularios ('+data.forms.length+')');
+  data.forms.forEach(function(f){ lines.push('['+f.method+'] '+f.url); });
+  lines.push('');
+  lines.push('## Recursos externos ('+data.external.length+')');
+  data.external.forEach(function(e){ lines.push(e); });
+
+  try{
+    var blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    var hostname = 'target'; try{ hostname = new URL(startUrl).hostname; }catch(e2){}
+    a.download = 'crawl-'+hostname+'.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }catch(e){
+    /* Fallback si Blob/createObjectURL no esta disponible: copiar al portapapeles */
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(lines.join('\n'));
+      statusText.textContent = 'No se pudo descargar — copiado al portapapeles.';
+    }
+  }
 }
 
 async function startCrawl(){

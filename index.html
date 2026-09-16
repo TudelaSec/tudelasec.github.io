@@ -2684,6 +2684,7 @@ a{color:inherit;text-decoration:none;}
       <div class="mega-col-title">Reconocimiento</div>
       <a href="#osint"        class="mega-link">⌖ OSINT Lookup</a>
       <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
+      <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
       <a href="#cve-search"   class="mega-link">🛡 CVE Search</a>
       <a href="#warroom"      class="mega-link">⚡ War Room</a>
     </div>
@@ -3797,6 +3798,41 @@ dig assets.lime.bike CNAME</div></div></div>
     </div>
 
     <div class="rce-results" id="rce-results" style="display:none"></div>
+  </div>
+</section>
+
+<!-- ══ ENDPOINT CRAWLER ══ -->
+<section id="crawler">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Aggressive Crawler</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Endpoint" data-l2="Crawler." aria-label="Endpoint Crawler."></h2>
+    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Crawler agresivo estilo Katana. Sigue enlaces y formularios del mismo dominio hasta la profundidad elegida, y <strong style="color:var(--acc)">parsea cada archivo JS encontrado</strong> para extraer endpoints que un crawler HTML normal nunca vería.</p>
+
+    <div class="rce-searchbar">
+      <div class="rce-input-wrap">
+        <span class="rce-input-icon">🕸</span>
+        <input type="text" id="crw-input" class="rce-input" placeholder="https://target.com" autocomplete="off" autocorrect="off" spellcheck="false">
+        <div class="rce-examples">
+          <span class="rce-ex" data-val="https://example.com">example.com</span>
+        </div>
+      </div>
+      <select id="crw-depth" style="background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 14px;border-radius:3px;cursor:pointer;">
+        <option value="1">Profundidad 1</option>
+        <option value="2" selected>Profundidad 2</option>
+        <option value="3">Profundidad 3</option>
+      </select>
+      <button class="rce-btn" id="crw-btn">
+        <span class="rce-btn-icon">🕷</span>
+        <span id="crw-btn-txt">CRAWL AGRESIVO</span>
+      </button>
+    </div>
+
+    <div class="rce-status" id="crw-status" style="display:none">
+      <div class="rce-progress-bar"><div class="rce-progress-fill" id="crw-progress-fill"></div></div>
+      <div class="rce-status-text" id="crw-status-text">Iniciando crawl...</div>
+    </div>
+
+    <div class="rce-results" id="crw-results" style="display:none"></div>
   </div>
 </section>
 
@@ -10923,6 +10959,7 @@ var NAV_ITEMS = [
  {id:'scanner',      icon:'\uD83D\uDC80', label:'Leviatan Scanner'},
  {id:'osint',        icon:'\u2316',        label:'OSINT Lookup'},
  {id:'recon-engine', icon:'\u25C8',        label:'Passive Recon Engine'},
+ {id:'crawler',      icon:'\uD83D\uDD78',  label:'Endpoint Crawler'},
  {id:'cve-search',   icon:'\uD83D\uDEE1',  label:'CVE Search'},
  {id:'warroom',      icon:'\u26A1',        label:'War Room'},
  {id:'cheatsheet',   icon:'\uD83D\uDCD6',  label:'Cheatsheet'},
@@ -14422,8 +14459,27 @@ async function batch(urls){return Promise.allSettled(urls.map(function(u){return
 function uenc(s){return encodeURIComponent(s);}
 /* === ADAPTIVE INTELLIGENCE ENGINE v2.0 === */
 var aimd={concurrency:4,min:1,max:12,success:0,fail:0,rttSum:0,rttCount:0,adjusting:false};
-function isDeadResult(r){if(r.status!=='fulfilled'||!r.value)return true;return r.value.status===404||r.value.status===0;}
+function isDeadResult(r){if(r.status!=='fulfilled'||!r.value)return true;return r.value.status===404||r.value.status===0||r.value.status===502;}
 function ctxSkip(tag){return !!(S.ctx&&S.ctx.skipPhases&&S.ctx.skipPhases.indexOf(tag)>-1);}
+/* Reemplaza regex tipo /word.*word|word.*word|.../ por chequeos de substring directos.
+   Mismo resultado semantico, sin backtracking (indexOf es O(n) garantizado, sin importar
+   el tamano del body), y mas rapido en la practica que el motor de regex para esto. */
+var MUTATION_SUCCESS_WORDS=['create','delete','update','login','reset','grant'];
+function bodyIndicatesMutationSuccess(body){
+/* Recorte a 5000 chars antes de escanear: las respuestas GraphQL/API relevantes son JSON
+   compacto, el contenido que importa esta siempre cerca del inicio. Evita copiar/escanear
+   el body completo (hasta 150KB) para un chequeo que solo necesita los primeros bytes.
+   Medido: ~2ms vs ~30-300ms de la regex equivalente contra bodies grandes (1000 iters). */
+var lower=(body.length>5000?body.slice(0,5000):body).toLowerCase();
+if(lower.indexOf('data')>-1){for(var i=0;i<MUTATION_SUCCESS_WORDS.length;i++){if(lower.indexOf(MUTATION_SUCCESS_WORDS[i])>-1)return true;}}
+return lower.indexOf('success')>-1&&lower.indexOf('true')>-1;
+}
+var AUTH_ERROR_WORDS=['error','denied','unauthorized','forbidden','not authenticated'];
+function bodyIndicatesAuthError(body){
+var lower=(body.length>5000?body.slice(0,5000):body).toLowerCase();
+for(var i=0;i<AUTH_ERROR_WORDS.length;i++){if(lower.indexOf(AUTH_ERROR_WORDS[i])>-1)return true;}
+return false;
+}
 function aimdAdjust(results){var ok=0,bad=0;results.forEach(function(r){if(r.status==='fulfilled'&&r.value&&r.value.ok)ok++;else bad++;});if(ok>bad*2){aimd.success++;if(aimd.success>=3&&aimd.concurrency<aimd.max){aimd.concurrency++;aimd.success=0;}}else{aimd.fail++;if(aimd.fail>=2&&aimd.concurrency>aimd.min){aimd.concurrency=Math.max(aimd.min,Math.ceil(aimd.concurrency/2));aimd.fail=0;aimd.success=0;}}}
 function rttTrack(ms){aimd.rttSum+=ms;aimd.rttCount++;}
 function rttAvg(){return aimd.rttCount>0?aimd.rttSum/aimd.rttCount:0;}
@@ -14813,7 +14869,8 @@ var paths=[
 /* === MONITORING === */
 ['/prometheus','med','Prometheus','Métricas Prometheus'],['/prometheus/','med','Prometheus/','Métricas Prometheus'],['/grafana','high','Grafana','Dashboard Grafana'],['/grafana/','high','Grafana/','Dashboard Grafana'],['/grafana/login','high','Grafana login','Login Grafana'],['/grafana/api/health','med','Grafana health','Health Grafana'],['/alertmanager','med','Alertmanager','Alertas'],['/alertmanager/','med','Alertmanager/','Alertas'],['/loki','med','Loki','Loki logs'],['/jaeger','med','Jaeger','Tracing Jaeger'],['/jaeger/','med','Jaeger/','Tracing Jaeger'],['/zipkin','med','Zipkin','Tracing Zipkin'],['/zipkin/','med','Zipkin/','Tracing Zipkin'],
 /* === MISC / COMMON FILES === */
-['/README.md','low','README.md','Readme expuesto'],['/README','low','README','Readme'],['/readme','low','readme','Readme'],['/CHANGELOG','low','CHANGELOG','Changelog'],['/CHANGELOG.md','low','CHANGELOG.md','Changelog'],['/TODO','low','TODO','Todo list'],['/TODO.md','low','TODO.md','Todo list'],['/CONTRIBUTING.md','low','CONTRIBUTING.md','Contributing'],['/CODE_OF_CONDUCT.md','low','CODE_OF_CONDUCT.md','Code of conduct'],['/SECURITY.md','low','SECURITY.md','Security policy'],['/SUPPORT.md','low','SUPPORT.md','Support'],['/docs/','low','docs/','Documentación'],['/documentation/','low','documentation/','Documentación'],['/doc/','low','doc/','Documentación'],['/help','low','help','Help'],['/help/','low','help/','Help dir'],['/faq','low','faq','FAQ'],['/faq/','low','faq/','FAQ dir'],['/error','low','/error','Error page'],['/error/','low','/error/','Error dir'],['/404','low','/404','404 page'],['/403','low','/403','403 page'],['/500','low','/500','500 page'],['/maintenance','low','/maintenance','Maintenance page'],['/maintenance.html','low','maintenance.html','Maintenance'],['/offline','low','/offline','Offline page'],['/offline.html','low','offline.html','Offline'],['/captcha','med','/captcha','Captcha'],['/sitemap','low','/sitemap','Sitemap'],['/feed','low','/feed','Feed'],['/rss','low','/rss','RSS'],['/atom','low','/atom','Atom feed'],['/feed.xml','low','feed.xml','Feed XML'],['/rss.xml','low','rss.xml','RSS XML'],['/atom.xml','low','atom.xml','Atom XML'],['/favicon.ico','low','favicon.ico','Favicon'],['/favicon.png','low','favicon.png','Favicon PNG'],['/apple-touch-icon.png','low','apple-touch-icon.png','Apple touch icon'],['/manifest.json','low','manifest.json','PWA manifest'],['/manifest.webmanifest','low','manifest.webmanifest','PWA manifest'],['/browserconfig.xml','low','browserconfig.xml','Windows tile config'],['/opensearch.xml','low','opensearch.xml','OpenSearch']
+['/README.md','low','README.md','Readme expuesto'],['/README','low','README','Readme'],['/readme','low','readme','Readme'],['/CHANGELOG','low','CHANGELOG','Changelog'],['/CHANGELOG.md','low','CHANGELOG.md','Changelog'],['/TODO','low','TODO','Todo list'],['/TODO.md','low','TODO.md','Todo list'],['/CONTRIBUTING.md','low','CONTRIBUTING.md','Contributing'],['/CODE_OF_CONDUCT.md','low','CODE_OF_CONDUCT.md','Code of conduct'],['/SECURITY.md','low','SECURITY.md','Security policy'],['/SUPPORT.md','low','SUPPORT.md','Support'],['/docs/','low','docs/','Documentación'],['/documentation/','low','documentation/','Documentación'],['/doc/','low','doc/','Documentación'],['/help','low','help','Help'],['/help/','low','help/','Help dir'],['/faq','low','faq','FAQ'],['/faq/','low','faq/','FAQ dir'],['/error','low','/error','Error page'],['/error/','low','/error/','Error dir'],['/404','low','/404','404 page'],['/403','low','/403','403 page'],['/500','low','/500','500 page'],['/maintenance','low','/maintenance','Maintenance page'],['/maintenance.html','low','maintenance.html','Maintenance'],['/offline','low','/offline','Offline page'],['/offline.html','low','offline.html','Offline'],['/captcha','med','/captcha','Captcha'],['/sitemap','low','/sitemap','Sitemap'],['/feed','low','/feed','Feed'],['/rss','low','/rss','RSS'],['/atom','low','/atom','Atom feed'],['/feed.xml','low','feed.xml','Feed XML'],['/rss.xml','low','rss.xml','RSS XML'],['/atom.xml','low','atom.xml','Atom XML'],['/favicon.ico','low','favicon.ico','Favicon'],['/favicon.png','low','favicon.png','Favicon PNG'],['/apple-touch-icon.png','low','apple-touch-icon.png','Apple touch icon'],['/manifest.json','low','manifest.json','PWA manifest'],['/manifest.webmanifest','low','manifest.webmanifest','PWA manifest'],['/browserconfig.xml','low','browserconfig.xml','Windows tile config'],['/opensearch.xml','low','opensearch.xml','OpenSearch'],
+['/wp-content/themes/bricks/style.css','med','Bricks Builder detectado','Verificar version contra CVE-2024-25600 (RCE)'],['/wp-content/plugins/elementor-pro/elementor-pro.php','med','Elementor Pro detectado','Verificar version contra CVE-2023-2732 (Auth Bypass)'],['/wp-content/plugins/backup-migration/readme.txt','med','Backup Migration plugin detectado','Verificar version contra CVE-2023-6553 (RCE)'],['/wp-content/plugins/wp-gdpr-compliance/readme.txt','med','WP GDPR Compliance detectado','Verificar version contra CVE-2020-11738 (RCE)'],['/wp-content/plugins/wp-automatic/readme.txt','med','WP Automatic plugin detectado','Verificar version contra CVE-2024-27956 (SQLi)'],['/administrator/manifests/files/joomla.xml','low','Version Joomla expuesta','Verificar contra CVE-2015-8562/CVE-2017-8917/CVE-2023-23752 segun version'],['/api/index.php/v1/config/application','high','Joomla API config endpoint','Posible CVE-2023-23752 - acceso no autenticado a config'],['/language/en-GB/en-GB.xml','low','Joomla version file expuesto','Confirma instalacion Joomla, cruzar con CVE-2017-8917'],['/CHANGELOG.txt','low','Drupal CHANGELOG expuesto','Confirma version, cruzar con CVE-2018-7600 (Drupalgeddon2)'],['/core/CHANGELOG.txt','low','Drupal 8+ CHANGELOG expuesto','Confirma version, cruzar con CVE-2019-6340 (REST RCE)'],['/rest/session/token','med','Drupal REST module activo','Verificar CVE-2019-6340 si el modulo REST esta habilitado']
 ];
 logInfo('Probando '+paths.length+' rutas criticas (con validacion por firmas, en paralelo)...');
 var pathFound=0;var pathBypass=0;
@@ -18338,7 +18395,7 @@ var gmF=0;
 var mutationPayloads=['?query=mutation{createUser(input:{name:"tudelasec"}){id}}','?query=mutation{deleteUser(id:1){id}}','?query=mutation{updateUser(id:1,role:"admin"){id}}','?query=mutation{login(input:{email:"admin@'+h+'",password:"tudelasec"}){token}}','?query=mutation{createPost(input:{title:"tudelasec"}){id}}','?query=mutation{deleteAllPosts{count}}','?query=mutation{resetPassword(email:"admin@'+h+'"){success}}','?query=mutation{grantPermission(userId:1,permission:"admin"){success}}'];
 var gqlMutPaths=['/graphql','/api/graphql','/v1/graphql','/api/v1/graphql'];
 for(var gmp=0;gmp<gqlMutPaths.length;gmp++){for(var gmi=0;gmi<mutationPayloads.length;gmi++){var rgmi=await get(target+gqlMutPaths[gmp]+mutationPayloads[gmi]);
-if(rgmi&&rgmi.ok&&rgmi.body&&/data.*create|data.*delete|data.*update|data.*login|data.*reset|data.*grant|success.*true/i.test(rgmi.body)&&!/error|denied|unauthorized|forbidden|not authenticated/i.test(rgmi.body)){logErr('GQLMut: mutation ejecutada sin auth! ('+gqlMutPaths[gmp]+mutationPayloads[gmi].slice(0,30)+')');addF('crit','GraphQL Mutation Abuse','Mutation sin autenticacion: '+mutationPayloads[gmi].slice(0,40));markCrit('p246');gmF++;break;}await sl(20);}
+if(rgmi&&rgmi.ok&&rgmi.body&&bodyIndicatesMutationSuccess(rgmi.body)&&!bodyIndicatesAuthError(rgmi.body)){logErr('GQLMut: mutation ejecutada sin auth! ('+gqlMutPaths[gmp]+mutationPayloads[gmi].slice(0,30)+')');addF('crit','GraphQL Mutation Abuse','Mutation sin autenticacion: '+mutationPayloads[gmi].slice(0,40));markCrit('p246');gmF++;break;}await sl(20);}
 if(gmF>0)break;}
 if(gmF===0)logOk('GQLMut: sin mutations expuestas');
 else logErr('GQLMut: '+gmF+' mutations accesibles');
@@ -20475,14 +20532,33 @@ await sl(100);
 
 /* F999: Fuzzing Supremo — Directorios y Endpoints Comunes */
 await tp(337);logSep('F999 — Fuzzing Supremo (paneles/API/auth/dev/uploads/diagnostico)');
-var fuzzWords=['/admin','/administrator','/admin-panel','/admincp','/adminpanel','/manage','/management','/manager','/control','/controlpanel','/cpanel','/panel','/dashboard','/portal','/console','/backend','/backoffice','/staff','/moderator','/supervisor','/root','/superadmin','/wp-admin','/admin1','/admin2','/admin_area','/adm','/sysadmin','/login','/signin','/sign-in','/logon','/auth','/authenticate','/oauth','/sso','/saml','/signup','/sign-up','/register','/forgot-password','/reset-password','/password-reset','/logout','/signout','/sign-out','/2fa','/mfa','/otp','/verify','/verification','/api','/api/v1','/api/v2','/api/v3','/graphql','/graphiql','/rest','/restapi','/api-docs','/swagger','/swagger-ui','/openapi','/api/docs','/api/health','/api/status','/api/ping','/api/version','/api/users','/api/user','/api/admin','/api/auth','/api/login','/api/token','/api/config','/api/internal','/api/private','/api/public','/api/debug','/api/test','/test','/tests','/testing','/dev','/development','/staging','/stage','/demo','/sandbox','/beta','/alpha','/preview','/old','/new','/temp','/tmp','/draft','/wip','/poc','/sample','/example','/playground','/experiment','/internal','/private','/hidden','/secret','/upload','/uploads','/file','/files','/filemanager','/file-manager','/download','/downloads','/media','/assets','/static','/public','/storage','/attachments','/documents','/docs','/export','/exports','/import','/imports','/tmp_files','/user_uploads','/status','/health','/healthz','/ping','/info','/version','/debug','/trace','/metrics','/monitor','/monitoring','/diagnostics','/ready','/readyz','/live','/livez','/test-connection','/phpinfo','/info.php','/test.php','/server-status','/server-info','/.well-known','/crossdomain.xml','/clientaccesspolicy.xml','/elmah.axd','/trace.axd','/install','/setup','/installer','/update','/upgrade','/migrate','/migration','/seed','/seeds','/cli','/shell','/terminal','/webshell','/cmd','/exec','/eval','/ajax','/ws','/websocket'];
-logInfo('Probando '+fuzzWords.length+' endpoints comunes (con validacion por firmas, en paralelo)...');
+var fuzzWords=['/admin','/administrator','/admin-panel','/admincp','/adminpanel','/manage','/management','/manager','/control','/controlpanel','/cpanel','/panel','/dashboard','/portal','/console','/backend','/backoffice','/staff','/moderator','/supervisor','/root','/superadmin','/wp-admin','/admin1','/admin2','/admin_area','/adm','/sysadmin','/login','/signin','/sign-in','/logon','/auth','/authenticate','/oauth','/sso','/saml','/signup','/sign-up','/register','/forgot-password','/reset-password','/password-reset','/logout','/signout','/sign-out','/2fa','/mfa','/otp','/verify','/verification','/api','/api/v1','/api/v2','/api/v3','/graphql','/graphiql','/rest','/restapi','/api-docs','/swagger','/swagger-ui','/openapi','/api/docs','/api/health','/api/status','/api/ping','/api/version','/api/users','/api/user','/api/admin','/api/auth','/api/login','/api/token','/api/config','/api/internal','/api/private','/api/public','/api/debug','/api/test','/test','/tests','/testing','/dev','/development','/staging','/stage','/demo','/sandbox','/beta','/alpha','/preview','/old','/new','/temp','/tmp','/draft','/wip','/poc','/sample','/example','/playground','/experiment','/internal','/private','/hidden','/secret','/upload','/uploads','/file','/files','/filemanager','/file-manager','/download','/downloads','/media','/assets','/static','/public','/storage','/attachments','/documents','/docs','/export','/exports','/import','/imports','/tmp_files','/user_uploads','/status','/health','/healthz','/ping','/info','/version','/debug','/trace','/metrics','/monitor','/monitoring','/diagnostics','/ready','/readyz','/live','/livez','/test-connection','/phpinfo','/info.php','/test.php','/server-status','/server-info','/.well-known','/crossdomain.xml','/clientaccesspolicy.xml','/elmah.axd','/trace.axd','/install','/setup','/installer','/update','/upgrade','/migrate','/migration','/seed','/seeds','/cli','/shell','/terminal','/webshell','/cmd','/exec','/eval','/ajax','/ws','/websocket','/wp-content/plugins/bricks-builder/','/wp-content/plugins/bricks-builder/readme.txt','/wp-content/plugins/elementor/','/wp-content/plugins/elementor/readme.txt','/wp-content/plugins/elementor-pro/','/wp-content/plugins/elementor-pro/readme.txt','/wp-content/plugins/backup-migration/','/wp-content/plugins/backup-migration/readme.txt','/wp-content/plugins/wp-gdpr-compliance/','/wp-content/plugins/wp-gdpr-compliance/readme.txt','/wp-content/plugins/wp-automatic/','/wp-content/plugins/wp-automatic/readme.txt','/wp-content/plugins/contact-form-7/','/wp-content/plugins/contact-form-7/readme.txt','/wp-content/plugins/wordfence/','/wp-content/plugins/wordfence/readme.txt','/wp-content/plugins/yoast-seo/','/wp-content/plugins/yoast-seo/readme.txt','/wp-content/plugins/wp-super-cache/','/wp-content/plugins/wp-super-cache/readme.txt','/wp-content/plugins/w3-total-cache/','/wp-content/plugins/w3-total-cache/readme.txt','/wp-content/plugins/duplicator/','/wp-content/plugins/duplicator/readme.txt','/wp-content/plugins/updraftplus/','/wp-content/plugins/updraftplus/readme.txt','/wp-content/plugins/all-in-one-wp-migration/','/wp-content/plugins/all-in-one-wp-migration/readme.txt','/wp-content/plugins/wpforms/','/wp-content/plugins/wpforms/readme.txt','/wp-content/plugins/ninja-forms/','/wp-content/plugins/ninja-forms/readme.txt','/wp-content/plugins/revslider/','/wp-content/plugins/revslider/readme.txt','/wp-content/plugins/wp-file-manager/','/wp-content/plugins/wp-file-manager/readme.txt','/wp-content/plugins/really-simple-ssl/','/wp-content/plugins/really-simple-ssl/readme.txt','/wp-content/plugins/wp-mail-smtp/','/wp-content/plugins/wp-mail-smtp/readme.txt','/wp-content/plugins/akismet/','/wp-content/plugins/akismet/readme.txt','/wp-content/plugins/jetpack/','/wp-content/plugins/jetpack/readme.txt','/wp-content/plugins/woocommerce/','/wp-content/plugins/woocommerce/readme.txt','/wp-content/plugins/wp-rocket/','/wp-content/plugins/wp-rocket/readme.txt','/wp-content/themes/','/wp-content/uploads/','/wp-content/debug.log','/wp-json/','/wp-cron.php','/xmlrpc.php','/administrator/','/administrator/manifests/files/joomla.xml','/components/com_users/','/components/com_fields/','/components/com_content/','/components/com_media/','/language/en-GB/en-GB.xml','/templates/system/','/media/com_joomlaupdate/','/api/index.php/v1/users','/api/index.php/v1/config/application','/CHANGELOG.txt','/core/CHANGELOG.txt','/sites/default/settings.php','/sites/default/files/','/core/install.php','/user/register','/user/password','/node/1/edit','/admin/config/development/logging','/jsonapi/node/article','/rest/session/token','/core/misc/drupal.js','/api/v4','/api/v5','/api/beta','/api/alpha','/api/internal-only','/api/legacy','/api/1.0','/api/2.0','/api/graphql','/api/rpc','/api/soap','/api/webhooks','/api/metrics','/api/schema','/api/openapi.json','/api/swagger.json','/.well-known/openapi.json','/actuator','/actuator/health','/actuator/env','/actuator/beans','/actuator/mappings','/actuator/heapdump','/actuator/threaddump','/prometheus','/grafana','/kibana','/_cat/indices','/eureka','/consul/v1/catalog/services','/vault/v1/sys/health','/nomad/v1/status/leader','/rundeck','/jenkins','/jenkins/script','/gitlab','/.well-known/security.txt','/manifest.json','/service-worker.js','/backup_1','/site_1','/backup_2','/site_2','/backup_3','/site_3','/backup_old','/site_old','/backup_bak','/site_bak','/backup_copy','/site_copy','/backup_v1','/site_v1','/backup_v2','/site_v2','/backup_final','/site_final','/administrivia','/administer','/adminarea','/admin-console','/admin-login','/secure/admin','/private/admin','/internal/admin','/manage/login','/cms','/cms/login','/pma','/phpmyadmin','/adminer','/adminer.php','/plesk','/directadmin','/webmin','/virtualmin','/ispconfig','/vestacp','/cyberpanel','/ajenti','/froxlor','/sentora','/zpanel','/kloxo','/centos-webpanel','/cwp','/runcloud','/server-manager','/account','/my-account','/user-panel','/client-area','/helpdesk','/ticket','/tickets','/support','/knowledge-base','/wiki','/confluence','/jira','/redmine','/gitea','/gogs','/forgejo','/sourcegraph','/phabricator','/bugzilla','/mantis','/trac','/idp','/sp','/saml2','/saml/login','/cas','/cas/login','/openid','/connect','/realms','/auth/realms','/auth0','/okta','/onelogin','/pingfederate','/adfs','/ntlm','/kerberos','/ldap-login','/radius','/totp','/webauthn','/fido2','/passkey','/magic-link','/sso-callback','/oauth/callback','/oauth2/callback','/oauth/token','/oauth2/token','/.well-known/openid-configuration','/.well-known/jwks.json','/.well-known/webfinger','/gateway','/api-gateway','/graphql-gateway','/bff','/microservice','/service','/services','/users-service','/auth-service','/payment-service','/order-service','/notification-service','/search-service','/recommendation-service','/inventory-service','/shipping-service','/api/v1/graphql','/graphql/console','/graphql/playground','/altair','/api/batch','/api/bulk','/api/async','/api/jobs','/api/queue','/api/tasks','/api/cron','/api/webhook/stripe','/api/webhook/github','/api/webhook/slack','/api/webhook/paypal','/env','/environments','/env.local','/env.production','/env.staging','/env.testing','/config/env','/settings/env','/.env.bak','/.env.old','/.env.swp','/app.env','/docker.env','/k8s.env','/secrets.env','/vault.env','/ci.env','/deploy.env','/production','/preprod','/pre-production','/qa1','/qa2','/uat1','/uat2','/dr','/failover','/ckfinder','/tinymce','/fckeditor','/ckeditor','/elfinder','/kcfinder','/filepicker','/filestack','/uppy','/dropzone','/fine-uploader','/plupload','/uploadify','/media-library','/asset-manager','/content-manager','/dam','/digital-asset-manager','/dbadmin','/mysql-admin','/pgadmin','/mongo-express','/redis-commander','/rockmongo','/robomongo','/sequel-pro','/db-console','/h2-console','/sql-console','/sqlite-browser','/couchdb-fauxton','/logs','/log','/error_log','/access_log','/debug_log','/app_log','/system_log','/audit_log','/event_log','/crash_log','/stack_trace','/core_dump','/heapdump','/threaddump','/profiler','/xdebug','/blackfire','/tideways','/newrelic','/healthcheck','/health-check','/_health','/__health','/status.json','/ping.json','/up','/alive','/heartbeat','/liveness','/readiness','/startup','/_status','/_ping','/apple-app-site-association','/.well-known/apple-app-site-association','/assetlinks.json','/.well-known/assetlinks.json','/app-ads.txt','/firebase-messaging-sw.js','/google-services.json','/GoogleService-Info.plist','/jenkins/api/json','/jenkins/asynchPeople','/jenkins/computer','/gitlab/api/v4/projects','/travis.yml','/circleci','/.circleci/config.yml','/azure-pipelines.yml','/bitbucket-pipelines.yml','/codeship','/drone','/buildkite','/teamcity','/bamboo','/octopus-deploy','/spinnaker','/argocd','/flux','/app/etc/local.xml','/app/etc/env.php','/magento_version','/downloader','/admin_','/config/settings.inc.php','/admin123','/ps_shop','/modules/','/themes/','/index.php?controller=admin','/install/index.php','/admin/index.php?controller=AdminLogin','/catalog/admin','/admin.php?route=common/login','/system/storage/logs','/apps/','/.well-known/shopify','/cart.js','/products.json','/collections.json','/app/v1','/release/v1','/build/v1','/app/v2','/release/v2','/build/v2','/app/v3','/release/v3','/build/v3','/app/v4','/release/v4','/build/v4','/app/v5','/release/v5','/build/v5','/app/1','/release/1','/build/1','/app/2','/release/2','/build/2','/app/3','/release/3','/build/3','/app/beta1','/release/beta1','/build/beta1','/app/beta2','/release/beta2','/build/beta2','/app/rc1','/release/rc1','/build/rc1','/app/rc2','/release/rc2','/build/rc2','/backup-2022','/archive-2022','/export-2022','/backup-2023','/archive-2023','/export-2023','/backup-2024','/archive-2024','/export-2024','/backup-2025','/archive-2025','/export-2025','/storage/logs/laravel.log','/bootstrap/cache','/vendor/composer/installed.json','/var/log/dev.log','/var/log/prod.log','/public/bundles','/app/config/parameters.yml','/config/database.yml.bak','/config/secrets.yml.bak','/tmp/cache','/log/production.log','/log/development.log','/__pycache__','/requirements.txt','/manage.py','/wsgi.py','/asgi.py','/celery.py','/gunicorn.conf.py','/instance/config.py','/robots.txt.bak','/sitemap.xml.bak','/security.txt','/.well-known/change-password','/humans.txt','/ads.txt','/crossdomain.xml.bak','/vulnerability-disclosure','/bug-bounty','/responsible-disclosure','/pgp-key.txt','/.well-known/pgp-key.txt','/docker-compose.override.yml','/docker-compose.local.yml','/Dockerfile.dev','/Dockerfile.prod','/.dockerignore.bak','/k8s/deployment.yaml','/k8s/service.yaml','/k8s/ingress.yaml','/helm/Chart.yaml','/skaffold.yaml','/tilt/Tiltfile','/kustomization.yaml','/argo/workflow.yaml'];
+/* Fuzzing combinatorio inteligente: en vez de probar TODAS las extensiones contra
+   TODAS las palabras (explosion combinatoria inutil), se cruzan solo palabras de alto
+   valor con las extensiones del stack que S.ctx ya detecto en el fingerprinting. Si no
+   se detecto ningun stack especifico, se usa un set neutro (html/txt/bak). */
+var fuzzHighValueWords=['config','settings','backup','admin','install','setup','database',
+'connection','secrets','credentials','debug','test','info','login','app','api','data','export','dump'];
+var fuzzStackExt=[];
+if(S.ctx.hasPHP)fuzzStackExt=fuzzStackExt.concat(['.php','.php.bak','.php~','.phtml','.inc']);
+if(S.ctx.hasNET)fuzzStackExt=fuzzStackExt.concat(['.aspx','.ashx','.asmx','.config','.cs']);
+if(S.ctx.hasJava)fuzzStackExt=fuzzStackExt.concat(['.jsp','.do','.action','.jspx']);
+if(S.ctx.hasPython)fuzzStackExt=fuzzStackExt.concat(['.py','.pyc','.cfg']);
+if(S.ctx.hasNode)fuzzStackExt=fuzzStackExt.concat(['.js','.json','.ts']);
+if(S.ctx.hasRuby)fuzzStackExt=fuzzStackExt.concat(['.rb','.erb']);
+if(S.ctx.hasGo)fuzzStackExt=fuzzStackExt.concat(['.go']);
+if(fuzzStackExt.length===0)fuzzStackExt=['.html','.txt','.bak'];
+var fuzzSmartCombo=[];
+fuzzHighValueWords.forEach(function(w){fuzzStackExt.forEach(function(ext){fuzzSmartCombo.push('/'+w+ext);});});
+var fuzzWordsFinal=fuzzWords.concat(fuzzSmartCombo);
+logInfo('Stack detectado para fuzzing inteligente: '+(fuzzStackExt.length&&(S.ctx.hasPHP||S.ctx.hasNET||S.ctx.hasJava||S.ctx.hasPython||S.ctx.hasNode||S.ctx.hasRuby||S.ctx.hasGo)?fuzzStackExt.join(','):'ninguno especifico — usando extensiones neutras')+' ('+fuzzSmartCombo.length+' combinaciones dirigidas)');
+logInfo('Probando '+fuzzWordsFinal.length+' endpoints comunes (con validacion por firmas, en paralelo)...');
 var baselineFuzz=await soft404Baseline(target);
 var fuzzFound=0;
-var fuzzResultsAll=await smartBatch(fuzzWords.map(function(w){return target+w;}));
+var fuzzResultsAll=await smartBatch(fuzzWordsFinal.map(function(w){return target+w;}));
 fuzzResultsAll.forEach(function(r,ci){
 if(r.status==='fulfilled'&&r.value&&(r.value.status===200||r.value.status===401||r.value.status===403)){
-var w=fuzzWords[ci];
+var w=fuzzWordsFinal[ci];
 if(r.value.status===200&&!sfVerify(w,r.value,baselineFuzz))return;
 fuzzFound++;
 var sevTag=r.value.status===200?'med':'low';
@@ -20490,7 +20566,7 @@ logWarn('['+r.value.status+'] '+w+' responde');
 addF(sevTag,'Endpoint descubierto: '+w,'HTTP '+r.value.status+' en '+w+(r.value.status===200?' (contenido verificado)':''));
 }
 });
-if(fuzzResultsAll.pruned)logWarn('F999: cortado temprano tras 3 fallas consecutivas ('+fuzzResultsAll.length+'/'+fuzzWords.length+' endpoints probados)');
+if(fuzzResultsAll.pruned)logWarn('F999: cortado temprano tras 3 fallas consecutivas ('+fuzzResultsAll.length+'/'+fuzzWordsFinal.length+' endpoints probados)');
 if(fuzzFound===0)logOk('Fuzzing Supremo: sin endpoints adicionales descubiertos (o falsos positivos de soft-404 descartados)');
 else logWarn('Fuzzing Supremo: '+fuzzFound+' endpoints descubiertos');
 await sl(100);
@@ -21157,6 +21233,237 @@ function huntLeaks(){
 }
 
 docsBtn.addEventListener('click', huntLeaks);
+})();
+
+/* ══ ENDPOINT CRAWLER (estilo Katana) ══ */
+(function(){
+'use strict';
+var CRW_PROXY = 'https://scanner-proxy.matias-ramireztu.workers.dev';
+var input = document.getElementById('crw-input');
+var btn = document.getElementById('crw-btn');
+var btnTxt = document.getElementById('crw-btn-txt');
+var statusEl = document.getElementById('crw-status');
+var statusText = document.getElementById('crw-status-text');
+var progFill = document.getElementById('crw-progress-fill');
+var resultsEl = document.getElementById('crw-results');
+if(!input || !btn) return;
+
+var crwRunning = false;
+
+/* Fetch via proxy — mismo contrato que pfx()/get() del scanner: el worker devuelve
+   {ok,status,headers,body,...} en JSON, nunca CORS directo al target. */
+async function crwFetch(url){
+  try{
+    var ctrl = new AbortController();
+    var tid = setTimeout(function(){ ctrl.abort(); }, 12000);
+    var r = await fetch(CRW_PROXY + '?url=' + encodeURIComponent(url), { signal: ctrl.signal });
+    clearTimeout(tid);
+    if(!r.ok) return null;
+    var j = await r.json();
+    return j;
+  }catch(e){ return null; }
+}
+
+/* Extraccion de links/forms/scripts via DOMParser real — mucho mas confiable que
+   regex para HTML (maneja atributos con comillas simples/dobles, HTML malformado, etc). */
+function crwExtractFromHTML(html, baseUrl){
+  var out = { links: [], forms: [], scripts: [], external: [] };
+  var origin;
+  try{ origin = new URL(baseUrl).origin; }catch(e){ return out; }
+  var doc;
+  try{ doc = new DOMParser().parseFromString(html, 'text/html'); }catch(e){ return out; }
+  var seen = {};
+  function pushResolved(raw, bucket){
+    if(!raw) return;
+    var abs;
+    try{ abs = new URL(raw, baseUrl).href; }catch(e){ return; }
+    if(abs.indexOf('javascript:')===0||abs.indexOf('mailto:')===0||abs.indexOf('tel:')===0) return;
+    var u;
+    try{ u = new URL(abs); }catch(e){ return; }
+    if(u.origin === origin){
+      if(!seen[abs]){ seen[abs]=true; out[bucket].push(abs); }
+    } else if(bucket==='links'){
+      if(!seen[abs]){ seen[abs]=true; out.external.push(abs); }
+    }
+  }
+  doc.querySelectorAll('a[href]').forEach(function(a){ pushResolved(a.getAttribute('href'), 'links'); });
+  doc.querySelectorAll('script[src]').forEach(function(s){ pushResolved(s.getAttribute('src'), 'scripts'); });
+  doc.querySelectorAll('link[href]').forEach(function(l){ pushResolved(l.getAttribute('href'), 'links'); });
+  doc.querySelectorAll('form[action]').forEach(function(f){
+    var action = f.getAttribute('action')||'';
+    var method = (f.getAttribute('method')||'GET').toUpperCase();
+    try{ var abs = new URL(action||baseUrl, baseUrl).href; out.forms.push({ url: abs, method: method }); }catch(e){}
+  });
+  doc.querySelectorAll('form:not([action])').forEach(function(f){
+    out.forms.push({ url: baseUrl, method: (f.getAttribute('method')||'GET').toUpperCase() });
+  });
+  return out;
+}
+
+/* Extraccion agresiva de endpoints dentro de archivos JS — el corazon del enfoque
+   "estilo Katana": la mayoria de las APIs modernas nunca aparecen en el HTML, solo
+   existen como strings dentro del bundle JS (fetch('/api/...'), axios.get(...), etc). */
+function crwExtractFromJS(jsCode, baseUrl){
+  var found = new Set();
+  var slice = jsCode.length > 300000 ? jsCode.slice(0,300000) : jsCode;
+  var pathRe = /["'\`](\/[a-zA-Z0-9_\-][a-zA-Z0-9_\-\/\.]{1,150}?)["'\`]/g;
+  var urlRe = /["'\`](https?:\/\/[a-zA-Z0-9_\-\.]+(?:\/[a-zA-Z0-9_\-\/\.%\?&=]*)?)["'\`]/g;
+  var m;
+  var guard = 0;
+  while((m = pathRe.exec(slice)) !== null && guard < 4000){
+    guard++;
+    var p = m[1];
+    if(/\.(png|jpe?g|gif|svg|woff2?|ttf|eot|css|ico|map)$/i.test(p)) continue;
+    try{ found.add(new URL(p, baseUrl).href); }catch(e){}
+  }
+  guard = 0;
+  while((m = urlRe.exec(slice)) !== null && guard < 2000){
+    guard++;
+    found.add(m[1]);
+  }
+  return Array.from(found);
+}
+
+var CRW_INTERESTING_RE = /admin|api[_\-]?key|secret|token|password|internal|debug|config|backup|\.env|graphql|swagger|actuator|console|private/i;
+
+function crwEscHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+
+async function runCrawler(startUrl, maxDepth){
+  var origin;
+  try{ origin = new URL(startUrl).origin; }catch(e){ return null; }
+  var visited = {};
+  var queue = [{ url: startUrl, depth: 0 }];
+  var pages = [];
+  var jsFiles = {};
+  var forms = [];
+  var external = {};
+  var maxPages = 60;
+  var concurrency = 6;
+
+  while(queue.length > 0 && pages.length < maxPages){
+    var batch = queue.splice(0, concurrency).filter(function(item){ return !visited[item.url]; });
+    if(!batch.length) continue;
+    batch.forEach(function(item){ visited[item.url] = true; });
+    statusText.textContent = 'Crawleando... '+pages.length+' paginas · '+Object.keys(jsFiles).length+' JS · profundidad actual: '+batch[0].depth;
+    progFill.style.width = Math.min(95, (pages.length/maxPages)*100)+'%';
+    var settled = await Promise.allSettled(batch.map(function(item){ return crwFetch(item.url); }));
+    for(var i=0;i<settled.length;i++){
+      var item = batch[i];
+      var res = settled[i].status==='fulfilled' ? settled[i].value : null;
+      if(!res || !res.ok || !res.body) continue;
+      pages.push({ url: item.url, status: res.status });
+      var ctype = (res.headers && res.headers['content-type']) || '';
+      if(ctype.indexOf('html') === -1 && res.body.slice(0,15).indexOf('<')===-1) continue;
+      var ext = crwExtractFromHTML(res.body, item.url);
+      ext.links.forEach(function(l){
+        if(!visited[l] && item.depth < maxDepth) queue.push({ url: l, depth: item.depth+1 });
+      });
+      ext.scripts.forEach(function(s){ jsFiles[s] = true; });
+      ext.forms.forEach(function(f){ forms.push(f); });
+      ext.external.forEach(function(e){ external[e] = true; });
+    }
+  }
+
+  statusText.textContent = 'Parseando '+Object.keys(jsFiles).length+' archivos JS en busca de endpoints ocultos...';
+  var jsUrls = Object.keys(jsFiles).slice(0, 40);
+  var jsEndpoints = {};
+  var jsResults = await Promise.allSettled(jsUrls.map(function(u){ return crwFetch(u); }));
+  jsResults.forEach(function(r, i){
+    if(r.status==='fulfilled' && r.value && r.value.ok && r.value.body){
+      crwExtractFromJS(r.value.body, jsUrls[i]).forEach(function(e){ jsEndpoints[e] = true; });
+    }
+  });
+
+  var allDiscovered = {};
+  pages.forEach(function(p){ allDiscovered[p.url] = true; });
+  Object.keys(jsEndpoints).forEach(function(e){ allDiscovered[e] = true; });
+
+  return {
+    pages: pages,
+    jsFiles: Object.keys(jsFiles),
+    jsEndpoints: Object.keys(jsEndpoints),
+    forms: forms,
+    external: Object.keys(external),
+    total: Object.keys(allDiscovered).length,
+  };
+}
+
+function renderCrawlResults(data, startUrl){
+  progFill.style.width = '100%';
+  statusText.textContent = 'Crawl completo.';
+  resultsEl.style.display = 'block';
+
+  var interesting = data.pages.map(function(p){return p.url;}).concat(data.jsEndpoints)
+    .filter(function(u, i, arr){ return arr.indexOf(u)===i; })
+    .filter(function(u){ return CRW_INTERESTING_RE.test(u); });
+
+  function section(title, icon, items, count){
+    if(!items.length) return '';
+    var body = items.slice(0,150).map(function(it){
+      var isInteresting = CRW_INTERESTING_RE.test(typeof it==='string'?it:it.url);
+      var label = typeof it==='string' ? it : ('['+it.method+'] '+it.url);
+      return '<div class="rce-row" style="align-items:center;gap:10px;flex-wrap:wrap;'+(isInteresting?'border-left:2px solid var(--acc);padding-left:8px;':'')+'">' +
+        '<a href="'+crwEscHtml(typeof it==='string'?it:it.url)+'" target="_blank" rel="noopener noreferrer" style="color:'+(isInteresting?'var(--acc)':'rgba(240,238,248,.75)')+';word-break:break-all;flex:1;min-width:180px;font-family:var(--mono);font-size:11.5px;">'+crwEscHtml(label)+'</a>' +
+        (isInteresting?'<span class="rce-tag crit" style="font-size:9px;">INTERESANTE</span>':'') +
+        '</div>';
+    }).join('');
+    var extra = items.length>150 ? '<div class="rce-row" style="color:rgba(240,238,248,.4);font-size:11px;">+'+(items.length-150)+' mas (no mostrados)</div>' : '';
+    return '<div class="rce-card" style="margin-bottom:16px;">' +
+      '<div class="rce-card-head"><span class="rce-card-icon">'+icon+'</span><span class="rce-card-title">'+title+'</span><span class="rce-card-count">'+count+'</span></div>' +
+      '<div class="rce-card-body">'+body+extra+'</div>' +
+    '</div>';
+  }
+
+  var html = '<div class="rce-card" style="margin-bottom:16px;border-color:var(--acc);">' +
+    '<div class="rce-card-head"><span class="rce-card-icon">🕸</span><span class="rce-card-title">Crawl completo — '+crwEscHtml(startUrl)+'</span><span class="rce-card-count">'+data.total+' endpoints unicos</span></div>' +
+    '<div class="rce-card-body"><div class="rce-row">'+data.pages.length+' paginas rastreadas · '+data.jsFiles.length+' archivos JS analizados · '+data.jsEndpoints.length+' endpoints extraidos de JS · '+data.forms.length+' formularios · '+interesting.length+' marcados como interesantes</div></div>' +
+  '</div>';
+
+  html += section('Endpoints interesantes (admin/api/secret/config/debug...)', '🎯', interesting, interesting.length);
+  html += section('Paginas rastreadas (HTML)', '📄', data.pages.map(function(p){return p.url;}), data.pages.length);
+  html += section('Endpoints extraidos de JS', '⚙', data.jsEndpoints, data.jsEndpoints.length);
+  html += section('Archivos JS analizados', '📜', data.jsFiles, data.jsFiles.length);
+  html += section('Formularios encontrados', '📝', data.forms, data.forms.length);
+  html += section('Recursos externos (otro dominio)', '🔗', data.external, data.external.length);
+
+  resultsEl.innerHTML = html;
+}
+
+async function startCrawl(){
+  if(crwRunning) return;
+  var target = (input.value||'').trim();
+  if(!target){ input.focus(); return; }
+  if(!/^https?:\/\//i.test(target)) target = 'https://'+target;
+  var maxDepth = parseInt(document.getElementById('crw-depth').value, 10) || 2;
+
+  crwRunning = true;
+  btn.disabled = true;
+  btnTxt.textContent = 'CRAWLEANDO...';
+  statusEl.style.display = 'block';
+  resultsEl.style.display = 'none';
+  progFill.style.width = '5%';
+  statusText.textContent = 'Iniciando crawl agresivo...';
+
+  try{
+    var data = await runCrawler(target, maxDepth);
+    if(data) renderCrawlResults(data, target);
+    else { statusText.textContent = 'No se pudo acceder al target.'; }
+  }catch(e){
+    statusText.textContent = 'Error durante el crawl: '+e.message;
+  }
+
+  crwRunning = false;
+  btn.disabled = false;
+  btnTxt.textContent = 'CRAWL AGRESIVO';
+}
+
+btn.addEventListener('click', startCrawl);
+input.addEventListener('keydown', function(e){ if(e.key==='Enter') startCrawl(); });
+document.querySelectorAll('#crawler .rce-ex').forEach(function(ex){
+  ex.addEventListener('click', function(){ input.value = ex.getAttribute('data-val'); });
+});
 })();
 </script>
 

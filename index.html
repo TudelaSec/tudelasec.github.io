@@ -2683,8 +2683,8 @@ a{color:inherit;text-decoration:none;}
     <div class="mega-col">
       <div class="mega-col-title">Reconocimiento</div>
       <a href="#osint"        class="mega-link">⌖ OSINT Lookup</a>
-      <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
+      <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
       <a href="#cve-search"   class="mega-link">🛡 CVE Search</a>
       <a href="#warroom"      class="mega-link">⚡ War Room</a>
     </div>
@@ -2962,6 +2962,42 @@ a{color:inherit;text-decoration:none;}
     </div>
     <div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:rgba(255,26,46,0.3);letter-spacing:0.06em;padding-left:4px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:5px;"></i>Solo para uso en targets autorizados — bug bounty activos</div>
   </div></div>
+  </div>
+</section>
+
+
+<!-- ══ ENDPOINT CRAWLER ══ -->
+<section id="crawler">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Aggressive Crawler</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Endpoint" data-l2="Crawler." aria-label="Endpoint Crawler."></h2>
+    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Crawler agresivo estilo Katana. Sigue enlaces y formularios del mismo dominio hasta la profundidad elegida, y <strong style="color:var(--acc)">parsea cada archivo JS encontrado</strong> para extraer endpoints que un crawler HTML normal nunca vería.</p>
+
+    <div class="rce-searchbar">
+      <div class="rce-input-wrap">
+        <span class="rce-input-icon">🕸</span>
+        <input type="text" id="crw-input" class="rce-input" placeholder="https://target.com" autocomplete="off" autocorrect="off" spellcheck="false">
+        <div class="rce-examples">
+          <span class="rce-ex" data-val="https://example.com">example.com</span>
+        </div>
+      </div>
+      <select id="crw-depth" style="background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 14px;border-radius:3px;cursor:pointer;">
+        <option value="1">Profundidad 1</option>
+        <option value="2" selected>Profundidad 2</option>
+        <option value="3">Profundidad 3</option>
+      </select>
+      <button class="rce-btn" id="crw-btn">
+        <span class="rce-btn-icon">🕷</span>
+        <span id="crw-btn-txt">CRAWL AGRESIVO</span>
+      </button>
+    </div>
+
+    <div class="rce-status" id="crw-status" style="display:none">
+      <div class="rce-progress-bar"><div class="rce-progress-fill" id="crw-progress-fill"></div></div>
+      <div class="rce-status-text" id="crw-status-text">Iniciando crawl...</div>
+    </div>
+
+    <div class="rce-results" id="crw-results" style="display:none"></div>
   </div>
 </section>
 
@@ -3798,41 +3834,6 @@ dig assets.lime.bike CNAME</div></div></div>
     </div>
 
     <div class="rce-results" id="rce-results" style="display:none"></div>
-  </div>
-</section>
-
-<!-- ══ ENDPOINT CRAWLER ══ -->
-<section id="crawler">
-  <div class="wrap">
-    <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Aggressive Crawler</div></div>
-    <h2 class="sec-title h2-anim" data-l1="Endpoint" data-l2="Crawler." aria-label="Endpoint Crawler."></h2>
-    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Crawler agresivo estilo Katana. Sigue enlaces y formularios del mismo dominio hasta la profundidad elegida, y <strong style="color:var(--acc)">parsea cada archivo JS encontrado</strong> para extraer endpoints que un crawler HTML normal nunca vería.</p>
-
-    <div class="rce-searchbar">
-      <div class="rce-input-wrap">
-        <span class="rce-input-icon">🕸</span>
-        <input type="text" id="crw-input" class="rce-input" placeholder="https://target.com" autocomplete="off" autocorrect="off" spellcheck="false">
-        <div class="rce-examples">
-          <span class="rce-ex" data-val="https://example.com">example.com</span>
-        </div>
-      </div>
-      <select id="crw-depth" style="background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 14px;border-radius:3px;cursor:pointer;">
-        <option value="1">Profundidad 1</option>
-        <option value="2" selected>Profundidad 2</option>
-        <option value="3">Profundidad 3</option>
-      </select>
-      <button class="rce-btn" id="crw-btn">
-        <span class="rce-btn-icon">🕷</span>
-        <span id="crw-btn-txt">CRAWL AGRESIVO</span>
-      </button>
-    </div>
-
-    <div class="rce-status" id="crw-status" style="display:none">
-      <div class="rce-progress-bar"><div class="rce-progress-fill" id="crw-progress-fill"></div></div>
-      <div class="rce-status-text" id="crw-status-text">Iniciando crawl...</div>
-    </div>
-
-    <div class="rce-results" id="crw-results" style="display:none"></div>
   </div>
 </section>
 
@@ -10958,8 +10959,8 @@ var NAV_ITEMS = [
  {id:'habilidades',  icon:'\uD83C\uDFAF', label:'Skills & Areas'},
  {id:'scanner',      icon:'\uD83D\uDC80', label:'Leviatan Scanner'},
  {id:'osint',        icon:'\u2316',        label:'OSINT Lookup'},
- {id:'recon-engine', icon:'\u25C8',        label:'Passive Recon Engine'},
  {id:'crawler',      icon:'\uD83D\uDD78',  label:'Endpoint Crawler'},
+ {id:'recon-engine', icon:'\u25C8',        label:'Passive Recon Engine'},
  {id:'cve-search',   icon:'\uD83D\uDEE1',  label:'CVE Search'},
  {id:'warroom',      icon:'\u26A1',        label:'War Room'},
  {id:'cheatsheet',   icon:'\uD83D\uDCD6',  label:'Cheatsheet'},

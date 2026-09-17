@@ -1765,6 +1765,102 @@ section .wrap { position: relative; z-index: 1; }
 /* ══ PASSIVE RECON ENGINE ══ */
 .rce-searchbar { display:flex; gap:12px; margin-bottom:28px; align-items:stretch; }
 @media(max-width:700px){.rce-searchbar{flex-direction:column;}.rce-searchbar select,.rce-searchbar .rce-btn{width:100%;}.rce-searchbar .rce-btn{padding:14px 20px;justify-content:center;}}
+
+/* ══ CERBERUS — Content Discovery & Structured Fuzzer ══ */
+.crb-controls-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:10px 14px;background:rgba(255,26,46,.03);border:1px solid var(--line);border-radius:4px;}
+.crb-tag{font-family:var(--mono);font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.04em;}
+.crb-num-label{font-family:var(--mono);font-size:10.5px;color:rgba(240,238,248,.55);display:flex;align-items:center;gap:6px;}
+.crb-num-label input{width:56px;background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 6px;border-radius:3px;}
+.crb-ctrl-btn{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;padding:8px 16px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:3px;transition:all .2s;}
+.crb-ctrl-btn:hover:not(:disabled){border-color:var(--acc);color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,.2);}
+.crb-ctrl-btn:disabled{opacity:.35;cursor:not-allowed;}
+.crb-ctrl-danger:hover:not(:disabled){border-color:var(--red);color:var(--red);box-shadow:0 0 14px rgba(255,68,85,.25);}
+.crb-progress-wrap{margin-bottom:10px;}
+.crb-progress-bar{height:5px;background:rgba(255,26,46,.1);border-radius:3px;overflow:hidden;}
+.crb-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--acc2),var(--acc));box-shadow:0 0 8px rgba(255,26,46,.6);transition:width .25s;}
+.crb-progress-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-family:var(--mono);font-size:10.5px;color:rgba(240,238,248,.5);flex-wrap:wrap;gap:8px;}
+.crb-hits b{font-weight:700;}
+.crb-2xx-txt{color:var(--green);}
+.crb-3xx-txt{color:var(--amber);}
+.crb-403-txt{color:var(--acc);}
+.crb-status-line{font-family:var(--mono);font-size:11.5px;color:rgba(240,238,248,.65);margin-bottom:18px;min-height:16px;}
+.crb-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;margin-bottom:14px;max-height:420px;overflow-y:auto;}
+.crb-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+.crb-table thead th{position:sticky;top:0;background:#0a0610;text-align:left;padding:10px 12px;color:var(--acc);font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line);}
+.crb-table tbody td{padding:8px 12px;border-bottom:1px solid rgba(255,26,46,.06);white-space:nowrap;}
+.crb-table .crb-path-cell{white-space:normal;word-break:break-all;color:rgba(240,238,248,.8);}
+.crb-table tr.crb-2xx td:first-child{color:var(--green);font-weight:700;}
+.crb-table tr.crb-3xx td:first-child{color:var(--amber);font-weight:700;}
+.crb-table tr.crb-403 td:first-child{color:var(--acc);font-weight:700;}
+.crb-table tr.crb-5xx td:first-child{color:var(--red);font-weight:700;}
+.crb-table tr.crb-other td:first-child{color:rgba(240,238,248,.5);}
+.crb-empty{color:rgba(240,238,248,.35);text-align:center;padding:20px !important;white-space:normal !important;}
+.crb-export-row{display:flex;gap:10px;flex-wrap:wrap;}
+@media(max-width:700px){
+  .crb-controls-row{flex-direction:column;align-items:flex-start;}
+  .crb-table{font-size:10.5px;}
+  .crb-table thead th, .crb-table tbody td{padding:7px 8px;}
+}
+
+/* ══ KRAKEN — Motor de Subdominios ══ */
+.kr-head{text-align:center;margin-bottom:36px;}
+.kr-title{font-family:var(--disp);font-size:clamp(34px,6vw,58px);font-weight:900;letter-spacing:0.06em;color:var(--text);
+text-shadow:0 0 40px rgba(255,26,46,0.35);}
+.kr-title .acc{color:var(--acc);}
+.kr-sub{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-top:10px;}
+.kr-sub b{color:var(--acc);font-weight:700;}
+.kr-mode{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+padding:6px 16px;border:1px solid rgba(255,68,85,0.4);color:var(--red);border-radius:2px;background:rgba(255,26,46,0.06);
+box-shadow:0 0 16px rgba(255,26,46,0.15);animation:krPulse 2s ease-in-out infinite;}
+@keyframes krPulse{0%,100%{box-shadow:0 0 10px rgba(255,26,46,0.12);}50%{box-shadow:0 0 26px rgba(255,26,46,0.35);}}
+.panel{background:var(--bg1);border:1px solid var(--lines);border-radius:4px;overflow:hidden;box-shadow:0 0 40px rgba(255,26,46,0.08);}
+.panel-head{background:rgba(255,26,46,0.05);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.panel-title{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--acc);display:flex;align-items:center;gap:8px;}
+.panel-title::before{content:"●";color:var(--red);font-size:8px;}
+.kr-bar{display:flex;gap:0;border:1px solid var(--lines);border-radius:3px;overflow:hidden;background:rgba(0,0,0,0.3);}
+.kr-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:13px;padding:14px 18px;min-width:200px;}
+.kr-input::placeholder{color:var(--muted);}
+.kr-input:focus{background:rgba(255,26,46,0.02);}
+#kr-btn{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+padding:14px 28px;background:var(--acc);color:#000;border:none;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+#kr-btn:hover{background:#ff3347;box-shadow:0 0 24px rgba(255,26,46,0.5);}
+#kr-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;}
+.kr-toggle{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:7px 13px;border:1px solid var(--line);
+border-radius:2px;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;font-family:var(--mono);}
+.kr-toggle:hover{border-color:var(--lines);color:var(--text);}
+.kr-toggle.active{border-color:var(--acc);color:var(--acc);background:rgba(255,26,46,0.07);}
+.kr-toggle.green.active{border-color:var(--green);color:var(--green);background:rgba(0,255,163,0.06);}
+.stats{display:flex;gap:0;flex-wrap:wrap;}
+.stat{padding:10px 18px;border-left:1px solid var(--line);text-align:center;min-width:90px;}
+.stat-num{font-family:var(--disp);font-size:22px;font-weight:900;color:var(--acc);display:block;text-shadow:0 0 14px rgba(255,26,46,0.4);}
+.stat-num.g{color:var(--green);text-shadow:0 0 14px rgba(0,255,163,0.4);}
+.stat-num.a{color:var(--amber);text-shadow:0 0 14px rgba(255,176,32,0.4);}
+.stat-num.v{color:var(--violet);text-shadow:0 0 14px rgba(123,79,255,0.4);}
+.stat-lbl{font-size:8.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.term{height:420px;overflow-y:auto;padding:16px 18px;font-size:12px;background:#020005;
+scrollbar-width:thin;scrollbar-color:rgba(255,26,46,0.3) transparent;}
+.term::-webkit-scrollbar{width:5px;}
+.term::-webkit-scrollbar-thumb{background:rgba(255,26,46,0.3);border-radius:2px;}
+.ln{padding:1px 0;word-break:break-all;color:#b0c4b8;white-space:pre-wrap;}
+.ln.src{color:var(--violet);}
+.ln.ok{color:var(--green);}
+.ln.warn{color:var(--amber);}
+.ln.err{color:var(--red);}
+.ln.dim{color:rgba(240,238,248,0.35);}
+.ln.section{color:var(--acc);font-weight:700;letter-spacing:0.08em;margin:6px 0 2px;}
+.ln.sub{color:#8bc99a;}
+.panel-foot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center;}
+.kr-btn2{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+padding:10px 20px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:2px;transition:all 0.2s;}
+.kr-btn2:hover{border-color:var(--acc);color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,0.2);}
+.kr-btn2.green:hover{border-color:var(--green);color:var(--green);box-shadow:0 0 14px rgba(0,255,163,0.2);}
+.hint{font-size:10px;color:var(--muted);margin-left:auto;letter-spacing:0.04em;}
+.progress{height:2px;background:rgba(255,26,46,0.1);position:relative;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--acc2),var(--acc));box-shadow:0 0 8px rgba(255,26,46,0.6);transition:width 0.3s;}
+.kr-footer{margin-top:24px;text-align:center;font-size:10px;color:var(--muted);letter-spacing:0.08em;}
+.kr-footer b{color:var(--acc);}
+@media(max-width:700px){.kr-bar{flex-direction:column;}#kr-btn{width:100%;}.stat{flex:1;min-width:70px;}}
 .rce-input-wrap { flex:1; background:rgba(0,0,0,.5); border:1px solid rgba(255,26,46,.25); border-radius:4px; display:flex; align-items:center; gap:10px; padding:0 14px; transition:border-color .2s; }
 .rce-input-wrap:focus-within { border-color:rgba(255,26,46,.6); box-shadow:0 0 20px rgba(255,26,46,.08); }
 .rce-input-icon { color:var(--acc); font-size:18px; flex-shrink:0; }
@@ -1918,6 +2014,7 @@ section .wrap { position: relative; z-index: 1; }
 
 /* ══ CVE SEARCH ══ */
 .cve-searchbar { display:flex; gap:10px; margin-bottom:16px; }
+@media(max-width:700px){.cve-searchbar{flex-direction:column;}.cve-btn{width:100%;padding:14px 20px;}}
 .cve-input-wrap { flex:1; display:flex; align-items:center; gap:10px; background:rgba(0,0,0,.5); border:1px solid rgba(255,26,46,.25); border-radius:4px; padding:0 14px; transition:border-color .2s; }
 .cve-input-wrap:focus-within { border-color:rgba(255,26,46,.6); }
 .cve-input { flex:1; background:transparent; border:none; outline:none; font-family:var(--mono); font-size:14px; color:var(--text); padding:16px 0; }
@@ -2699,6 +2796,8 @@ a{color:inherit;text-decoration:none;}
       <div class="mega-col-title">Reconocimiento</div>
       <a href="#osint"        class="mega-link">⌖ OSINT Lookup</a>
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
+      <a href="#kraken" class="mega-link">🐙 Kraken Subdomains</a>
+      <a href="#cerberus" class="mega-link">🐺 Cerberus Fuzzer</a>
       <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
       <a href="#cve-search"   class="mega-link">🛡 CVE Search</a>
       <a href="#warroom"      class="mega-link">⚡ War Room</a>
@@ -3017,6 +3116,128 @@ a{color:inherit;text-decoration:none;}
     <div class="rce-results" id="crw-results" style="display:none"></div>
   </div>
 </section>
+
+<!-- ══ KRAKEN — Subdomain Discovery Engine ══ -->
+<section id="kraken">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">23 — Aggressive Recon</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Kraken" data-l2="Subdomains." aria-label="Kraken Subdomains."></h2>
+    <p style="margin-bottom:28px;color:rgba(240,238,248,.6);max-width:720px;">Motor agresivo multi-fuente: <strong style="color:var(--acc)">5 fuentes OSINT</strong> (crt.sh, HackerTarget, OTX, Wayback, Anubis) + fuerza bruta activa con DNS-over-HTTPS round-robin + probing HTTP + detección de CNAME takeover con verificación real de body.</p>
+<div class="kr-head">
+  <div class="kr-title">KRA<span class="acc">KEN</span></div>
+  <div class="kr-sub">Motor Agresivo de Descubrimiento de Subdominios // <b>Multi-Fuente + Bruteforce Activo + Takeover Detection</b></div>
+  <div class="kr-mode">🐙 MODO AGRESIVO — OSINT + RESOLUCIÓN DNS EN VIVO + PROBING HTTP + CNAME TAKEOVER</div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div class="panel-title">TARGET ACQUISITION</div>
+    <div class="stats">
+      <div class="stat"><span class="stat-num" id="kr-st-total">0</span><span class="stat-lbl">Únicos</span></div>
+      <div class="stat"><span class="stat-num g" id="kr-st-alive">0</span><span class="stat-lbl">Alive</span></div>
+      <div class="stat"><span class="stat-num a" id="kr-st-http">0</span><span class="stat-lbl">HTTP OK</span></div>
+      <div class="stat"><span class="stat-num v" id="kr-st-takeover">0</span><span class="stat-lbl">Takeover</span></div>
+      <div class="stat"><span class="stat-num" id="kr-st-src">0</span><span class="stat-lbl">Fuentes</span></div>
+    </div>
+  </div>
+  <div class="progress"><div class="progress-fill" id="kr-progress"></div></div>
+  <div class="kr-bar">
+    <input class="kr-input" id="kr-input" type="text" placeholder="dominio.com — ej: tudelasec.com" autocomplete="off" spellcheck="false">
+    <button id="kr-btn">🐙 DESATAR KRAKEN</button>
+  </div>
+  <div class="controls">
+    <button class="kr-toggle green active" id="tg-dns" title="Resuelve cada subdominio vía Google DoH y marca [ALIVE]/[OFFLINE]">⚡ RESOLVER DNS (DoH)</button>
+    <button class="kr-toggle active" id="tg-brute" title="Bruteforce activo con wordlist integrada — genera tráfico DNS, no toca el servidor web">🔨 BRUTEFORCE ACTIVO</button>
+    <button class="kr-toggle active" id="tg-http" title="Probing HTTP httpx-style de TODOS los subdominios vía proxy Worker — muestra el código de estado de cada uno">🌐 PROBING HTTP (códigos de estado)</button>
+    <button class="kr-toggle active" id="tg-cname" title="Detecta CNAMEs colgantes apuntando a servicios tomables (S3, CloudFront, GitHub Pages...)">☠ CNAME TAKEOVER</button>
+    <span class="hint">Solo para targets con autorización explícita</span>
+  </div>
+  <div class="controls" style="border-bottom:none;padding-bottom:0;">
+    <span style="font-size:9px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-right:4px;">Filtro estado:</span>
+    <button class="kr-toggle active" id="fl-all" data-fl="ALL">TODO</button>
+    <button class="kr-toggle green" data-fl="2XX">2XX OK</button>
+    <button class="kr-toggle" data-fl="3XX">3XX REDIR</button>
+    <button class="kr-toggle" data-fl="4XX">4XX DENIED</button>
+    <button class="kr-toggle" data-fl="5XX">5XX ERROR</button>
+    <button class="kr-toggle" data-fl="DOWN">☠ DOWN</button>
+    <button class="kr-toggle" data-fl="TAKEOVER" style="border-color:rgba(255,68,85,.4);color:var(--red);">TAKEOVER</button>
+  </div>
+  <div class="term" id="kr-term">
+    <div class="ln dim">// KRAKEN v1.0 AGGRESSIVE — esperando target. El Kraken despierta cuando tú lo ordenas.</div>
+  </div>
+  <div class="panel-foot">
+    <button class="kr-btn2" id="kr-copy">📋 COPIAR LISTA (filtro activo)</button>
+    <button class="kr-btn2 green" id="kr-copy-alive">📋 COPIAR SOLO ALIVE</button>
+    <button class="kr-btn2" id="kr-download">💾 DESCARGAR TXT</button>
+    <button class="kr-btn2" id="kr-send-crawler" style="border-color:rgba(255,26,46,.4);">🕸 ENVIAR A CRAWLER</button>
+    <span class="hint">Formato de salida compatible: httpx · nuclei · katana · subfinder</span>
+  </div>
+</div>
+
+<div class="kr-footer">TudelaSec // <b>KRAKEN</b> — Multi-source subdomain engine · 5 fuentes OSINT + bruteforce + DoH live resolve · Powered by Cloudflare Worker proxy</div>
+
+</div>
+  </div>
+</section>
+<!-- ══ CERBERUS — Content Discovery & Structured Fuzzer ══ -->
+<section id="cerberus">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">27 — Content Discovery</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Cerberus" data-l2="Fuzzer." aria-label="Cerberus Fuzzer."></h2>
+    <p style="margin-bottom:28px;color:rgba(240,238,248,.6);max-width:720px;">Fuzzer de contenido estructurado en <strong style="color:var(--acc)">5 categorías tácticas independientes</strong>. Calibra un baseline de soft-404 antes de cada corrida y descarta automáticamente cualquier respuesta que coincida — pausable y cancelable en tiempo real, sin saturar el navegador.</p>
+
+    <div class="rce-searchbar" style="margin-bottom:14px;">
+      <div class="rce-input-wrap">
+        <span class="rce-input-icon">🐺</span>
+        <input type="text" id="crb-target" class="rce-input" placeholder="https://target.com" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <select id="crb-category" style="background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 14px;border-radius:3px;cursor:pointer;">
+        <option value="secrets_config">🔑 Secrets &amp; Config</option>
+        <option value="backups_dumps">💾 Backups &amp; Dumps</option>
+        <option value="admin_panels">🛡 Admin Panels &amp; SSO</option>
+        <option value="api_endpoints">⚙ API Endpoints</option>
+        <option value="devops_runtime">📡 DevOps &amp; Runtime</option>
+        <option value="abyss">🕳 Abyss (Mega-Agresivo)</option>
+      </select>
+      <button class="rce-btn" id="crb-start-btn">
+        <span class="rce-btn-icon">▶</span>
+        <span>INICIAR</span>
+      </button>
+    </div>
+
+    <div class="crb-controls-row">
+      <span class="crb-tag" id="crb-category-count">— rutas</span>
+      <label class="crb-num-label">Concurrencia <input type="number" id="crb-concurrency" value="15" min="10" max="20"></label>
+      <label class="crb-num-label">Delay (ms) <input type="number" id="crb-delay" value="25" min="10" max="50"></label>
+      <button class="crb-ctrl-btn" id="crb-pause-btn" disabled>⏸ PAUSAR</button>
+      <button class="crb-ctrl-btn" id="crb-resume-btn" style="display:none;">▶ REANUDAR</button>
+      <button class="crb-ctrl-btn crb-ctrl-danger" id="crb-cancel-btn" disabled>✕ CANCELAR</button>
+    </div>
+
+    <div class="crb-progress-wrap">
+      <div class="crb-progress-bar"><div class="crb-progress-fill" id="crb-progress-fill"></div></div>
+      <div class="crb-progress-meta">
+        <span id="crb-progress-label">0%</span>
+        <span class="crb-hits"><b class="crb-2xx-txt" id="crb-hit-2xx">0</b> 2xx · <b class="crb-3xx-txt" id="crb-hit-3xx">0</b> 3xx · <b class="crb-403-txt" id="crb-hit-403">0</b> 403</span>
+      </div>
+    </div>
+    <div class="crb-status-line" id="crb-status-line">Listo — elegí una categoría y un target para empezar.</div>
+
+    <div class="crb-table-wrap">
+      <table class="crb-table">
+        <thead><tr><th>Status</th><th>Path</th><th>Size</th><th>RTT</th></tr></thead>
+        <tbody id="crb-results-body"><tr id="crb-empty-row"><td colspan="4" class="crb-empty">Sin hallazgos todavía.</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="crb-export-row">
+      <button class="rce-btn" id="crb-copy-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">📋</span> COPIAR</button>
+      <button class="rce-btn" id="crb-export-json-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">💾</span> JSON</button>
+      <button class="rce-btn" id="crb-export-csv-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">💾</span> CSV</button>
+    </div>
+  </div>
+</section>
+
 
 
 
@@ -10978,6 +11199,8 @@ var NAV_ITEMS = [
  {id:'scanner',      icon:'\uD83D\uDC80', label:'Leviatan Scanner'},
  {id:'osint',        icon:'\u2316',        label:'OSINT Lookup'},
  {id:'crawler',      icon:'\uD83D\uDD78',  label:'Endpoint Crawler'},
+ {id:'kraken',       icon:'\uD83D\uDC19',  label:'Kraken Subdomains'},
+ {id:'cerberus',     icon:'\uD83D\uDC3A',  label:'Cerberus Fuzzer'},
  {id:'recon-engine', icon:'\u25C8',        label:'Passive Recon Engine'},
  {id:'cve-search',   icon:'\uD83D\uDEE1',  label:'CVE Search'},
  {id:'warroom',      icon:'\u26A1',        label:'War Room'},
@@ -21609,6 +21832,19 @@ function crwGenerateMutations(discoveredUrls, origin){
     for(var n=1;n<=15;n++){ mutations.push(origin+'/'+ip.base+'/'+n); }
     for(var d=-5;d<=5;d++){ var candidate=ip.seen+d; if(candidate>0) mutations.push(origin+'/'+ip.base+'/'+candidate); }
   });
+  /* Variantes de backup sobre archivos "interesantes" REALES que ya se encontraron
+     (config/json/xml/yml/env/php) — si /config.json existe, probar config.json.bak,
+     .old, .save, ~. Mucho mas dirigido que una wordlist ciega: solo se generan
+     variantes de archivos que el crawl YA confirmo que existen en este target. */
+  var backupExtRe = /\.(json|xml|ya?ml|env|php|config|ini|conf|properties)$/i;
+  var backupSuffixes = ['.bak', '.old', '.save', '.orig', '~', '.swp', '.1'];
+  var backupSeen = {};
+  discoveredUrls.forEach(function(u){
+    if(!backupExtRe.test(u)) return;
+    if(backupSeen[u]) return;
+    backupSeen[u] = true;
+    backupSuffixes.forEach(function(suf){ mutations.push(u + suf); });
+  });
   return Array.from(new Set(mutations)).slice(0,700);
 }
 
@@ -21792,7 +22028,7 @@ function renderCrawlResults(data, startUrl){
   var html = '<div class="rce-card" style="margin-bottom:16px;border-color:var(--acc);">' +
     '<div class="rce-card-head"><span class="rce-card-icon">🕸</span><span class="rce-card-title">Crawl completo — '+crwEscHtml(startUrl)+'</span><span class="rce-card-count">'+data.total+' endpoints unicos</span></div>' +
     '<div class="rce-card-body"><div class="rce-row">'+data.pages.length+' paginas · '+data.jsFiles.length+' JS analizados · '+data.jsEndpoints.length+' endpoints en JS · '+data.forms.length+' formularios · '+data.mutations.length+' mutaciones confirmadas · '+data.sourceMaps.length+' source maps · '+interesting.length+' interesantes</div>' +
-    '<div class="rce-row" style="margin-top:10px;"><button class="rce-btn" id="crw-export-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">⬇</span> EXPORTAR TODO (.txt)</button></div></div>' +
+    '<div class="rce-row" style="margin-top:10px;gap:10px;flex-wrap:wrap;"><button class="rce-btn" id="crw-export-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">⬇</span> EXPORTAR TODO (.txt)</button><button class="rce-btn" id="crw-send-cerberus" style="padding:8px 16px;font-size:11px;border-color:rgba(255,26,46,.4);"><span class="rce-btn-icon">🐺</span> FUZZEAR CON CERBERUS</button></div></div>' +
   '</div>';
 
   html += section('🎯 Endpoints interesantes (admin/secret/config/debug...)', '🎯', interesting, interesting.length);
@@ -21810,6 +22046,18 @@ function renderCrawlResults(data, startUrl){
 
   var exportBtn = document.getElementById('crw-export-btn');
   if(exportBtn) exportBtn.addEventListener('click', function(){ crwExportResults(data, startUrl); });
+
+  /* Enviar el target ya crawleado directo a Cerberus para fuzzear rutas
+     estructuradas — sin copiar/pegar la URL a mano. */
+  var sendCerberusBtn = document.getElementById('crw-send-cerberus');
+  if(sendCerberusBtn) sendCerberusBtn.addEventListener('click', function(){
+    if(typeof window.tudelaSecFuzzTarget === 'function'){
+      window.tudelaSecFuzzTarget(startUrl, 'secrets_config', false);
+      statusText.textContent = '🐺 Target enviado a Cerberus: ' + startUrl;
+    } else {
+      statusText.textContent = '✕ El modulo Cerberus no esta disponible en esta pagina.';
+    }
+  });
 }
 
 function crwExportResults(data, startUrl){
@@ -21892,6 +22140,843 @@ input.addEventListener('keydown', function(e){ if(e.key==='Enter') startCrawl();
 document.querySelectorAll('#crawler .rce-ex').forEach(function(ex){
   ex.addEventListener('click', function(){ input.value = ex.getAttribute('data-val'); });
 });
+
+/* Puente entre modulos: Kraken (y cualquier otra herramienta) puede llamar a esto
+   para cargar un target y arrancar el crawl sin que el usuario copie/pegue nada. */
+window.tudelaSecCrawlTarget = function(url, autostart){
+  input.value = url;
+  var sec = document.getElementById('crawler');
+  if(sec && sec.scrollIntoView) sec.scrollIntoView({ behavior:'smooth', block:'start' });
+  if(autostart !== false){ setTimeout(startCrawl, 550); }
+};
+})();
+
+/* ══ KRAKEN — Motor de Subdominios ══ */
+(function(){
+'use strict';
+/* ══════════════════════════════════════════════════════════════════
+   KRAKEN v2.0 — Motor Agresivo de Subdominios
+   Refactor: DoH round-robin + Wildcard filter + Filtros reactivos
+   + Takeover expandido + pool() endurecido
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── [CONF] ─────────────────────────────────────────────────────── */
+const CF_PROXY = 'https://scanner-proxy.matias-ramireztu.workers.dev/';
+const PROXY_URL = u => CF_PROXY + '?url=' + encodeURIComponent(u);
+
+/* Balanceador DoH: Google + Cloudflare, round-robin con failover */
+const DOH_PROVIDERS = [
+  { name: 'G',  label: 'Google',      build: (n,t) => 'https://dns.google/resolve?name=' + encodeURIComponent(n) + '&type=' + t, headers: null },
+  { name: 'CF', label: 'Cloudflare',  build: (n,t) => 'https://cloudflare-dns.com/dns-query?name=' + encodeURIComponent(n) + '&type=' + t, headers: { 'Accept': 'application/dns-json' } }
+];
+const dohRR  = { i: 0 };
+const dohStats = { G: { ok: 0, fail: 0 }, CF: { ok: 0, fail: 0 } };
+
+const WORDLIST = ['www','mail','ftp','admin','portal','api','dev','test','stage','staging','beta','demo','app','apps','old','new','backup','bak','db','sql','cpanel','webmail','smtp','pop','imap','ns1','ns2','vpn','remote','git','svn','jenkins','ci','cd','build','sso','auth','login','secure','shop','store','cart','pay','payment','billing','cms','wp','wordpress','blog','news','forum','wiki','docs','doc','help','support','status','monitor','grafana','kibana','elastic','logs','log','metrics','prometheus','cdn','assets','static','img','images','media','video','files','download','uploads','s3','storage','bucket','cloud','aws','azure','gcp','k8s','kube','docker','registry','internal','intranet','corp','office','exchange','owa','lync','skype','teams','crm','erp','hr','it','support2','qa','uat','sandbox','prod','production','edge','gateway','gw','proxy','lb','loadbalancer','firewall','fw','router','switch','wifi','wireless','hotspot','guest','iot','camera','cctv','printer','scan','fax','voip','sip','pbx','meet','conference','webinar','live','stream','radio','tv','chat','im','xmpp','irc','matrix','mattermost','rocketchat','gitlab','bitbucket','jira','confluence','trello','asana','notion','slack','zoom','hub','lab','labs','research','ai','ml','nlp','bot','bots','api2','api-v2','v1','v2','v3','mobile','android','ios','m','mobile-api','graphql','rest','soap','rpc','grpc','ws','wss','socket','push','notify','notifications','email','mailer','campaign','marketing','seo','ads','analytics','stats','tracking','pixel','tag','tags','affiliate','partner','partners','reseller','client','clients','customer','customers','user','users','account','accounts','profile','profiles','panel','dashboard','console','control','manage','manager','admin2','root','sys','system','ops','devops','secops','soc','pentest','audit','compliance','legal','finance','accounting','invoice','invoices','report','reports','bi','etl','dwh','warehouse','queue','mq','cache','redis','memcached','session','sessions','token','tokens','key','keys','cert','certs','pki','ca','saml','oauth','oidc','ad','ldap','dns','dhcp','ntp','tftp','snmp','syslog','rsyslog','elk','siem','waf','ids','ips','honey','honeypot','canary','decoy','archive','legacy','vps','srv','server','node','cluster','master','slave','worker','queue2','jobs','cron','scheduler','temp','tmp','trash','deleted','deprecated','alpha','gamma','delta','omega','kappa','lambda','sigma','omega2','test2','tests','testing','debug','trace','verbose','beta2','rc','release','snapshot','nightly','feature','hotfix','patch','upgrade','migrate','migration','maintenance','health','healthz','ready','readyz','live2','heartbeat','ping','echo','metrics2','actuator','swagger','openapi','docs-api','redoc','postman','insomnia','mock','stub','fake','sandbox2','playground','demo2','sample','example','examples','template','templates','theme','themes','plugin','plugins','module','modules','widget','widgets','iframe','embed','share','short','shorturl','redirect','redir','go','link','links','url','urls','qr','sitemap','robots','favicon','apple','google','facebook','twitter','instagram','linkedin','youtube','tiktok','pinterest','snapchat','telegram','whatsapp','signal','discord','reddit','medium','substack','patreon','github','gitlab2','stackoverflow'];
+
+const OSINT_SOURCES = [
+  { id: 'crtsh',    label: 'Certificate Transparency', url: t => 'https://crt.sh/?q=%25.' + t + '&output=json' },
+  { id: 'hackertarget', label: 'HackerTarget DNS', url: t => 'https://api.hackertarget.com/hostsearch/?q=' + t },
+  { id: 'otx',      label: 'AlienVault OTX', url: t => 'https://otx.alienvault.com/api/v1/indicators/domain/' + t + '/passive_dns' },
+  { id: 'wayback',  label: 'Wayback CDX', url: t => 'https://web.archive.org/cdx/search/cdx?url=*.' + t + '/*&output=json&collapse=urlkey&fl=original&limit=500' },
+  { id: 'anubis',   label: 'Anubis DB', url: t => 'https://jldc.me/anubis/subdomains/' + t }
+];
+
+/* Firmas CNAME takeover — expandidas (v2) */
+const TAKEOVER_FP = [
+  { p: /(^|\.)s3\.amazonaws\.com$/i,                c: 'AWS S3',            b: [/NoSuchBucket/i, /The specified bucket does not exist/i] },
+  { p: /(^|\.)s3-website[\w.-]*\.amazonaws\.com$/i, c: 'AWS S3 Website',    b: [/NoSuchBucket/i, /The specified bucket does not exist/i] },
+  { p: /(^|\.)cloudfront\.net$/i,                   c: 'AWS CloudFront',    b: [/Bad request\. We can't connect/i, /ERROR:\s*The request could not be satisfied/i] },
+  { p: /(^|\.)herokuapp\.com$/i,                    c: 'Heroku',            b: [/No such app/i, /There's nothing here, yet/i] },
+  { p: /(^|\.)herokudns\.com$/i,                    c: 'Heroku DNS',        b: [/No such app/i] },
+  { p: /(^|\.)github\.io$/i,                        c: 'GitHub Pages',      b: [/There isn't a GitHub Pages site here/i] },
+  { p: /(^|\.)fastly\.net$/i,                       c: 'Fastly',            b: [/Fastly error:\s*unknown domain/i] },
+  { p: /(^|\.)fastly\.com$/i,                       c: 'Fastly',            b: [/Fastly error:\s*unknown domain/i] },
+  { p: /(^|\.)zendesk\.com$/i,                      c: 'Zendesk',           b: [/Help Center Closed/i, /this help center no longer exists/i] },
+  { p: /(^|\.)myshopify\.com$/i,                    c: 'Shopify',           b: [/Sorry, this shop is currently unavailable/i] },
+  { p: /(^|\.)pantheon\.io$/i,                      c: 'Pantheon',          b: [/The gods are wise/i, /404 error unknown site/i] },
+  { p: /(^|\.)unbouncepages\.com$/i,                c: 'Unbounce',          b: [/The requested URL was not found/i, /Sorry, the page you were looking for/i] },
+  { p: /(^|\.)azurewebsites\.net$/i,                c: 'Azure Web Sites',   b: [/404 Web Site not found/i] },
+  { p: /(^|\.)cloudapp\.net$/i,                     c: 'Azure CloudApp',    b: [/404 Web Site not found/i] },
+  { p: /(^|\.)trafficmanager\.net$/i,               c: 'Azure Traffic Mgr', b: [/404 Web Site not found/i] },
+  { p: /(^|\.)azureedge\.net$/i,                    c: 'Azure CDN',         b: [/The requested content does not exist/i] },
+  { p: /(^|\.)blob\.core\.windows\.net$/i,          c: 'Azure Blob',        b: [/PublicAccessNotPermitted/i, /BlobNotFound/i, /The specified resource does not exist/i] },
+  { p: /(^|\.)cloudfunctions\.net$/i,               c: 'Google Cloud Fn',   b: [/404 Page Not Found/i, /Function not found/i] },
+  { p: /(^|\.)appspot\.com$/i,                      c: 'GCP App Engine',    b: [/404 Not Found/i, /The requested URL was not found/i] },
+  { p: /(^|\.)web\.app$/i,                          c: 'Firebase Hosting',  b: [/Site Not Found/i, /Why am I seeing this\?/i] },
+  { p: /(^|\.)firebaseapp\.com$/i,                  c: 'Firebase',          b: [/Site Not Found/i] },
+  { p: /(^|\.)readme\.io$/i,                        c: 'Readme.io',         b: [/Project doesnt exist... yet!/i] },
+  { p: /(^|\.)surge\.sh$/i,                         c: 'Surge.sh',         b: [/project not found/i] },
+  { p: /(^|\.)bitbucket\.io$/i,                     c: 'Bitbucket',         b: [/Repository not found/i] },
+  { p: /(^|\.)tumblr\.com$/i,                       c: 'Tumblr',            b: [/There's nothing here/i, /Whatever you were looking for doesn't currently exist at this address/i] },
+  { p: /(^|\.)wordpress\.com$/i,                    c: 'WordPress.com',     b: [/Do you want to register/i] },
+  { p: /(^|\.)teamwork\.com$/i,                     c: 'Teamwork',          b: [/Sorry, we couldn't find that page/i] },
+  { p: /(^|\.)helpscoutdocs\.com$/i,                c: 'HelpScout',         b: [/No settings were found for this company/i] },
+  { p: /(^|\.)helpjuice\.com$/i,                    c: 'HelpJuice',         b: [/We could not find what you're looking for/i] },
+  { p: /(^|\.)intercom\.com$|(^|\.)customintercomreviews\.com$/i, c: 'Intercom', b: [/This page is reserved for artistic dogs/i] },
+  { p: /(^|\.)ghost\.io$/i,                         c: 'Ghost',             b: [/The thing you were looking for is no longer here/i] },
+  { p: /(^|\.)netlify\.app$/i,                      c: 'Netlify',           b: [/Not Found/i, /Site not found/i] },
+  { p: /(^|\.)vercel\.app$|(^|\.)now\.sh$/i,        c: 'Vercel',            b: [/The deployment could not be found/i, /DEPLOYMENT_NOT_FOUND/i] },
+  { p: /(^|\.)cargocollective\.com$/i,              c: 'Cargo Collective',  b: [/404 Not Found/i] },
+  { p: /(^|\.)statuspage\.io$/i,                    c: 'StatusPage',        b: [/404/i] },
+  { p: /(^|\.)agilecrm\.com$/i,                     c: 'Agile CRM',         b: [/Sorry, this page does not exist/i] },
+  { p: /(^|\.)aha\.io$/i,                           c: 'Aha',               b: [/There is no portal here/i] },
+  { p: /(^|\.)squarespace\.com$/i,                  c: 'Squarespace',       b: [/Website Expired/i, /domain not found/i] },
+  { p: /(^|\.)webflow\.io$/i,                       c: 'Webflow',           b: [/The page you are looking for doesn't exist/i] },
+  { p: /(^|\.)zingcart\.com$/i,                     c: 'ZingCart',          b: [/Oops! We can't find that page/i] },
+  { p: /(^|\.)bigcartel\.com$/i,                    c: 'BigCartel',         b: [/Page not found/i] },
+  { p: /(^|\.)simplebooklet\.com$/i,                c: 'SimpleBooklet',     b: [/We can't find that page/i] },
+  { p: /(^|\.)tictail\.com$/i,                      c: 'Tictail',           b: [/Building a new store/i, /This page has moved/i] },
+  { p: /(^|\.)uservoice\.com$/i,                    c: 'UserVoice',         b: [/This UserVoice subdomain is currently available/i] },
+  { p: /(^|\.)desk\.com$/i,                         c: 'Desk.com',          b: [/Please try again or try Desk.com free/i] },
+  { p: /(^|\.)strikinglydns\.com$/i,                c: 'Strikingly',        b: [/but you can create your own with Strikingly/i, /page not found/i] },
+  { p: /(^|\.)brightcove\.com$/i,                   c: 'Brightcove',        b: [/<h1>Error<\/h1>/i] },
+  { p: /(^|\.)campaignmonitor\.com$/i,              c: 'Campaign Monitor',  b: [/Double check the URL/i] },
+  { p: /(^|\.)ngrok\.io$/i,                         c: 'Ngrok',             b: [/Tunnel [\w.-]+ not found/i] },
+  { p: /(^|\.)pagewiz\.com$/i,                      c: 'Pagewiz',           b: [/page you were looking for doesn't exist/i] },
+  { p: /(^|\.)smartling\.com$/i,                    c: 'Smartling',         b: [/Domain is not configured/i] },
+  { p: /(^|\.)acquia-test\.co$/i,                   c: 'Acquia',            b: [/Web Site Not Found/i] },
+];
+
+/* ── [UTILS DE RED] ─────────────────────────────────────────────── */
+
+/* Pool de concurrencia: corre hasta `limit` tareas en paralelo sobre `items` */
+async function krPool(items, limit, worker) {
+  const results = new Array(items.length);
+  let idx = 0;
+  async function runner() {
+    while (idx < items.length) {
+      const i = idx++;
+      try { results[i] = await worker(items[i], i); }
+      catch (e) { results[i] = null; }
+    }
+  }
+  const workers = Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, runner);
+  await Promise.all(workers);
+  return results;
+}
+
+/* Fetch via proxy Worker — soporta headers custom via POST (necesario para el
+   Accept: application/dns-json que exige Cloudflare DoH), y GET simple para el resto. */
+async function krProxyFetch(url, opts) {
+  opts = opts || {};
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), opts.timeout || 10000);
+    let r;
+    if (opts.headers) {
+      r = await fetch(CF_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url, method: 'GET', headers: opts.headers }),
+        signal: ctrl.signal
+      });
+    } else {
+      r = await fetch(PROXY_URL(url), { signal: ctrl.signal });
+    }
+    clearTimeout(t);
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (j && j.ok === false && !j.body) return null;
+    return j;
+  } catch (e) { return null; }
+}
+
+/* DoH round-robin con failover: si el proveedor actual falla, prueba el otro
+   antes de rendirse. Devuelve el JSON de respuesta DNS (formato dns-json estandar). */
+async function dohResolve(name, type) {
+  type = type || 'A';
+  for (let attempt = 0; attempt < DOH_PROVIDERS.length; attempt++) {
+    const prov = DOH_PROVIDERS[(dohRR.i + attempt) % DOH_PROVIDERS.length];
+    try {
+      const url = prov.build(name, type);
+      const res = await krProxyFetch(url, { headers: prov.headers, timeout: 6000 });
+      if (res && res.ok && res.body) {
+        let data;
+        try { data = JSON.parse(res.body); } catch (e) { data = null; }
+        if (data) {
+          dohStats[prov.name].ok++;
+          dohRR.i = (dohRR.i + 1) % DOH_PROVIDERS.length;
+          return data;
+        }
+      }
+      dohStats[prov.name].fail++;
+    } catch (e) { dohStats[prov.name].fail++; }
+  }
+  return null;
+}
+
+/* ── [ESTADO] ───────────────────────────────────────────────────── */
+let krResults = new Map();  // host -> { source, ip, alive, httpStatus, cname, takeover }
+let krRunning = false;
+let krCurrentFilter = 'ALL';
+let krTarget = '';
+
+const termEl = document.getElementById('kr-term');
+const $ = id => document.getElementById(id);
+
+function krLine(text, cls) {
+  const d = document.createElement('div');
+  d.className = 'ln' + (cls ? ' ' + cls : '');
+  d.textContent = text;
+  termEl.appendChild(d);
+  termEl.scrollTop = termEl.scrollHeight;
+  return d;
+}
+function krClear() { termEl.innerHTML = ''; }
+function krProgress(pct) { $('kr-progress').style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+
+function krUpdateStats() {
+  const arr = Array.from(krResults.values());
+  $('kr-st-total').textContent = krResults.size;
+  $('kr-st-alive').textContent = arr.filter(e => e.alive === true).length;
+  $('kr-st-http').textContent = arr.filter(e => e.httpStatus >= 200 && e.httpStatus < 400).length;
+  $('kr-st-takeover').textContent = arr.filter(e => e.takeover).length;
+}
+
+function krStatusClass(entry) {
+  if (entry.takeover) return 'err';
+  if (!entry.httpStatus) return entry.alive === false ? 'dim' : 'warn';
+  if (entry.httpStatus >= 200 && entry.httpStatus < 300) return 'ok';
+  if (entry.httpStatus >= 300 && entry.httpStatus < 400) return 'sub';
+  if (entry.httpStatus >= 400 && entry.httpStatus < 500) return 'warn';
+  if (entry.httpStatus >= 500) return 'err';
+  return 'dim';
+}
+
+function krMatchesFilter(entry, filter) {
+  if (filter === 'ALL') return true;
+  if (filter === 'TAKEOVER') return !!entry.takeover;
+  if (filter === 'DOWN') return entry.alive === false || (!entry.httpStatus && entry.alive !== true);
+  if (!entry.httpStatus) return false;
+  if (filter === '2XX') return entry.httpStatus >= 200 && entry.httpStatus < 300;
+  if (filter === '3XX') return entry.httpStatus >= 300 && entry.httpStatus < 400;
+  if (filter === '4XX') return entry.httpStatus >= 400 && entry.httpStatus < 500;
+  if (filter === '5XX') return entry.httpStatus >= 500;
+  return true;
+}
+
+function krFormatRow(host, entry) {
+  let parts = [host];
+  if (entry.httpStatus) parts.push('[' + entry.httpStatus + ']');
+  else if (entry.alive === false) parts.push('[DOWN]');
+  else if (entry.alive === true) parts.push('[ALIVE]');
+  if (entry.ip) parts.push('→ ' + entry.ip);
+  if (entry.cname) parts.push('CNAME→' + entry.cname);
+  if (entry.takeover) parts.push('☠ TAKEOVER: ' + entry.takeover);
+  parts.push('(' + entry.source + ')');
+  return parts.join(' ');
+}
+
+function krRenderResults() {
+  krClear();
+  const hosts = Array.from(krResults.keys()).sort();
+  const filtered = hosts.filter(h => krMatchesFilter(krResults.get(h), krCurrentFilter));
+  if (!filtered.length) {
+    krLine('// Sin resultados para el filtro "' + krCurrentFilter + '".', 'dim');
+    return;
+  }
+  krLine('// ' + filtered.length + ' de ' + hosts.length + ' subdominios (filtro: ' + krCurrentFilter + ')', 'section');
+  filtered.forEach(h => krLine(krFormatRow(h, krResults.get(h)), krStatusClass(krResults.get(h))));
+}
+
+/* ── [MOTOR PRINCIPAL] ──────────────────────────────────────────── */
+async function krStart() {
+  if (krRunning) return;
+  const raw = ($('kr-input').value || '').trim().toLowerCase();
+  const target = raw.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  if (!target || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(target)) {
+    krClear();
+    krLine('✕ Ingresa un dominio valido (ej: tudelasec.com).', 'err');
+    return;
+  }
+
+  krRunning = true;
+  krTarget = target;
+  krResults = new Map();
+  krClear();
+  krProgress(2);
+  $('kr-btn').disabled = true;
+  $('kr-btn').textContent = '🐙 KRAKEN DESATADO...';
+  krUpdateStats();
+  $('kr-st-src').textContent = '0';
+
+  const doDns   = $('tg-dns').classList.contains('active');
+  const doBrute = $('tg-brute').classList.contains('active');
+  const doHttp  = $('tg-http').classList.contains('active');
+  const doCname = $('tg-cname').classList.contains('active');
+
+  krLine('// KRAKEN v2.0 — target: ' + target, 'section');
+  krLine('Fases activas: OSINT (siempre)' + (doBrute?' + Bruteforce':'') + (doDns?' + DNS Resolve':'') + (doHttp?' + HTTP Probe':'') + (doCname?' + CNAME Takeover':''), 'dim');
+
+  /* Fase 0: deteccion de wildcard DNS — evita miles de falsos positivos en el
+     bruteforce si el dominio resuelve *.dominio.com a la misma IP siempre. */
+  let wildcardIPs = null;
+  krLine('', null);
+  krLine('Verificando DNS wildcard...', 'dim');
+  const wcProbe = 'kraken-wc-' + Math.random().toString(36).slice(2, 11) + '.' + target;
+  const wcRes = await dohResolve(wcProbe, 'A');
+  if (wcRes && wcRes.Answer && wcRes.Answer.length) {
+    wildcardIPs = wcRes.Answer.filter(a => a.type === 1).map(a => a.data).sort().join(',');
+    krLine('⚠ DNS WILDCARD detectado (resuelve todo a ' + wildcardIPs + ') — se filtraran coincidencias exactas en bruteforce', 'warn');
+  } else {
+    krLine('Sin wildcard DNS.', 'ok');
+  }
+  krProgress(5);
+
+  /* Fase 1: OSINT pasivo — siempre corre, es la fuente mas barata y de mayor cobertura */
+  krLine('', null);
+  krLine('═══ FASE 1: RECOLECCION PASIVA (OSINT — 5 fuentes) ═══', 'section');
+  let srcOk = 0;
+  await krPool(OSINT_SOURCES, 3, async (src) => {
+    krLine('[' + src.label + '] consultando...', 'src');
+    const res = await krProxyFetch(src.url(target), { timeout: 15000 });
+    if (!res || !res.ok || !res.body) { krLine('[' + src.label + '] sin respuesta', 'dim'); return; }
+    let found = [];
+    try {
+      if (src.id === 'crtsh') {
+        const data = JSON.parse(res.body);
+        data.forEach(entry => (entry.name_value || '').split(/[\r\n]+/).forEach(n => found.push(n.trim())));
+      } else if (src.id === 'hackertarget') {
+        res.body.split(/[\r\n]+/).forEach(line => { const h = line.split(',')[0]; if (h) found.push(h.trim()); });
+      } else if (src.id === 'otx') {
+        const data = JSON.parse(res.body);
+        (data.passive_dns || []).forEach(e => { if (e.hostname) found.push(e.hostname); });
+      } else if (src.id === 'wayback') {
+        const data = JSON.parse(res.body);
+        (Array.isArray(data) ? data.slice(1) : []).forEach(row => { try { found.push(new URL(row[0]).hostname); } catch (e) {} });
+      } else if (src.id === 'anubis') {
+        const data = JSON.parse(res.body);
+        if (Array.isArray(data)) data.forEach(h => found.push(h));
+      }
+    } catch (e) {}
+    found = found.map(h => h.toLowerCase().replace(/^\*\./, '').trim())
+                 .filter(h => h && h.endsWith('.' + target) || h === target)
+                 .filter(h => /^[a-z0-9.-]+$/.test(h));
+    let newCount = 0;
+    found.forEach(h => { if (!krResults.has(h)) { krResults.set(h, { source: src.id }); newCount++; } });
+    srcOk++;
+    krLine('[' + src.label + '] ' + found.length + ' encontrados (' + newCount + ' nuevos)', newCount > 0 ? 'ok' : 'dim');
+    krUpdateStats();
+  });
+  $('kr-st-src').textContent = srcOk;
+  krProgress(30);
+
+  /* Fase 2: bruteforce activo */
+  if (doBrute) {
+    krLine('', null);
+    krLine('═══ FASE 2: FUERZA BRUTA ACTIVA (' + WORDLIST.length + ' palabras) ═══', 'section');
+    let bruteNew = 0, done = 0;
+    await krPool(WORDLIST, 20, async (word) => {
+      const candidate = word + '.' + target;
+      const res = await dohResolve(candidate, 'A');
+      done++;
+      if (done % 25 === 0) krProgress(30 + (done / WORDLIST.length) * 25);
+      if (res && res.Answer && res.Answer.length) {
+        const ips = res.Answer.filter(a => a.type === 1).map(a => a.data).sort().join(',');
+        if (ips && ips === wildcardIPs) return; // falso positivo de wildcard
+        if (ips && !krResults.has(candidate)) {
+          krResults.set(candidate, { source: 'brute', ip: ips.replace(/,/g, ', '), alive: true });
+          bruteNew++;
+          krLine('[BRUTE] ' + candidate + ' → ' + ips.replace(/,/g, ', '), 'ok');
+          krUpdateStats();
+        }
+      }
+    });
+    krLine('Fuerza bruta completa: ' + bruteNew + ' subdominios nuevos', bruteNew > 0 ? 'ok' : 'dim');
+  }
+  krProgress(55);
+
+  let hostList = Array.from(krResults.keys());
+  krLine('', null);
+  krLine('Total unico acumulado: ' + hostList.length, 'section');
+
+  /* Fase 3: resolucion DNS de todo lo recolectado (para saber ALIVE/OFFLINE
+     de lo que vino de OSINT, que todavia no se resolvio) */
+  if (doDns) {
+    krLine('', null);
+    krLine('═══ FASE 3: RESOLUCION DNS (DoH round-robin G+CF) ═══', 'section');
+    let alive = 0, done2 = 0;
+    await krPool(hostList, 20, async (host) => {
+      const entry = krResults.get(host);
+      if (entry.alive === undefined) {
+        const res = await dohResolve(host, 'A');
+        if (res && res.Answer && res.Answer.length) {
+          const ips = res.Answer.filter(a => a.type === 1).map(a => a.data);
+          entry.alive = ips.length > 0;
+          if (ips.length) entry.ip = ips.join(', ');
+        } else {
+          entry.alive = false;
+        }
+      }
+      done2++;
+      if (done2 % 20 === 0) krProgress(55 + (done2 / hostList.length) * 15);
+      if (entry.alive) alive++;
+    });
+    krLine('DNS resuelto: ' + alive + '/' + hostList.length + ' ALIVE, ' + (hostList.length - alive) + ' OFFLINE', 'ok');
+    krUpdateStats();
+  }
+  krProgress(70);
+
+  /* Fase 4: probing HTTP via proxy (evita CORS, mismo Worker que el resto del sitio) */
+  if (doHttp) {
+    krLine('', null);
+    krLine('═══ FASE 4: PROBING HTTP (via proxy Worker) ═══', 'section');
+    const targets = hostList.filter(h => krResults.get(h).alive !== false);
+    let httpOk = 0, done3 = 0;
+    await krPool(targets, 15, async (host) => {
+      const res = await krProxyFetch('https://' + host + '/', { timeout: 8000 });
+      const entry = krResults.get(host);
+      done3++;
+      if (done3 % 15 === 0) krProgress(70 + (done3 / Math.max(targets.length,1)) * 20);
+      if (res && typeof res.status === 'number' && res.status > 0) {
+        entry.httpStatus = res.status;
+        entry.httpBody = (res.body || '').slice(0, 4000);
+        if (res.status >= 200 && res.status < 400) httpOk++;
+      } else {
+        entry.httpStatus = 0;
+      }
+    });
+    krLine('HTTP probing completo: ' + httpOk + ' con respuesta 2XX/3XX de ' + targets.length + ' probados', 'ok');
+    krUpdateStats();
+  }
+  krProgress(90);
+
+  /* Fase 5: CNAME takeover — solo marca like si el CNAME apunta a un servicio
+     conocido Y ademas el body confirma la firma (evita falsos positivos por
+     status code solo, que es el error clasico de estas herramientas) */
+  if (doCname) {
+    krLine('', null);
+    krLine('═══ FASE 5: CNAME TAKEOVER DETECTION ═══', 'section');
+    let takeoverCount = 0;
+    await krPool(hostList, 15, async (host) => {
+      const entry = krResults.get(host);
+      const cnameRes = await dohResolve(host, 'CNAME');
+      if (!cnameRes || !cnameRes.Answer || !cnameRes.Answer.length) return;
+      const cnameAns = cnameRes.Answer.find(a => a.type === 5);
+      if (!cnameAns) return;
+      const cname = cnameAns.data.replace(/\.$/, '');
+      entry.cname = cname;
+      const fp = TAKEOVER_FP.find(f => f.p.test(cname));
+      if (!fp) return;
+      let body = entry.httpBody;
+      if (body === undefined) {
+        const res = await krProxyFetch('http://' + host + '/', { timeout: 8000 });
+        body = res ? (res.body || '') : '';
+      }
+      if (body && fp.b.some(re => re.test(body))) {
+        entry.takeover = fp.c;
+        takeoverCount++;
+        krLine('☠ TAKEOVER CONFIRMADO: ' + host + ' → CNAME ' + cname + ' (' + fp.c + ')', 'err');
+        krUpdateStats();
+      }
+    });
+    krLine('Takeover scan completo: ' + takeoverCount + ' confirmados (firma de body verificada, no solo status code)', takeoverCount > 0 ? 'err' : 'ok');
+  }
+
+  krProgress(100);
+  krUpdateStats();
+  krLine('', null);
+  krLine('═══ KRAKEN COMPLETO — ' + krResults.size + ' subdominios unicos descubiertos ═══', 'section');
+  krRunning = false;
+  $('kr-btn').disabled = false;
+  $('kr-btn').textContent = '🐙 DESATAR KRAKEN';
+  krCurrentFilter = 'ALL';
+  document.querySelectorAll('[data-fl]').forEach(b => b.classList.toggle('active', b.dataset.fl === 'ALL'));
+  setTimeout(krRenderResults, 600);
+}
+
+/* ── [EVENTOS] ──────────────────────────────────────────────────── */
+$('kr-btn').addEventListener('click', krStart);
+$('kr-input').addEventListener('keydown', e => { if (e.key === 'Enter') krStart(); });
+
+['tg-dns', 'tg-brute', 'tg-http', 'tg-cname'].forEach(id => {
+  $(id).addEventListener('click', () => $(id).classList.toggle('active'));
+});
+
+document.querySelectorAll('[data-fl]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    krCurrentFilter = btn.dataset.fl;
+    document.querySelectorAll('[data-fl]').forEach(b => b.classList.toggle('active', b === btn));
+    if (!krRunning && krResults.size) krRenderResults();
+  });
+});
+
+function krExportLines() {
+  const hosts = Array.from(krResults.keys()).sort().filter(h => krMatchesFilter(krResults.get(h), krCurrentFilter));
+  return hosts.map(h => krFormatRow(h, krResults.get(h)));
+}
+
+$('kr-copy').addEventListener('click', () => {
+  const text = krExportLines().join('\n');
+  navigator.clipboard && navigator.clipboard.writeText(text);
+  krLine('📋 ' + krExportLines().length + ' lineas copiadas al portapapeles (filtro: ' + krCurrentFilter + ')', 'ok');
+});
+
+$('kr-copy-alive').addEventListener('click', () => {
+  const hosts = Array.from(krResults.keys()).filter(h => krResults.get(h).alive !== false).sort();
+  const text = hosts.join('\n');
+  navigator.clipboard && navigator.clipboard.writeText(text);
+  krLine('📋 ' + hosts.length + ' subdominios ALIVE copiados al portapapeles', 'ok');
+});
+
+$('kr-download').addEventListener('click', () => {
+  const lines = krExportLines();
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kraken-' + (krTarget || 'target') + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  krLine('💾 Descargado kraken-' + (krTarget || 'target') + '.txt', 'ok');
+});
+
+/* Enviar al Crawler: elige el mejor candidato entre lo encontrado (preferencia:
+   el apex/dominio raiz si esta vivo, luego www., luego el primero vivo, y si no
+   hay ninguno marcado vivo, el primero que haya en la lista) y lo manda directo
+   sin que el usuario tenga que copiar/pegar nada. */
+$('kr-send-crawler').addEventListener('click', () => {
+  const hosts = Array.from(krResults.keys());
+  if(!hosts.length){ krLine('✕ No hay subdominios para enviar todavia.', 'err'); return; }
+  const isAlive = h => krResults.get(h).alive !== false;
+  const candidate =
+    (hosts.includes(krTarget) && isAlive(krTarget) && krTarget) ||
+    (hosts.includes('www.' + krTarget) && isAlive('www.' + krTarget) && ('www.' + krTarget)) ||
+    hosts.find(isAlive) ||
+    hosts[0];
+  const url = 'https://' + candidate;
+  if(typeof window.tudelaSecCrawlTarget === 'function'){
+    window.tudelaSecCrawlTarget(url, true);
+    krLine('🕸 Enviado a Crawler: ' + url + ' (crawlea un origen por vez — si queres otro subdominio, mandalo aparte)', 'ok');
+  } else {
+    krLine('✕ El modulo Crawler no esta disponible en esta pagina.', 'err');
+  }
+});
+
+})();
+
+/* ══ CERBERUS — Content Discovery Fuzzer ══ */
+(function(){
+'use strict';
+/* ══════════════════════════════════════════════════════════════════
+   CERBERUS v1.0 — Content Discovery & Structured Fuzzer
+   5 categorias tacticas independientes + soft-404 baseline + pool
+   de concurrencia pausable/cancelable en tiempo real
+   ══════════════════════════════════════════════════════════════════ */
+
+const CRB_CATEGORIES = {
+  abyss: { label: 'Abyss (Mega-Agresivo)', paths: ['/.circleci/config.yml','/.well-known/change-password','/CHANGELOG.txt','/Dockerfile.dev','/Dockerfile.prod','/__pycache__/','/_cat/indices?v','/_cluster/health','/_nodes/stats','/admin/export','/admin_1a2b3c','/administrator/manifests/files/joomla.xml','/ads.txt','/ajenti','/api/1.0/internal','/api/2.0/internal','/api/beta/internal','/api/index.php/v1/config/application','/api/preprod/internal','/api/rc1/internal','/api/staging/internal','/api/v1/export/all','/api/v1/internal','/api/v1/system/deviceinfo','/api/v2/internal','/api/v3/internal','/api/v4/internal','/api/v5/internal','/app/1.0','/app/2.0','/app/beta','/app/etc/env.php','/app/etc/local.xml','/app/preprod','/app/rc1','/app/staging','/app/v1','/app/v2','/app/v3','/app/v4','/app/v5','/archive-2021','/archive-2022','/archive-2023','/archive-2024','/archive-2025','/argo/workflow.yaml','/asgi.py','/axis-cgi/jpg/image.cgi','/azure-pipelines.yml','/backup-2021','/backup-2022','/backup-2023','/backup-2024','/backup-2025','/backup/export','/billing/export','/bitbucket-pipelines.yml','/bootstrap/cache/config.php','/bug-bounty','/build/1.0','/build/2.0','/build/beta','/build/preprod','/build/rc1','/build/staging','/build/v1','/build/v2','/build/v3','/build/v4','/build/v5','/buildkite/pipeline.yml','/celery.py','/centos-webpanel','/cgi-bin/luci','/cloudpanel','/components/com_fields/','/components/com_users/','/config/database.yml.bak','/config/parameters.yml','/core/CHANGELOG.txt','/couchdb/_utils/','/cyberpanel','/directadmin','/docker-compose.override.yml','/downloader','/drone.yml','/export-2021','/export-2022','/export-2023','/export-2024','/export-2025','/export/orders.csv','/export/users.csv','/financials/export','/froxlor','/gitlab/api/v4/version','/goform/formLogin','/gunicorn.conf.py','/helm/values.yaml','/hestiacp','/humans.txt','/instance/config.py','/invoices/export','/ispconfig','/jenkins/api/json','/jenkins/script','/jsonapi/node/article','/k8s/deployment.yaml','/k8s/ingress.yaml','/k8s/service.yaml','/kibana/app/kibana','/kustomization.yaml','/language/en-GB/en-GB.xml','/log/production.log','/login.cgi','/logs-2021','/logs-2022','/logs-2023','/logs-2024','/logs-2025','/manage.py','/manager/status','/memcached/stats','/mongo-express/','/onvif/device_service','/payroll/export','/pgp-key.txt','/plesk','/rabbitmq/api/queues','/redis-commander/','/release/1.0','/release/2.0','/release/beta','/release/preprod','/release/rc1','/release/staging','/release/v1','/release/v2','/release/v3','/release/v4','/release/v5','/reports/export','/requirements.txt','/rest/session/token','/runcloud','/security.txt','/sentora','/setup.cgi','/solr/admin/cores','/storage/logs/laravel.log','/system.cgi','/travis.yml','/user/register','/var/log/dev.log','/var/log/prod.log','/vendor/composer/installed.json','/vestacp','/vulnerability-disclosure','/webmin','/wp-content/debug.log','/wp-content/plugins/backup-migration/readme.txt','/wp-content/plugins/elementor-pro/elementor-pro.php','/wp-content/plugins/wp-automatic/readme.txt','/wp-content/uploads/','/wp-cron.php','/wp-json/','/wp-json/wp/v2/users','/wsgi.py','/xmlrpc.php'] },
+  secrets_config: { label: 'Secrets & Config', paths: ['/.env','/.env.local','/.env.production','/.env.staging','/.env.development','/.env.test','/.env.backup','/.env.bak','/.env.old','/.env.save','/.env.dist','/.env.dev','/.env.prod','/.env.example','/.env.sample','/.env.ci','/.env.docker','/.env.vault','/.env.keys','/.env~','/.env.swp','/.git/config','/.git/HEAD','/.git/index','/.git/logs/HEAD','/.git/COMMIT_EDITMSG','/.git/refs/heads/master','/.git/refs/heads/main','/.git/packed-refs','/.git/ORIG_HEAD','/.git/description','/.gitignore','/.gitattributes','/.gitmodules','/.svn/entries','/.svn/wc.db','/.svn/pristine','/.hg/store','/.hg/dirstate','/.hg/hgrc','/.bzr/branch','/wp-config.php','/wp-config.php.bak','/wp-config.php.save','/wp-config.php.orig','/wp-config.php~','/wp-config.php.swp','/wp-config-sample.php','/wp-config.old','/wp-config.txt','/settings.py','/local_settings.py','/production_settings.py','/config/settings.py','/web.config','/web.config.bak','/web.config.old','/appsettings.json','/appsettings.Development.json','/appsettings.Production.json','/config/database.yml','/config/secrets.yml','/config/master.key','/config/credentials.yml.enc','/application.properties','/application.yml','/application-prod.yml','/config.php','/config.inc.php','/configuration.php','/config.php.bak','/config.php.save','/parameters.yml','/parameters.yaml','/.npmrc','/.pypirc','/.netrc','/.dockercfg','/.docker/config.json','/id_rsa','/id_rsa.pub','/id_dsa','/.ssh/id_rsa','/.ssh/id_rsa.pub','/.ssh/known_hosts','/server.key','/private.key','/privatekey.pem','/cert.pem','/fullchain.pem','/keystore.jks','/.pgpass','/credentials.json','/secrets.json','/secret.json','/.aws/credentials','/.aws/config','/.gcloud/credentials.db','/.azure/credentials','/.htpasswd','/.htaccess','/Dockerfile','/docker-compose.yml','/docker-compose.override.yml','/docker-compose.prod.yml','/.terraform/terraform.tfstate','/terraform.tfstate','/terraform.tfstate.backup','/.npm/_auth','/database.yml.bak','/secrets.tar','/vault-token','/.vault-token','/service-account.json','/firebase-adminsdk.json','/google-services.json','/.well-known/openid-configuration.bak'] },
+  backups_dumps: { label: 'Backups & Dumps', paths: ['/archive.tar','/archive.tar.gz','/archive.zip','/backup-1.sql','/backup-2.sql','/backup.7z','/backup.bak','/backup.bz2','/backup.dump','/backup.rar','/backup.sql','/backup.tar.gz','/backup.zip','/backup1.zip','/backup2.zip','/backup_2023.zip','/backup_2024.zip','/backup_2025.zip','/backup_final.zip','/backup_new.zip','/backup_old.zip','/backup_v1.zip','/backup_v2.zip','/config_backup.zip','/copy.sql','/copy.zip','/customers.sql','/daily.sql','/daily_backup.zip','/data.sql','/data.tar.gz','/data.zip','/database.bak','/database.dump','/database.sql','/database.sql.gz','/database.zip','/db-backup.sql','/db.7z','/db.bak','/db.dump','/db.rar','/db.sql','/db.sql.gz','/db.tar.gz','/db.zip','/db_backup.sql','/dbbackup.sql','/dump.bak','/dump.sql','/dump.sql.gz','/dump.tar.gz','/dump.zip','/export.csv','/export.sql','/export.zip','/files_backup.tar.gz','/final.sql','/final.zip','/full.sql','/full.zip','/full_backup.zip','/htdocs.zip','/joomla_backup.zip','/latest.sql','/latest.tar.gz','/latest.zip','/mongo.dump','/mongodump.dump','/monthly.sql','/mysql.sql','/mysql_backup.sql','/mysqldump.sql','/old.bak','/old.sql','/old.tar.gz','/old.zip','/orders.sql','/pg_dump.sql','/postgres.sql','/postgresql.sql','/prod.sql','/prod.zip','/production.sql','/production.zip','/public_html.zip','/save.sql','/save.zip','/site-backup.zip','/site.rar','/site.tar.gz','/site.zip','/site_backup.zip','/staging.sql','/staging.zip','/temp.zip','/temp_backup.zip','/tmp.zip','/uploads_backup.tar.gz','/users.csv','/users.sql','/v1.sql','/v2.sql','/web.tar.gz','/web.zip','/weekly.sql','/weekly_backup.zip','/wordpress_backup.zip','/wp_backup.zip','/www.tar.gz','/www.zip','/www_backup.tar.gz'] },
+  admin_panels: { label: 'Admin Panels & SSO', paths: ['/admin','/admin/','/admin/login','/administrator','/administrator/login','/admincp','/admin_area','/admin-panel','/adminpanel','/admin1','/admin2','/admin3','/adm','/adminarea','/moderator','/webadmin','/wp-admin','/wp-admin/','/wp-login.php','/wp-login','/cpanel','/cPanel','/webmail','/plesk','/directadmin','/vestacp','/cyberpanel','/ispconfig','/dashboard','/dashboard/login','/console','/control','/controlpanel','/manage','/management','/manager','/manager/html','/manager/status','/host-manager/html','/phpmyadmin','/phpMyAdmin','/pma','/myadmin','/mysql','/mysqladmin','/adminer','/adminer.php','/pgadmin','/pgadmin4','/dbadmin','/sqlbuddy','/webminal','/saml/login','/sso/login','/sso','/saml','/oauth/login','/auth/login','/login.php','/login.jsp','/login.aspx','/signin','/sign-in','/user/login','/users/login','/account/login','/portal','/portal/login','/panel','/panel/login','/backend','/backend/login','/cms/login','/webmin','/webmin/','/usermin','/virtualmin','/froxlor','/sentora','/zpanel','/kloxo','/tomcat/manager','/manager/text','/jenkins','/jenkins/login','/gitlab/users/sign_in','/grafana/login','/kibana/login','/rabbitmq','/consul','/nomad','/vault/ui','/actuator/loginpage','/rundeck','/portainer','/traefik/dashboard','/j_security_check','/j_spring_security_check','/login-actions/authenticate','/auth/realms/master/console','/identity/login','/idp/login','/citrix/AccessPlatform','/remote/login','/vpn/index.html','/dana-na/auth/url_default/welcome.cgi','/owa','/exchange','/ecp','/autodiscover/autodiscover.xml','/server-status','/server-info','/status','/health-check-admin','/setup','/install','/installer','/install.php','/setup.php','/wizard','/admin.php','/admin.aspx','/admin.jsp','/admin/index.php','/admin/dashboard','/superadmin','/root','/sysadmin','/system-admin','/master-admin','/backoffice','/staff','/employee/login','/internal/login','/private/admin','/secure/admin','/admin-console','/admin-login','/adminlogin','/login-admin','/dev/admin','/test/admin','/old-admin','/admin-old','/admin_backup'] },
+  api_endpoints: { label: 'API Endpoints', paths: ['/api','/api/','/api/v1','/api/v1/','/api/v2','/api/v2/','/api/v3','/api/v1/users','/api/v1/user','/api/v2/users','/api/v1/admin','/api/v1/auth','/api/v1/login','/api/v1/config','/api/v1/health','/api/v1/status','/api/v1/docs','/api/v1/swagger','/api/v1/token','/api/v1/refresh','/api/v1/logout','/api/v1/register','/api/v1/products','/api/v1/orders','/api/v1/payments','/api/v1/settings','/api/v1/internal','/swagger.json','/swagger.yaml','/swagger-ui.html','/swagger-ui/','/swagger-resources','/v2/api-docs','/v3/api-docs','/api-docs','/api-docs/','/api/swagger.json','/openapi.json','/openapi.yaml','/.well-known/openapi.json','/redoc','/api/redoc','/graphql','/graphiql','/graphql/console','/api/graphql','/v1/graphql','/altair','/graphql-playground','/api/graphiql','/api/schema','/api/schema.json','/api/spec','/api/spec.json','/rest','/rest/','/restapi','/rest-api','/api/rest','/soap','/wsdl','/service.wsdl','/api/health','/api/healthz','/api/ping','/api/status','/api/version','/api/info','/api/metrics','/api/debug','/api/internal','/api/private','/api/admin','/api/users','/api/user','/api/accounts','/api/account','/api/session','/api/sessions','/api/auth','/api/login','/api/logout','/api/register','/api/token','/api/tokens','/api/keys','/api/apikeys','/api/config','/api/settings','/api/data','/api/export','/api/import','/api/upload','/api/download','/api/files','/api/search','/api/query','/api/batch','/api/bulk','/api/webhook','/api/webhooks','/api/callback','/api/1.0','/api/2.0','/api/beta','/api/alpha','/api/internal-only','/api/legacy','/api/gateway','/gateway/api','/api-gateway','/bff','/api/bff','/postman.json','/insomnia.json','/.postman/collection.json','/api/rpc','/api/grpc','/api/ws','/api/socket.io','/socket.io/'] },
+  devops_runtime: { label: 'DevOps & Runtime', paths: ['/actuator','/actuator/','/actuator/health','/actuator/env','/actuator/heapdump','/actuator/mappings','/actuator/beans','/actuator/configprops','/actuator/loggers','/actuator/metrics','/actuator/threaddump','/actuator/httptrace','/actuator/auditevents','/actuator/caches','/actuator/conditions','/actuator/scheduledtasks','/actuator/sessions','/actuator/shutdown','/actuator/info','/actuator/prometheus','/actuator/liquibase','/actuator/flyway','/actuator/jolokia','/actuator/logfile','/actuator/refresh','/metrics','/metrics/','/prometheus','/prometheus/metrics','/api/metrics','/debug/pprof','/debug/pprof/','/debug/pprof/heap','/debug/pprof/goroutine','/debug/pprof/profile','/debug/pprof/cmdline','/debug/pprof/trace','/debug/vars','/.well-known/','/.well-known/security.txt','/.well-known/change-password','/.well-known/openid-configuration','/.well-known/jwks.json','/.well-known/apple-app-site-association','/.well-known/assetlinks.json','/.well-known/acme-challenge/','/health','/healthz','/health-check','/readyz','/livez','/ready','/live','/ping','/status','/version','/build-info','/info','/env','/config','/metrics.json','/stats','/statistics','/monitoring','/monitor','/grafana','/grafana/api/health','/kibana/api/status','/elasticsearch/_cluster/health','/_cat/indices','/_cluster/health','/_nodes','/consul/v1/agent/self','/nomad/v1/status/leader','/vault/v1/sys/health','/rundeck/api/1/system/info','/eureka','/eureka/apps','/config-server','/spring-cloud/config','/jenkins/api/json','/jenkins/systemInfo','/gitlab/api/v4/version','/server-status','/server-info','/nginx_status','/apache-status','/phpinfo.php','/info.php','/test.php','/i.php','/k8s/api/v1','/api/v1/namespaces','/kubernetes/dashboard','/docker/version','/v1.40/containers/json','/docker/info','/etcd/v2/keys','/etcd/v3/kv/range','/zookeeper/status','/newrelic.js','/datadog.yaml','/sentry.properties','/.sentryclirc','/otelcol-config.yaml','/telegraf.conf','/filebeat.yml','/logstash.conf'] },
+};
+/* ── [CONF] ─────────────────────────────────────────────────────── */
+const CRB_PROXY = 'https://scanner-proxy.matias-ramireztu.workers.dev/';
+const CRB_PROXY_URL = u => CRB_PROXY + '?url=' + encodeURIComponent(u);
+
+/* ── [ESTADO] ───────────────────────────────────────────────────── */
+const crb = {
+  running: false,
+  paused: false,
+  cancelled: false,
+  target: '',
+  category: 'secrets_config',
+  concurrency: 15,
+  delayMs: 25,
+  baseline: null,
+  results: [],
+  doneCount: 0,
+  totalCount: 0,
+  hits: { '2xx': 0, '3xx': 0, '403': 0 },
+};
+
+const $c = id => document.getElementById(id);
+
+/* Espera activa mientras crb.paused este en true, sin bloquear el hilo —
+   chequea cada 120ms. Se corta de inmediato si se cancela. */
+function crbWaitIfPaused() {
+  return new Promise(resolve => {
+    (function check() {
+      if (crb.cancelled) return resolve();
+      if (!crb.paused) return resolve();
+      setTimeout(check, 120);
+    })();
+  });
+}
+
+function crbSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* Fetch via proxy — el Worker devuelve {ok,status,body,headers} en JSON */
+async function crbFetch(url, timeoutMs) {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs || 10000);
+    const r = await fetch(CRB_PROXY_URL(url), { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+/* ── [CALIBRACION SOFT-404] ─────────────────────────────────────── */
+/* Antes de fuzzear, se pide una ruta aleatoria que casi seguro no existe.
+   Se guarda status/longitud/titulo — cualquier hallazgo posterior con el
+   MISMO patron se descarta automaticamente (soft-404 disfrazado de 200). */
+async function crbCalibrateBaseline(target) {
+  const probe = target.replace(/\/$/, '') + '/probe-404-' + Math.random().toString(36).slice(2, 10);
+  const t0 = performance.now();
+  const res = await crbFetch(probe, 10000);
+  const elapsed = performance.now() - t0;
+  if (!res) return { status: 0, len: 0, title: '', hash: 0, rtt: elapsed };
+  const body = res.body || '';
+  const titleMatch = body.match(/<title[^>]*>([^<]*)<\/title>/i);
+  return {
+    status: res.status || 0,
+    len: body.length,
+    title: titleMatch ? titleMatch[1].trim() : '',
+    hash: crbHash(body.slice(0, 500)),
+    rtt: elapsed,
+  };
+}
+
+function crbHash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return h;
+}
+
+/* Coincide con el baseline (soft-404) si: mismo status Y (longitud muy
+   parecida O mismo hash de los primeros 500 chars O mismo titulo). */
+function crbMatchesBaseline(res, baseline) {
+  if (!baseline || baseline.status === 0) return false;
+  if (!res) return false;
+  const body = res.body || '';
+  if (res.status !== baseline.status) return false;
+  const lenDiff = Math.abs(body.length - baseline.len);
+  const lenClose = baseline.len > 0 ? (lenDiff / baseline.len) < 0.05 : lenDiff < 10;
+  const sameHash = crbHash(body.slice(0, 500)) === baseline.hash;
+  const titleMatch = baseline.title && new RegExp(baseline.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).test(body);
+  return sameHash || (lenClose && (titleMatch || baseline.title === ''));
+}
+
+/* ── [POOL DE CONCURRENCIA PAUSABLE/CANCELABLE] ────────────────── */
+/* A diferencia de un pool "fire and forget": chequea pausa/cancelacion
+   ANTES de cada peticion individual (no solo entre lotes), asi Pausar
+   detiene casi al instante en vez de esperar a que termine el lote actual. */
+async function crbPool(items, limit, delayMs, worker) {
+  let idx = 0;
+  async function runner() {
+    while (idx < items.length) {
+      if (crb.cancelled) return;
+      await crbWaitIfPaused();
+      if (crb.cancelled) return;
+      const i = idx++;
+      await worker(items[i], i);
+      if (delayMs > 0) await crbSleep(delayMs);
+    }
+  }
+  const workers = Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, runner);
+  await Promise.all(workers);
+}
+
+/* ── [RENDERIZADO] ──────────────────────────────────────────────── */
+function crbStatusClass(status) {
+  if (status >= 200 && status < 300) return 'crb-2xx';
+  if (status >= 300 && status < 400) return 'crb-3xx';
+  if (status === 401 || status === 403) return 'crb-403';
+  if (status >= 500) return 'crb-5xx';
+  return 'crb-other';
+}
+
+function crbAddResultRow(entry) {
+  const tbody = $c('crb-results-body');
+  const emptyRow = $c('crb-empty-row');
+  if (emptyRow) emptyRow.remove();
+  const tr = document.createElement('tr');
+  tr.className = crbStatusClass(entry.status);
+  tr.innerHTML =
+    '<td>' + entry.status + '</td>' +
+    '<td class="crb-path-cell">' + crbEsc(entry.path) + '</td>' +
+    '<td>' + entry.size + ' B</td>' +
+    '<td>' + entry.rtt + ' ms</td>';
+  tbody.appendChild(tr);
+}
+
+function crbEsc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function crbUpdateProgress() {
+  const pct = crb.totalCount > 0 ? Math.round((crb.doneCount / crb.totalCount) * 100) : 0;
+  $c('crb-progress-fill').style.width = pct + '%';
+  $c('crb-progress-label').textContent = pct + '% — ' + crb.doneCount + '/' + crb.totalCount;
+  $c('crb-hit-2xx').textContent = crb.hits['2xx'];
+  $c('crb-hit-3xx').textContent = crb.hits['3xx'];
+  $c('crb-hit-403').textContent = crb.hits['403'];
+}
+
+function crbResetResultsTable() {
+  $c('crb-results-body').innerHTML = '<tr id="crb-empty-row"><td colspan="4" class="crb-empty">Sin hallazgos todavia.</td></tr>';
+}
+
+function crbSetButtons(state) {
+  // state: 'idle' | 'running' | 'paused'
+  $c('crb-start-btn').disabled = state !== 'idle';
+  $c('crb-pause-btn').disabled = state !== 'running';
+  $c('crb-resume-btn').disabled = state !== 'paused';
+  $c('crb-cancel-btn').disabled = state === 'idle';
+  $c('crb-pause-btn').style.display = state === 'paused' ? 'none' : '';
+  $c('crb-resume-btn').style.display = state === 'paused' ? '' : 'none';
+}
+
+/* ── [MOTOR PRINCIPAL] ──────────────────────────────────────────── */
+async function crbStart() {
+  if (crb.running) return;
+  const rawTarget = ($c('crb-target').value || '').trim();
+  if (!rawTarget) { $c('crb-status-line').textContent = '✕ Ingresa una URL objetivo.'; return; }
+  const target = /^https?:\/\//i.test(rawTarget) ? rawTarget.replace(/\/$/, '') : 'https://' + rawTarget.replace(/\/$/, '');
+
+  crb.running = true;
+  crb.paused = false;
+  crb.cancelled = false;
+  crb.target = target;
+  crb.category = $c('crb-category').value;
+  crb.concurrency = Math.max(10, Math.min(20, parseInt($c('crb-concurrency').value, 10) || 15));
+  crb.delayMs = Math.max(10, Math.min(50, parseInt($c('crb-delay').value, 10) || 25));
+  crb.results = [];
+  crb.doneCount = 0;
+  crb.hits = { '2xx': 0, '3xx': 0, '403': 0 };
+
+  const wordlist = CRB_CATEGORIES[crb.category];
+  crb.totalCount = wordlist.paths.length;
+
+  crbResetResultsTable();
+  crbSetButtons('running');
+  crbUpdateProgress();
+  $c('crb-status-line').textContent = 'Calibrando baseline (soft-404)...';
+
+  crb.baseline = await crbCalibrateBaseline(target);
+  if (crb.cancelled) return crbFinish('cancelado durante calibracion');
+
+  $c('crb-status-line').textContent =
+    'Baseline: status ' + crb.baseline.status + ', ' + crb.baseline.len + ' bytes' +
+    (crb.baseline.title ? ', titulo "' + crb.baseline.title + '"' : '') +
+    '. Fuzzing ' + wordlist.label + ' (' + crb.totalCount + ' rutas)...';
+
+  await crbPool(wordlist.paths, crb.concurrency, crb.delayMs, async (path) => {
+    const url = target + path;
+    const t0 = performance.now();
+    const res = await crbFetch(url, 9000);
+    const rtt = Math.round(performance.now() - t0);
+    crb.doneCount++;
+
+    if (res && res.status > 0 && !crbMatchesBaseline(res, crb.baseline)) {
+      const entry = { status: res.status, path: path, size: (res.body || '').length, rtt: rtt };
+      crb.results.push(entry);
+      crbAddResultRow(entry);
+      if (res.status >= 200 && res.status < 300) crb.hits['2xx']++;
+      else if (res.status >= 300 && res.status < 400) crb.hits['3xx']++;
+      else if (res.status === 401 || res.status === 403) crb.hits['403']++;
+    }
+    if (crb.doneCount % 5 === 0 || crb.doneCount === crb.totalCount) crbUpdateProgress();
+  });
+
+  if (crb.cancelled) return crbFinish('cancelado por el usuario');
+  crbFinish('completo');
+}
+
+function crbFinish(reason) {
+  crbUpdateProgress();
+  $c('crb-status-line').textContent =
+    'Fuzzing ' + reason + ' — ' + crb.results.length + ' hallazgos validados de ' + crb.doneCount + ' rutas probadas.';
+  crb.running = false;
+  crb.paused = false;
+  crbSetButtons('idle');
+}
+
+function crbPause() {
+  if (!crb.running || crb.paused) return;
+  crb.paused = true;
+  crbSetButtons('paused');
+  $c('crb-status-line').textContent = '⏸ Pausado en ' + crb.doneCount + '/' + crb.totalCount + '.';
+}
+
+function crbResume() {
+  if (!crb.running || !crb.paused) return;
+  crb.paused = false;
+  crbSetButtons('running');
+  $c('crb-status-line').textContent = '▶ Reanudado...';
+}
+
+function crbCancel() {
+  if (!crb.running) return;
+  crb.cancelled = true;
+  crb.paused = false; // libera crbWaitIfPaused si estaba pausado
+}
+
+/* ── [EXPORTAR] ─────────────────────────────────────────────────── */
+function crbExportText() {
+  return crb.results.map(r => '[' + r.status + '] ' + r.path + ' (' + r.size + ' B, ' + r.rtt + ' ms)').join('\n');
+}
+function crbExportJSON() {
+  return JSON.stringify({ target: crb.target, category: crb.category, baseline: crb.baseline, results: crb.results }, null, 2);
+}
+function crbExportCSV() {
+  const rows = [['status', 'path', 'size_bytes', 'rtt_ms']];
+  crb.results.forEach(r => rows.push([r.status, r.path, r.size, r.rtt]));
+  return rows.map(row => row.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+}
+function crbDownload(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ── [EVENTOS] ──────────────────────────────────────────────────── */
+$c('crb-start-btn').addEventListener('click', crbStart);
+$c('crb-pause-btn').addEventListener('click', crbPause);
+$c('crb-resume-btn').addEventListener('click', crbResume);
+$c('crb-cancel-btn').addEventListener('click', crbCancel);
+$c('crb-target').addEventListener('keydown', e => { if (e.key === 'Enter') crbStart(); });
+
+$c('crb-copy-btn').addEventListener('click', () => {
+  navigator.clipboard && navigator.clipboard.writeText(crbExportText());
+  $c('crb-status-line').textContent = '📋 ' + crb.results.length + ' resultados copiados al portapapeles.';
+});
+$c('crb-export-json-btn').addEventListener('click', () => crbDownload(crbExportJSON(), 'cerberus-' + crb.category + '.json', 'application/json'));
+$c('crb-export-csv-btn').addEventListener('click', () => crbDownload(crbExportCSV(), 'cerberus-' + crb.category + '.csv', 'text/csv'));
+
+/* Cambiar de categoria mientras esta idle actualiza el contador visible */
+$c('crb-category').addEventListener('change', () => {
+  const cat = CRB_CATEGORIES[$c('crb-category').value];
+  $c('crb-category-count').textContent = cat.paths.length + ' rutas';
+});
+$c('crb-category-count').textContent = CRB_CATEGORIES[$c('crb-category').value ? $c('crb-category').value : 'secrets_config'].paths.length + ' rutas';
+
+crbSetButtons('idle');
+crbResetResultsTable();
+
+/* Puente entre modulos: cualquier herramienta (Crawler, Kraken) puede llamar a
+   esto para precargar el target y opcionalmente elegir categoria, sin que el
+   usuario tenga que copiar/pegar nada. */
+window.tudelaSecFuzzTarget = function(url, category, autostart){
+  $c('crb-target').value = url;
+  if(category && CRB_CATEGORIES[category]) {
+    $c('crb-category').value = category;
+    $c('crb-category-count').textContent = CRB_CATEGORIES[category].paths.length + ' rutas';
+  }
+  var sec = document.getElementById('cerberus');
+  if(sec && sec.scrollIntoView) sec.scrollIntoView({ behavior:'smooth', block:'start' });
+  if(autostart) setTimeout(crbStart, 550);
+};
+
 })();
 </script>
 

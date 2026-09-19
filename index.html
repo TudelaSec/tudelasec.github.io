@@ -3347,6 +3347,7 @@ a{color:inherit;text-decoration:none;}
       <div class="md-tabs">
         <button class="md-tab active" data-tab="strings">Strings</button>
         <button class="md-tab" data-tab="pe">Estructura PE</button>
+        <button class="md-tab" data-tab="doc">Documento / Archivo</button>
         <button class="md-tab" data-tab="iocs">Indicadores</button>
         <button class="md-tab" data-tab="apis">APIs sospechosas</button>
       </div>
@@ -3356,12 +3357,14 @@ a{color:inherit;text-decoration:none;}
         <div class="md-strings-list" id="md-strings-list"></div>
       </div>
       <div class="md-tab-panel" id="md-panel-pe"></div>
+      <div class="md-tab-panel" id="md-panel-doc"></div>
       <div class="md-tab-panel" id="md-panel-iocs"></div>
       <div class="md-tab-panel" id="md-panel-apis"></div>
 
     </div>
   </div>
 </section>
+
 
 
 
@@ -23708,6 +23711,9 @@ const MD_IOC_PATTERNS = {
   winpath: /[a-z]:\\(?:[^\\\/:*?"<>|\r\n]+\\)*[^\\\/:*?"<>|\r\n]*/gi,
   regkey: /\b(?:HKEY_[A-Z_]+|HKLM|HKCU|HKCR)\\[^\s"'<>]{2,150}/gi,
   onion: /\b[a-z2-7]{16,56}\.onion\b/gi,
+  crypto_wallet: /\b(?:bc1[a-z0-9]{25,90}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|0x[a-fA-F0-9]{40})\b/g,
+  powershell: /(?:powershell[^\n\r]{0,15}(?:-enc\w*|-nop\w*|-w(?:indowstyle)?\s+hidden|-ex(?:ecutionpolicy)?\s+bypass)[^\n\r]{0,120}|IEX\s*\(|Invoke-Expression|\.DownloadString\s*\(|\.DownloadFile\s*\(|FromBase64String\s*\(|Net\.WebClient)/g,
+  base64_blob: /\b(?:[A-Za-z0-9+\/]{4}){12,}(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?\b/g,
 };
 /* Funciones WinAPI que, en combinacion, son fuertes indicadores de
    comportamiento malicioso (inyeccion de procesos, persistencia,
@@ -23739,6 +23745,110 @@ function mdFindSuspiciousApis(strings) {
     if (hits.length) found[category] = hits;
   });
   return found;
+}
+
+/* ── [FIRMAS DE PACKERS CONOCIDOS] ──────────────────────────────── */
+const MD_PACKER_SIGNATURES = [
+  { re: /^UPX[01]$/i, name: 'UPX' },
+  { re: /^\.aspack$/i, name: 'ASPack' },
+  { re: /^\.adata$/i, name: 'ASPack' },
+  { re: /^\.vmp[0-9]$/i, name: 'VMProtect' },
+  { re: /^\.themida$/i, name: 'Themida' },
+  { re: /^\.enigma[0-9]?$/i, name: 'Enigma Protector' },
+  { re: /^\.petite$/i, name: 'Petite' },
+  { re: /^\.mpress[0-9]?$/i, name: 'MPRESS' },
+  { re: /^\.nsp[0-9]$/i, name: 'NsPack' },
+  { re: /^\.pec[0-9]?$/i, name: 'PECompact' },
+  { re: /^\.rlpack$/i, name: 'RLPack' },
+  { re: /^kkrunchy$/i, name: 'kkrunchy' },
+];
+function mdDetectPacker(sections) {
+  for (const s of sections) {
+    for (const sig of MD_PACKER_SIGNATURES) {
+      if (sig.re.test(s.name.trim())) return sig.name;
+    }
+  }
+  return null;
+}
+
+/* ── [DETECCION DE OVERLAY] ─────────────────────────────────────── */
+/* Datos pegados DESPUES de la ultima seccion del PE — el linker nunca los
+   pone ahi, asi que si existen es porque alguien los agrego a mano (self-
+   extractors, instaladores NSIS/InnoSetup, o malware que oculta un payload
+   secundario apendizado al final del archivo). */
+function mdDetectOverlay(bytes, sections) {
+  if (!sections.length) return null;
+  const maxEnd = Math.max(...sections.map(s => s.rawPtr + s.rawSize));
+  if (maxEnd >= bytes.length) return null;
+  const overlaySize = bytes.length - maxEnd;
+  if (overlaySize < 16) return null; // padding minimo, no cuenta como overlay real
+  const overlayBytes = bytes.subarray(maxEnd, Math.min(bytes.length, maxEnd + 200000));
+  return {
+    offset: maxEnd,
+    size: overlaySize,
+    entropy: mdEntropy(overlayBytes),
+    fileTypeGuess: mdDetectFileType(bytes.subarray(maxEnd, maxEnd + 16)).type,
+  };
+}
+
+/* ── [DETECCION DE FIRMA AUTHENTICODE] ──────────────────────────── */
+/* Solo verifica PRESENCIA del directorio de certificados (data directory
+   #4) — no valida la firma ni la cadena de confianza (eso requeriria
+   verificacion criptografica completa contra CAs raiz, fuera de alcance
+   de un triaje en el navegador). Ausencia de firma en un ejecutable que
+   dice ser de un vendor conocido es en si una señal de alerta. */
+function mdCheckSignature(dv, optHeaderOffset, is64) {
+  try {
+    const dataDirOffset = optHeaderOffset + (is64 ? 112 : 96);
+    const certDirRVA = dv.getUint32(dataDirOffset + 32, true); // directory #4 = Certificate Table
+    const certDirSize = dv.getUint32(dataDirOffset + 36, true);
+    return { present: certDirRVA > 0 && certDirSize > 0, size: certDirSize };
+  } catch (e) { return { present: false, size: 0 }; }
+}
+
+/* ── [PARSEO DE EXPORTS] ────────────────────────────────────────── */
+function mdParseExports(bytes, dv, sections, optHeaderOffset, is64) {
+  try {
+    const secVA = sections.map(s => ({ va: s.virtualAddress, raw: s.rawPtr, size: s.virtualSize || s.rawSize }));
+    function rva2off(rva) {
+      for (const s of secVA) { if (rva >= s.va && rva < s.va + s.size) return s.raw + (rva - s.va); }
+      return -1;
+    }
+    const dataDirOffset = optHeaderOffset + (is64 ? 112 : 96);
+    const exportDirRVA = dv.getUint32(dataDirOffset, true);
+    if (!exportDirRVA) return [];
+    const expOff = rva2off(exportDirRVA);
+    if (expOff < 0) return [];
+    const numNames = dv.getUint32(expOff + 24, true);
+    const namesRVA = dv.getUint32(expOff + 32, true);
+    const namesOff = rva2off(namesRVA);
+    if (namesOff < 0) return [];
+    const names = [];
+    for (let i = 0; i < numNames && i < 2000; i++) {
+      const nameRVA = dv.getUint32(namesOff + i * 4, true);
+      const nameOff = rva2off(nameRVA);
+      if (nameOff < 0) continue;
+      let name = '';
+      for (let j = 0; j < 128; j++) { const c = bytes[nameOff + j]; if (!c) break; name += String.fromCharCode(c); }
+      if (name) names.push(name);
+    }
+    return names;
+  } catch (e) { return []; }
+}
+
+/* ── [ENTROPIA POR SEGMENTOS] ───────────────────────────────────── */
+/* Divide el archivo en N bloques y calcula la entropia de cada uno —
+   permite VER en que zona del archivo esta lo empaquetado/cifrado en vez
+   de un solo numero global que puede diluir picos localizados. */
+function mdChunkedEntropy(bytes, numChunks) {
+  numChunks = numChunks || 40;
+  const chunkSize = Math.max(256, Math.ceil(bytes.length / numChunks));
+  const chunks = [];
+  for (let off = 0; off < bytes.length; off += chunkSize) {
+    const chunk = bytes.subarray(off, Math.min(bytes.length, off + chunkSize));
+    chunks.push({ offset: off, entropy: mdEntropy(chunk) });
+  }
+  return chunks;
 }
 
 /* ── [PARSEO PE BASICO] ─────────────────────────────────────────── */
@@ -23776,6 +23886,7 @@ function mdParsePE(bytes) {
       let name = '';
       for (let j = 0; j < 8; j++) { const c = bytes[base + j]; if (c === 0) break; name += String.fromCharCode(c); }
       const virtualSize = dv.getUint32(base + 8, true);
+      const virtualAddress = dv.getUint32(base + 12, true);
       const rawSize = dv.getUint32(base + 16, true);
       const rawPtr = dv.getUint32(base + 20, true);
       const sectionChar = dv.getUint32(base + 36, true);
@@ -23785,6 +23896,7 @@ function mdParsePE(bytes) {
       }
       sections.push({
         name: name || '(sin nombre)', virtualSize: virtualSize, rawSize: rawSize,
+        virtualAddress: virtualAddress, rawPtr: rawPtr,
         entropy: sectionEntropy,
         executable: !!(sectionChar & 0x20000000),
         writable: !!(sectionChar & 0x80000000),
@@ -23850,6 +23962,11 @@ function mdParsePE(bytes) {
       }
     } catch (e) { /* import parsing es best-effort — si falla, seguimos con lo demas */ }
 
+    const packer = mdDetectPacker(sections);
+    const overlay = mdDetectOverlay(bytes, sections);
+    const signature = mdCheckSignature(dv, optHeaderOffset, is64);
+    const exports = mdParseExports(bytes, dv, sections, optHeaderOffset, is64);
+
     return {
       machine: MACHINE_MAP[machine] || ('0x' + machine.toString(16)),
       isDLL: isDLL, is64: is64,
@@ -23857,14 +23974,88 @@ function mdParsePE(bytes) {
       timestamp: timestamp, timestampDate: timestamp ? new Date(timestamp * 1000).toISOString() : 'N/A',
       numSections: numSections, sections: sections, imports: imports,
       totalImportedFuncs: Object.values(imports).reduce(function(s,a){return s+a.length;},0),
+      packer: packer, overlay: overlay, signature: signature, exports: exports,
     };
   } catch (e) { return null; }
+}
+
+
+/* ── [LISTADO DE ARCHIVOS ZIP] ──────────────────────────────────── */
+/* Busca el End Of Central Directory (EOCD) desde el final del archivo
+   (soporta comentario variable al final) y recorre las entradas del
+   directorio central — no descomprime nada, solo lee metadata. Sirve
+   para ZIP/JAR/APK/DOCX/XLSX/PPTX (todos son contenedores ZIP). */
+function mdListZipContents(bytes, maxEntries) {
+  maxEntries = maxEntries || 500;
+  try {
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let eocdOff = -1;
+    const searchStart = Math.max(0, bytes.length - 65557); // EOCD + comentario max 65535
+    for (let i = bytes.length - 22; i >= searchStart; i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocdOff = i; break; }
+    }
+    if (eocdOff < 0) return null;
+    const totalEntries = dv.getUint16(eocdOff + 10, true);
+    let cdOff = dv.getUint32(eocdOff + 16, true);
+    const entries = [];
+    for (let i = 0; i < totalEntries && i < maxEntries; i++) {
+      if (cdOff + 46 > bytes.length) break;
+      if (dv.getUint32(cdOff, true) !== 0x02014b50) break;
+      const compSize = dv.getUint32(cdOff + 20, true);
+      const uncompSize = dv.getUint32(cdOff + 24, true);
+      const nameLen = dv.getUint16(cdOff + 28, true);
+      const extraLen = dv.getUint16(cdOff + 30, true);
+      const commentLen = dv.getUint16(cdOff + 32, true);
+      let name = '';
+      for (let j = 0; j < nameLen; j++) name += String.fromCharCode(bytes[cdOff + 46 + j]);
+      entries.push({ name: name, compSize: compSize, uncompSize: uncompSize });
+      cdOff += 46 + nameLen + extraLen + commentLen;
+    }
+    return entries;
+  } catch (e) { return null; }
+}
+
+function mdAnalyzeArchiveContents(entries) {
+  const names = entries.map(function (e) { return e.name; });
+  const hasVBA = names.some(function (n) { return /vbaProject\.bin$/i.test(n); });
+  const isAPK = names.some(function (n) { return n === 'AndroidManifest.xml'; }) && names.some(function (n) { return n === 'classes.dex'; });
+  const isJAR = names.some(function (n) { return n === 'META-INF/MANIFEST.MF'; });
+  const suspiciousExtInside = names.filter(function (n) { return /\.(exe|dll|scr|bat|cmd|ps1|vbs|js|jar|hta)$/i.test(n); });
+  const doubleExt = names.filter(function (n) { return /\.(pdf|doc|docx|xls|xlsx|jpg|png|txt)\.(exe|scr|bat|cmd|vbs|js)$/i.test(n); });
+  return { hasVBA: hasVBA, isAPK: isAPK, isJAR: isJAR, suspiciousExtInside: suspiciousExtInside, doubleExt: doubleExt, totalEntries: names.length };
+}
+
+/* ── [DETECCION HEURISTICA DE VBA EN OLE/CFB] ──────────────────── */
+/* Un parser completo de CFB (FAT chain + directory sectors) es mucho
+   trabajo para el valor que aporta — en la practica, los nombres de
+   stream de VBA ("VBA", "ThisDocument", "ThisWorkbook", los modulos) y
+   la palabra clave "Attribut" (de "Attribute VB_Name") quedan como texto
+   UTF-16LE crudo dentro del contenedor OLE sin comprimir. Escanear por
+   esas firmas da una deteccion confiable sin implementar el parser CFB
+   completo. */
+function mdDetectVBAHeuristic(bytes) {
+  const asciiSlice = mdExtractStrings(bytes, 3, 20000);
+  const joined = asciiSlice.join(' ');
+  const markers = {
+    'Modulo VBA (Attribute VB_Name)': /Attribute VB_Name/i.test(joined),
+    'Referencia a ThisDocument': /ThisDocument/i.test(joined),
+    'Referencia a ThisWorkbook': /ThisWorkbook/i.test(joined),
+    'Auto-ejecucion (AutoOpen/AutoExec/Document_Open)': /AutoOpen|AutoExec|Document_Open|Workbook_Open/i.test(joined),
+    'Shell/WScript (ejecucion de comandos desde macro)': /\bShell\s*\(|WScript\.Shell|CreateObject\s*\(\s*["']WScript/i.test(joined),
+  };
+  const found = Object.keys(markers).filter(function (k) { return markers[k]; });
+  return { hasVBA: found.length > 0, indicators: found };
 }
 
 /* ── [SCORING DE RIESGO HEURISTICO] ────────────────────────────── */
 /* NUNCA es un veredicto — es una señal para priorizar que revisar primero.
    "Bajo riesgo" no significa "seguro"; "alto riesgo" no significa "malware
    confirmado" (un instalador legitimo empaquetado con UPX tambien puntua alto). */
+function mdFmtBytesForScore(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+  return (n/(1024*1024)).toFixed(2) + ' MB';
+}
 function mdRiskScore(analysis) {
   let score = 0;
   const reasons = [];
@@ -23879,6 +24070,9 @@ function mdRiskScore(analysis) {
     if (highEntropySections.length) { score += 15; reasons.push('Seccion(es) con entropia de empaquetado: ' + highEntropySections.map(function(s){return s.name;}).join(', ')); }
     if (analysis.pe.numSections <= 2) { score += 10; reasons.push('Muy pocas secciones (' + analysis.pe.numSections + ') — comun en binarios empaquetados'); }
     if (analysis.pe.totalImportedFuncs > 0 && analysis.pe.totalImportedFuncs < 5) { score += 10; reasons.push('Muy pocos imports (' + analysis.pe.totalImportedFuncs + ') — posible resolucion dinamica de APIs (evasion)'); }
+    if (analysis.pe.packer) { score += 15; reasons.push('Empaquetado con ' + analysis.pe.packer + ' — no es malicioso per se, pero dificulta el analisis y es comun en malware para evadir firmas'); }
+    if (analysis.pe.overlay) { score += 12; reasons.push('Datos apendizados al final del archivo (' + mdFmtBytesForScore(analysis.pe.overlay.size) + ', entropia ' + analysis.pe.overlay.entropy.toFixed(1) + ') — posible payload secundario oculto'); }
+    if (!analysis.pe.signature.present) { score += 5; reasons.push('Sin firma digital Authenticode — no es concluyente (mucho software legitimo tampoco firma), pero suma si hay otras señales'); }
   }
 
   const susApis = analysis.suspiciousApis || {};
@@ -23889,6 +24083,21 @@ function mdRiskScore(analysis) {
   if (analysis.indicators) {
     if ((analysis.indicators.onion || []).length) { score += 15; reasons.push('Dominio(s) .onion detectados (' + analysis.indicators.onion.length + ')'); }
     if ((analysis.indicators.ipv4 || []).length > 5) { score += 10; reasons.push('Multiples IPs embebidas (' + analysis.indicators.ipv4.length + ') — posible lista de C2'); }
+    if ((analysis.indicators.crypto_wallet || []).length) { score += 15; reasons.push('Direccion(es) de wallet cripto embebidas (' + analysis.indicators.crypto_wallet.length + ') — tipico de nota de rescate de ransomware'); }
+    if ((analysis.indicators.powershell || []).length) { score += 12; reasons.push('Comando(s) PowerShell/cmd sospechosos embebidos: ' + analysis.indicators.powershell.slice(0,2).join(' | ')); }
+  }
+
+  if (analysis.vba && analysis.vba.hasVBA) {
+    const hasAutoExec = analysis.vba.indicators.some(function(i){ return /Auto-ejecucion/i.test(i); });
+    const hasShell = analysis.vba.indicators.some(function(i){ return /Shell\/WScript/i.test(i); });
+    if (hasAutoExec && hasShell) { score += 40; reasons.push('Macro VBA con auto-ejecucion AL ABRIR el documento QUE ADEMAS ejecuta comandos del sistema — patron clasico de maldoc dropper'); }
+    else if (hasAutoExec) { score += 20; reasons.push('Macro VBA se ejecuta automaticamente al abrir el documento'); }
+    else { score += 10; reasons.push('Documento contiene macros VBA (no necesariamente malicioso, pero merece revision manual)'); }
+  }
+
+  if (analysis.archive) {
+    if (analysis.archive.doubleExt.length) { score += 25; reasons.push('Archivo(s) con doble extension dentro del contenedor (ej. factura.pdf.exe): ' + analysis.archive.doubleExt.slice(0,3).join(', ')); }
+    if (analysis.archive.suspiciousExtInside.length >= 3) { score += 10; reasons.push('Multiples archivos ejecutables/script dentro del contenedor: ' + analysis.archive.suspiciousExtInside.length); }
   }
 
   score = Math.min(100, score);
@@ -23938,10 +24147,26 @@ async function mdAnalyzeFile(file, onProgress) {
   onProgress && onProgress('Analizando estructura PE (si aplica)...');
   const pe = mdParsePE(bytes);
 
+  onProgress && onProgress('Analizando contenedor ZIP/Office (si aplica)...');
+  let archive = null, vba = null;
+  const isZipMagic = bytes[0] === 0x50 && bytes[1] === 0x4B;
+  const isOleMagic = bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0;
+  if (isZipMagic) {
+    const zipEntries = mdListZipContents(bytes);
+    if (zipEntries) {
+      archive = mdAnalyzeArchiveContents(zipEntries);
+      archive.entries = zipEntries;
+      if (archive.hasVBA) vba = { hasVBA: true, indicators: ['vbaProject.bin presente dentro del contenedor ZIP (formato Office moderno .docm/.xlsm/.pptm)'] };
+    }
+  } else if (isOleMagic) {
+    vba = mdDetectVBAHeuristic(bytes);
+  }
+
   const analysis = {
     fileName: file.name, fileSize: file.size, fileType: fileType,
     md5: md5, sha1: sha1, sha256: sha256, entropy: entropy,
     strings: strings, indicators: indicators, suspiciousApis: suspiciousApis, pe: pe,
+    archive: archive, vba: vba,
   };
   analysis.risk = mdRiskScore(analysis);
   return analysis;
@@ -23993,7 +24218,12 @@ function mdRenderPE(pe) {
     '<tr><td>Tipo</td><td>' + (pe.isDLL ? 'DLL' : 'EXE') + (pe.is64 ? ' (64-bit)' : ' (32-bit)') + '</td></tr>' +
     '<tr><td>Subsistema</td><td>' + mdEsc(pe.subsystem) + '</td></tr>' +
     '<tr><td>Fecha de compilación</td><td>' + mdEsc(pe.timestampDate) + '</td></tr>' +
-    '<tr><td>Total imports</td><td>' + pe.totalImportedFuncs + ' funciones en ' + Object.keys(pe.imports).length + ' DLLs</td></tr></table>';
+    '<tr><td>Total imports</td><td>' + pe.totalImportedFuncs + ' funciones en ' + Object.keys(pe.imports).length + ' DLLs</td></tr>' +
+    '<tr><td>Total exports</td><td>' + pe.exports.length + (pe.exports.length ? ' — típico de DLL diseñada para side-loading si el nombre es generico' : '') + '</td></tr>' +
+    '<tr><td>Firma Authenticode</td><td class="' + (pe.signature.present ? '' : 'md-hot') + '">' + (pe.signature.present ? 'Presente (' + mdFmtBytes(pe.signature.size) + ')' : 'AUSENTE — no valida la cadena de confianza, solo detecta presencia') + '</td></tr>' +
+    (pe.packer ? '<tr class="md-hot"><td>Packer detectado</td><td>' + mdEsc(pe.packer) + ' — nombre de sección típico de este empaquetador</td></tr>' : '') +
+    (pe.overlay ? '<tr class="md-hot"><td>Overlay (datos tras la última sección)</td><td>' + mdFmtBytes(pe.overlay.size) + ' en offset 0x' + pe.overlay.offset.toString(16) + ', entropía ' + pe.overlay.entropy.toFixed(2) + ', parece: ' + mdEsc(pe.overlay.fileTypeGuess) + '</td></tr>' : '') +
+    '</table>';
 
   h += '<table class="md-section-table"><tr><th>Sección</th><th>Tamaño virtual</th><th>Tamaño en disco</th><th>Entropía</th><th>Permisos</th></tr>';
   pe.sections.forEach(s => {
@@ -24015,12 +24245,22 @@ function mdRenderPE(pe) {
     });
     h += '</div>';
   }
+  if (pe.exports.length) {
+    h += '<div class="md-import-group"><div class="md-import-dll">Funciones exportadas (' + pe.exports.length + ')</div><div class="md-import-funcs">';
+    pe.exports.slice(0, 300).forEach(fn => { h += '<span class="md-import-func">' + mdEsc(fn) + '</span>'; });
+    h += '</div></div>';
+  }
   panel.innerHTML = h;
 }
 
 function mdRenderIOCs(indicators) {
   const panel = $m('md-panel-iocs');
-  const labels = { url: 'URLs', ipv4: 'Direcciones IP', email: 'Emails', winpath: 'Rutas de Windows', regkey: 'Claves de registro', onion: 'Dominios .onion' };
+  const labels = {
+    url: 'URLs', ipv4: 'Direcciones IP', email: 'Emails', winpath: 'Rutas de Windows',
+    regkey: 'Claves de registro', onion: 'Dominios .onion',
+    crypto_wallet: 'Wallets de criptomonedas (posible nota de rescate)',
+    powershell: 'Comandos PowerShell/cmd sospechosos',
+  };
   let h = '';
   Object.keys(labels).forEach(key => {
     const items = indicators[key] || [];
@@ -24029,6 +24269,12 @@ function mdRenderIOCs(indicators) {
     items.slice(0, 100).forEach(item => { h += '<div class="md-ioc-item">' + mdEsc(item) + '</div>'; });
     h += '</div>';
   });
+  const b64 = (indicators.base64_blob || []).filter(b => b.length >= 40).sort((a,b) => b.length - a.length).slice(0, 15);
+  if (b64.length) {
+    h += '<div class="md-ioc-group"><span class="md-ioc-label">Posibles blobs Base64 (heurístico — puede haber falsos positivos, se muestran los más largos)</span>';
+    b64.forEach(item => { h += '<div class="md-ioc-item">' + mdEsc(item.length > 120 ? item.slice(0,120) + '… (' + item.length + ' caracteres)' : item) + '</div>'; });
+    h += '</div>';
+  }
   panel.innerHTML = h || '<div class="md-empty-msg">No se encontraron indicadores de red reconocibles en las strings extraídas.</div>';
 }
 
@@ -24041,6 +24287,27 @@ function mdRenderApis(suspiciousApis) {
     suspiciousApis[cat].map(fn => '<span class="md-import-func sus">' + mdEsc(fn) + '</span>').join('') +
     '</div></div>'
   ).join('');
+}
+
+function mdRenderDoc(vba, archive) {
+  const panel = $m('md-panel-doc');
+  let h = '';
+
+  if (vba && vba.hasVBA) {
+    h += '<div class="md-api-cat" style="border-color:rgba(255,68,85,.4);"><div class="md-api-cat-name" style="color:var(--red);">⚠ Macros VBA detectadas</div>';
+    h += '<ul class="md-risk-reasons">' + vba.indicators.map(i => '<li>' + mdEsc(i) + '</li>').join('') + '</ul></div>';
+  } else if (vba) {
+    h += '<div class="md-empty-msg">No se detectaron indicadores de macros VBA (deteccion heuristica — no reemplaza un analisis manual del proyecto VBA).</div>';
+  }
+
+  if (archive) {
+    h += '<div class="md-import-group" style="margin-top:16px;"><div class="md-import-dll">Contenido del contenedor (' + archive.totalEntries + ' entradas' + (archive.isAPK ? ' — Android APK' : archive.isJAR ? ' — Java JAR' : '') + ')</div>';
+    if (archive.doubleExt.length) h += '<div class="md-ov-cell" style="background:rgba(255,26,46,.08);margin-bottom:8px;"><span class="md-ov-label" style="color:var(--red);">⚠ Doble extension (tecnica clasica de engaño)</span>' + archive.doubleExt.map(n => '<div class="md-ov-value">' + mdEsc(n) + '</div>').join('') + '</div>';
+    if (archive.suspiciousExtInside.length) h += '<div class="md-ov-cell" style="background:rgba(255,176,32,.08);margin-bottom:8px;"><span class="md-ov-label" style="color:var(--amber);">Ejecutables/scripts dentro del contenedor</span>' + archive.suspiciousExtInside.slice(0,50).map(n => '<div class="md-ov-value">' + mdEsc(n) + '</div>').join('') + '</div>';
+    h += '<div class="md-strings-list" style="max-height:280px;">' + archive.entries.slice(0, 300).map(e => '<div>' + mdEsc(e.name) + ' <span style="color:rgba(240,238,248,.4);">(' + mdFmtBytes(e.uncompSize) + ')</span></div>').join('') + '</div></div>';
+  }
+
+  panel.innerHTML = h || '<div class="md-empty-msg">Este archivo no es un documento Office ni un contenedor ZIP — no hay nada que mostrar en esta pestaña.</div>';
 }
 
 /* ── [EVENTOS] ──────────────────────────────────────────────────── */
@@ -24069,6 +24336,7 @@ async function mdHandleFile(file) {
     mdRenderPE(analysis.pe);
     mdRenderIOCs(analysis.indicators);
     mdRenderApis(analysis.suspiciousApis);
+    mdRenderDoc(analysis.vba, analysis.archive);
   } catch (e) {
     $m('md-progress-line').style.color = 'var(--red)';
     $m('md-progress-line').textContent = '✕ Error analizando el archivo: ' + e.message;
@@ -24104,6 +24372,7 @@ if (mdStringsFilter) mdStringsFilter.addEventListener('input', () => {
 });
 
 })();
+
 </script>
 
 

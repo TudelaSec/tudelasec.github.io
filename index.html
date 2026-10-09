@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -3057,53 +3056,109 @@ a{color:inherit;text-decoration:none;}
 #mailsec .mp-send button:disabled{ opacity:.45; cursor:not-allowed; }
 @media (max-width:900px){ #mailsec .mp-warn{ font-size:9px; } #mailsec .mp-send .ms-actions{ flex-direction:column; } #mailsec .mp-send button{ width:100%; } }
 /* ══ CTF GATE v2.2 (sesión #33) — login CYBERPUNK a dos columnas · scope #ctfGate + prefijo ctf- ══ */
-#ctfGate{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 32%,#0d0c16 0%,#050508 62%);overflow:hidden;}
-#ctfGate::before{content:"";position:absolute;inset:calc(-40px - 42px) -40px -40px;background-image:linear-gradient(rgba(79,195,247,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(79,195,247,.05) 1px,transparent 1px);background-size:42px 42px;animation:ctfGrid 6s linear infinite;pointer-events:none;} /* #37 PERF: antes animaba background-position (repaint de PANTALLA COMPLETA a 60fps mientras el gate está abierto); ahora el ::before mide 42px más arriba y se desplaza con transform — loop sin costura, pixel-idéntico */
-#ctfGate::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);pointer-events:none;opacity:.6;}
-#ctfGate.ctf-on{display:flex;animation:ctfIn .45s ease both;}
+#ctfGate{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 28%,#1a0309 0%,#0a0206 55%,#040103 100%);overflow:hidden;}
+#ctfGate::before{content:"";position:absolute;inset:calc(-40px - 44px) -40px -40px;background-image:linear-gradient(rgba(255,26,46,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,46,.06) 1px,transparent 1px);background-size:44px 44px;animation:ctfGrid 6s linear infinite;pointer-events:none;mask-image:radial-gradient(ellipse at 50% 32%,#000 35%,transparent 78%);-webkit-mask-image:radial-gradient(ellipse at 50% 32%,#000 35%,transparent 78%);} /* #37 PERF: desplazado por transform (sin repaint de pantalla completa) */
+#ctfGate::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);pointer-events:none;opacity:.55;}
+#ctfGate.ctf-on{display:flex;animation:ctfIn .5s cubic-bezier(.16,1,.3,1) both;}
 #ctfGate.ctf-exit{animation:ctfOut .6s ease both;pointer-events:none;}
-@keyframes ctfIn{from{opacity:0}to{opacity:1}}
+@keyframes ctfIn{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
 @keyframes ctfOut{to{opacity:0;transform:scale(1.06)}}
-@keyframes ctfGrid{from{transform:translateY(0)}to{transform:translateY(42px)}} /* #37 PERF: el patrón baja 42px = un tile exacto → loop sin costura, animado por el COMPOSITOR (antes: la posición del background se repintaba a pantalla completa 60fps) */
-@keyframes ctfFlicker{0%,100%{text-shadow:0 0 6px #ff1a2e,0 0 22px rgba(255,26,46,.55),0 0 48px rgba(79,195,247,.30)}42%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.35)}44%{text-shadow:0 0 8px #ff1a2e,0 0 26px rgba(255,26,46,.7),0 0 60px rgba(79,195,247,.45)}46%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.35)}}
-@keyframes ctfPulse{0%,100%{box-shadow:0 0 16px rgba(255,26,46,.45),0 0 42px rgba(255,26,46,.18)}50%{box-shadow:0 0 26px rgba(255,26,46,.75),0 0 68px rgba(255,26,46,.32)}}
+@keyframes ctfGrid{from{transform:translateY(0)}to{transform:translateY(44px)}}
+@keyframes ctfFlicker{0%,100%{text-shadow:0 0 7px #ff1a2e,0 0 22px rgba(255,26,46,.6),0 0 48px rgba(255,26,46,.3)}42%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.4)}44%{text-shadow:0 0 9px #ff3344,0 0 30px rgba(255,26,46,.75),0 0 64px rgba(255,26,46,.45)}46%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.4)}}
+@keyframes ctfPulse{0%,100%{box-shadow:0 0 16px rgba(255,26,46,.5),0 0 42px rgba(255,26,46,.2)}50%{box-shadow:0 0 28px rgba(255,26,46,.8),0 0 72px rgba(255,26,46,.36)}}
+@keyframes ctfScan{0%{transform:translateY(-10%);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(1100%);opacity:0}}
 .ctf-shake{animation:ctfShake .4s cubic-bezier(.36,.07,.19,.97) both;}
 @keyframes ctfShake{10%,90%{transform:translate3d(-2px,0,0)}20%,80%{transform:translate3d(4px,0,0)}30%,50%,70%{transform:translate3d(-6px,0,0)}40%,60%{transform:translate3d(6px,0,0)}}
-#ctfGate .ctf-box{position:relative;width:100%;max-width:880px;max-height:94vh;overflow-y:auto;background:linear-gradient(160deg,rgba(16,16,26,.96),rgba(8,8,13,.97));border:1px solid rgba(79,195,247,.22);border-radius:10px;padding:28px 30px 22px;box-shadow:0 0 0 1px rgba(255,26,46,.12),0 0 44px rgba(79,195,247,.10),0 22px 70px rgba(0,0,0,.95);box-sizing:border-box;}
-#ctfGate .ctf-box::before{content:"";position:absolute;top:-1px;left:-1px;width:26px;height:26px;border-top:2px solid var(--acc,#ff1a2e);border-left:2px solid var(--acc,#ff1a2e);border-radius:10px 0 0 0;pointer-events:none;}
-#ctfGate .ctf-box::after{content:"";position:absolute;bottom:-1px;right:-1px;width:26px;height:26px;border-bottom:2px solid #4fc3f7;border-right:2px solid #4fc3f7;border-radius:0 0 10px 0;pointer-events:none;}
-#ctfGate .ctf-head{text-align:center;border-bottom:1px solid rgba(79,195,247,.14);padding-bottom:16px;margin-bottom:20px;}
-#ctfGate .ctf-title{font-size:23px;font-weight:700;margin:0 0 6px;color:#fff;letter-spacing:2.5px;animation:ctfFlicker 4.5s linear infinite;}
-#ctfGate .ctf-sep{color:#4fc3f7;}
-#ctfGate .ctf-sub{font-size:11px;color:var(--muted,#8b899c);margin:0;letter-spacing:.4px;}
-#ctfGate .ctf-main{display:flex;gap:24px;align-items:stretch;}
-#ctfGate .ctf-col{flex:1 1 0;min-width:0;}
+#ctfGate .ctf-box{position:relative;width:100%;max-width:900px;max-height:94vh;overflow-y:auto;background:linear-gradient(162deg,rgba(26,10,14,.97),rgba(9,4,7,.98));border:1px solid rgba(255,26,46,.3);border-radius:12px;padding:30px 32px 22px;box-shadow:0 0 0 1px rgba(255,26,46,.1),0 0 54px rgba(255,26,46,.14),0 24px 80px rgba(0,0,0,.96),inset 0 1px 0 rgba(255,255,255,.04);box-sizing:border-box;}
+#ctfGate .ctf-box::before{content:"";position:absolute;top:-1px;left:-1px;width:30px;height:30px;border-top:2px solid var(--acc,#ff1a2e);border-left:2px solid var(--acc,#ff1a2e);border-radius:12px 0 0 0;pointer-events:none;box-shadow:-3px -3px 14px rgba(255,26,46,.4);}
+#ctfGate .ctf-box::after{content:"";position:absolute;bottom:-1px;right:-1px;width:30px;height:30px;border-bottom:2px solid var(--acc,#ff1a2e);border-right:2px solid var(--acc,#ff1a2e);border-radius:0 0 12px 0;pointer-events:none;box-shadow:3px 3px 14px rgba(255,26,46,.4);}
+#ctfGate .ctf-scanline{position:absolute;left:0;right:0;top:0;height:60px;background:linear-gradient(180deg,transparent,rgba(255,26,46,.11) 50%,transparent);pointer-events:none;animation:ctfScan 5s linear infinite;z-index:0;}
+#ctfGate .ctf-box>*{position:relative;z-index:1;}
+#ctfGate .ctf-head{text-align:center;border-bottom:1px solid rgba(255,26,46,.2);padding-bottom:16px;margin-bottom:20px;}
+#ctfGate .ctf-title{font-size:25px;font-weight:700;margin:0 0 7px;color:#fff;letter-spacing:3px;font-family:var(--display,var(--mono,monospace));animation:ctfFlicker 4.5s linear infinite;}
+#ctfGate .ctf-sep{color:var(--acc,#ff1a2e);}
+#ctfGate .ctf-sub{font-size:11px;color:var(--muted,#8b899c);margin:0 0 12px;letter-spacing:.4px;}
+#ctfGate .ctf-sub b{color:#27c93f;text-shadow:0 0 8px rgba(39,201,63,.5);}
+#ctfGate .ctf-statusbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+#ctfGate .ctf-stat{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,120,130,.8);background:rgba(255,26,46,.07);border:1px solid rgba(255,26,46,.22);border-radius:3px;padding:4px 9px;display:inline-flex;align-items:center;gap:6px;}
+#ctfGate .ctf-stat b{color:#ff4d5e;}
+#ctfGate .ctf-stat i{width:6px;height:6px;border-radius:50%;background:#27c93f;box-shadow:0 0 7px #27c93f;display:inline-block;animation:ctfBlink 1.4s linear infinite;}
+#ctfGate .ctf-main{display:flex;gap:26px;align-items:stretch;}
+#ctfGate .ctf-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;}
 #ctfGate .ctf-group{margin-bottom:14px;}
-#ctfGate .ctf-label{display:block;font-size:10px;color:#4fc3f7;margin-bottom:6px;letter-spacing:1.6px;text-shadow:0 0 8px rgba(79,195,247,.35);}
-#ctfGate .ctf-field{width:100%;background:rgba(6,6,10,.9);border:1px solid rgba(79,195,247,.18);border-radius:4px;padding:11px 13px;color:var(--text,#f0eef8);font-family:var(--mono,monospace);font-size:12px;outline:none;box-sizing:border-box;transition:border-color .25s,box-shadow .25s;}
-#ctfGate .ctf-field:focus{border-color:#4fc3f7;box-shadow:0 0 14px rgba(79,195,247,.28),inset 0 0 8px rgba(79,195,247,.06);}
-#ctfGate .ctf-osint{margin:0 0 16px;font-size:10px;color:var(--amber,#ffb020);font-family:var(--mono,monospace);letter-spacing:.4px;border:1px dashed rgba(255,176,32,.35);border-radius:4px;padding:8px 10px;background:rgba(255,176,32,.04);text-shadow:0 0 10px rgba(255,176,32,.25);}
-#ctfGate .ctf-btn{width:100%;padding:13px;background:linear-gradient(90deg,#ff1a2e,#c2101f);color:#000;border:none;border-radius:4px;font-family:var(--mono,monospace);font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:1.4px;animation:ctfPulse 2.4s ease-in-out infinite;}
-#ctfGate .ctf-btn:hover{background:#ff3344;box-shadow:0 0 34px rgba(255,26,46,.7);}
-#ctfGate .ctf-send{background:transparent;border:1px solid rgba(79,195,247,.3);border-radius:4px;color:#4fc3f7;padding:0 16px;cursor:pointer;font-family:var(--mono,monospace);font-weight:700;transition:all .3s;text-shadow:0 0 8px rgba(79,195,247,.4);}
-#ctfGate .ctf-send:hover{background:#4fc3f7;color:#000;box-shadow:0 0 18px rgba(79,195,247,.55);}
-#ctfGate .ctf-console{background:#020204;border:1px solid rgba(79,195,247,.18);border-radius:6px;overflow:hidden;display:block;box-shadow:inset 0 0 26px rgba(0,0,0,.7),0 0 16px rgba(39,201,63,.07);}
-#ctfGate .ctf-chead{background:#07070c;padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(79,195,247,.14);}
-#ctfGate .ctf-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
-#ctfGate .ctf-dot.r{background:#ff5f56;box-shadow:0 0 8px rgba(255,95,86,.5)}#ctfGate .ctf-dot.y{background:#ffbd2e;box-shadow:0 0 8px rgba(255,189,46,.5)}#ctfGate .ctf-dot.g{background:#27c93f;box-shadow:0 0 8px rgba(39,201,63,.5)}
-#ctfGate .ctf-ctitle{font-size:10px;color:var(--muted,#8b899c);margin-left:6px;}
-#ctfGate .ctf-body{padding:15px;font-size:11px;line-height:1.65;height:236px;overflow-y:auto;color:#27c93f;text-shadow:0 0 6px rgba(39,201,63,.35);white-space:pre-wrap;word-break:break-all;}
-#ctfGate .ctf-g{color:#27c93f}#ctfGate .ctf-r{color:var(--acc,#ff1a2e);font-weight:700;text-shadow:0 0 8px rgba(255,26,46,.5)}#ctfGate .ctf-a{color:var(--amber,#ffb020)}#ctfGate .ctf-c{color:#4fc3f7}#ctfGate .ctf-m{color:var(--muted,#8b899c)}
-#ctfGate .ctf-skull{line-height:1.1;font-size:10px;margin:10px 0;text-align:center;text-shadow:0 0 5px var(--acc,#ff1a2e);white-space:pre;font-family:var(--mono,monospace);overflow-x:auto;}
+#ctfGate .ctf-label{display:block;font-size:10px;color:var(--acc,#ff1a2e);margin-bottom:6px;letter-spacing:1.8px;text-shadow:0 0 10px rgba(255,26,46,.5);font-family:var(--mono,monospace);}
+#ctfGate .ctf-field{width:100%;background:rgba(10,4,6,.92);border:1px solid rgba(255,26,46,.25);border-radius:5px;padding:12px 14px;color:var(--text,#f0eef8);font-family:var(--mono,monospace);font-size:12px;outline:none;box-sizing:border-box;transition:border-color .25s,box-shadow .25s,background .25s;}
+#ctfGate .ctf-field::placeholder{color:rgba(240,238,248,.3);}
+#ctfGate .ctf-field:focus{border-color:var(--acc,#ff1a2e);background:rgba(16,5,8,.96);box-shadow:0 0 16px rgba(255,26,46,.35),inset 0 0 10px rgba(255,26,46,.08);}
+#ctfGate .ctf-osint{margin:0 0 14px;font-size:10px;color:var(--amber,#ffb020);font-family:var(--mono,monospace);letter-spacing:.3px;line-height:1.7;border:1px dashed rgba(255,176,32,.4);border-radius:5px;padding:9px 11px;background:rgba(255,176,32,.05);}
+#ctfGate .ctf-osint-tag{color:#000;background:var(--amber,#ffb020);font-weight:700;padding:1px 6px;border-radius:3px;margin-right:6px;font-size:9px;letter-spacing:.08em;}
+#ctfGate .ctf-leak{font-family:var(--mono,monospace);font-size:11px;font-weight:700;color:#fff;background:rgba(255,26,46,.14);border:1px solid rgba(255,26,46,.45);border-radius:4px;padding:2px 9px;cursor:pointer;letter-spacing:.06em;transition:all .2s;text-shadow:0 0 8px rgba(255,26,46,.5);}
+#ctfGate .ctf-leak:hover{background:var(--acc,#ff1a2e);color:#000;box-shadow:0 0 16px rgba(255,26,46,.6);}
+#ctfGate .ctf-btn{width:100%;padding:14px;background:linear-gradient(90deg,#ff1a2e,#c2101f);color:#fff;border:none;border-radius:5px;font-family:var(--mono,monospace);font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:1.6px;text-shadow:0 1px 2px rgba(0,0,0,.4);animation:ctfPulse 2.4s ease-in-out infinite;}
+#ctfGate .ctf-btn:hover{background:linear-gradient(90deg,#ff3344,#d8121f);box-shadow:0 0 38px rgba(255,26,46,.75);transform:translateY(-1px);}
+#ctfGate .ctf-btn:active{transform:translateY(0);}
+#ctfGate .ctf-vectors{margin-top:16px;border:1px solid rgba(255,26,46,.16);border-radius:6px;background:rgba(255,26,46,.03);padding:10px 11px;}
+#ctfGate .ctf-vhead{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,120,130,.75);margin-bottom:8px;}
+#ctfGate .ctf-vec{display:block;width:100%;text-align:left;background:transparent;border:1px solid transparent;border-left:2px solid rgba(255,26,46,.4);border-radius:0 4px 4px 0;color:rgba(240,238,248,.72);font-family:var(--mono,monospace);font-size:10.5px;line-height:1.5;padding:6px 10px;margin-bottom:5px;cursor:pointer;transition:all .18s;}
+#ctfGate .ctf-vec:last-child{margin-bottom:0;}
+#ctfGate .ctf-vec:hover{background:rgba(255,26,46,.09);border-left-color:var(--acc,#ff1a2e);color:#fff;transform:translateX(2px);}
+#ctfGate .ctf-vec .ctf-vec-k{display:inline-block;min-width:38px;color:var(--acc,#ff1a2e);font-weight:700;margin-right:6px;}
+#ctfGate .ctf-vec code{color:#27c93f;background:rgba(39,201,63,.08);padding:0 4px;border-radius:2px;}
+#ctfGate .ctf-send{background:transparent;border:1px solid rgba(255,26,46,.4);border-radius:5px;color:var(--acc,#ff1a2e);padding:0 18px;cursor:pointer;font-family:var(--mono,monospace);font-weight:700;transition:all .3s;text-shadow:0 0 8px rgba(255,26,46,.5);}
+#ctfGate .ctf-send:hover{background:var(--acc,#ff1a2e);color:#000;box-shadow:0 0 20px rgba(255,26,46,.6);}
+#ctfGate .ctf-console{background:#030103;border:1px solid rgba(255,26,46,.25);border-radius:7px;overflow:hidden;display:block;box-shadow:inset 0 0 30px rgba(0,0,0,.75),0 0 18px rgba(255,26,46,.08);flex:1;}
+#ctfGate .ctf-chead{background:#0b0407;padding:9px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,26,46,.2);}
+#ctfGate .ctf-dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+#ctfGate .ctf-dot.r{background:#ff5f56;box-shadow:0 0 8px rgba(255,95,86,.6)}#ctfGate .ctf-dot.y{background:#ffbd2e;box-shadow:0 0 8px rgba(255,189,46,.6)}#ctfGate .ctf-dot.g{background:#27c93f;box-shadow:0 0 8px rgba(39,201,63,.6)}
+#ctfGate .ctf-ctitle{font-size:10px;color:var(--muted,#8b899c);margin-left:6px;font-family:var(--mono,monospace);}
+#ctfGate .ctf-body{padding:15px;font-size:11px;line-height:1.65;height:270px;overflow-y:auto;color:#27c93f;text-shadow:0 0 6px rgba(39,201,63,.4);white-space:pre-wrap;word-break:break-all;font-family:var(--mono,monospace);}
+#ctfGate .ctf-g{color:#27c93f}#ctfGate .ctf-r{color:var(--acc,#ff1a2e);font-weight:700;text-shadow:0 0 9px rgba(255,26,46,.6)}#ctfGate .ctf-a{color:var(--amber,#ffb020)}#ctfGate .ctf-c{color:#ff6b7d}#ctfGate .ctf-m{color:var(--muted,#8b899c)}
+#ctfGate .ctf-skull{line-height:1.1;font-size:10px;margin:10px 0;text-align:center;text-shadow:0 0 6px var(--acc,#ff1a2e);white-space:pre;font-family:var(--mono,monospace);overflow-x:auto;}
 #ctfGate .ctf-blink{animation:ctfBlink 1s linear infinite;}
 @keyframes ctfBlink{50%{opacity:0}}
 #ctfGate .ctf-topbar{display:flex;gap:8px;margin-top:14px;}
 #ctfGate .ctf-topbar .ctf-field{flex:1;}
 #ctfGate .ctf-hint{margin-top:18px;text-align:center;font-size:10px;color:var(--muted,#8b899c);line-height:1.7;}
 #ctfGate .ctf-skip{display:block;margin:12px auto 0;background:none;border:none;border-bottom:1px dashed var(--muted,#8b899c);color:var(--muted,#8b899c);font-family:var(--mono,monospace);font-size:10px;cursor:pointer;padding:2px 6px;opacity:.75;transition:all .3s;}
-#ctfGate .ctf-skip:hover{opacity:1;color:#4fc3f7;border-color:#4fc3f7;}
-@media (max-width:720px){#ctfGate .ctf-main{flex-direction:column;gap:16px}#ctfGate .ctf-box{padding:20px 14px 16px}#ctfGate .ctf-title{font-size:18px;letter-spacing:1.5px}#ctfGate .ctf-body{height:150px;font-size:10px}}
-@media (prefers-reduced-motion: reduce){#ctfGate,#ctfGate::before,#ctfGate::after,.ctf-shake,#ctfGate .ctf-blink,#ctfGate .ctf-title,#ctfGate .ctf-btn,#ctfGate .ctf-label{animation:none!important;transition:none!important}}
+#ctfGate .ctf-skip:hover{opacity:1;color:var(--acc,#ff1a2e);border-color:var(--acc,#ff1a2e);}
+#ctfGate .ctf-vec{cursor:default;}
+#ctfGate .ctf-vec:hover{transform:none;background:rgba(255,26,46,.05);border-left-color:rgba(255,26,46,.6);color:rgba(240,238,248,.85);}
+#ctfGate details.ctf-vectors{padding:0;}
+#ctfGate summary.ctf-vhead{list-style:none;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin:0;padding:10px 12px;border-radius:6px;transition:background .2s,color .2s;}
+#ctfGate summary.ctf-vhead::-webkit-details-marker{display:none;}
+#ctfGate summary.ctf-vhead::marker{content:"";}
+#ctfGate summary.ctf-vhead:hover{background:rgba(255,26,46,.07);color:#fff;}
+#ctfGate .ctf-vchevron{color:var(--acc,#ff1a2e);font-size:11px;transition:transform .25s ease;margin-left:10px;}
+#ctfGate details.ctf-vectors[open] .ctf-vchevron{transform:rotate(180deg);}
+#ctfGate details.ctf-vectors[open] summary.ctf-vhead{border-bottom:1px solid rgba(255,26,46,.16);border-radius:6px 6px 0 0;}
+#ctfGate .ctf-vlist{padding:10px 11px 2px;animation:ctfHintsIn .28s ease both;}
+@keyframes ctfHintsIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+#ctfGate .ctf-skull{font-size:11.5px;animation:ctfSkullPulse 1.1s ease-in-out infinite;}
+@keyframes ctfSkullPulse{0%,100%{text-shadow:0 0 6px var(--acc,#ff1a2e);opacity:.9;transform:scale(1)}50%{text-shadow:0 0 15px var(--acc,#ff1a2e),0 0 34px rgba(255,26,46,.6);opacity:1;transform:scale(1.04)}}
+#ctfGate .ctf-denied{text-align:center;font-family:var(--display,var(--mono,monospace));font-size:16px;font-weight:900;letter-spacing:4px;color:var(--acc,#ff1a2e);text-shadow:0 0 12px rgba(255,26,46,.8);margin:6px 0;animation:ctfBlink .6s steps(2) infinite;}
+/* ═══ MATRIX WIN + TICKET ═══ */
+#ctfGate .ctf-matrix{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:#020103;}
+#ctfGate .ctf-matrix.on{display:flex;animation:ctfIn .4s ease both;}
+#ctfGate .ctf-matrix canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#ctfGate .ctf-ticket{position:relative;z-index:2;width:min(440px,92vw);background:linear-gradient(160deg,rgba(6,16,10,.95),rgba(2,8,5,.98));border:1px solid rgba(39,201,63,.5);border-radius:12px;padding:22px 24px;box-shadow:0 0 0 1px rgba(39,201,63,.15),0 0 60px rgba(39,201,63,.3),0 24px 70px rgba(0,0,0,.92);font-family:var(--mono,monospace);color:#bfffd6;animation:ctfTk .55s cubic-bezier(.16,1,.3,1) both;}
+#ctfGate .ctf-ticket::before{content:"";position:absolute;top:-1px;left:22px;right:22px;height:2px;background:linear-gradient(90deg,transparent,#27c93f,transparent);box-shadow:0 0 12px #27c93f;}
+@keyframes ctfTk{from{opacity:0;transform:translateY(18px) scale(.95)}to{opacity:1;transform:none}}
+#ctfGate .ctf-tk-top{display:flex;justify-content:space-between;align-items:center;font-size:9px;letter-spacing:.12em;color:rgba(39,201,63,.72);border-bottom:1px dashed rgba(39,201,63,.3);padding-bottom:10px;margin-bottom:12px;text-transform:uppercase;}
+#ctfGate .ctf-tk-id{color:#eafff2;}
+#ctfGate .ctf-tk-granted{text-align:center;font-family:var(--display,var(--mono,monospace));font-size:29px;font-weight:900;letter-spacing:3px;color:#27c93f;text-shadow:0 0 12px rgba(39,201,63,.7),0 0 36px rgba(39,201,63,.4);margin:6px 0 16px;animation:ctfFlickG 2.6s linear infinite;}
+@keyframes ctfFlickG{0%,100%{opacity:1}47%{opacity:.7}49%{opacity:1}}
+#ctfGate .ctf-tk-rows{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;font-size:10.5px;margin-bottom:12px;}
+#ctfGate .ctf-tk-rows>div{display:flex;flex-direction:column;gap:2px;}
+#ctfGate .ctf-tk-rows b{color:rgba(39,201,63,.55);font-size:8px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;}
+#ctfGate .ctf-tk-rows span{color:#eafff2;word-break:break-all;}
+#ctfGate .ctf-tk-flag{font-size:11px;background:rgba(39,201,63,.08);border:1px solid rgba(39,201,63,.3);border-radius:5px;padding:9px 11px;margin-bottom:12px;word-break:break-all;}
+#ctfGate .ctf-tk-flag b{color:rgba(39,201,63,.6);margin-right:6px;}
+#ctfGate .ctf-tk-flag span{color:#27c93f;font-weight:700;text-shadow:0 0 8px rgba(39,201,63,.5);}
+#ctfGate .ctf-tk-barcode{height:32px;margin-bottom:14px;background-image:repeating-linear-gradient(90deg,#bfffd6 0 2px,transparent 2px 4px,#bfffd6 4px 5px,transparent 5px 9px,#bfffd6 9px 12px,transparent 12px 13px,#bfffd6 13px 14px,transparent 14px 18px);opacity:.7;border-radius:2px;}
+#ctfGate .ctf-tk-btn{width:100%;padding:12px;background:linear-gradient(90deg,#27c93f,#149a2d);color:#021007;border:none;border-radius:6px;font-family:var(--mono,monospace);font-weight:700;letter-spacing:1.4px;cursor:pointer;transition:all .25s;box-shadow:0 0 20px rgba(39,201,63,.4);}
+#ctfGate .ctf-tk-btn:hover{box-shadow:0 0 38px rgba(39,201,63,.72);transform:translateY(-1px);}
+@media (max-width:720px){#ctfGate .ctf-main{flex-direction:column;gap:16px}#ctfGate .ctf-box{padding:22px 15px 16px}#ctfGate .ctf-title{font-size:19px;letter-spacing:1.5px}#ctfGate .ctf-body{height:170px;font-size:10px}#ctfGate .ctf-tk-granted{font-size:23px}}
+@media (prefers-reduced-motion: reduce){#ctfGate,#ctfGate::before,#ctfGate::after,.ctf-shake,#ctfGate .ctf-blink,#ctfGate .ctf-title,#ctfGate .ctf-btn,#ctfGate .ctf-label,#ctfGate .ctf-scanline,#ctfGate .ctf-stat i,#ctfGate .ctf-skull,#ctfGate .ctf-denied,#ctfGate .ctf-ticket,#ctfGate .ctf-tk-granted,#ctfGate .ctf-vlist,#ctfGate .ctf-vchevron{animation:none!important;transition:none!important}}
 /* ══════════ SESIÓN #36 — PERF TURBO: la página VUELA sin cambiar NI un pixel ══════════
    content-visibility:auto → el navegador SALTA el layout+paint de las 34 secciones
    fuera de pantalla: el ~90% del DOM invisible deja de renderizarse en cada frame.
@@ -3152,12 +3207,37 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
      #33: panel a dos columnas (login a la izquierda + terminal al lado), estética cyberpunk
      (grid neón, scanlines, flicker, glow), responsive móvil (columnas apiladas), consola con
      boot sequence visible desde el arranque, ortografía revisada. ══ -->
-<!-- [OSINT HINT]: el código fuente filtra credenciales internas -> admin : Tudela -->
+<!-- [OSINT LEAK] credenciales de dev olvidadas en el código fuente → usuarios: admin | tudela · password (ambos): tudela · (dejado a propósito: parte del reto del gateway) -->
 <div id="ctfGate">
+  <div id="ctfMatrix" class="ctf-matrix" aria-hidden="true">
+    <canvas id="ctfMatrixCv"></canvas>
+    <div class="ctf-ticket" id="ctfTicket" role="dialog" aria-label="Acceso concedido">
+      <div class="ctf-tk-top">
+        <span class="ctf-tk-brand">TUDELASEC // SECURITY OPS</span>
+        <span class="ctf-tk-id">#RGW-0xC0FFEE</span>
+      </div>
+      <div class="ctf-tk-granted">ACCESS&nbsp;GRANTED</div>
+      <div class="ctf-tk-rows">
+        <div><b>Usuario</b><span id="tkUser">—</span></div>
+        <div><b>Vector</b><span id="tkVector">—</span></div>
+        <div><b>Clearance</b><span>ROOT · 0xFF</span></div>
+        <div><b>Timestamp</b><span id="tkTime">—</span></div>
+      </div>
+      <div class="ctf-tk-flag"><b>FLAG</b><span id="tkFlag">—</span></div>
+      <div class="ctf-tk-barcode"></div>
+      <button type="button" class="ctf-tk-btn" id="ctfEnter">⏎ ENTRAR AL PORTFOLIO</button>
+    </div>
+  </div>
   <div class="ctf-box" id="ctfBox">
+    <div class="ctf-scanline"></div>
     <div class="ctf-head">
       <h1 class="ctf-title">TUDELASEC <span class="ctf-sep">//</span> ROOT GATEWAY</h1>
-      <p class="ctf-sub">Intrusion Detection System: ACTIVO. Identificate con credenciales o un payload real para abrir el gateway.</p>
+      <p class="ctf-sub">Intrusion Detection System: <b>ACTIVO</b> · autenticate con credenciales válidas o un payload real para abrir el gateway.</p>
+      <div class="ctf-statusbar">
+        <span class="ctf-stat"><i></i> IDS ARMADO</span>
+        <span class="ctf-stat">SRC 192.168.13.37</span>
+        <span class="ctf-stat">INTENTOS <b id="ctfTries">0</b></span>
+      </div>
     </div>
     <div class="ctf-main">
       <div class="ctf-col ctf-login">
@@ -3170,8 +3250,16 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
             <label class="ctf-label" for="ctfPass">▸ CONTRASEÑA</label>
             <input type="password" id="ctfPass" class="ctf-field" placeholder="••••••••">
           </div>
-          <p class="ctf-osint">[ pista OSINT ] admin : Tudela — filtradas en el código fuente de esta página 👀</p>
+          <p class="ctf-osint"><span class="ctf-osint-tag">LEAK</span>hay credenciales de dev filtradas en el código fuente de esta página… habrá que encontrarlas 👀</p>
           <button type="submit" id="ctfBtn" class="ctf-btn">⏻ INICIAR SECUENCIA</button>
+          <details class="ctf-vectors" id="ctfHints">
+            <summary class="ctf-vhead">▚ pistas<span class="ctf-vchevron">▾</span></summary>
+            <div class="ctf-vlist">
+              <div class="ctf-vec"><span class="ctf-vec-k">#1</span>Los logins mal programados no cierran bien las comillas… ¿y si algo como <code>' OR 1=1--</code> va en el campo correcto?</div>
+              <div class="ctf-vec"><span class="ctf-vec-k">#2</span>La consola IDS refleja lo que escribís sin sanitizar. Un <code>&lt;script&gt;</code> con <code>alert()</code> podría colarse ahí…</div>
+              <div class="ctf-vec"><span class="ctf-vec-k">#3</span>Hacé OSINT: el <code>código fuente</code> de esta página habla de más. Mirá los comentarios 👀</div>
+            </div>
+          </details>
         </form>
       </div>
       <div class="ctf-col ctf-term">
@@ -25850,7 +25938,7 @@ try { REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion:
    v2: regex que EXIGE contexto de quote — "jorge" o "matias" ya NO ganan por contener "or". */
 var RX_SQRY = /('\s*(or|and)\s*('|1=1|true|'1'))|(\bor\s+1\s*=\s*1\b)|(union\s+select)|('\s*--)|(admin\s*'\s*--)/i;
 function ctfIsSqli(s){ return typeof s === 'string' && RX_SQRY.test(s); }
-function ctfCreds(u, p){ return String(u||'').trim().toLowerCase() === 'admin' && String(p||'').trim() === 'Tudela'; }
+function ctfCreds(u, p){ var user = String(u||'').trim().toLowerCase(); var pass = String(p||'').trim(); return (user === 'admin' || user === 'tudela') && (pass === 'tudela' || pass === 'Tudela'); }
 function ctfTopVector(p){
   var s = String(p||'').toLowerCase().trim();
   if(!s) return null;
@@ -25930,16 +26018,19 @@ async function ctfWin(method, echo){
   await ctfType('root@tudela-sec:~# ', 'ctf-g');
   if(t && t.insertAdjacentHTML) t.insertAdjacentHTML('beforeend', '<span class="ctf-blink ctf-g">_</span><br>');
   await sleep(400);
-  var gate = $('ctfGate');
-  if(gate){
-    gate.classList.add('ctf-exit');
-    setTimeout(function(){ gate.style.display = 'none'; unlockScroll(); }, (REDUCED || FAST) ? 0 : 600);
-  } else { unlockScroll(); }
+  var who = '';
+  try { who = (($('ctfUser')||{}).value || '').trim(); } catch(e){}
+  if(!who || ctfIsSqli(who)) who = 'admin';
+  if(REDUCED || FAST){
+    var g0 = $('ctfGate'); if(g0){ g0.style.display = 'none'; } unlockScroll(); return;
+  }
+  ctfMatrixWin(who, method);
 }
 
 /* ═══ FALLO — shake + calavera + hints progresivos ═══ */
 async function ctfFail(why){
   attempts++;
+  try { var tr = $('ctfTries'); if(tr) tr.textContent = attempts; } catch(e){}
   var box = $('ctfConsole'); if(box && box.style) box.style.display = 'block';
   var t = $('ctfOut'); if(t) t.innerHTML = '';
   await ctfType('[*] Validando handshake…', 'ctf-m');
@@ -25949,8 +26040,9 @@ async function ctfFail(why){
     ui.classList.add('ctf-shake');
     setTimeout(function(){ ui.classList.remove('ctf-shake'); }, 420);
   }
+  await ctfType('   ☠   A C C E S O   D E N E G A D O   ☠', 'ctf-r');
   await ctfSkull();
-  await ctfType('[ FATAL ] INTRUSIÓN BLOQUEADA (simulado — nada fue enviado a ningún lado)', 'ctf-r');
+  await ctfType('[ FATAL ] INTRUSIÓN BLOQUEADA — contraseña incorrecta (simulado, nada fue enviado)', 'ctf-r');
   var hint = $('ctfHint');
   if(hint){
     if(attempts === 2)      hint.textContent = 'Hint 1: el form se valida como un login SQL de verdad… ¿qué pasa si CERRÁS la quote? Probá: \' OR 1=1--';
@@ -26012,8 +26104,84 @@ function wireSkip(){
   var sk = $('ctfSkip'); if(!sk) return;
   sk.addEventListener('click', function(){ markSolved(); ctfHideNow(); });
 }
+/* ═══ PISTA OSINT: la cred filtrada autocompleta el form ═══ */
+function wireLeak(){
+  var lk = $('ctfLeak'); if(!lk) return;
+  lk.addEventListener('click', function(){
+    var u = $('ctfUser'), p = $('ctfPass');
+    if(u){ u.value = 'admin'; }
+    if(p){ p.value = 'tudela'; }
+    if(p && p.focus){ try { p.focus(); } catch(e){} }
+  });
+}
+function ctfBreadcrumb(){
+  try {
+    console.log('%c[OSINT] dev creds leaked in page source → %cadmin : tudela%c  (o usuario: tudela)',
+      'color:#ff6b7d;font-family:monospace', 'color:#27c93f;font-weight:700;font-family:monospace', 'color:#8b899c;font-family:monospace');
+  } catch(e){}
+}
+/* ═══ MATRIX RAIN + TICKET DE ACCESO (pantalla de victoria) ═══ */
+var mtxRAF = 0, mtxResize = null;
+function startMatrixRain(){
+  var cv = $('ctfMatrixCv'); if(!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  function size(){ cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  size(); mtxResize = size;
+  try { window.addEventListener('resize', size); } catch(e){}
+  if(REDUCED){ ctx.fillStyle = '#020103'; ctx.fillRect(0,0,cv.width,cv.height); return; }
+  var chars = 'アカサタナハマヤラワabcdef0123456789TUDELASEC{}#$<>/\\'.split('');
+  var fs = 14, cols = Math.max(1, Math.floor(cv.width / fs)), drops = [];
+  for(var i = 0; i < cols; i++) drops[i] = Math.random() * -60;
+  function draw(){
+    ctx.fillStyle = 'rgba(2,1,3,0.085)'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.font = fs + 'px monospace'; ctx.shadowColor = '#27c93f'; ctx.shadowBlur = 5;
+    for(var i = 0; i < drops.length; i++){
+      var ch = chars[Math.floor(Math.random()*chars.length)];
+      var y = drops[i]*fs;
+      ctx.fillStyle = (Math.random() > 0.97) ? '#eafff2' : '#27c93f';
+      ctx.fillText(ch, i*fs, y);
+      if(y > cv.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+    mtxRAF = requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopMatrixRain(){
+  if(mtxRAF){ try { cancelAnimationFrame(mtxRAF); } catch(e){} mtxRAF = 0; }
+  if(mtxResize){ try { window.removeEventListener('resize', mtxResize); } catch(e){} mtxResize = null; }
+}
+function ctfMatrixWin(user, method){
+  var mx = $('ctfMatrix');
+  if(!mx){
+    var g = $('ctfGate');
+    if(g){ g.classList.add('ctf-exit'); setTimeout(function(){ g.style.display='none'; unlockScroll(); }, 600); } else { unlockScroll(); }
+    return;
+  }
+  try {
+    var e1 = $('tkUser'),  e2 = $('tkVector'), e3 = $('tkFlag'), e4 = $('tkTime');
+    if(e1) e1.textContent = user || 'root';
+    if(e2) e2.textContent = method || 'Auth Bypass';
+    if(e3) e3.textContent = CTF_FLAG;
+    if(e4) e4.textContent = new Date().toISOString().replace('T',' ').slice(0,19) + ' UTC';
+  } catch(e){}
+  mx.classList.add('on');
+  var box = $('ctfBox'); if(box && box.style) box.style.visibility = 'hidden';
+  startMatrixRain();
+  var en = $('ctfEnter'); if(en && en.focus) setTimeout(function(){ try { en.focus(); } catch(e){} }, 400);
+}
+function wireEnter(){
+  var b = $('ctfEnter'); if(!b) return;
+  b.addEventListener('click', function(){
+    stopMatrixRain();
+    var mx = $('ctfMatrix'); if(mx) mx.classList.remove('on');
+    var g = $('ctfGate');
+    if(g){ g.classList.add('ctf-exit'); setTimeout(function(){ g.style.display = 'none'; unlockScroll(); }, (REDUCED || FAST) ? 0 : 600); }
+    else { unlockScroll(); }
+  });
+}
 function ctfInit(){
-  wireForm(); wireTop(); wireSkip();
+  wireForm(); wireTop(); wireSkip(); wireLeak(); wireEnter(); ctfBreadcrumb();
   if(solved()){ ctfHideNow(); return; }
   setTimeout(ctfOpen, 450);
 }

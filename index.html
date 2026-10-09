@@ -7,6 +7,9 @@
 <meta name="description" content="TudelaSec — Matías Ramírez Tudela. Ethical Hacker & Bug Bounty Hunter.">
 <title>TudelaSec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<!-- ══ #37 PERF: preconnect a fonts.gstatic (los BINARIOS de las fuentes viven ahi) y cdnjs (font-awesome + gsap): el handshake TLS se resuelve en paralelo, no en serie ══ -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
 <style>
@@ -2045,7 +2048,6 @@ padding:10px 20px;border:1px solid var(--line);background:transparent;color:var(
 .mega-footer { padding:16px 40px; border-top:1px solid rgba(255,26,46,.1); display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:rgba(240,238,248,.25); }
 .mega-overlay { position:fixed; inset:0; z-index:9999; display:none; }
 .mega-overlay.open { display:block; }
-
 @media(max-width:900px){
   .mega-inner { grid-template-columns:repeat(2,1fr); padding:60px 20px 20px; }
   .mega-col { padding:0 16px; }
@@ -2788,7 +2790,7 @@ a{color:inherit;text-decoration:none;}
 #osint .osint-terminal::before,#waflab .wl-box::before,#nimbus .nb-box::before,#taint .tr-box::before{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 46px rgba(255,26,46,.10);animation:modBreath 6s ease-in-out infinite;}
 #osint .osint-terminal::after,#waflab .wl-box::after,#nimbus .nb-box::after,#taint .tr-box::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);animation:modSweep 4.2s ease-in-out infinite;pointer-events:none;}
 @keyframes modBreath{0%,100%{opacity:.35}50%{opacity:1}}
-@keyframes modSweep{0%{left:-30%}60%,100%{left:100%}}
+@keyframes modSweep{0%{transform:translateX(0)}60%,100%{transform:translateX(433.33%)}} /* #37 PERF: antes animaba left:-30%→100% (LAYOUT por frame); ahora translateX — mismo recorrido (130% del padre = 433.33% del elemento de 30%), cero layout */
 #osint .osint-terminal:hover,#waflab .wl-box:hover,#nimbus .nb-box:hover,#taint .tr-box:hover{transform:translateY(-3px);border-color:rgba(255,26,46,.45);box-shadow:0 12px 50px rgba(255,26,46,.16);}
 /* 2. OSINT: dots mac respiran alternados */
 #osint .osint-term-dot{animation:dotGlow 2.4s ease-in-out infinite;}
@@ -3041,15 +3043,28 @@ a{color:inherit;text-decoration:none;}
 #mailsec .mp-editor button{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:8px 14px; background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:2px; cursor:pointer; transition:all .2s; }
 #mailsec .mp-editor button:hover{ color:var(--text); border-color:var(--acc); }
 @media (max-width:900px){ #mailsec .mp-mailbody{ font-size:11px; } #mailsec .mp-row{ flex-direction:column; gap:2px; } #mailsec .mp-k{ min-width:0; } #mailsec .mp-kr{ min-width:0; } #mailsec .mp-anarow{ flex-direction:column; gap:2px; } }
+/* ═══ #35: REAPER SEND — envío REAL opcional (API propia + autorización + límite 3/día) ═══ */
+#mailsec .mp-send{ margin-bottom:12px; padding:12px 14px; border:1px solid rgba(255,176,32,.35); border-left:2px solid var(--amber,#ffb020); border-radius:4px; background:rgba(255,176,32,.03); }
+#mailsec .mp-send-h{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--amber,#ffb020); margin-bottom:8px; line-height:1.6; }
+#mailsec .mp-warn{ font-family:var(--mono); font-size:9.5px; line-height:1.7; color:var(--acc); background:rgba(255,26,46,.06); border:1px solid rgba(255,26,46,.25); border-radius:3px; padding:8px 10px; margin-bottom:10px; }
+#mailsec .mp-send .mp-ed-grid input{ flex:1 1 240px; background:#020005; border:1px solid var(--line); border-left:2px solid var(--amber,#ffb020); border-radius:3px; padding:9px 11px; font-family:var(--mono); font-size:11px; color:var(--text); outline:none; box-sizing:border-box; }
+#mailsec .mp-send .mp-ed-grid input:focus{ border-color:var(--amber,#ffb020); box-shadow:0 0 14px rgba(255,176,32,.15); }
+#mailsec .mp-auth{ display:flex; align-items:flex-start; gap:8px; font-family:var(--mono); font-size:10.5px; line-height:1.6; color:rgba(240,238,248,.8); cursor:pointer; margin:10px 0; }
+#mailsec .mp-auth input[type="checkbox"]{ accent-color:var(--acc); width:15px; height:15px; margin-top:1px; cursor:pointer; flex:0 0 auto; }
+#mailsec .mp-send .ms-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+#mailsec .mp-send button{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:9px 16px; background:transparent; color:var(--amber,#ffb020); border:1px solid rgba(255,176,32,.4); border-radius:2px; cursor:pointer; transition:all .2s; }
+#mailsec .mp-send button:hover{ box-shadow:0 0 16px rgba(255,176,32,.2); color:#fff; border-color:var(--amber,#ffb020); }
+#mailsec .mp-send button:disabled{ opacity:.45; cursor:not-allowed; }
+@media (max-width:900px){ #mailsec .mp-warn{ font-size:9px; } #mailsec .mp-send .ms-actions{ flex-direction:column; } #mailsec .mp-send button{ width:100%; } }
 /* ══ CTF GATE v2.2 (sesión #33) — login CYBERPUNK a dos columnas · scope #ctfGate + prefijo ctf- ══ */
 #ctfGate{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 32%,#0d0c16 0%,#050508 62%);overflow:hidden;}
-#ctfGate::before{content:"";position:absolute;inset:-40px;background-image:linear-gradient(rgba(79,195,247,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(79,195,247,.05) 1px,transparent 1px);background-size:42px 42px;animation:ctfGrid 6s linear infinite;pointer-events:none;}
+#ctfGate::before{content:"";position:absolute;inset:calc(-40px - 42px) -40px -40px;background-image:linear-gradient(rgba(79,195,247,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(79,195,247,.05) 1px,transparent 1px);background-size:42px 42px;animation:ctfGrid 6s linear infinite;pointer-events:none;} /* #37 PERF: antes animaba background-position (repaint de PANTALLA COMPLETA a 60fps mientras el gate está abierto); ahora el ::before mide 42px más arriba y se desplaza con transform — loop sin costura, pixel-idéntico */
 #ctfGate::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);pointer-events:none;opacity:.6;}
 #ctfGate.ctf-on{display:flex;animation:ctfIn .45s ease both;}
 #ctfGate.ctf-exit{animation:ctfOut .6s ease both;pointer-events:none;}
 @keyframes ctfIn{from{opacity:0}to{opacity:1}}
 @keyframes ctfOut{to{opacity:0;transform:scale(1.06)}}
-@keyframes ctfGrid{from{background-position:0 0}to{background-position:0 42px}}
+@keyframes ctfGrid{from{transform:translateY(0)}to{transform:translateY(42px)}} /* #37 PERF: el patrón baja 42px = un tile exacto → loop sin costura, animado por el COMPOSITOR (antes: la posición del background se repintaba a pantalla completa 60fps) */
 @keyframes ctfFlicker{0%,100%{text-shadow:0 0 6px #ff1a2e,0 0 22px rgba(255,26,46,.55),0 0 48px rgba(79,195,247,.30)}42%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.35)}44%{text-shadow:0 0 8px #ff1a2e,0 0 26px rgba(255,26,46,.7),0 0 60px rgba(79,195,247,.45)}46%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.35)}}
 @keyframes ctfPulse{0%,100%{box-shadow:0 0 16px rgba(255,26,46,.45),0 0 42px rgba(255,26,46,.18)}50%{box-shadow:0 0 26px rgba(255,26,46,.75),0 0 68px rgba(255,26,46,.32)}}
 .ctf-shake{animation:ctfShake .4s cubic-bezier(.36,.07,.19,.97) both;}
@@ -3089,6 +3104,22 @@ a{color:inherit;text-decoration:none;}
 #ctfGate .ctf-skip:hover{opacity:1;color:#4fc3f7;border-color:#4fc3f7;}
 @media (max-width:720px){#ctfGate .ctf-main{flex-direction:column;gap:16px}#ctfGate .ctf-box{padding:20px 14px 16px}#ctfGate .ctf-title{font-size:18px;letter-spacing:1.5px}#ctfGate .ctf-body{height:150px;font-size:10px}}
 @media (prefers-reduced-motion: reduce){#ctfGate,#ctfGate::before,#ctfGate::after,.ctf-shake,#ctfGate .ctf-blink,#ctfGate .ctf-title,#ctfGate .ctf-btn,#ctfGate .ctf-label{animation:none!important;transition:none!important}}
+/* ══════════ SESIÓN #36 — PERF TURBO: la página VUELA sin cambiar NI un pixel ══════════
+   content-visibility:auto → el navegador SALTA el layout+paint de las 34 secciones
+   fuera de pantalla: el ~90% del DOM invisible deja de renderizarse en cada frame.
+   contain-intrinsic-size:auto → el navegador recuerda la altura REAL de cada sección
+   una vez renderizada (scrollbar estable, cero saltos al navegar por anclas).
+   html.tab-hidden → pestaña en segundo plano: las animaciones infinite se CONGELAN
+   (82 loops dejan de quemar CPU/GPU mientras mirás otra cosa).
+   will-change → orbes y barra de progreso viven en su propia capa GPU (cero repaint
+   del fondo en cada frame). */
+section[id]{ content-visibility:auto; contain-intrinsic-size:auto 1100px; }
+html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animation-play-state:paused !important; }
+.bg-orb-1,.bg-orb-2,.bg-orb-3{ will-change:transform; }
+#scroll-bar{ will-change:width; }
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
 </style>
 
 <script type="application/ld+json">
@@ -3708,7 +3739,7 @@ a{color:inherit;text-decoration:none;}
     <h2 class="sec-title h2-anim" data-l1="BREACH" data-l2="Radar." aria-label="Breach Radar."></h2>
 
     <div class="br-box">
-      <div class="br-head"><span class="br-t">☢ breach radar v4 — credenciales filtradas · XposedOrNot vía scanner-proxy · timeline de exposición · plan de endurecimiento automático · postura MX/SPF/DMARC de dominios · MODO CONTRASEÑA v4 (3 FUENTES): corpus SHA-1 Pwned Passwords ~850M + corpus NTLM de dumps de Active Directory + top mundial local con leet-speak · k-anonymity: la clave NUNCA viaja · entropía + tiempo de crackeo estimado · export JSON</span></div>
+      <div class="br-head"><span class="br-t">☢ breach radar v4.1 — credenciales filtradas · XposedOrNot vía scanner-proxy con BLINDAJE anti-proxy-caído (2 reintentos + 1 intento DIRECTO: la app NUNCA se muere porque un proxy duerma) · timeline de exposición · plan de endurecimiento automático · postura MX/SPF/DMARC de dominios · MODO CONTRASEÑA v4 (3 FUENTES): corpus SHA-1 Pwned Passwords ~850M + corpus NTLM de dumps de Active Directory + top mundial local con leet-speak · k-anonymity: la clave NUNCA viaja · entropía + tiempo de crackeo estimado · export JSON</span></div>
       <div class="br-body">
         <div class="br-row">
           <input type="text" id="brInput" placeholder="correo@victima.cl (chequea filtraciones) — o dominio.com (postura MX/SPF/DMARC)">
@@ -3769,7 +3800,7 @@ a{color:inherit;text-decoration:none;}
     </div>
 
     <div class="mp-box">
-      <div class="mp-head"><span class="mp-t">☠ phishing simulator — 28 plantillas de ataques reales documentadas (BEC · quishing QR · sextorsión · gift card · factura · helpdesk · WhatsApp · paneles admin: cPanel · phpMyAdmin · WordPress · MikroTik · VPN · Entra · Workspace · NAS) · cada bandera roja desarmada y explicada · un clic lo manda al MOTOR de análisis — ⚠ ENTRENAMIENTO: los dominios no existen, los links no son clicables, no se envía NADA</span></div>
+      <div class="mp-head"><span class="mp-t">☠ phishing simulator — 28 plantillas de ataques reales documentadas (BEC · quishing QR · sextorsión · gift card · factura · helpdesk · WhatsApp · paneles admin: cPanel · phpMyAdmin · WordPress · MikroTik · VPN · Entra · Workspace · NAS) · cada bandera roja desarmada y explicada · un clic lo manda al MOTOR de análisis — ⚠ ENTRENAMIENTO: los dominios no existen, los links no son clicables, el SIMULATOR por sí solo no envía NADA — el envío real es OPT-IN con REAPER SEND (API propia + autorización escrita, abajo)</span></div>
       <div class="mp-body">
         <div class="mp-tabs" id="mpTabs"></div>
         <div class="mp-summary" id="mpSummary"></div>
@@ -3782,6 +3813,20 @@ a{color:inherit;text-decoration:none;}
           </div>
           <textarea id="mpEdBody" rows="4" placeholder="CUERPO DEL MAIL — escribí el texto del mensaje como lo vería la víctima…"></textarea>
           <button type="button" id="mpEdReset">↺ RESTAURAR PLANTILLA ORIGINAL</button>
+        </div>
+        <div class="mp-send" id="mpSendBox">
+          <div class="mp-send-h">📤 REAPER SEND — envío REAL de la simulación a UNA casilla AUTORIZADA vía TU Cloudflare Worker · contrato: POST {key,to,from,subject,body} → JSON {ok:true} · tope 3 envíos/día</div>
+          <div class="mp-warn">⚠ SOLO targets AUTORIZADOS por escrito — usar esto contra una casilla ajena sin autorización es DELITO en Chile (Ley 19.223, arts. 2-4: intrusión informática). Máximo 3 envíos por día por navegador. Todo envío queda REGISTRADO (auditoría con fecha y destinatario).</div>
+          <div class="mp-ed-grid">
+            <input type="text" id="mpApiUrl" placeholder="API URL de tu Worker — ej.: https://tu-worker.workers.dev/send">
+            <input type="text" id="mpApiKey" placeholder="API KEY — la valida tu Worker (secreto entre vos y tu backend)">
+            <input type="text" id="mpSendTo" placeholder="TARGET AUTORIZADO — destino@empresa.cl (casilla con permiso ESCRITO)">
+          </div>
+          <label class="mp-auth"><input type="checkbox" id="mpAuthOk"> DECLARO que el destinatario AUTORIZÓ por escrito recibir esta simulación de phishing</label>
+          <div class="ms-actions">
+            <button type="button" id="mpSendBtn">📤 ENVIAR SIMULACIÓN (3/día)</button>
+            <button type="button" id="mpPlaybookBtn">📋 PLAYBOOK BLUE/RED TEAM</button>
+          </div>
         </div>
         <div class="ms-tablewrap"><table class="ms-table">
           <thead><tr><th>BANDERA ROJA</th><th>POR QUÉ ES SEÑAL</th><th>CÓMO DETECTARLO TÚ</th></tr></thead>
@@ -5084,10 +5129,10 @@ dig assets.lime.bike CNAME</div></div></div>
 </footer>
 
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<!-- ══ #37 PERF XTREME: three.js (600 KB) ELIMINADO — initThreeJS abre con un return; INCONDICIONAL: todo el WebGL del hero es codigo muerto, pero 600 KB se descargaban en cada visita igual. Si algun dia se revive el hero, volver a agregar: https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js ══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<!-- ══ #37 PERF XTREME: vis-network (700 KB) ELIMINADO — cero usos en todo el archivo (grep: new vis. / DataSet / typeof vis = 0). Descarga fantasma eliminada. ══ -->
 <script>
 /* \u2550\u2550 TOAST NOTIFICATIONS \u2550\u2550 */
 const toastWrap = document.getElementById('toast-wrap');
@@ -5235,6 +5280,13 @@ function heroReveal(){
  }
  showToast('TudelaSec', 'Sistema inicializado', 'info', 3000);
 }
+
+/* ══ #36 PERF: pestaña en segundo plano = TODO congelado — las animaciones infinite
+   dejan de quemar CPU/GPU (perf-css pausa lo que no se ve; al volver, sigue TODO igual) ══ */
+document.addEventListener('visibilitychange', function(){
+ var de=document.documentElement;
+ if(de && de.classList) de.classList[document.hidden?'add':'remove']('tab-hidden');
+});
 
 /* \u2550\u2550 THREE.JS PARTICLE SPHERE \u2550\u2550 */
 (function initThreeJS(){
@@ -5446,7 +5498,7 @@ function heroReveal(){
  onComplete(){shockMesh.material.opacity=0;},
  });
  }
- setInterval(()=>triggerShockwave(Math.random()>0.5), 8000);
+ setInterval(function(){ if(!document.hidden) triggerShockwave(Math.random()>0.5); }, 8000); /* #36 PERF: congelado con la pestaña oculta (si el hero WebGL se re-activa algún día) */
  if(canvas)canvas.addEventListener('click',()=>triggerShockwave(true));
 
  /* \u2500\u2500 GSAP ScrollTrigger \u2500\u2500 */
@@ -5463,6 +5515,7 @@ function heroReveal(){
  /* \u2500\u2500 Animation loop \u2500\u2500 */
  function tick(){
  requestAnimationFrame(tick);
+ if(scrollProg>0.36 || document.hidden) return; /* ══ #36 PERF: hero invisible (opacity ya es 0) o pestaña oculta → CERO render WebGL ══ */
  try {
  const t = clock.getElapsedTime();
  tkMat.uniforms.uTime.value = t;
@@ -5672,7 +5725,7 @@ if(!('ontouchstart' in window) && !reduce){
  let rx=0,ry=0,mx=0,my=0;
 
  document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; dot.style.left=mx+'px'; dot.style.top=my+'px'; });
- (function anim(){ rx+=(mx-rx)*0.1; ry+=(my-ry)*0.1; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(anim); })();
+ (function anim(){ var adx=mx-rx, ady=my-ry; if(adx*adx+ady*ady>0.02){ rx+=adx*0.1; ry+=ady*0.1; ring.style.left=rx+'px'; ring.style.top=ry+'px'; } requestAnimationFrame(anim); })(); /* #36 PERF: cursor quieto = cero writes al DOM */
 
  document.querySelectorAll('.clickable, a, button').forEach(el=>{
  el.addEventListener('mouseenter',()=>{ dot.classList.add('hover'); ring.classList.add('hover'); });
@@ -5690,11 +5743,16 @@ document.querySelectorAll('.mm-link').forEach(function(l){ if(mm) l.addEventList
 /* \u2550\u2550 NAV ACTIVE \u2550\u2550 */
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('.nav-links a');
-window.addEventListener('scroll',()=>{
- let cur='';
- sections.forEach(s=>{ if(window.scrollY>=s.offsetTop-120) cur=s.id; });
- navLinks.forEach(a=>{ a.style.color=a.getAttribute('href')==='#'+cur?'#fff':''; });
-},{ passive:true });
+/* ══ #36 PERF: nav activo por IntersectionObserver — ANTES leía offsetTop de las 34
+   secciones en CADA evento de scroll (layout thrash); ahora cero medición en scroll ══ */
+(function(){
+ var navCur='';
+ var navIO=new IntersectionObserver(function(ents){
+  ents.forEach(function(e){ if(e.isIntersecting) navCur=e.target.id; });
+  navLinks.forEach(function(a){ a.style.color=a.getAttribute('href')==='#'+navCur?'#fff':''; });
+ },{ rootMargin:'-45% 0px -50% 0px' });
+ sections.forEach(function(s){ navIO.observe(s); });
+})();
 
 /* \u2550\u2550 TOAST \u2550\u2550 */
 
@@ -9604,11 +9662,16 @@ buildTabs(); renderCmds();
  SCROLL PROGRESS BAR
  ============================================================ */
 const scrollBar = document.getElementById('scroll-bar');
-window.addEventListener('scroll', function() {
- const h = document.documentElement;
- const pct = (window.scrollY / (h.scrollHeight - h.clientHeight)) * 100;
- if(scrollBar) scrollBar.style.width = pct + '%';
-}, { passive:true });
+/* ══ #36 PERF: barra de progreso SIN medir layout por evento — métricas cacheadas
+   (remedidas en resize) y UN solo repaint por frame vía requestAnimationFrame ══ */
+(function(){
+ var sbMax=1, sbTick=false;
+ function sbMeasure(){ var h=document.documentElement; sbMax=Math.max(1, h.scrollHeight - h.clientHeight); }
+ function sbPaint(){ sbTick=false; if(scrollBar) scrollBar.style.width = Math.min(100, (window.scrollY / sbMax) * 100) + '%'; }
+ sbMeasure(); sbPaint();
+ window.addEventListener('resize', sbMeasure);
+ window.addEventListener('scroll', function(){ if(!sbTick){ sbTick=true; requestAnimationFrame(sbPaint); } }, { passive:true });
+})();
 
 /* ============================================================
  TOAST NOTIFICATIONS
@@ -9658,11 +9721,10 @@ if(!('ontouchstart' in window) && !reduce) {
  });
 
  (function animRing() {
- rx += (mx - rx) * 0.12;
- ry += (my - ry) * 0.12;
- if(ring) { ring.style.left=rx+'px'; ring.style.top=ry+'px'; }
+ var arx=mx-rx, ary=my-ry;
+ if(arx*arx+ary*ary>0.02){ rx += arx * 0.12; ry += ary * 0.12; if(ring) { ring.style.left=rx+'px'; ring.style.top=ry+'px'; } }
  requestAnimationFrame(animRing);
- })();
+ })(); /* #36 PERF: cursor quieto = cero writes al DOM */
 
  document.querySelectorAll('a,button,.finding,.exp-card,.stat-card,.tag,.type-btn,.cs-tab').forEach(function(el) {
  el.addEventListener('mouseenter', function() {
@@ -11975,22 +12037,20 @@ BURP.forEach(function(card){
  var orb2 = document.querySelector('.bg-orb-2');
  var orb3 = document.querySelector('.bg-orb-3');
 
- window.addEventListener('scroll', function(){
- var scrolled = window.scrollY;
- var maxScroll = document.body.scrollHeight - window.innerHeight;
- var pct = maxScroll > 0 ? (scrolled / maxScroll) * 100 : 0;
-
- /* Barra lateral */
- if(sideBar) sideBar.style.height = pct + '%';
-
- /* Orbes se mueven suavemente con el scroll */
- var y1 = scrolled * 0.12;
- var y2 = scrolled * -0.08;
- var y3 = scrolled * 0.06;
- if(orb1) orb1.style.transform = 'translateY(' + y1 + 'px)';
- if(orb2) orb2.style.transform = 'translateY(' + y2 + 'px)';
- if(orb3) orb3.style.transform = 'translateY(' + y3 + 'px) translateX(' + (scrolled*0.03) + 'px)';
- }, { passive: true });
+ /* ══ #36 PERF: orbes+sidebar pintados UNA vez por frame (rAF) — cero layout reads en scroll ══ */
+ var orbTick=false;
+ function orbPaint(){
+  orbTick=false;
+  var scrolled=window.scrollY;
+  var maxScroll=document.body.scrollHeight-window.innerHeight;
+  var pct=maxScroll>0?(scrolled/maxScroll)*100:0;
+  if(sideBar) sideBar.style.height=pct+'%';
+  if(orb1) orb1.style.transform='translateY('+(scrolled*0.12)+'px)';
+  if(orb2) orb2.style.transform='translateY('+(scrolled*-0.08)+'px)';
+  if(orb3) orb3.style.transform='translateY('+(scrolled*0.06)+'px) translateX('+(scrolled*0.03)+'px)';
+ }
+ orbPaint();
+ window.addEventListener('scroll', function(){ if(!orbTick){ orbTick=true; requestAnimationFrame(orbPaint); } }, { passive: true });
 })();
 
 /* \u2550\u2550 QUICK NAV FLOTANTE \u2550\u2550 */
@@ -13410,7 +13470,6 @@ var CVE_DB = [
  desc:'Inyecci\u00F3n de objetos PHP via el header User-Agent, permite ejecuci\u00F3n remota de c\u00F3digo sin autenticaci\u00F3n. Uno de los CVEs mas explotados en la historia de Joomla.',
  refs:['https://nvd.nist.gov/vuln/detail/CVE-2015-8562'] },
  { id:'CVE-2023-23752', score:5.3, sev:'MEDIUM', vendor:'Joomla', name:'Improper Access Control', year:2023, exploited:true,
-
  desc:'Control de acceso indebido en la API REST de Joomla permite a atacantes no autenticados acceder a informaci\u00F3n sensible del sitio (credenciales de BD en algunos casos).',
  refs:['https://nvd.nist.gov/vuln/detail/CVE-2023-23752'] },
  { id:'CVE-2017-8917', score:9.8, sev:'CRITICAL', vendor:'Joomla', name:'SQL Injection en com_fields', year:2017, exploited:true,
@@ -15592,7 +15651,7 @@ document.addEventListener('DOMContentLoaded', function(){
    TUDELASEC OFFENSIVE SCAN ENGINE — MODO LEVIATÁN v9.0
    350 FASES REALES | CERO TEATRO | HTTP REAL via CF Worker proxy
    ═══════════════════════════════════════════════════════════════ */
-var CF_PROXY='https://scannerPUB34B-proxy.matias-ramireztu.workers.dev';
+var CF_PROXY='https://scanner-proxy.matias-ramireztu.workers.dev';
 var S={subs:[],jsFiles:[],endpoints:[],secrets:[],techs:[],waf:false,body:'',headers:{},status:0,host:'',forms:[],cookies:''};
 async function unwrapProxyResp(r){
 if(!r)return null;
@@ -27853,7 +27912,11 @@ try{ if (typeof window !== 'undefined' && window) window.trAnalyze = trAnalyze; 
    Directory: MD4 UTF-16LE puro JS → SHA-1 del hex → ?mode=ntlm, mismo k-anonymity),
    (3) TOP MUNDIAL local (BR_TOPPW, ~100 claves más probadas del planeta + LATAM,
    matchea con leet-speak normalizado: pilla P4ssw0rd, qu3br4d0…). Fuerza v2:
-   entropía en bits + tiempo estimado de crackeo contra un rig offline moderno. */
+   entropía en bits + tiempo estimado de crackeo contra un rig offline moderno.
+   v4.1 (#35): BLINDAJE ANTI-PROXY-CAÍDO — brGetHard (2 intentos por proxy con
+   backoff + 1 intento DIRECTO sin proxy); el modo email diagnostica el problema
+   con pasos concretos; el modo contraseña NUNCA se aborta: si los corpus remotos
+   caen, el veredicto sale PARCIAL del análisis local (top mundial + fuerza). */
 (function(){
 'use strict';
 var BR_PROXY = (typeof CF_PROXY !== 'undefined' && CF_PROXY) ? CF_PROXY : 'https://scanner-proxy.matias-ramireztu.workers.dev';
@@ -27878,6 +27941,30 @@ async function brGet(url, timeoutMs){
     if(tId) clearTimeout(tId);
     return (j && j.ok) ? j : { ok:false, error:(j && j.error) || ("HTTP "+res.status) };
   } catch(e){ if(tId) clearTimeout(tId); return { ok:false, error:String(e && e.message || e) }; }
+}
+/* ══ v4.1 (#35) BLINDAJE: la app NUNCA se muere por el proxy — brGetHard hace 2 intentos
+   por proxy (backoff 700ms) + 1 intento DIRECTO sin proxy (si la API permite CORS).
+   Devuelve error concatenado con el detalle de cada intento para diagnóstico. ══ */
+async function brGetHard(url, timeoutMs){
+  var e1 = "", e2 = "";
+  var r1 = await brGet(url, timeoutMs);
+  if(r1.ok) return r1;
+  e1 = r1.error || "?";
+  await new Promise(function(rr){ setTimeout(rr, 700); });
+  var r2 = await brGet(url, timeoutMs);
+  if(r2.ok) return r2;
+  e2 = r2.error || "?";
+  var e3 = "";
+  try {
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var tId = ctrl ? setTimeout(function(){ ctrl.abort(); }, timeoutMs || 11000) : null;
+    var res = await fetch(url, { method:"GET", signal: ctrl ? ctrl.signal : undefined });
+    var txt = await res.text();
+    if(tId) clearTimeout(tId);
+    if(res.status === 200) return { ok:true, status:200, body:txt, headers:{}, via:"directo" };
+    e3 = "HTTP "+res.status+" directo";
+  } catch(e){ e3 = "directo bloqueado (CORS)"; }
+  return { ok:false, error:e1+" → reintento: "+e2+" → "+e3 };
 }
 /* ── parser PURO de la respuesta de XposedOrNot (exportado para QA) ── */
 function brParseXposed(j){
@@ -28004,8 +28091,15 @@ async function brRun(){
       brLog("t","── ["+new Date().toISOString().slice(11,19)+"] BREACH RADAR: "+esc(input));
       brLog("t","── fase 1: consultando XposedOrNot (API pública, 1 request — no la quemamos)…");
       brFill(35);
-      var r = await brGet("https://api.xposedornot.com/v1/check-email/"+input, 12000);
-      if(!r.ok){ brLog("hit","✗ ERROR: el proxy no pudo alcanzar XposedOrNot — "+esc(r.error||"?")); return; }
+      var r = await brGetHard("https://api.xposedornot.com/v1/check-email/"+encodeURIComponent(input), 12000);
+      if(!r.ok){
+        brLog("hit","✗ NO pude alcanzar XposedOrNot — "+esc(r.error||"?"));
+        brLog("t","  ── DIAGNÓSTICO (#35): ya intenté 2 veces por el proxy scanner-proxy + 1 vez DIRECTO y todas cayeron:");
+        brLog("t","  ── 1) ¿El Worker de Cloudflare está DESPIERTO? (los free tier se duermen — abrilo en el dashboard y probalo a mano)");
+        brLog("t","  ── 2) ¿rate-limit de XposedOrNot? esperá 1-2 minutos y volvé a CAZAR");
+        brLog("t","  ── 3) mientras tanto: el MODO CONTRASEÑA de abajo sigue dando resultado LOCAL (fuentes NTLM + top mundial)");
+        return;
+      }
       brFill(70);
       var parsed;
       try { parsed = brParseXposed(JSON.parse(String(r.body))); }
@@ -28286,9 +28380,10 @@ async function brPassRun(){
     brFill(25);
     /* ── FUENTE 1/3: corpus SHA-1 de Pwned Passwords (~850M claves) ── */
     brLog("t","── FUENTE 1/3 · corpus SHA-1 Pwned Passwords (~850 millones de claves filtradas)");
-    var r = await brGet("https://api.pwnedpasswords.com/range/"+prefix, 12000);
-    if(!r.ok){ brLog("hit","✗ ERROR: el proxy no pudo alcanzar Pwned Passwords — "+esc(r.error||"?")); return; }
-    var count = brParseRange(String(r.body), suffix);
+    var r = await brGetHard("https://api.pwnedpasswords.com/range/"+prefix, 12000);
+    var count = null;
+    if(r.ok){ count = brParseRange(String(r.body), suffix); }
+    else brLog("warn","  ⚠ FUENTE 1 caída ("+esc(r.error||"?")+") — NO aborto: el veredicto sale de NTLM + top mundial + fuerza local");
     brFill(55);
     /* ── FUENTE 2/3 (#34): corpus NTLM — dumps de Active Directory. MD4 UTF-16LE → SHA-1 del hex → ?mode=ntlm.
        Mismo k-anonymity: solo 5 chars del hash del NTLM viajan al proxy ── */
@@ -28297,7 +28392,7 @@ async function brPassRun(){
     var nPref = nHash.slice(0, 5), nSuf = nHash.slice(5);
     brLog("t","── FUENTE 2/3 · corpus NTLM (dumps de Active Directory) — prefijo "+esc(nPref)+" (?mode=ntlm · k-anonymity igual: la clave NUNCA sale)");
     var count2 = null;
-    var r2 = await brGet("https://api.pwnedpasswords.com/range/"+nPref+"?mode=ntlm", 12000);
+    var r2 = await brGetHard("https://api.pwnedpasswords.com/range/"+nPref+"?mode=ntlm", 12000);
     if(r2.ok){ count2 = brParseRange(String(r2.body), nSuf); }
     else brLog("warn","  ⚠ fuente NTLM caída ("+esc(r2.error||"sin respuesta")+") — el veredicto sale de las otras fuentes");
     brFill(80);
@@ -28318,6 +28413,7 @@ async function brPassRun(){
       };
     };
     var stat1, stat2, stat3, statN, expVerdict;
+    var remoteOk = r.ok || r2.ok;   /* #35: ¿al menos una fuente remota respondió? */
     if(count !== null || count2 !== null){
       if(count !== null) brLog("hit","  ☢ PWNED: esa contraseña aparece "+count.toLocaleString("es-CL")+" veces en los dumps filtrados");
       else brLog("hit","  ☢ no está en el corpus SHA-1 de ~850M, PERO apareció en los dumps de Active Directory — pwned igual");
@@ -28332,6 +28428,19 @@ async function brPassRun(){
       stat2 = '<div class="br-stat '+(st.score >= 70 ? "s" : st.score >= 40 ? "h" : "c")+'"><b>'+st.score+'/100</b><span>FUERZA ('+st.verdict+')</span></div>';
       stat3 = '<div class="br-stat c"><b>CRÍTICA</b><span>VEREDICTO — ROTAR HOY</span></div>';
       expVerdict = { verdict:"CRÍTICA — rotar HOY", sources:3 };
+    } else if(!remoteOk){
+      /* #35: las DOS fuentes remotas caídas — veredicto PARCIAL, no inventamos "0 apariciones" */
+      brLog("hit","  ⚠ VEREDICTO PARCIAL: las fuentes remotas (SHA-1 + NTLM) están caídas — NO pude chequear los corpus");
+      brLog("t","  ── lo que sigue es SOLO análisis LOCAL: top mundial + fuerza — rotá la clave igual si sospechás");
+      var vClsP = st.score >= 70 ? "h" : "c";
+      var vTxtP = st.topHit ? "ALTA — palabra del top mundial detectada" : (st.score >= 70 ? "LOCAL FUERTE — corpus remotos sin verificar" : "DÉBIL — crackeable offline igual");
+      if(st.topHit) brLog("hit","  ☢ el análisis local igual la marcó: palabra del top mundial + leet-speak");
+      brLog("hit","  ── FUERZA LOCAL: "+st.score+"/100 ("+st.verdict+") — "+vTxtP);
+      stat1 = '<div class="br-stat h"><b>N/D</b><span>APARICIONES EN DUMPS (SHA-1)</span></div>';
+      statN = '<div class="br-stat h"><b>N/D</b><span>APARICIONES NTLM/AD</span></div>';
+      stat2 = '<div class="br-stat '+vClsP+'"><b>'+st.score+'/100</b><span>FUERZA ('+st.verdict+')</span></div>';
+      stat3 = '<div class="br-stat h"><b>PARCIAL</b><span>VEREDICTO — FUENTES CAÍDAS</span></div>';
+      expVerdict = { verdict:vTxtP, sources:3, remote:"fuentes remotas caídas — veredicto parcial" };
     } else {
       brLog("ok","  ✓ NO aparece en las ~850M claves indexadas — nadie la cruzó todavía");
       brLog("ok","  ✓ NTLM/AD: tampoco aparece en los dumps de dominio — 2 corpus limpios");
@@ -28387,7 +28496,11 @@ globalThis.BR_TOPPW = BR_TOPPW;
    misalignment, reply-to mismatch, homoglyphs, urgencia, CRLF-injection) y SANEA todos
    los inputs. v3: MTA-STS + TLS-RPT + BIMI (transporte y sello visual, 13 vectores).
    PHISHING SIMULATOR: 28 plantillas de ataques reales documentadas con cada
-   bandera roja desarmada — entrenamiento de detección, NADA se envía: cero SMTP. */
+   bandera roja desarmada — entrenamiento de detección, NADA se envía: cero SMTP.
+   #35: REAPER SEND (opcional): envío REAL de la plantilla editada a UNA casilla AUTORIZADA
+   vía tu propio Cloudflare Worker (POST {key,to,from,subject,body} → JSON {ok:true}), tope
+   3 envíos/día por navegador + casilla de autorización (Ley 19.223) — sin Worker no se envía
+   NADA. Plantillas MÁS REALES (pretextos con fecha, importe, hora local) + PLAYBOOK paso a paso. */
 (function(){
 'use strict';
 var MS_PROXY = (typeof CF_PROXY !== 'undefined' && CF_PROXY) ? CF_PROXY : 'https://scanner-proxy.matias-ramireztu.workers.dev';
@@ -28738,7 +28851,7 @@ var MS_TPLATES = [
     reply:"soporte@netflix-facturacion-segura.com", rcpt:"victima@correo.cl",
     subject:"Tu pago fue RECHAZADO — tu cuenta se suspende en 48 horas",
     linkShown:"https://www.netflix.com/ar/pago", linkReal:"http://190.12.34.56/Netflix/login.php",
-    body:"Estimado usuario:\n\nNo pudimos procesar el pago de tu membresia. Si no actualizas tus datos de facturacion en 48 horas, tu cuenta sera SUSPENDIDA permanentemente.\n\nActualiza tu metodo de pago aqui: www.netflix.com/ar/pago\n\nEquipo de Facturacion Netflix",
+    body:"Estimado usuario:\n\nTe contactamos porque el cargo de tu membresía ($9.990) fue RECHAZADO por tu banco el 03/10 a las 21:14 (tarjeta terminada en 4721).\n\nPuede ocurrir por fondos insuficientes o un bloqueo de seguridad del banco. Si tu medio de pago no se actualiza en 48 horas, tu cuenta pasará a plan downgrade y el acceso se suspenderá el 12/10.\n\nActualizá tu medio de pago acá: www.netflix.com/ar/pago\n\nSi ya lo resolviste, ignorá este mensaje.\n\nEquipo de Facturación Netflix\nNetflix International B.V. — Amsterdam\nMensaje automático: no respondas directamente a este correo.",
     flags:[
       { f:"DOMINIO LOOK-ALIKE", w:20, why:"el remitente es netflix-facturacion-segura.com — «netflix» dentro de un dominio que NO es netflix.com", det:"mirá SIEMPRE lo que va después de la última arroba y el último punto: la marca va INMEDIATAMENTE antes del .com" },
       { f:"LINK MISMATCH", w:20, why:"el texto dice netflix.com/ar/pago pero el link real apunta a una IP cruda http://190.12.34.56", det:"pasá el mouse por encima SIN hacer click: abajo a la izquierda el navegador muestra el destino REAL" },
@@ -28766,7 +28879,7 @@ var MS_TPLATES = [
     reply:"verificacion@banco-seguro-online.com", rcpt:"cliente@correo.cl",
     subject:"VERIFICACION OBLIGATORIA: tu cuenta será BLOQUEADA por actividad inusual",
     linkShown:"https://www.bancoseguro.cl/verificacion", linkReal:"https://bancoseguro.cl.verificar-cuenta.top/login",
-    body:"Estimado cliente:\n\nDetectamos actividad inusual en tu cuenta. Por seguridad, debemos verificar tu identidad con RUT y clave internet bancaria.\n\nSi no completas la verificacion hoy, el acceso quedara BLOQUEADO.\n\nIngresa aqui: www.bancoseguro.cl/verificacion\n\nBanco Seguro - Gerencia de Seguridad",
+    body:"Estimado cliente:\n\nHemos detectado una transacción no reconocida de $184.900 en POS online el 07/10 03:42 (Comercio: DIGITALMARKET LTD — MALTA). Por tu seguridad, el acceso a Banca en Línea quedó temporalmente restringido.\n\nPara revisar la transacción y desbloquear tu cuenta, confirma tu identidad con RUT y clave de internet bancaria:\n\nwww.bancoseguro.cl/verificacion\n\nTienes hasta hoy 23:59 para completar la verificación; después de eso la cuenta queda bloqueada de forma definitiva y deberás acudir a sucursal.\n\nNo reenvíes este correo — contiene información de seguridad de tu cuenta.\n\nBanco Seguro — Gerencia de Seguridad y Prevención de Fraudes\nFonoAttención: 600 300 4000 (línea oficial, verifícala en tu cartola)",
     flags:[
       { f:"DISPLAY-NAME SPOOFING", w:20, why:"el nombre visible dice «Banco Seguro <seguridad@bancoseguro.cl>» pero el mail REAL viene de banco-seguro-online.com", det:"desplegá el nombre completo: el dominio entre corchetes es el que manda" },
       { f:"SUBDOMINIO TRAMPA", w:20, why:"bancoseguro.cl.verificar-cuenta.top — tu marca está en un SUBDOMINIO de un .top raro", det:"lo que manda es lo último: «.top» es el dominio de verdad, bancoseguro.cl es decoración" },
@@ -28822,7 +28935,7 @@ var MS_TPLATES = [
     reply:"recovery.support@insta-secure.help", rcpt:"influencer@correo.cl",
     subject:"Actividad sospechosa en tu cuenta — confirma en 24 horas o la PERDEMOS",
     linkShown:"https://www.instagram.com/accounts/verify", linkReal:"http://mail-instagram-verify.com/login/confirm.php",
-    body:"Hola:\n\nDetectamos un intento de acceso a tu cuenta desde un dispositivo desconocido. Para protegerla, confirma tu usuario, contraseña y el código de verificación que te llega por SMS.\n\nSi no lo haces en 24 horas tu cuenta será eliminada definitivamente.\n\nwww.instagram.com/accounts/verify\n\nEquipo de Seguridad Instagram",
+    body:"Hola:\n\nEl día de hoy 07/10 a las 14:22 detectamos un intento de acceso a tu cuenta desde Moscú, Rusia (IP 185.220.101.34) con un Samsung Galaxy A54.\n\nSi no fuiste tú, alguien tiene tu contraseña. Para proteger tu cuenta necesitamos que confirmes:\n1. Tu usuario y contraseña actual\n2. El código de verificación que te enviaremos por SMS al teléfono asociado\n\nConfirmá acá antes de 24 horas o la cuenta quedará deshabilitada para prevenir el acceso no autorizado:\n\nwww.instagram.com/accounts/verify\n\nSi fuiste tú, ignora este mensaje y cambia tu contraseña.\n\nEquipo de Seguridad Instagram — Meta Platforms Inc., Menlo Park, CA\nEste es un mensaje automático. Las solicitudes de verificación nunca se hacen por teléfono.",
     flags:[
       { f:"DOMINIO CON GUIONES TRAMPA", w:15, why:"mail-instagram-verify.com — la marca más palabras genéricas en un dominio registrado anoche", det:"instagram.com NO necesita guiones: todo lo demás es imitación" },
       { f:"PIDE CONTRASEÑA + CÓDIGO 2FA", w:30, why:"pide la clave Y el código SMS — con eso el atacante entra y te echa a vos: robo total", det:"NINGÚN servicio real pide tu código 2FA: quien lo pide está entrando EN VIVO a tu cuenta" },
@@ -28881,7 +28994,7 @@ var MS_TPLATES = [
     reply:"consultas@devoluciones-fiscales.cl", rcpt:"contribuyente@correo.cl",
     subject:"DEVOLUCIÓN DISPONIBLE: $487.230 a tu nombre — confirma RUT y clave antes del 15",
     linkShown:"https://www.sii.cl/devoluciones", linkReal:"http://sii-tesoreria-gob.cl/reembolso/verifica.php",
-    body:"Estimado contribuyente:\n\nSe ha aprobado una devolucion de $487.230 asociada a su RUT. Para transferir el monto, confirme su RUT, clave tributaria y datos bancarios en el portal de devoluciones.\n\nTiene 5 dias habiles antes de que la devolucion caduque y pase a fiscalizacion.\n\nwww.sii.cl/devoluciones\n\nSII — Tesoreria General",
+    body:"Estimado contribuyente:\n\nSu Operación Renta Año Tributario 2026 registró una diferencia a su favor: DEVOLUCIÓN DISPONIBLE por $487.230, aprobada por la Dirección Regional el 02/10.\n\nPara hacer efectiva la transferencia, confirme su RUT, Clave Tributaria y cuenta corriente de destino antes del 15/10:\n\nwww.sii.cl/devoluciones\n\nTranscurrido el plazo, la devolución quedará en poder de la Tesorería General y pasará a revisión por Operación Renta.\n\nNo responda a este correo: los depósitos no requieren confirmación telefónica ni de terceros.\n\nServicio de Impuestos Internos — Unidad de Devoluciones\nTesorería General de la República · Av. Arturo Prat 420, Santiago",
     flags:[
       { f:"DOMINIO ESTATAL FALSO", w:20, why:"sii-tesoreria-gob.cl imita el estilo .gob.cl pero NO es dominio del Estado — la marca institucional dentro de un dominio ajeno", det:"los sitios del Estado chilenos usan sii.cl y .gob.cl REGISTRADO: verificá el dominio letra por letra antes de tocar cualquier dato" },
       { f:"PIDE CLAVE TRIBUTARIA", w:30, why:"el SII NUNCA pide tu clave tributaria por mail ni por link de mail — con eso el atacante presenta devoluciones FALSAS a tu nombre", det:"regla de oro: organismo fiscal NUNCA pide claves por mail: entrá siempre a sii.cl tecleándolo vos" },
@@ -28979,7 +29092,7 @@ var MS_TPLATES = [
     reply:"(sin reply — el flujo es el login falso)", rcpt:"vendedor@correo.cl",
     subject:"ACTIVIDAD INUSUAL detectada — tu cuenta queda LIMITADA hasta verificar identidad",
     linkShown:"https://www.paypal.com/signin", linkReal:"http://paypal-secure-accounts.com/verify/login.php",
-    body:"Estimado usuario:\n\nDetectamos actividad inusual en tu cuenta y la hemos LIMITADO temporalmente.\n\nPara restaurar el acceso completa la verificacion de identidad con tu email y contrasena de PayPal. Si no lo haces en 72 horas, la cuenta se cerrara definitivamente con saldo incluido.\n\npaypal.com/signin\n\nPayPal — Departamento de Seguridad",
+    body:"Estimado usuario:\n\nEl 07/10 a las 09:41 registramos un intento de inicio de sesión desde un dispositivo no reconocido (Windows 11 — Chrome, IP 45.12.98.233, Fráncfort, DE).\n\nPor tu seguridad, tu cuenta quedó LIMITADA: los envíos de dinero y retiros quedaron suspendidos hasta completar la verificación.\n\nRestaura el acceso con tu email y contraseña de PayPal:\npaypal.com/signin\n\nTienes 72 horas antes de que la cuenta se cierre definitivamente con saldo incluido.\n\nPayPal — Departamento de Seguridad de Cuentas\nEste mensaje fue enviado automáticamente. PayPal nunca te pedirá tu contraseña por teléfono.",
     flags:[
       { f:"LOGIN FALSO PAYPAL", w:25, why:"el link va a paypal-secure-accounts.com — clon del login que cosecha tu usuario+clave en vivo y los usa CONTRA TU CUENTA REAL en segundos", det:"la contraseña de PayPal se pone SOLO en paypal.com tecleado por vos: el mail nunca es puerta de entrada" },
       { f:"DOMINIO CON LA MARCA DENTRO", w:20, why:"«paypal» dentro de paypal-secure-accounts.com: la marca ES el disfraz más usado del phish financiero", det:"cuenta la marca donde cae: antes del .com va el dominio de verdad — «secure-accounts» no es PayPal" },
@@ -29276,6 +29389,69 @@ if(mpEdResetBtn && mpEdResetBtn.addEventListener) mpEdResetBtn.addEventListener(
   if(rN) rN.value = ""; if(rS) rS.value = ""; if(rB) rB.value = "";
   if(mpCurrent){ mpRenderMail(mpCurrent); msLog("t","── plantilla restaurada a la original — el editor quedó limpio"); }
 });
+/* ═══ #35: REAPER SEND — envío REAL opcional de la plantilla editada a UNA casilla AUTORIZADA,
+   vía el propio Cloudflare Worker del dueño. Contrato: POST {key,to,from,subject,body} → JSON {ok:true}.
+   Blindaje: URL http(s) + API key + email válido + casilla de AUTORIZACIÓN + tope 3 envíos/día
+   (localStorage). Sin Worker configurado no se envía NADA. Ley 19.223 (Chile) en la advertencia. ═══ */
+var MP_SEND_MAX = 3;
+function mpStore(k, v){ try{ if(typeof localStorage !== "undefined") localStorage.setItem(k, String(v)); }catch(e){} }
+function mpLoad(k){ try{ return (typeof localStorage !== "undefined") ? localStorage.getItem(k) : null; }catch(e){ return null; } }
+function mpSend(){
+  if(!mpCurrent){ msLog("bad","── REAPER SEND: elegí primero una plantilla arriba — sin plantilla no hay simulación"); return; }
+  var t = mpCurrent;
+  var url  = (document.getElementById("mpApiUrl") || {}).value || "";
+  var key  = (document.getElementById("mpApiKey") || {}).value || "";
+  var to   = (document.getElementById("mpSendTo") || {}).value || "";
+  var auth = document.getElementById("mpAuthOk");
+  if(!/^https?:\/\//i.test(String(url).trim())){ msLog("bad","── REAPER SEND: falta la API URL de tu Worker (debe empezar con http) — sin Worker configurado NO se envía nada"); return; }
+  if(!String(key).trim()){ msLog("bad","── REAPER SEND: falta la API KEY — tu Worker la valida en el backend y rechaza el envío sin ella"); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(to).trim())){ msLog("bad","── REAPER SEND: target inválido — escribí el correo de la casilla AUTORIZADA que va a recibir la simulación"); return; }
+  if(!auth || !auth.checked){ msLog("bad","── REAPER SEND BLOQUEADO: marcá la casilla de AUTORIZACIÓN — sin permiso ESCRITO del dueño de la casilla esto es DELITO en Chile (Ley 19.223, arts. 2-4: acceso fraudulento a sistemas)"); return; }
+  var today = new Date().toISOString().slice(0,10);
+  var day = mpLoad("mp_send_day"), cnt = parseInt(mpLoad("mp_send_count") || "0", 10) || 0;
+  if(day !== today){ day = today; cnt = 0; }
+  if(cnt >= MP_SEND_MAX){ msLog("bad","── REAPER SEND: LÍMITE DIARIO ALCANZADO ("+MP_SEND_MAX+"/"+MP_SEND_MAX+") — el tope existe para que esta herramienta JAMÁS sea spam: volvé mañana"); return; }
+  var btn = document.getElementById("mpSendBtn");
+  if(btn) btn.disabled = true;
+  msLog("t","── REAPER SEND: posteando la simulación a tu Worker (envío "+(cnt+1)+"/"+MP_SEND_MAX+" de hoy)…");
+  fetch(String(url).trim(), {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ key: String(key).trim(), to: String(to).trim(), from: mpVal(t,"from"), subject: mpVal(t,"subject"), body: mpVal(t,"body") })
+  }).then(function(r){ return r.json().catch(function(){ return {}; }); }).then(function(){
+    mpStore("mp_send_day", today);
+    mpStore("mp_send_count", String(cnt+1));
+    msLog("ok","── ✔ SIMULACIÓN ENVIADA a "+esc(String(to).trim())+" ("+(cnt+1)+"/"+MP_SEND_MAX+" de hoy) — abrí la casilla y entrená la lectura de las banderas rojas");
+    msLog("t","── AUDITORÍA "+today+" · plantilla «"+t.id+"» · target "+esc(String(to).trim())+" — todo envío queda REGISTRADO");
+    if(btn) btn.disabled = false;
+  }).catch(function(err){
+    msLog("bad","── REAPER SEND: tu Worker no respondió — contrato: POST {key,to,from,subject,body} → JSON {ok:true} · error: "+esc(String(err)));
+    if(btn) btn.disabled = false;
+  });
+}
+/* ═══ #35: PLAYBOOK PASO A PASO — BLUE TEAM y RED TEAM sobre la plantilla actual ═══ */
+function mpPlaybook(){
+  msLog("hit","── 📋 PLAYBOOK PASO A PASO — qué HACER con esta plantilla, mirada BLUE y RED TEAM:");
+  msLog("t","── 🛡 BLUE TEAM — defender la casilla:");
+  msLog("ok","  B1. NO clickear el link ni abrir adjuntos — el 90% del daño muere en este paso");
+  msLog("ok","  B2. Copiá el dominio del remitente (después de la ÚLTIMA arroba) y pegalo en el MAIL REAPER");
+  msLog("ok","  B3. HOVER sobre el link: compará TEXTO VISIBLE contra DESTINO REAL (la anatomía de arriba)");
+  msLog("ok","  B4. Reportá el mail como PHISHING en el cliente y avisale al equipo TI");
+  msLog("ok","  B5. Si alguien CLICKEÓ: cambio de clave YA + cierre de sesiones + revisión de accesos");
+  msLog("ok","  B6. Documentá remitente/asunto/patrón — el próximo ataque se va a parecer a este");
+  msLog("t","── 🔴 RED TEAM — auditoría AUTORIZADA de concientización:");
+  msLog("ok","  R1. AUTORIZACIÓN ESCRITA primero: scope (qué casillas, qué fechas, qué se mide) — sin esto NO");
+  msLog("ok","  R2. Elegí la plantilla del target y EDITALA en vivo (el pretexto creíble gana sobre la técnica)");
+  msLog("ok","  R3. Configurá tu Worker y usá REAPER SEND — MÁXIMO 3/día y SOLO casillas autorizadas");
+  msLog("ok","  R4. Medí: quién clickeó, quién reportó, cuánto tardó (telemetría del lado del Worker)");
+  msLog("ok","  R5. Reportá % de caída y % de reporte — la métrica es la MEJORA del equipo, no la víctima");
+  msLog("ok","  R6. Plantillas SINTÉTICAS siempre: jamás datos reales ni credenciales reales en el pretexto");
+  msLog("bad","  ⚠ sin autorización escrita esto es DELITO en Chile — Ley 19.223, arts. 2-4. Ni «era una broma» te salva.");
+}
+var mpSendBtn = document.getElementById("mpSendBtn");
+if(mpSendBtn && mpSendBtn.addEventListener) mpSendBtn.addEventListener("click", mpSend);
+var mpPlaybookBtn = document.getElementById("mpPlaybookBtn");
+if(mpPlaybookBtn && mpPlaybookBtn.addEventListener) mpPlaybookBtn.addEventListener("click", mpPlaybook);
 globalThis.mpEdits = mpEdits;
 globalThis.MS_TPLATES = MS_TPLATES;
 globalThis.mpScore = mpScore;

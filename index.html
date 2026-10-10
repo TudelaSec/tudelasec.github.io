@@ -3510,6 +3510,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
   <a href="#nimbus" class="mm-link">NIMBUS</a>
   <a href="#taint" class="mm-link">TAINT RADAR</a>
   <a href="#breach" class="mm-link">BREACH RADAR</a>
+  <a href="#dns-auditor" class="mm-link">DNS AUDITOR</a>
   <a href="#mailsec" class="mm-link">MAIL REAPER</a>
   <a href="#cheatsheet" class="mm-link">Cheatsheet</a>
   <a href="#hallazgos" class="mm-link">Hallazgos</a>
@@ -3851,9 +3852,533 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
         <div class="br-plan" id="brPlan"></div>
       </div>
     </div>
+
+    <div class="sec-num reveal-wrap" style="margin-top:46px"><div class="reveal-inner">34·B — Email Spoofing &amp; DNS Auditor</div></div>
+    <div id="dns-auditor">
+      <div class="das-wrap">
+    <div class="das-head">
+      <div class="das-tag"><i></i> BreachRadar · módulo activo</div>
+      <h1 class="das-title">EMAIL SPOOFING &amp; <b>DNS AUDITOR</b></h1>
+      <p class="das-sub">Auditoría pasiva de postura DNS y autenticación de correo (SPF · DMARC · DKIM · DNSSEC · MTA-STS). 100% client-side vía DNS-over-HTTPS.</p>
+    </div>
+
+    <div class="das-bar">
+      <input type="text" id="dasDomain" class="das-input" placeholder="dominio objetivo — ej. empresa.com" autocomplete="off" spellcheck="false">
+      <button type="button" id="dasFromBreach" class="das-link" title="Traer el dominio escrito en Breach Radar">⟲ desde Breach Radar</button>
+      <button type="button" id="dasRun" class="das-btn">▸ AUDITAR DOMINIO</button>
+    </div>
+
+    <div class="das-body">
+      <div class="das-radar-col">
+        <div class="das-radar" id="dasRadar">
+          <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+          <div class="cross-h"></div><div class="cross-v"></div>
+          <div class="sweep"></div>
+          <div class="blip" id="dasBlip" style="left:50%;top:50%;"></div>
+        </div>
+        <div class="das-score">
+          <div class="num" id="dasScoreNum" style="color:var(--muted)">--</div>
+          <div class="lbl">Security Score</div>
+        </div>
+        <div class="das-grade" id="dasGrade" style="color:var(--muted);border-color:var(--muted)">—</div>
+      </div>
+
+      <div class="das-results" id="dasResults">
+        <div class="das-verdict" style="color:var(--muted)">
+          <div class="vico">◎</div>
+          <div><p class="vttl">EN ESPERA</p><p class="vmsg">Ingresá un dominio y ejecutá la auditoría para evaluar si permite suplantación de identidad (email spoofing).</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="das-console">
+      <div class="das-chead">
+        <span class="das-dot r"></span><span class="das-dot y"></span><span class="das-dot g"></span>
+        <span class="das-ctitle">breachradar@dns-auditor — scanner-proxy v11.0</span>
+      </div>
+      <div class="das-log" id="dasLog"><span class="lm">// scanner-proxy v11.0 listo. Esperando objetivo…</span></div>
+    </div>
+  </div>
+    </div>
   </div>
 </section>
 <!-- ══ FIN SECCIÓN BREACH RADAR ══ -->
+
+<!-- ══ DNS AUDITOR — CSS + JS del módulo combinado con Breach Radar ══ -->
+<style>
+/* ░░ BreachRadar · DNS Auditor — scoped #dns-auditor / .das- ░░ */
+#dns-auditor .das-wrap{position:relative;background:linear-gradient(160deg,rgba(18,7,10,.92),rgba(8,4,6,.96));border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;box-shadow:0 0 0 1px rgba(255,26,46,.06),0 24px 70px rgba(0,0,0,.6);}
+#dns-auditor .das-wrap::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px);pointer-events:none;opacity:.5;z-index:3;}
+
+/* ── Header ── */
+#dns-auditor .das-head{position:relative;padding:22px 26px;border-bottom:1px solid var(--line);background:rgba(255,26,46,.03);}
+#dns-auditor .das-tag{font-size:10px;letter-spacing:.22em;color:var(--acc);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+#dns-auditor .das-tag i{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);display:inline-block;animation:dasPulse 1.6s ease-in-out infinite;}
+#dns-auditor .das-title{font-family:var(--disp);font-size:22px;font-weight:900;letter-spacing:1.5px;margin:0;color:#fff;text-shadow:0 0 14px rgba(255,26,46,.4);}
+#dns-auditor .das-title b{color:var(--acc);}
+#dns-auditor .das-sub{font-size:11px;color:var(--muted);margin:6px 0 0;}
+
+/* ── Input bar ── */
+#dns-auditor .das-bar{display:flex;gap:10px;flex-wrap:wrap;padding:20px 26px;border-bottom:1px solid var(--line);}
+#dns-auditor .das-input{flex:1;min-width:220px;background:rgba(5,3,5,.9);border:1px solid var(--lines);border-radius:6px;padding:13px 15px;color:var(--text);font-family:var(--mono);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}
+#dns-auditor .das-input::placeholder{color:var(--muted);}
+#dns-auditor .das-input:focus{border-color:var(--acc);box-shadow:0 0 16px rgba(255,26,46,.3),inset 0 0 10px rgba(255,26,46,.05);}
+#dns-auditor .das-btn{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:6px;padding:13px 26px;font-family:var(--mono);font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .25s;white-space:nowrap;box-shadow:0 0 20px rgba(255,26,46,.3);}
+#dns-auditor .das-btn:hover:not(:disabled){box-shadow:0 0 36px rgba(255,26,46,.6);transform:translateY(-1px);}
+#dns-auditor .das-btn:disabled{opacity:.45;cursor:not-allowed;}
+#dns-auditor .das-btn .das-spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:dasSpin .7s linear infinite;vertical-align:-2px;margin-right:7px;}
+
+/* ── Main grid ── */
+#dns-auditor .das-body{display:grid;grid-template-columns:300px 1fr;gap:0;}
+@media(max-width:760px){#dns-auditor .das-body{grid-template-columns:1fr;}}
+
+/* ── Radar panel ── */
+#dns-auditor .das-radar-col{border-right:1px solid var(--line);padding:24px 22px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+@media(max-width:760px){#dns-auditor .das-radar-col{border-right:none;border-bottom:1px solid var(--line);}}
+#dns-auditor .das-radar{position:relative;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,26,46,.05),transparent 70%);border:1px solid var(--lines);}
+#dns-auditor .das-radar .ring{position:absolute;border:1px solid rgba(255,26,46,.18);border-radius:50%;}
+#dns-auditor .das-radar .r1{inset:14%;}#dns-auditor .das-radar .r2{inset:30%;}#dns-auditor .das-radar .r3{inset:46%;}
+#dns-auditor .das-radar .cross-h,#dns-auditor .das-radar .cross-v{position:absolute;background:rgba(255,26,46,.14);}
+#dns-auditor .das-radar .cross-h{left:0;right:0;top:50%;height:1px;}#dns-auditor .das-radar .cross-v{top:0;bottom:0;left:50%;width:1px;}
+#dns-auditor .das-radar .sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,rgba(255,26,46,.35) 40deg,transparent 60deg);animation:dasSweep 3.2s linear infinite;}
+#dns-auditor .das-radar.scanning .sweep{animation-duration:1.2s;}
+#dns-auditor .das-radar .blip{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);transform:translate(-50%,-50%);opacity:0;transition:opacity .4s;}
+#dns-auditor .das-radar.done .blip{opacity:1;}
+#dns-auditor .das-score{text-align:center;}
+#dns-auditor .das-score .num{font-family:var(--disp);font-size:46px;font-weight:900;line-height:1;}
+#dns-auditor .das-score .lbl{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+#dns-auditor .das-grade{font-family:var(--disp);font-size:24px;font-weight:900;letter-spacing:2px;padding:4px 16px;border-radius:6px;border:1px solid currentColor;}
+
+/* ── Results ── */
+#dns-auditor .das-results{padding:22px 24px;min-height:220px;}
+#dns-auditor .das-verdict{border-radius:8px;padding:16px 18px;margin-bottom:18px;border:1px solid currentColor;display:flex;gap:14px;align-items:flex-start;animation:dasIn .4s ease both;}
+#dns-auditor .das-verdict .vico{font-size:26px;line-height:1;}
+#dns-auditor .das-verdict .vttl{font-family:var(--disp);font-size:15px;font-weight:900;letter-spacing:1px;margin:0 0 4px;}
+#dns-auditor .das-verdict .vmsg{font-size:12px;color:var(--text);opacity:.85;margin:0;}
+
+#dns-auditor .das-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+#dns-auditor .das-card{background:rgba(5,3,5,.6);border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:6px;padding:13px 14px;animation:dasIn .4s ease both;}
+#dns-auditor .das-card.ok{border-left-color:var(--green);}
+#dns-auditor .das-card.warn{border-left-color:var(--amber);}
+#dns-auditor .das-card.bad{border-left-color:var(--acc);}
+#dns-auditor .das-card.info{border-left-color:var(--magenta);}
+#dns-auditor .das-card .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+#dns-auditor .das-card .cn{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+#dns-auditor .das-card .cs{font-size:9px;font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:10px;text-transform:uppercase;}
+#dns-auditor .das-card.ok .cs{background:rgba(0,255,163,.12);color:var(--green);}
+#dns-auditor .das-card.warn .cs{background:rgba(255,176,32,.12);color:var(--amber);}
+#dns-auditor .das-card.bad .cs{background:rgba(255,26,46,.14);color:var(--acc);}
+#dns-auditor .das-card.info .cs{background:rgba(255,45,120,.12);color:var(--magenta);}
+#dns-auditor .das-card .cv{font-size:11px;color:var(--text);word-break:break-all;}
+#dns-auditor .das-card .cv code{color:var(--green);background:rgba(0,255,163,.07);padding:0 4px;border-radius:2px;font-size:10.5px;}
+#dns-auditor .das-card .cnote{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5;}
+
+/* ── Console ── */
+#dns-auditor .das-console{margin:18px 24px 22px;background:#020103;border:1px solid var(--line);border-radius:7px;overflow:hidden;}
+#dns-auditor .das-chead{background:#0b0407;padding:8px 13px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line);}
+#dns-auditor .das-dot{width:10px;height:10px;border-radius:50%;}
+#dns-auditor .das-dot.r{background:#ff5f56;}#dns-auditor .das-dot.y{background:#ffbd2e;}#dns-auditor .das-dot.g{background:#27c93f;}
+#dns-auditor .das-ctitle{font-size:10px;color:var(--muted);margin-left:6px;}
+#dns-auditor .das-log{padding:13px 15px;font-size:11px;line-height:1.75;height:180px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;}
+#dns-auditor .das-log .lg{color:var(--green);}#dns-auditor .das-log .lr{color:var(--acc);font-weight:600;}
+#dns-auditor .das-log .la{color:var(--amber);}#dns-auditor .das-log .lc{color:#4fc3f7;}#dns-auditor .das-log .lm{color:var(--muted);}
+#dns-auditor .das-log .blink{animation:dasBlink 1s steps(2) infinite;}
+
+@keyframes dasSweep{to{transform:rotate(360deg);}}
+@keyframes dasSpin{to{transform:rotate(360deg);}}
+@keyframes dasPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+@keyframes dasBlink{50%{opacity:0;}}
+@keyframes dasIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+/* ── Ambientación hacker: grid animado + glow ── */
+#dns-auditor .das-wrap::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,26,46,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,46,.05) 1px,transparent 1px);background-size:34px 34px;animation:dasGrid 5s linear infinite;pointer-events:none;z-index:0;mask-image:radial-gradient(ellipse at 50% 0%,#000,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000,transparent 80%);}
+#dns-auditor .das-head,#dns-auditor .das-bar,#dns-auditor .das-body,#dns-auditor .das-console{position:relative;z-index:2;}
+@keyframes dasGrid{to{background-position:0 34px;}}
+/* botón traer dominio de Breach Radar */
+#dns-auditor .das-link{background:transparent;border:1px dashed var(--lines);border-radius:6px;color:var(--amber);font-family:var(--mono);font-size:11px;padding:10px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+#dns-auditor .das-link:hover{border-color:var(--amber);background:rgba(255,176,32,.07);box-shadow:0 0 14px rgba(255,176,32,.25);}
+/* ── Risk meter ── */
+#dns-auditor .das-meter-wrap{margin:0 0 18px;animation:dasIn .4s ease both;}
+#dns-auditor .das-meter-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+#dns-auditor .das-meter-top b{font-family:var(--disp);font-size:14px;letter-spacing:1px;}
+#dns-auditor .das-meter{height:14px;background:rgba(5,3,5,.9);border:1px solid var(--line);border-radius:8px;overflow:hidden;position:relative;}
+#dns-auditor .das-meter-fill{height:100%;border-radius:8px;transition:width 1.1s cubic-bezier(.16,1,.3,1);box-shadow:0 0 14px currentColor;position:relative;}
+#dns-auditor .das-meter-fill::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 6px,transparent 6px 12px);}
+/* ── Legend ── */
+#dns-auditor .das-legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 16px;font-size:10px;color:var(--muted);}
+#dns-auditor .das-legend span{display:inline-flex;align-items:center;gap:6px;}
+#dns-auditor .das-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+/* ── Grupos de resultados ── */
+#dns-auditor .das-group{margin-bottom:18px;animation:dasIn .4s ease both;}
+#dns-auditor .das-gh{font-family:var(--disp);font-size:12px;letter-spacing:1.5px;color:var(--acc);text-transform:uppercase;margin:0 0 11px;padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;}
+#dns-auditor .das-gh .gh-count{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);}
+/* ── Card: icono + dot de estado ── */
+#dns-auditor .das-card .cicon{font-size:14px;margin-right:6px;filter:saturate(.9);}
+#dns-auditor .das-card .cn{display:inline-flex;align-items:center;}
+#dns-auditor .das-card.ok{box-shadow:inset 0 0 0 1px rgba(0,255,163,.08);}
+#dns-auditor .das-card.bad{box-shadow:inset 0 0 0 1px rgba(255,26,46,.1),0 0 18px rgba(255,26,46,.06);}
+#dns-auditor .das-card{transition:transform .18s,box-shadow .18s;}
+#dns-auditor .das-card:hover{transform:translateY(-2px);}
+/* ── Verdict más potente ── */
+#dns-auditor .das-verdict{position:relative;overflow:hidden;background:linear-gradient(90deg,currentColor 0%,transparent 2px),rgba(5,3,5,.5);}
+#dns-auditor .das-verdict .vico{font-size:30px;filter:drop-shadow(0 0 8px currentColor);}
+#dns-auditor .das-verdict .vttl{font-size:17px;}
+@media(prefers-reduced-motion:reduce){#dns-auditor *{animation:none!important;}}
+</style>
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   BreachRadar · Email Spoofing & DNS Auditor — motor de auditoría
+   - DoH (DNS-over-HTTPS) multi-resolver con fallback: Google → Cloudflare
+   - scanner-proxy v11.0 como fallback CORS opcional (DoH ya es CORS-friendly)
+   - Parsers: SPF (mecanismos + límite de 10 lookups), DMARC, DKIM (sondeo de
+     selectores), DNSSEC (AD/DNSKEY), MX, NS, SOA, CAA, MTA-STS, TLS-RPT, BIMI
+   - Motor de scoring + veredicto de suplantación tipo pentester
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  /* ═══ CONFIG ═══ */
+  var DOH = {
+    google:     'https://dns.google/resolve',
+    cloudflare: 'https://cloudflare-dns.com/dns-query'
+  };
+  /* scanner-proxy v11.0 — dejar '' para consultar DoH directo (recomendado:
+     Google/Cloudflare envían Access-Control-Allow-Origin:* ). Si tu red/cliente
+     bloquea CORS, apuntá esto a tu Worker:  'https://<tu-worker>/?url='        */
+  var PROXY_BASE = '';
+  var TIMEOUT    = 8000;
+
+  /* Selectores DKIM comunes de proveedores reales (sondeo pasivo) */
+  var DKIM_SELECTORS = ['default','google','selector1','selector2','s1','s2','k1','k2',
+    'dkim','mail','smtp','mandrill','mailjet','sendgrid','sg','zoho','zmail','pm',
+    'protonmail','protonmail2','protonmail3','fm1','fm2','fm3','mxvault','everlytickey1',
+    'scph0920','ctct1','ctct2','dkim1','key1','sig1','mta','amazonses'];
+
+  var RRTYPE = {1:'A',2:'NS',5:'CNAME',6:'SOA',12:'PTR',15:'MX',16:'TXT',28:'AAAA',33:'SRV',43:'DS',48:'DNSKEY',52:'TLSA',257:'CAA'};
+
+  /* ═══ UTILIDADES DE RED ═══ */
+  function withTimeout(url, opts){
+    opts = opts || {};
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    if(ctl){ opts.signal = ctl.signal; }
+    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, TIMEOUT);
+    return fetch(url, opts).finally(function(){ clearTimeout(timer); });
+  }
+
+  /* Consulta DoH a un resolver concreto, devuelve JSON {Status,AD,Answer,...} */
+  function queryResolver(base, name, type, viaProxy){
+    var qs = base + (base.indexOf('?') > -1 ? '&' : '?') + 'name=' + encodeURIComponent(name) + '&type=' + encodeURIComponent(type);
+    var url = viaProxy && PROXY_BASE ? (PROXY_BASE + encodeURIComponent(qs)) : qs;
+    return withTimeout(url, { headers: { 'accept': 'application/dns-json' } })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+
+  /* DoH resiliente: Google → Cloudflare → (ambos vía proxy si hay PROXY_BASE) */
+  function doh(name, type){
+    return queryResolver(DOH.google, name, type, false)
+      .catch(function(){ return queryResolver(DOH.cloudflare, name, type, false); })
+      .catch(function(){
+        if(PROXY_BASE) return queryResolver(DOH.google, name, type, true);
+        throw new Error('DoH inaccesible (CORS/red). Configurá PROXY_BASE con tu scanner-proxy.');
+      });
+  }
+
+  /* Normaliza registros TXT: quita comillas y une cadenas fragmentadas ("a" "b") */
+  function txt(data){
+    return String(data || '').replace(/^"|"$/g, '').replace(/"\s*"/g, '').trim();
+  }
+  function answers(json, type){
+    if(!json || !json.Answer) return [];
+    return json.Answer.filter(function(a){ return a.type === type; });
+  }
+
+  /* ═══ PARSER SPF ═══ */
+  function auditSPF(domain){
+    return doh(domain, 'TXT').then(function(j){
+      var all = answers(j, 16).map(function(a){ return txt(a.data); });
+      var spf = all.filter(function(s){ return /^v=spf1\b/i.test(s); });
+      if(spf.length === 0) return { level:'bad', status:'AUSENTE', record:null, note:'Sin registro SPF: cualquier servidor puede enviar correo en nombre del dominio.', mechanisms:0, lookups:0 };
+      if(spf.length > 1)  return { level:'bad', status:'DUPLICADO', record:spf.join('  ||  '), note:'Múltiples registros SPF (RFC 7208 §3.2 → PermError). Los receptores lo ignoran: fallo abierto.', mechanisms:0, lookups:0 };
+      var rec = spf[0];
+      /* mecanismo "all" final */
+      var m = rec.match(/([~\-?+])all\s*$/i);
+      var qual = m ? m[1] : null;
+      /* conteo de lookups DNS (límite duro de 10 en RFC 7208 §4.6.4) */
+      var lookups = (rec.match(/\b(include:|a[:\s]|a$|mx[:\s]|mx$|ptr|exists:|redirect=)/gi) || []).length;
+      var level, status, note;
+      if(qual === '-'){ level='ok';   status='HARD FAIL (-all)'; note='Política estricta: solo los hosts autorizados pueden enviar. Correcto.'; }
+      else if(qual === '~'){ level='warn'; status='SOFT FAIL (~all)'; note='Soft-fail: el correo no autorizado se acepta marcándose como sospechoso. No bloquea spoofing por sí solo.'; }
+      else if(qual === '?'){ level='bad'; status='NEUTRAL (?all)'; note='Neutral: SPF no opina. Equivale a no tener política de rechazo.'; }
+      else if(qual === '+'){ level='bad'; status='PASS-ALL (+all)'; note='CRÍTICO: +all autoriza a CUALQUIER servidor. El dominio es un relay abierto de identidad.'; }
+      else { level='warn'; status='SIN "all"'; note='El registro no termina en un mecanismo "all" explícito: comportamiento indefinido.'; }
+      if(lookups > 10){ level = (level==='ok'?'warn':level); note += ' Además: ' + lookups + ' lookups DNS (>10 = PermError, SPF deja de evaluarse).'; }
+      return { level:level, status:status, record:rec, note:note, qualifier:qual, mechanisms:(rec.split(/\s+/).length-1), lookups:lookups };
+    }).catch(function(e){ return { level:'bad', status:'ERROR', record:null, note:'No se pudo resolver TXT: ' + e.message, lookups:0 }; });
+  }
+
+  /* ═══ PARSER DMARC ═══ */
+  function auditDMARC(domain){
+    return doh('_dmarc.' + domain, 'TXT').then(function(j){
+      var recs = answers(j, 16).map(function(a){ return txt(a.data); }).filter(function(s){ return /^v=DMARC1\b/i.test(s); });
+      if(recs.length === 0) return { level:'bad', status:'AUSENTE', record:null, note:'Sin DMARC: no hay política que indique a los receptores qué hacer con correo no autenticado. Dominio suplantable.' };
+      var rec = recs[0];
+      var tags = {};
+      rec.split(';').forEach(function(p){ var kv = p.split('='); if(kv.length===2) tags[kv[0].trim().toLowerCase()] = kv[1].trim(); });
+      var p = (tags.p || '').toLowerCase();
+      var sp = (tags.sp || '').toLowerCase();
+      var pct = tags.pct ? parseInt(tags.pct, 10) : 100;
+      var level, status, note;
+      if(p === 'reject'){ level='ok'; status='p=reject'; note='Enforcement máximo: el correo que falla DMARC se rechaza. Protección fuerte contra spoofing.'; }
+      else if(p === 'quarantine'){ level='warn'; status='p=quarantine'; note='El correo no autenticado va a spam, no se rechaza. Protección parcial.'; }
+      else if(p === 'none'){ level='bad'; status='p=none'; note='Modo monitoreo: NO se aplica ninguna acción. El dominio sigue siendo suplantable (solo reporta).'; }
+      else { level='bad'; status='SIN POLÍTICA'; note='Registro DMARC sin tag "p" válido: inefectivo.'; }
+      if(pct < 100 && level==='ok'){ level='warn'; note += ' pct=' + pct + ': la política solo se aplica al ' + pct + '% del correo.'; }
+      var extra = [];
+      if(sp) extra.push('sp=' + sp);
+      if(tags.rua) extra.push('rua ✓'); else extra.push('sin rua (sin reportes agregados)');
+      if(tags.adkim) extra.push('adkim=' + tags.adkim);
+      if(tags.aspf) extra.push('aspf=' + tags.aspf);
+      return { level:level, status:status, record:rec, note:note, tags:tags, policy:p, pct:pct, extra:extra.join(' · ') };
+    }).catch(function(e){ return { level:'bad', status:'ERROR', record:null, note:'No se pudo resolver _dmarc: ' + e.message }; });
+  }
+
+  /* ═══ SONDEO DKIM (selectores comunes en paralelo) ═══ */
+  function auditDKIM(domain){
+    var found = [];
+    var probes = DKIM_SELECTORS.map(function(sel){
+      return doh(sel + '._domainkey.' + domain, 'TXT').then(function(j){
+        var hit = answers(j, 16).map(function(a){ return txt(a.data); }).filter(function(s){ return /v=DKIM1|k=rsa|p=[A-Za-z0-9+\/]/i.test(s); });
+        if(hit.length) found.push(sel);
+      }).catch(function(){ /* selector inexistente: normal */ });
+    });
+    return Promise.all(probes).then(function(){
+      if(found.length) return { level:'ok', status:found.length + ' SELECTOR(ES)', record:found.join(', '), note:'Se encontró clave pública DKIM en: ' + found.join(', ') + '. El correo puede firmarse criptográficamente.' };
+      return { level:'warn', status:'NO DETECTADO', record:null, note:'Ningún selector común respondió. DKIM puede existir bajo un selector propietario no sondeado (ausencia no concluyente).' };
+    });
+  }
+
+  /* ═══ DNSSEC (flag AD del resolver + presencia de DNSKEY) ═══ */
+  function auditDNSSEC(domain){
+    return doh(domain, 'DNSKEY').then(function(j){
+      var keys = answers(j, 48).length;
+      var ad = !!(j && j.AD);
+      if(keys > 0 && ad) return { level:'ok', status:'VALIDADO', record:keys + ' DNSKEY', note:'DNSSEC presente y validado (flag AD). Las respuestas DNS están firmadas: resisten cache poisoning.' };
+      if(keys > 0)      return { level:'warn', status:'PRESENTE', record:keys + ' DNSKEY', note:'Hay DNSKEY pero el resolver no marcó AD. Verificá la cadena de confianza (DS en el padre).' };
+      return { level:'warn', status:'AUSENTE', record:null, note:'Sin DNSSEC: las respuestas DNS no están firmadas (expuesto a spoofing/cache poisoning de DNS).' };
+    }).catch(function(e){ return { level:'info', status:'N/D', record:null, note:'No evaluable: ' + e.message }; });
+  }
+
+  /* ═══ MX + fingerprint de proveedor ═══ */
+  function auditMX(domain){
+    return doh(domain, 'MX').then(function(j){
+      var mx = answers(j, 15).map(function(a){ return txt(a.data); });
+      if(!mx.length) return { level:'warn', status:'SIN MX', record:null, note:'El dominio no recibe correo (sin MX). Igual puede suplantarse como remitente.' };
+      var joined = mx.join(' ').toLowerCase();
+      var prov = 'Servidor propio / desconocido';
+      if(/google|googlemail|aspmx/.test(joined)) prov='Google Workspace';
+      else if(/outlook|protection\.outlook|office365/.test(joined)) prov='Microsoft 365';
+      else if(/zoho/.test(joined)) prov='Zoho Mail';
+      else if(/protonmail|proton\.me/.test(joined)) prov='Proton Mail';
+      else if(/amazonaws|amazonses/.test(joined)) prov='Amazon SES/WorkMail';
+      else if(/mimecast/.test(joined)) prov='Mimecast';
+      else if(/pphosted|proofpoint/.test(joined)) prov='Proofpoint';
+      return { level:'info', status:prov, record:mx.map(function(s){return s.split(' ').pop();}).join(', '), note:mx.length + ' registro(s) MX. Proveedor inferido: ' + prov + '.' };
+    }).catch(function(e){ return { level:'info', status:'N/D', record:null, note:e.message }; });
+  }
+
+  /* ═══ Registros DNS adicionales (potencia extra: NS, SOA, CAA, A/AAAA, MTA-STS, TLS-RPT, BIMI) ═══ */
+  function auditExtra(domain){
+    var jobs = {
+      a:        doh(domain, 'A').then(function(j){ return answers(j,1).map(function(a){return a.data;}); }).catch(function(){return [];}),
+      aaaa:     doh(domain, 'AAAA').then(function(j){ return answers(j,28).map(function(a){return a.data;}); }).catch(function(){return [];}),
+      ns:       doh(domain, 'NS').then(function(j){ return answers(j,2).map(function(a){return txt(a.data);}); }).catch(function(){return [];}),
+      caa:      doh(domain, 'CAA').then(function(j){ return answers(j,257).map(function(a){return txt(a.data);}); }).catch(function(){return [];}),
+      mtasts:   doh('_mta-sts.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=STSv1/i.test(s);}); }).catch(function(){return [];}),
+      tlsrpt:   doh('_smtp._tls.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=TLSRPTv1/i.test(s);}); }).catch(function(){return [];}),
+      bimi:     doh('default._bimi.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=BIMI1/i.test(s);}); }).catch(function(){return [];})
+    };
+    var keys = Object.keys(jobs);
+    return Promise.all(keys.map(function(k){ return jobs[k]; })).then(function(vals){
+      var out = {}; keys.forEach(function(k,i){ out[k] = vals[i]; }); return out;
+    });
+  }
+
+  /* ═══ MOTOR DE SCORING + VEREDICTO ═══ */
+  function scoreAudit(spf, dmarc, dkim, dnssec){
+    var s = 0;
+    /* SPF 25 */
+    if(spf.level==='ok') s+=25; else if(spf.level==='warn') s+=12;
+    /* DMARC 40 (lo que realmente frena el spoofing del From visible) */
+    if(dmarc.policy==='reject') s+=40; else if(dmarc.policy==='quarantine') s+=26; else if(dmarc.level==='warn') s+=10;
+    /* DKIM 20 */
+    if(dkim.level==='ok') s+=20; else if(dkim.level==='warn') s+=6;
+    /* DNSSEC 15 */
+    if(dnssec.level==='ok') s+=15; else if(dnssec.level==='warn') s+=6;
+    s = Math.max(0, Math.min(100, s));
+
+    /* Veredicto pentester: el From visible solo se protege con DMARC en
+       enforcement (reject/quarantine). SPF -all NO basta por sí solo. */
+    var spoofable, vlevel, vttl, vmsg;
+    if(dmarc.policy==='reject'){
+      spoofable=false; vlevel='ok'; vttl='DOMINIO PROTEGIDO';
+      vmsg='DMARC en p=reject: un atacante no puede suplantar el "From" visible y entregar en bandeja. Postura sólida.';
+    } else if(dmarc.policy==='quarantine'){
+      spoofable='parcial'; vlevel='warn'; vttl='SUPLANTACIÓN MITIGADA (no bloqueada)';
+      vmsg='DMARC en quarantine: el correo falsificado llega a Spam, no se rechaza. Un usuario podría rescatarlo. Subí a p=reject.';
+    } else {
+      spoofable=true; vlevel='bad'; vttl='VULNERABLE A EMAIL SPOOFING';
+      vmsg = (spf.level==='ok')
+        ? 'Aunque el SPF sea estricto (-all), SPF NO valida el "From" que ve el usuario. Sin DMARC en reject/quarantine, un atacante puede suplantar el dominio en el remitente visible.'
+        : 'Sin DMARC en enforcement y con SPF débil/ausente, el dominio puede ser suplantado trivialmente en campañas de phishing.';
+    }
+    return { score:s, spoofable:spoofable, level:vlevel, title:vttl, msg:vmsg };
+  }
+  function grade(s){ return s>=90?'A':s>=75?'B':s>=55?'C':s>=35?'D':'F'; }
+  function colorFor(level){ return level==='ok'?'var(--green)':level==='warn'?'var(--amber)':level==='bad'?'var(--acc)':'var(--magenta)'; }
+
+  /* ═══ UI ═══ */
+  function $(id){ return document.getElementById(id); }
+  function log(msg, cls){
+    var el = $('dasLog'); if(!el) return;
+    var span = document.createElement('span'); span.className = cls || 'lm'; span.textContent = msg;
+    el.appendChild(span); el.appendChild(document.createElement('br')); el.scrollTop = el.scrollHeight;
+  }
+  var ICONS = { 'SPF':'📧','DMARC':'🛡️','DKIM':'🔑','DNSSEC':'🔒','MX':'✉️','MTA-STS':'🔐','TLS-RPT':'📊','BIMI':'🖼️','CAA':'📜','NS':'🌐','A / AAAA':'📍' };
+  function card(name, r){
+    var cls = r.level || 'info';
+    var ic = ICONS[name] || '◆';
+    var val = r.record ? ('<div class="cv"><code>' + esc(r.record) + '</code></div>') : '<div class="cv" style="color:var(--muted)">— sin registro —</div>';
+    var extra = r.extra ? '<div class="cnote">' + esc(r.extra) + '</div>' : '';
+    return '<div class="das-card ' + cls + '">'
+      + '<div class="ch"><span class="cn"><span class="cicon">' + ic + '</span>' + esc(name) + '</span><span class="cs">' + esc(r.status || '') + '</span></div>'
+      + val + extra
+      + '<div class="cnote">' + esc(r.note || '') + '</div></div>';
+  }
+  function grp(title, countOk, countTotal, cardsHtml){
+    return '<div class="das-group"><div class="das-gh">▸ ' + esc(title) + '<span class="gh-count">' + countOk + '/' + countTotal + ' OK</span></div><div class="das-cards">' + cardsHtml + '</div></div>';
+  }
+  function okc(r){ return r.level==='ok' ? 1 : 0; }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function cleanDomain(raw){
+    return String(raw||'').trim().toLowerCase()
+      .replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').replace(/\s/g,'');
+  }
+
+  function run(){
+    var domain = cleanDomain(($('dasDomain')||{}).value);
+    if(!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)){ log('[-] Dominio inválido: ' + domain, 'lr'); return; }
+
+    var btn = $('dasRun'), radar = $('dasRadar'), log_ = $('dasLog');
+    btn.disabled = true; btn.innerHTML = '<span class="das-spin"></span>AUDITANDO…';
+    if(log_) log_.innerHTML = '';
+    radar.classList.add('scanning'); radar.classList.remove('done');
+    $('dasResults').innerHTML = '';
+    $('dasScoreNum').textContent = '--'; $('dasScoreNum').style.color='var(--muted)';
+    $('dasGrade').textContent='—'; $('dasGrade').style.color='var(--muted)'; $('dasGrade').style.borderColor='var(--muted)';
+
+    log('[*] Iniciando auditoría de ' + domain + ' vía DNS-over-HTTPS…', 'lc');
+    log('[*] Resolver primario: dns.google · fallback: cloudflare-dns.com', 'lm');
+
+    /* fases en vivo (ambientación: la consola "escanea" mientras corre en paralelo) */
+    var phases = [
+      '[>] Resolviendo TXT / SPF…',
+      '[>] Consultando _dmarc.' + domain + '…',
+      '[>] Sondeando ' + DKIM_SELECTORS.length + ' selectores DKIM en paralelo…',
+      '[>] Verificando DNSSEC (DNSKEY / flag AD)…',
+      '[>] Enumerando MX · NS · CAA · MTA-STS · TLS-RPT · BIMI…'
+    ];
+    phases.forEach(function(ph, i){ setTimeout(function(){ var b=$('dasRun'); if(b && b.disabled) log(ph, 'lm'); }, 230 * (i + 1)); });
+
+    Promise.all([ auditSPF(domain), auditDMARC(domain), auditDKIM(domain), auditDNSSEC(domain), auditMX(domain), auditExtra(domain) ])
+    .then(function(res){
+      var spf=res[0], dmarc=res[1], dkim=res[2], dnssec=res[3], mx=res[4], extra=res[5];
+      log('[+] SPF:    ' + spf.status, spf.level==='ok'?'lg':spf.level==='warn'?'la':'lr');
+      log('[+] DMARC:  ' + dmarc.status, dmarc.level==='ok'?'lg':dmarc.level==='warn'?'la':'lr');
+      log('[+] DKIM:   ' + dkim.status, dkim.level==='ok'?'lg':'la');
+      log('[+] DNSSEC: ' + dnssec.status, dnssec.level==='ok'?'lg':'la');
+      log('[+] MX:     ' + mx.status, 'lm');
+
+      var v = scoreAudit(spf, dmarc, dkim, dnssec);
+      var vcolor = colorFor(v.level), g = grade(v.score);
+      var ico = v.level==='ok'?'✔':v.level==='warn'?'▲':'✖';
+
+      /* radar + score */
+      radar.classList.remove('scanning'); radar.classList.add('done');
+      var blip = $('dasBlip');
+      if(blip){ var ang=Math.random()*6.28, rad=(v.score/100)*70; blip.style.left=(50+Math.cos(ang)*(90-rad)/2)+'%'; blip.style.top=(50+Math.sin(ang)*(90-rad)/2)+'%'; blip.style.background=vcolor; blip.style.boxShadow='0 0 10px '+vcolor; }
+      var num=$('dasScoreNum'); num.textContent=v.score; num.style.color=vcolor;
+      var gr=$('dasGrade'); gr.textContent=g; gr.style.color=vcolor; gr.style.borderColor=vcolor;
+
+      /* ── VEREDICTO ── */
+      var risk = 100 - v.score;
+      var riskLbl = risk>=66?'ALTO':risk>=33?'MEDIO':'BAJO';
+      var html = '<div class="das-verdict" style="color:' + vcolor + '">'
+        + '<div class="vico">' + ico + '</div>'
+        + '<div><p class="vttl">' + esc(v.title) + '</p><p class="vmsg">' + esc(v.msg) + '</p></div></div>';
+
+      /* ── RISK METER ── */
+      html += '<div class="das-meter-wrap">'
+        + '<div class="das-meter-top"><span>Riesgo de suplantación</span><b style="color:' + vcolor + '">' + riskLbl + ' · ' + risk + '%</b></div>'
+        + '<div class="das-meter"><div class="das-meter-fill" style="width:' + risk + '%;background:linear-gradient(90deg,var(--green),var(--amber) 55%,var(--acc));color:' + vcolor + '"></div></div></div>';
+
+      /* ── LEYENDA ── */
+      html += '<div class="das-legend">'
+        + '<span><i style="background:var(--green)"></i> Seguro</span>'
+        + '<span><i style="background:var(--amber)"></i> Advertencia</span>'
+        + '<span><i style="background:var(--acc)"></i> Vulnerable</span>'
+        + '<span><i style="background:var(--magenta)"></i> Informativo</span></div>';
+
+      /* ── GRUPO 1: Autenticación de correo ── */
+      var mail = [['SPF',spf],['DMARC',dmarc],['DKIM',dkim]];
+      var mailOk = mail.reduce(function(a,x){return a+okc(x[1]);},0);
+      var mailHtml = mail.map(function(x){return card(x[0],x[1]);}).join('');
+      html += grp('Autenticación de correo', mailOk, mail.length, mailHtml);
+
+      /* ── GRUPO 2: Infraestructura DNS ── */
+      var mtasts = extra.mtasts.length ? {level:'ok',status:'ACTIVO',record:extra.mtasts[0],note:'Fuerza TLS en la entrega SMTP (anti-downgrade).'} : {level:'warn',status:'AUSENTE',note:'Sin MTA-STS: la entrega SMTP puede degradarse a texto plano (MITM).'};
+      var caa = extra.caa.length ? {level:'ok',status:extra.caa.length+' REGLA(S)',record:extra.caa.join(' | '),note:'Restringe qué CAs pueden emitir certificados para el dominio.'} : {level:'warn',status:'AUSENTE',note:'Sin CAA: cualquier CA pública puede emitir certificados para el dominio.'};
+      var ips = extra.a.concat(extra.aaaa);
+      var infra = [['DNSSEC',dnssec],['MX',mx],['MTA-STS',mtasts],['CAA',caa]];
+      if(extra.tlsrpt.length) infra.push(['TLS-RPT',{level:'ok',status:'ACTIVO',record:extra.tlsrpt[0],note:'Reportes de fallos TLS habilitados.'}]);
+      if(extra.bimi.length)   infra.push(['BIMI',{level:'info',status:'PRESENTE',record:extra.bimi[0],note:'Logo de marca verificado (requiere DMARC en enforcement).'}]);
+      if(extra.ns.length)     infra.push(['NS',{level:'info',status:extra.ns.length+' SERVIDORES',record:extra.ns.join(', '),note:'Servidores autoritativos del dominio.'}]);
+      if(ips.length)          infra.push(['A / AAAA',{level:'info',status:ips.length+' IP(S)',record:ips.join(', '),note:'Registros de dirección del dominio raíz.'}]);
+      var infraOk = infra.reduce(function(a,x){return a+okc(x[1]);},0);
+      var infraHtml = infra.map(function(x){return card(x[0],x[1]);}).join('');
+      html += grp('Infraestructura DNS', infraOk, infra.length, infraHtml);
+
+      $('dasResults').innerHTML = html;
+
+      log('[=] Security Score: ' + v.score + '/100 (' + g + ') — ' + v.title, v.level==='ok'?'lg':v.level==='warn'?'la':'lr');
+      log('root@breachradar:~# ', 'lg');
+      var l=$('dasLog'); if(l){ var c=document.createElement('span'); c.className='lg blink'; c.textContent='_'; l.appendChild(c); }
+    })
+    .catch(function(e){
+      log('[-] Fallo de auditoría: ' + e.message, 'lr');
+    })
+    .finally(function(){
+      btn.disabled=false; btn.innerHTML='▸ AUDITAR DOMINIO';
+      radar.classList.remove('scanning');
+    });
+  }
+
+  /* exponer para QA/integración */
+  window.BreachRadarDNS = { audit:run, _parsers:{ auditSPF:auditSPF, auditDMARC:auditDMARC, scoreAudit:scoreAudit, grade:grade, cleanDomain:cleanDomain, txt:txt } };
+
+  function wire(){
+    var b=$('dasRun'), i=$('dasDomain'), fb=$('dasFromBreach');
+    if(b) b.addEventListener('click', run);
+    if(i) i.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); run(); } });
+    if(fb) fb.addEventListener('click', function(){
+      var br = document.getElementById('brInput');          /* input de Breach Radar */
+      var d  = cleanDomain(br ? (br.value || '') : '');
+      if(d){ if(i){ i.value = d; i.focus(); } log('[*] Dominio importado de Breach Radar: ' + d, 'lc'); }
+      else { log('[-] Breach Radar no tiene un dominio cargado. Escribí uno en el campo de arriba.', 'la'); if(i) i.focus(); }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();
+</script>
 
 <!-- ══ SECCIÓN: MAIL REAPER — Email Security & Spoofing Defense + Phishing Simulator ══ -->
 <section id="mailsec">

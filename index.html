@@ -28679,7 +28679,7 @@ async function brGetHard(url, timeoutMs){
 /* ── parser PURO de la respuesta de XposedOrNot (exportado para QA) ── */
 function brParseXposed(j){
   if(!j || typeof j !== "object") return { pwned:false, error:"respuesta vacía o no-objeto" };
-  if(j.Error) return { pwned:false, error:String(j.Error) };
+  if(j.Error){ var _e=String(j.Error); if(/not\s*found|no\s*encontrad/i.test(_e)) return { pwned:false, note:_e }; return { pwned:false, error:_e }; }
   if(typeof j.breaches === "string") return { pwned:false, note:String(j.breaches) };
   if(Array.isArray(j.breaches)){
     var out = [];
@@ -28921,7 +28921,9 @@ async function brRun(){
       parsed.breaches.sort(function(a,b){ var ya=parseInt(String(a.date||"").slice(0,4),10)||0, yb=parseInt(String(b.date||"").slice(0,4),10)||0; return yb-ya; });
       parsed.pwned = parsed.breaches.length > 0;
       if(parsed.breaches.length){ parsed.error = null; parsed.note = null; }
-      if(parsed.error){ brLog("hit","✗ XposedOrNot dice: "+esc(parsed.error)+" — probá en un rato (rate-limit posible)"); return; }
+      /* "Not found" NO es un error: es un correo LIMPIO — lo dejamos pasar al camino verde */
+      if(parsed.error && /not\s*found|no\s*encontrad/i.test(String(parsed.error))){ parsed.note = parsed.note || "No aparece en las fuentes consultadas"; parsed.error = null; }
+      if(parsed.error && !parsed.breaches.length){ brLog("hit","✗ Las fuentes no respondieron bien: "+esc(parsed.error)+" — puede ser rate-limit, probá en 1-2 min"); return; }
       if(!parsed.pwned){
         brLog("ok","  ✓ "+esc(input)+" NO aparece en filtraciones indexadas por XposedOrNot ("+(parsed.note||"Not found")+")");
         brLog("t","  nota honesta: solo cubre las bases que ellos indexan — no es garantía absoluta");

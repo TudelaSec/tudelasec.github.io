@@ -4260,13 +4260,16 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   function cleanDomain(raw){
-    return String(raw||'').trim().toLowerCase()
-      .replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').replace(/\s/g,'');
+    var s = String(raw||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^mailto:/,'').replace(/\s/g,'');
+    if(s.indexOf('@') > -1) s = s.split('@').pop();   /* user@dominio.com -> dominio.com */
+    return s.replace(/^www\./,'').replace(/\/.*$/,'');
   }
 
   function run(){
-    var domain = cleanDomain(($('dasDomain')||{}).value);
-    if(!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)){ log('[-] Dominio inválido: ' + domain, 'lr'); return; }
+    var rawInput = (($('dasDomain')||{}).value || '').trim();
+    var domain = cleanDomain(rawInput);
+    if(!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)){ log('[-] Entrada inválida: ' + rawInput + ' — escribí un dominio (empresa.com) o un correo (user@empresa.com)', 'lr'); return; }
+    if(rawInput.indexOf('@') > -1) log('[*] Correo detectado → audito el dominio: ' + domain, 'lc');
 
     var btn = $('dasRun'), radar = $('dasRadar'), log_ = $('dasLog');
     btn.disabled = true; btn.innerHTML = '<span class="das-spin"></span>AUDITANDO…';
@@ -28679,6 +28682,38 @@ function brParseXposed(j){
   }
   return { pwned:false, error:"formato de respuesta desconocido" };
 }
+/* ── v2.1: parser del endpoint RICO breach-analytics (muchas más filtraciones + categorías/pastes/industria) ── */
+function brParseAnalytics(j){
+  if(!j || typeof j !== "object") return null;
+  var out = { breaches:[], categories:[], industries:[], pastes:0, riskLabel:"", riskScore:"" };
+  var eb = j.ExposedBreaches && j.ExposedBreaches.breaches_details;
+  if(Array.isArray(eb)){
+    for(var i=0;i<eb.length;i++){
+      var b = eb[i] || {};
+      var classes = String(b.xposed_data||"").split(/[;,]/).map(function(s){return s.trim();}).filter(Boolean).slice(0,20);
+      out.breaches.push({
+        name: String(b.breach || "?"),
+        date: String(b.xposed_date || b.breached_date || ""),
+        pwn: Number(b.xposed_records) || 0,
+        classes: classes,
+        verified: String(b.verified||"").toLowerCase() === "yes",
+        domain: b.domain || "", industry: b.industry || ""
+      });
+    }
+  }
+  try { var rk = j.BreachMetrics && j.BreachMetrics.risk && j.BreachMetrics.risk[0]; if(rk){ out.riskLabel = rk.risk_label||""; out.riskScore = rk.risk_score; } } catch(e){}
+  try {
+    var xd = j.BreachMetrics && j.BreachMetrics.xposed_data && j.BreachMetrics.xposed_data[0] && j.BreachMetrics.xposed_data[0].children;
+    if(Array.isArray(xd)){ xd.forEach(function(g){ if(g && Array.isArray(g.data)){ g.data.forEach(function(d){ if(d && d.name) out.categories.push(String(d.name).replace(/^data_/,"")); }); } else if(g && g.name){ out.categories.push(String(g.name)); } }); }
+  } catch(e){}
+  try { out.pastes = (j.PastesSummary && Number(j.PastesSummary.cnt)) || 0; } catch(e){}
+  try {
+    var ind = j.BreachMetrics && j.BreachMetrics.industry && j.BreachMetrics.industry[0];
+    if(Array.isArray(ind)){ ind.forEach(function(p){ if(Array.isArray(p) && p[0] && Number(p[1])>0) out.industries.push(p[0]+":"+p[1]); }); }
+  } catch(e){}
+  out.categories = Array.from(new Set(out.categories));
+  return out;
+}
 function brRiskScore(breaches){
   var risk = 0;
   for(var i=0; i<breaches.length; i++){
@@ -28797,6 +28832,27 @@ async function brRun(){
       var parsed;
       try { parsed = brParseXposed(JSON.parse(String(r.body))); }
       catch(e){ parsed = { pwned:false, error:"respuesta no JSON de la API" }; }
+      /* ── v2.1 ENRIQUECIMIENTO: breach-analytics (muchas más filtraciones + intel) — aditivo, con fallback ── */
+      try {
+        brLog("t","── fase 2: breach-analytics (endpoint rico: categorías de datos, pastes, industria)…");
+        brFill(55);
+        var ra = await brGetHard("https://api.xposedornot.com/v1/breach-analytics?email="+encodeURIComponent(input), 12000);
+        if(ra.ok){
+          var ext = brParseAnalytics(JSON.parse(String(ra.body)));
+          if(ext && ext.breaches && ext.breaches.length){
+            if(!parsed.breaches || !parsed.breaches.length) parsed.breaches = [];
+            var seen = {}; parsed.breaches.forEach(function(b){ seen[String(b.name||"").toLowerCase()] = true; });
+            var added = 0;
+            ext.breaches.forEach(function(b){ var k=String(b.name||"").toLowerCase(); if(!seen[k]){ parsed.breaches.push(b); seen[k]=true; added++; } });
+            parsed.pwned = parsed.breaches.length > 0; parsed.error = null; parsed.note = null; parsed.analytics = ext;
+            if(added) brLog("hit","  ☢ breach-analytics sumó "+added+" filtración(es) extra que check-email no indexaba");
+            if(ext.categories.length) brLog("hit","  ── CATEGORÍAS DE DATOS EXPUESTOS ("+ext.categories.length+"): "+esc(ext.categories.slice(0,30).join(", ")));
+            if(ext.pastes) brLog("hit","  ── PASTES (texto crudo filtrado): "+ext.pastes+" — datos pegados en claro en la web");
+            if(ext.industries.length) brLog("t","  ── Industrias de las brechas: "+esc(ext.industries.slice(0,10).join(" · ")));
+            if(ext.riskLabel) brLog("hit","  ── VEREDICTO XposedOrNot: riesgo "+esc(String(ext.riskLabel))+" ("+esc(String(ext.riskScore||"?"))+")");
+          }
+        } else { brLog("t","  ── breach-analytics no respondió — sigo con el resultado de check-email (sin perder nada)"); }
+      } catch(eAn){ /* enriquecimiento opcional */ }
       if(parsed.error){ brLog("hit","✗ XposedOrNot dice: "+esc(parsed.error)+" — probá en un rato (rate-limit posible)"); return; }
       if(!parsed.pwned){
         brLog("ok","  ✓ "+esc(input)+" NO aparece en filtraciones indexadas por XposedOrNot ("+(parsed.note||"Not found")+")");
@@ -29168,6 +29224,7 @@ if(brBtn){ brBtn.disabled = false; brBtn.addEventListener("click", brRun); }
 var brPBtn = document.getElementById("brPassRun");
 if(brPBtn){ brPBtn.disabled = false; brPBtn.addEventListener("click", brPassRun); }
 globalThis.brParseXposed = brParseXposed;
+globalThis.brParseAnalytics = brParseAnalytics;
 globalThis.brSeverity = brSeverity;
 globalThis.brWorst = brWorst;
 globalThis.brYearsExposed = brYearsExposed;

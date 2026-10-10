@@ -4033,6 +4033,9 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #breach .br-leak-list{font-size:10px;color:var(--muted,#8b899c);line-height:2;}
 #breach .br-leak-chip{display:inline-block;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(255,26,46,.16);border:1px solid rgba(255,26,46,.5);border-radius:4px;padding:2px 9px;margin:2px 5px 2px 0;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,26,46,.4);}
 #breach .br-rowskull{margin-right:5px;filter:drop-shadow(0 0 4px rgba(255,26,46,.7));}
+#breach .br-recent{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.1em;color:#001b10;background:var(--green,#00ffa3);border-radius:3px;padding:1px 6px;vertical-align:middle;box-shadow:0 0 10px rgba(0,255,163,.5);text-transform:uppercase;animation:brRecentPulse 1.6s ease-in-out infinite;}
+@keyframes brRecentPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,163,.4);}50%{box-shadow:0 0 16px rgba(0,255,163,.8);}}
+@media (prefers-reduced-motion:reduce){#breach .br-recent{animation:none!important;}}
 @media (prefers-reduced-motion:reduce){#breach .br-skull{animation:none!important;}}
 </style>
 <script>
@@ -28680,6 +28683,13 @@ function brParseXposed(j){
   if(typeof j.breaches === "string") return { pwned:false, note:String(j.breaches) };
   if(Array.isArray(j.breaches)){
     var out = [];
+    /* Formato A — check-email v1: breaches = [["Nombre1","Nombre2", ...]] (solo nombres) */
+    if(j.breaches.length && Array.isArray(j.breaches[0])){
+      var names = j.breaches[0];
+      for(var k=0;k<names.length;k++){ var nm = String(names[k]||"").trim(); if(nm && nm!=="?") out.push({ name:nm, date:"", pwn:0, classes:[], verified:false }); }
+      return { pwned: out.length>0, breaches: out };
+    }
+    /* Formato B — detallado: breaches = [{breach, details:{...}}] */
     for(var i=0; i<j.breaches.length; i++){
       var b = j.breaches[i] || {};
       var d = b.details || {};
@@ -28687,7 +28697,8 @@ function brParseXposed(j){
       if(Array.isArray(d.data_classes)) classes = d.data_classes.slice(0,20);
       else if(d.data_classes && typeof d.data_classes === "object") classes = Object.keys(d.data_classes).slice(0,20);
       var pwn = d.pwn_count || d.compromised_accounts || d.accounts || 0;
-      out.push({ name: String(b.breach || d.breach || "?"), date: d.xdate || d.breach_date || "", pwn: Number(pwn) || 0, classes: classes, verified: !!d.verified });
+      var nm2 = String(b.breach || d.breach || "").trim();
+      if(nm2 && nm2!=="?") out.push({ name: nm2, date: d.xdate || d.breach_date || "", pwn: Number(pwn) || 0, classes: classes, verified: !!d.verified });
     }
     return { pwned: out.length > 0, breaches: out };
   }
@@ -28724,6 +28735,33 @@ function brParseAnalytics(j){
   } catch(e){}
   out.categories = Array.from(new Set(out.categories));
   return out;
+}
+/* ── v2.2: 2ª fuente real de brechas (LeakCheck API pública, sin key) ── */
+function brParseLeakCheck(j){
+  if(!j || typeof j !== "object" || j.success !== true) return null;
+  var fields = Array.isArray(j.fields) ? j.fields : [];
+  var out = { breaches:[], fields:fields };
+  var src = Array.isArray(j.sources) ? j.sources : [];
+  for(var i=0;i<src.length;i++){ var s = src[i] || {}; var nm = String(s.name||"").trim(); if(nm && nm!=="?") out.breaches.push({ name:nm, date:String(s.date||""), pwn:0, classes:fields.slice(0,20), verified:false }); }
+  return out;
+}
+/* ── v2.2: merge inteligente — deduplica por nombre y ENRIQUECE la entrada existente ── */
+function brMergeBreaches(into, more){
+  var added = 0;
+  (more||[]).forEach(function(b){
+    var k = String(b.name||"").toLowerCase();
+    if(!k || k==="?") return;
+    var idx = -1;
+    for(var z=0; z<into.length; z++){ if(String(into[z].name||"").toLowerCase()===k){ idx=z; break; } }
+    if(idx===-1){ into.push(b); added++; }
+    else { var ex = into[idx];
+      if((!ex.classes||!ex.classes.length) && b.classes && b.classes.length) ex.classes = b.classes;
+      if(!ex.pwn && b.pwn) ex.pwn = b.pwn;
+      if(!ex.date && b.date) ex.date = b.date;
+      if(!ex.verified && b.verified) ex.verified = b.verified;
+    }
+  });
+  return added;
 }
 function brRiskScore(breaches){
   var risk = 0;
@@ -28806,8 +28844,10 @@ function brRenderPlan(breaches){
 function brRow(b, risk){
   var cls = b.classes.length ? esc(b.classes.join(", ")) : "—";
   var verdict = b.verified ? '<span class="v blk">CRÍTICA</span>' : '<span class="v mid">ALTA</span>';
+  var _yr = parseInt(String(b.date||"").slice(0,4),10)||0;
+  var _recent = _yr >= 2023 ? '<span class="br-recent">RECIENTE</span>' : '';
   document.getElementById("brBody").insertAdjacentHTML("beforeend",
-    '<tr><td class="t"><span class="br-rowskull">💀</span>'+esc(b.name)+'</td><td>'+esc(b.date||"—")+'</td><td>'+
+    '<tr><td class="t"><span class="br-rowskull">💀</span>'+esc(b.name)+_recent+'</td><td>'+esc(b.date||"—")+'</td><td>'+
     (b.pwn ? b.pwn.toLocaleString("es-CL") : "?")+'</td><td class="vec" title="'+cls+'">'+cls+'</td><td>'+
     (b.verified ? "✔ verificada" : "sin verificar")+'</td><td>'+verdict+'</td></tr>');
 }
@@ -28843,27 +28883,44 @@ async function brRun(){
       var parsed;
       try { parsed = brParseXposed(JSON.parse(String(r.body))); }
       catch(e){ parsed = { pwned:false, error:"respuesta no JSON de la API" }; }
-      /* ── v2.1 ENRIQUECIMIENTO: breach-analytics (muchas más filtraciones + intel) — aditivo, con fallback ── */
+      /* ── v2.2 ENRIQUECIMIENTO MULTI-FUENTE (breach-analytics + LeakCheck) — aditivo, con fallback ── */
+      if(!parsed.breaches) parsed.breaches = [];
       try {
         brLog("t","── fase 2: breach-analytics (endpoint rico: categorías de datos, pastes, industria)…");
-        brFill(55);
+        brFill(50);
         var ra = await brGetHard("https://api.xposedornot.com/v1/breach-analytics?email="+encodeURIComponent(input), 12000);
         if(ra.ok){
           var ext = brParseAnalytics(JSON.parse(String(ra.body)));
           if(ext && ext.breaches && ext.breaches.length){
-            if(!parsed.breaches || !parsed.breaches.length) parsed.breaches = [];
-            var seen = {}; parsed.breaches.forEach(function(b){ seen[String(b.name||"").toLowerCase()] = true; });
-            var added = 0;
-            ext.breaches.forEach(function(b){ var k=String(b.name||"").toLowerCase(); if(!seen[k]){ parsed.breaches.push(b); seen[k]=true; added++; } });
-            parsed.pwned = parsed.breaches.length > 0; parsed.error = null; parsed.note = null; parsed.analytics = ext;
-            if(added) brLog("hit","  ☢ breach-analytics sumó "+added+" filtración(es) extra que check-email no indexaba");
+            var added = brMergeBreaches(parsed.breaches, ext.breaches);
+            parsed.analytics = ext;
+            if(added) brLog("hit","  ☢ breach-analytics sumó "+added+" filtración(es) extra");
             if(ext.categories.length) brLog("hit","  ── CATEGORÍAS DE DATOS EXPUESTOS ("+ext.categories.length+"): "+esc(ext.categories.slice(0,30).join(", ")));
-            if(ext.pastes) brLog("hit","  ── PASTES (texto crudo filtrado): "+ext.pastes+" — datos pegados en claro en la web");
+            if(ext.pastes) brLog("hit","  ── PASTES (texto crudo filtrado): "+ext.pastes);
             if(ext.industries.length) brLog("t","  ── Industrias de las brechas: "+esc(ext.industries.slice(0,10).join(" · ")));
             if(ext.riskLabel) brLog("hit","  ── VEREDICTO XposedOrNot: riesgo "+esc(String(ext.riskLabel))+" ("+esc(String(ext.riskScore||"?"))+")");
           }
-        } else { brLog("t","  ── breach-analytics no respondió — sigo con el resultado de check-email (sin perder nada)"); }
-      } catch(eAn){ /* enriquecimiento opcional */ }
+        } else { brLog("t","  ── breach-analytics no respondió — sigo con lo que tengo"); }
+      } catch(eAn){ /* opcional */ }
+      try {
+        brLog("t","── fase 3: LeakCheck (2ª fuente pública de brechas — más cobertura)…");
+        brFill(62);
+        var rl = await brGetHard("https://leakcheck.io/api/public?check="+encodeURIComponent(input), 12000);
+        if(rl.ok){
+          var lc = brParseLeakCheck(JSON.parse(String(rl.body)));
+          if(lc && lc.breaches && lc.breaches.length){
+            var added2 = brMergeBreaches(parsed.breaches, lc.breaches);
+            if(added2) brLog("hit","  ☢ LeakCheck sumó "+added2+" filtración(es) que las otras fuentes no tenían");
+            if(lc.fields && lc.fields.length) brLog("t","  ── LeakCheck · campos filtrados: "+esc(lc.fields.slice(0,15).join(", ")));
+          }
+        } else { brLog("t","  ── LeakCheck no respondió — sigo con XposedOrNot"); }
+      } catch(eLc){ /* opcional */ }
+      /* limpieza final: fuera nombres vacíos / "?" */
+      parsed.breaches = parsed.breaches.filter(function(b){ return b.name && b.name !== "?"; });
+      /* v2.3: ordenar de la MÁS RECIENTE a la más antigua (las nuevas arriba) */
+      parsed.breaches.sort(function(a,b){ var ya=parseInt(String(a.date||"").slice(0,4),10)||0, yb=parseInt(String(b.date||"").slice(0,4),10)||0; return yb-ya; });
+      parsed.pwned = parsed.breaches.length > 0;
+      if(parsed.breaches.length){ parsed.error = null; parsed.note = null; }
       if(parsed.error){ brLog("hit","✗ XposedOrNot dice: "+esc(parsed.error)+" — probá en un rato (rate-limit posible)"); return; }
       if(!parsed.pwned){
         brLog("ok","  ✓ "+esc(input)+" NO aparece en filtraciones indexadas por XposedOrNot ("+(parsed.note||"Not found")+")");
@@ -28878,7 +28935,7 @@ async function brRun(){
         /* v2 — timeline de exposición */
         var tl = brTimeline(parsed.breaches);
         brLog("t","── TIMELINE DE EXPOSICIÓN (fechas → hoy, barra = registros):");
-        tl.forEach(function(t){ brLog("hit","  ◤ "+String(t.date||"????")+" · "+esc(t.name)+"  "+t.bar+"  "+(t.pwn?t.pwn.toLocaleString("es-CL"):"?")); });
+        tl.forEach(function(t){ var _y=parseInt(String(t.date||"").slice(0,4),10)||0; var _nw=_y>=2023?" ✦ RECIENTE":""; brLog("hit","  💀 "+String(t.date||"????")+" · "+esc(t.name)+_nw+"  "+t.bar+"➤ ⚠ EXPUESTO  ·  "+(t.pwn?t.pwn.toLocaleString("es-CL")+" cuentas":"?")); });
         var worst = brWorst(parsed.breaches);
         if(worst) brLog("hit","  ── PEOR FILTRACIÓN: "+esc(worst.name)+" — severidad "+worst.score+"/100");
         var yrs = brYearsExposed(parsed.breaches);
@@ -29240,6 +29297,8 @@ var brPBtn = document.getElementById("brPassRun");
 if(brPBtn){ brPBtn.disabled = false; brPBtn.addEventListener("click", brPassRun); }
 globalThis.brParseXposed = brParseXposed;
 globalThis.brParseAnalytics = brParseAnalytics;
+globalThis.brParseLeakCheck = brParseLeakCheck;
+globalThis.brMergeBreaches = brMergeBreaches;
 globalThis.brSeverity = brSeverity;
 globalThis.brWorst = brWorst;
 globalThis.brYearsExposed = brYearsExposed;

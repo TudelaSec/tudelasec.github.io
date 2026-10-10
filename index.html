@@ -4023,6 +4023,17 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #dns-auditor .das-verdict .vico{font-size:30px;filter:drop-shadow(0 0 8px currentColor);}
 #dns-auditor .das-verdict .vttl{font-size:17px;}
 @media(prefers-reduced-motion:reduce){#dns-auditor *{animation:none!important;}}
+/* ── Breach Radar: marcador de CORREO FILTRADO (calavera + fuentes) ── */
+#breach .br-pwned-banner{display:flex;align-items:center;gap:16px;width:100%;background:linear-gradient(100deg,rgba(255,26,46,.15),rgba(255,26,46,.03));border:1px solid rgba(255,26,46,.5);border-radius:8px;padding:14px 18px;margin-bottom:14px;box-shadow:0 0 26px rgba(255,26,46,.2),inset 0 0 20px rgba(255,26,46,.05);animation:brPwnIn .45s ease both;}
+#breach .br-skull{font-size:42px;line-height:1;animation:brSkull 1.1s ease-in-out infinite;}
+@keyframes brSkull{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px rgba(255,26,46,.75));}50%{transform:scale(1.14);filter:drop-shadow(0 0 20px rgba(255,26,46,1));}}
+@keyframes brPwnIn{from{opacity:0;transform:translateY(-7px);}to{opacity:1;transform:none;}}
+#breach .br-pwned-txt{flex:1;min-width:0;}
+#breach .br-pwned-txt>b{display:block;font-family:var(--disp,"Orbitron");font-size:17px;letter-spacing:2px;color:var(--acc,#ff1a2e);text-shadow:0 0 12px rgba(255,26,46,.6);margin-bottom:7px;}
+#breach .br-leak-list{font-size:10px;color:var(--muted,#8b899c);line-height:2;}
+#breach .br-leak-chip{display:inline-block;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(255,26,46,.16);border:1px solid rgba(255,26,46,.5);border-radius:4px;padding:2px 9px;margin:2px 5px 2px 0;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,26,46,.4);}
+#breach .br-rowskull{margin-right:5px;filter:drop-shadow(0 0 4px rgba(255,26,46,.7));}
+@media (prefers-reduced-motion:reduce){#breach .br-skull{animation:none!important;}}
 </style>
 <script>
 /* ════════════════════════════════════════════════════════════════════════
@@ -28796,7 +28807,7 @@ function brRow(b, risk){
   var cls = b.classes.length ? esc(b.classes.join(", ")) : "—";
   var verdict = b.verified ? '<span class="v blk">CRÍTICA</span>' : '<span class="v mid">ALTA</span>';
   document.getElementById("brBody").insertAdjacentHTML("beforeend",
-    '<tr><td class="t">'+esc(b.name)+'</td><td>'+esc(b.date||"—")+'</td><td>'+
+    '<tr><td class="t"><span class="br-rowskull">💀</span>'+esc(b.name)+'</td><td>'+esc(b.date||"—")+'</td><td>'+
     (b.pwn ? b.pwn.toLocaleString("es-CL") : "?")+'</td><td class="vec" title="'+cls+'">'+cls+'</td><td>'+
     (b.verified ? "✔ verificada" : "sin verificar")+'</td><td>'+verdict+'</td></tr>');
 }
@@ -28874,7 +28885,11 @@ async function brRun(){
         if(yrs !== null) brLog("hit","  ── AÑOS CON TUS DATOS EN LA CALLE: "+yrs.toFixed(1)+" — los datos NO caducan, se re-venden");
         var plan = brRenderPlan(parsed.breaches);
         brLog("t","  🧯 PLAN DE ENDURECIMIENTO generado ("+plan.length+" acciones) — abajo de la tabla, en orden de prioridad");
-        summ.innerHTML = '<div class="br-stat c"><b>'+parsed.breaches.length+'</b><span>FILTRACIONES</span></div>'+
+        var _leakNames = parsed.breaches.map(function(b){ return b.name; });
+        var _chips = _leakNames.slice(0,40).map(function(n){ return '<span class="br-leak-chip">'+esc(n)+'</span>'; }).join('');
+        var _moreLeaks = _leakNames.length>40 ? ' +'+(_leakNames.length-40)+' más' : '';
+        var _pwnBanner = '<div class="br-pwned-banner"><span class="br-skull">💀</span><div class="br-pwned-txt"><b>CORREO FILTRADO</b><div class="br-leak-list">Filtrado en '+_leakNames.length+' brecha(s): '+_chips+_moreLeaks+'</div></div></div>';
+        summ.innerHTML = _pwnBanner + '<div class="br-stat c"><b>'+parsed.breaches.length+'</b><span>FILTRACIONES</span></div>'+
           '<div class="br-stat c"><b>'+risk+'/100</b><span>RIESGO DE EXPOSICIÓN</span></div>'+
           '<div class="br-stat c"><b>'+(worst?esc(worst.name):"—")+'</b><span>PEOR FILTRACIÓN ('+(worst?worst.score:0)+'/100)</span></div>'+
           '<div class="br-stat c"><b>'+(yrs!==null?yrs.toFixed(1)+" AÑOS":"—")+'</b><span>EN LA CALLE</span></div>'+

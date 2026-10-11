@@ -3117,7 +3117,7 @@ a{color:inherit;text-decoration:none;}
 #ctfGate .ctf-blink{animation:ctfBlink 1s linear infinite;}
 @keyframes ctfBlink{50%{opacity:0}}
 #ctfGate .ctf-topbar{display:flex;gap:8px;margin-top:14px;}
-#ctfGate .ctf-topbar .ctf-field{flex:1;}
+#ctfGate .ctf-topbar .ctf-field{flex:1;}#ctfGate .ctf-score{margin-top:12px;border:1px solid rgba(255,26,46,.2);border-radius:7px;background:rgba(255,26,46,.04);padding:11px 12px;}#ctfGate .ctf-score-top{display:flex;justify-content:space-between;font-family:var(--mono,monospace);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,120,130,.8);margin-bottom:8px;}#ctfGate .ctf-score-top b{color:#27c93f;text-shadow:0 0 7px rgba(39,201,63,.45);}#ctfGate .ctf-score-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:10px;}#ctfGate .ctf-score-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff1a2e,#ffb020 60%,#27c93f);box-shadow:0 0 12px rgba(39,201,63,.5);transition:width .55s cubic-bezier(.16,1,.3,1);}#ctfGate .ctf-fchips{display:flex;flex-wrap:wrap;gap:6px;}#ctfGate .ctf-fchip{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.05em;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,26,46,.3);color:rgba(240,238,248,.5);background:rgba(255,255,255,.02);cursor:help;}#ctfGate .ctf-fchip.got{color:#021007;background:#27c93f;border-color:#27c93f;box-shadow:0 0 12px rgba(39,201,63,.5);font-weight:700;}.ctf-xss-pop{position:fixed;inset:0;z-index:10050;display:flex;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.35);}.ctf-xss-box{margin-top:14vh;min-width:300px;max-width:90vw;background:#f4f4f6;border:1px solid #c9c9cf;border-radius:10px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.6);font-family:system-ui,Segoe UI,Arial,sans-serif;animation:ctfIn .18s ease both;}.ctf-xss-hd{background:#e7e7ea;padding:11px 16px;font-size:13px;font-weight:600;color:#1a1a1a;border-bottom:1px solid #d4d4d8;}.ctf-xss-msg{padding:20px 16px;font-size:15px;color:#111;word-break:break-word;}.ctf-xss-ok{display:block;margin:0 16px 16px auto;background:#1a73e8;color:#fff;border:none;padding:7px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}.ctf-xss-ok:hover{background:#1557b0;}
 #ctfGate .ctf-hint{margin-top:18px;text-align:center;font-size:10px;color:var(--muted,#8b899c);line-height:1.7;}
 #ctfGate .ctf-skip{display:block;margin:12px auto 0;background:none;border:none;border-bottom:1px dashed var(--muted,#8b899c);color:var(--muted,#8b899c);font-family:var(--mono,monospace);font-size:10px;cursor:pointer;padding:2px 6px;opacity:.75;transition:all .3s;}
 #ctfGate .ctf-skip:hover{opacity:1;color:var(--acc,#ff1a2e);border-color:var(--acc,#ff1a2e);}
@@ -26809,9 +26809,210 @@ async function ctfBoot(){
   await ctfType('[+] vectores en escucha: SQLi · XSS · LFI · RCE · credenciales por defecto', 'ctf-c');
   await ctfType('[!] credenciales filtradas detectadas en el código fuente (OSINT)', 'ctf-r');
   await ctfType('[+] 3 intentos de acceso no autorizado desde 192.168.13.37 (bloqueados)', 'ctf-a');
+  await ctfType('[>] LAB INTERACTIVO activo — escribí  help  para ver los vectores y capturá las 6 flags', 'ctf-c');
   await ctfType('root@tudela-sec:~$ ', 'ctf-g');
   var t = $('ctfOut');
   if(t && t.insertAdjacentHTML) t.insertAdjacentHTML('beforeend', '<span class="ctf-blink ctf-g">_</span><br>');
+}
+
+/* ═══ v3 (sesión #34) — LAB INTERACTIVO: flags + filesystem virtual + motor SQL + shell emulada ═══ */
+var FKEY = 'ts_ctf_flags';
+var isRoot = false;
+function esc2(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var FLAGS = [
+  { id:'osint', tag:'OSINT', flag:'TUDELASEC{s0urc3_l34k_c0mm3nt}', hint:'Credenciales de dev filtradas en el código fuente' },
+  { id:'sqli',  tag:'SQLi',  flag:'TUDELASEC{sql_4uth_byp4ss_0r_1}', hint:"Auth bypass con ' OR 1=1--" },
+  { id:'lfi',   tag:'LFI',   flag:'TUDELASEC{p4th_tr4v3rs4l_pwn}', hint:'Leé /etc/passwd o el config con ../' },
+  { id:'xss',   tag:'XSS',   flag:'TUDELASEC{d0m_xss_1n_th3_1ds}', hint:'Dispará alert() en la consola IDS' },
+  { id:'rce',   tag:'RCE',   flag:'TUDELASEC{c0mm4nd_1nj_sh3ll}', hint:'Conseguí ejecución: cat flag.txt' },
+  { id:'root',  tag:'ROOT',  flag:CTF_FLAG, hint:'Privesc a root y leé /root/flag.txt' }
+];
+var VFS = {
+ '/etc/passwd':'root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\ntudela:x:1000:1000:Matias Ramirez Tudela,,,:/home/tudela:/bin/bash\n# dev-note: la app PHP corre como www-data; credenciales de DB en /var/www/html/config.php',
+ '/var/www/html/config.php':"<?php\n// TudelaSec CMS - config de base de datos\n$DB_HOST = 'localhost';\n$DB_USER = 'tudela';\n$DB_PASS = 'tudela';            // FIXME: rotar esta clave\ndefine('ADMIN_MD5','5f4dcc3b5aa765d61d8327deb882cf99'); // md5 de la pass de admin\n// nota: www-data quedo con sudo NOPASSWD (mala practica) -> proba: sudo -l",
+ '/var/www/html/flag.txt':'TUDELASEC{c0mm4nd_1nj_sh3ll}',
+ '/root/flag.txt':CTF_FLAG,
+ '/home/tudela/.bash_history':'ls -la\nmysql -u tudela -ptudela tudelacms\nsudo su\nvim /var/www/html/config.php\nhistory -c',
+ '/var/www/html/.env':'APP_ENV=production\nAPI_KEY=sk_live_t0d0_h4rdc0d34d0_x9\nJWT_SECRET=tudela_super_secret_2024\n# no subas esto al repo...',
+ '/var/www/html/robots.txt':'User-agent: *\nDisallow: /admin\nDisallow: /backup\nDisallow: /.git\nDisallow: /config.php   # oops, no referenciar esto aca'
+};
+
+function getFlags(){ try { return JSON.parse(localStorage.getItem(FKEY)||'{}') || {}; } catch(e){ return {}; } }
+function saveFlags(o){ try { localStorage.setItem(FKEY, JSON.stringify(o)); } catch(e){} }
+function flagCount(o){ o = o || getFlags(); var n = 0; for(var i=0;i<FLAGS.length;i++){ if(o[FLAGS[i].id]) n++; } return n; }
+function rankFor(n){ return n>=6?'root · 0xFF' : n>=4?'operator' : n>=2?'analyst' : n>=1?'script kiddie' : 'anónimo'; }
+function flagById(id){ for(var i=0;i<FLAGS.length;i++){ if(FLAGS[i].id===id) return FLAGS[i]; } return null; }
+function markFlag(id){ var o=getFlags(); if(!o[id]){ o[id]=1; saveFlags(o); try{ renderScore(); }catch(e){} } }
+
+function ensureScore(){
+  var ex = $('ctfScore'); if(ex) return ex;
+  var term = null; try { term = document.querySelector('#ctfGate .ctf-term'); } catch(e){}
+  if(!term) return null;
+  var d = document.createElement('div'); d.id = 'ctfScore'; d.className = 'ctf-score';
+  term.appendChild(d); return d;
+}
+function renderScore(){
+  var el = ensureScore(); if(!el) return;
+  var o = getFlags(), n = flagCount(o), pct = Math.round(n/FLAGS.length*100);
+  var chips = '';
+  for(var i=0;i<FLAGS.length;i++){ var f=FLAGS[i], got=!!o[f.id];
+    chips += '<span class="ctf-fchip'+(got?' got':'')+'" title="'+esc2(got?f.flag:f.hint)+'">'+(got?'✓ ':'🔒 ')+f.tag+'</span>'; }
+  el.innerHTML = '<div class="ctf-score-top"><span>FLAGS <b>'+n+'/'+FLAGS.length+'</b></span><span>RANGO <b>'+esc2(rankFor(n))+'</b></span></div>'
+    + '<div class="ctf-score-bar"><i style="width:'+pct+'%"></i></div>'
+    + '<div class="ctf-fchips">'+chips+'</div>';
+}
+
+async function printLines(text, cls){
+  var parts = String(text).split('\n');
+  for(var i=0;i<parts.length;i++){ await ctfType(parts[i], cls); }
+}
+async function award(id){
+  var o = getFlags(); if(o[id]) { await ctfType('[*] (flag '+id.toUpperCase()+' ya capturada)', 'ctf-m'); return false; }
+  var f = flagById(id); if(!f) return false;
+  o[id] = 1; saveFlags(o);
+  await ctfType('  ┌─────────────────────────────────────────┐', 'ctf-g');
+  await ctfType('  │  ✓ FLAG CAPTURADA · '+f.tag, 'ctf-g');
+  await ctfType('  │  '+f.flag, 'ctf-g');
+  await ctfType('  └─────────────────────────────────────────┘', 'ctf-g');
+  var n = flagCount(o);
+  await ctfType('[+] Progreso: '+n+'/'+FLAGS.length+' vectores · rango: '+rankFor(n), 'ctf-c');
+  renderScore();
+  if(n >= FLAGS.length){ await sleep(500); ctfWin('LAB COMPLETO — '+n+'/'+FLAGS.length+' flags', 'todos los vectores'); }
+  return true;
+}
+
+/* ── XSS: alert() falso tipo navegador (ejecución simulada y segura) ── */
+function xssPop(msg){
+  try {
+    var w = document.createElement('div'); w.className = 'ctf-xss-pop';
+    w.innerHTML = '<div class="ctf-xss-box"><div class="ctf-xss-hd">localhost dice:</div><div class="ctf-xss-msg">'+esc2(msg)+'</div><button class="ctf-xss-ok">Aceptar</button></div>';
+    document.body.appendChild(w);
+    var ok = w.querySelector('.ctf-xss-ok'); if(ok) ok.onclick = function(){ try{ w.parentNode.removeChild(w); }catch(e){} };
+    setTimeout(function(){ try{ if(w.parentNode) w.parentNode.removeChild(w); }catch(e){} }, 5000);
+  } catch(e){}
+}
+
+/* ── Motor SQL simulado del login ── */
+function sqlEngine(inj){
+  var s = String(inj);
+  var rows = [
+    { id:1, user:'admin',  pass:'Tudela', role:'superadmin' },
+    { id:2, user:'tudela', pass:'tudela', role:'admin' },
+    { id:3, user:'guest',  pass:'guest',  role:'guest' }
+  ];
+  if(/union\s+select/i.test(s)) return { ok:true, bypass:true, dump:rows, note:'UNION SELECT — columnas de users reflejadas en la respuesta' };
+  if(ctfIsSqli(s))              return { ok:true, bypass:true, dump:rows, note:'tautología (OR 1=1) — el WHERE siempre evalúa verdadero' };
+  if(/'/.test(s))               return { ok:false, error:"ERROR 1064 (42000): You have an error in your SQL syntax near '"+s.slice(-14)+"' (MariaDB 10.5)" };
+  return { ok:false, error:null };
+}
+
+/* ── Lectura de archivos: resuelve ../, url-encode y php://filter ── */
+function vfsRead(raw){
+  var p = String(raw).trim(), b64 = false;
+  var m = p.match(/php:\/\/filter\/.*resource=(.+)$/i);
+  if(m){ b64 = /base64/i.test(p); p = m[1]; }
+  try { p = decodeURIComponent(p); } catch(e){}
+  p = p.replace(/%2e/gi,'.').replace(/%2f/gi,'/').replace(/\\/g,'/').replace(/\.\.\.\.\/\//g,'../');
+  var keys = Object.keys(VFS), i;
+  for(i=0;i<keys.length;i++){ if(p===keys[i]) return { path:keys[i], data:VFS[keys[i]], b64:b64 }; }
+  var base = p.split('/').pop();
+  for(i=0;i<keys.length;i++){ if(keys[i].split('/').pop()===base) return { path:keys[i], data:VFS[keys[i]], b64:b64 }; }
+  for(i=0;i<keys.length;i++){ if(p.indexOf(keys[i])>-1) return { path:keys[i], data:VFS[keys[i]], b64:b64 }; }
+  return null;
+}
+async function catFile(path, tag){
+  var r = vfsRead(path);
+  if(!r){ await ctfType('cat: '+path+': No such file or directory', 'ctf-a'); return; }
+  if(r.path==='/root/flag.txt' && !isRoot){ await ctfType('cat: /root/flag.txt: Permission denied (sos www-data) — necesitás privesc: sudo -l', 'ctf-r'); return; }
+  var data = r.data;
+  if(r.b64){ try { data = btoa(unescape(encodeURIComponent(data))); } catch(e){} await ctfType(data, 'ctf-g'); }
+  else await printLines(data, 'ctf-g');
+  if(r.path==='/etc/passwd' || r.path.indexOf('config.php')>-1) await award('lfi');
+  if(r.path==='/var/www/html/flag.txt') await award('rce');
+  if(r.path==='/root/flag.txt' && isRoot) await award('root');
+}
+
+/* ── Intérprete de la consola IDS ── */
+async function ctfExec(raw){
+  var v = String(raw||'').trim(); if(!v) return;
+  await ctfType((isRoot?'root@tudela-sec:/# ':'www-data@tudela-sec:/var/www/html$ ')+v, 'ctf-g');
+  var low = v.toLowerCase();
+
+  /* 1) XSS */
+  if(/<script|onerror\s*=|onload\s*=|<img|<svg|alert\s*\(|javascript:|document\.cookie/i.test(v)){
+    var mm = v.match(/alert\s*\(([^)]*)\)/i); var msg = mm ? mm[1].replace(/^\s*['"]?|['"]?\s*$/g,'') : '1';
+    if(/document\.cookie/i.test(v)) msg = 'session=ADMIN-9f3c1a; role=superadmin';
+    await ctfType('[IDS] WAF regla 941110 (XSS) evaluando payload…', 'ctf-m');
+    await ctfType('[!] input reflejado sin sanitizar en el DOM del IDS → script ejecutado', 'ctf-a');
+    xssPop(msg || '1');
+    await award('xss');
+    return;
+  }
+  /* 2) comandos de shell */
+  var cmd = low.split(/\s+/)[0];
+  var argRaw = v.replace(/^\s*\S+\s*/, '').trim();
+  if(cmd==='help' || cmd==='?'){
+    await printLines('comandos del lab:\n  help · ls · cat <archivo> · whoami · id · pwd · uname -a · history · clear\n  mysql -u <u> -p<pass>        (DB)\n  sudo -l | sudo su            (privesc)\nvectores que entiende la consola:\n  SQLi  ->  \' OR 1=1--   |   \' UNION SELECT ...\n  LFI   ->  ../../../etc/passwd   |   php://filter/convert.base64-encode/resource=/var/www/html/config.php\n  XSS   ->  <img src=x onerror=alert(1)>\n  RCE   ->  cat flag.txt\nobjetivo: capturá las 6 flags. mirá el marcador abajo. 🧩', 'ctf-c');
+    return;
+  }
+  if(cmd==='clear' || cmd==='cls'){ var t=$('ctfOut'); if(t) t.innerHTML=''; return; }
+  if(cmd==='whoami'){ await ctfType(isRoot?'root':'www-data', 'ctf-g'); return; }
+  if(cmd==='id'){ await ctfType(isRoot?'uid=0(root) gid=0(root) groups=0(root)':'uid=33(www-data) gid=33(www-data) groups=33(www-data)', 'ctf-g'); return; }
+  if(cmd==='pwd'){ await ctfType('/var/www/html', 'ctf-g'); return; }
+  if(cmd==='uname'){ await ctfType('Linux tudela-sec 5.15.0-91-generic #101-Ubuntu SMP x86_64 GNU/Linux', 'ctf-g'); return; }
+  if(cmd==='history'){ await catFile('/home/tudela/.bash_history'); return; }
+  if(cmd==='echo'){ await ctfType(argRaw, 'ctf-g'); return; }
+  if(cmd==='ls' || cmd==='dir'){
+    if(/\/etc/.test(v)) await ctfType('passwd  shadow  hosts  cron.d  nginx', 'ctf-g');
+    else if(/^\/\s*$|\s\/$/.test(v) || argRaw==='/') await ctfType('bin  boot  etc  home  root  tmp  usr  var', 'ctf-g');
+    else await printLines('index.php  config.php  flag.txt  .env  robots.txt  uploads/  assets/', 'ctf-g');
+    return;
+  }
+  if(cmd==='cat' || cmd==='less' || cmd==='more' || cmd==='type'){
+    if(!argRaw){ await ctfType('uso: cat <archivo>', 'ctf-a'); return; }
+    await catFile(argRaw); return;
+  }
+  if(cmd==='mysql'){
+    await printLines('Welcome to the MariaDB monitor.\nMariaDB [tudelacms]> -- probá:  SELECT * FROM users WHERE user=\'\' OR 1=1-- -\n-- o inyectá directo acá arriba en la barra del IDS 😉', 'ctf-c');
+    return;
+  }
+  if(cmd==='curl' || cmd==='wget' || cmd==='source' || low.indexOf('view-source')>-1){
+    await printLines('<!DOCTYPE html>\n<head><title>TudelaSec // ROOT GATEWAY</title></head>\n<body> ... </body>\n[comentario HTML olvidado en el <head>]:\n   dev login provisorio -> admin / tudela   (TODO: quitar antes de prod)', 'ctf-c');
+    await ctfType('[+] Credenciales de dev filtradas en el código fuente (OSINT)', 'ctf-a');
+    await award('osint');
+    return;
+  }
+  if(cmd==='sudo'){
+    if(/-l\b/.test(low)){ await printLines('Matching Defaults entries for www-data:\n  env_reset, mail_badpass\nUser www-data may run the following commands:\n  (ALL : ALL) NOPASSWD: ALL   <-- misconfig! probá: sudo su', 'ctf-a'); return; }
+    if(/\b(su|-i|bash|sh)\b/.test(low)){ isRoot = true; await ctfType('[+] uid elevado → root. Ahora: cat /root/flag.txt', 'ctf-c'); await ctfType('root@tudela-sec:/#', 'ctf-g'); return; }
+    if(/cat\s+\/root\/flag\.txt/.test(low)){ isRoot = true; await catFile('/root/flag.txt'); return; }
+    await ctfType('sudo: comando requerido — probá: sudo -l', 'ctf-a'); return;
+  }
+
+  /* 3) LFI / path traversal */
+  if(/\.\.\/|\.\.%2f|%2e%2e|php:\/\/|\/etc\/passwd|\/var\/www|\/root\/|\.bash_history|\.env\b|robots\.txt|config\.php/i.test(v)){
+    await ctfType('[IDS] include() con input de usuario — sin allow-list de rutas', 'ctf-m');
+    await catFile(v); return;
+  }
+  /* 4) SQLi suelto en la barra */
+  if(/'|union\s+select|\bor\s+1\s*=\s*1\b|--/i.test(v)){
+    var r = sqlEngine(v);
+    if(r.ok && r.bypass){
+      await ctfType('[DB] SELECT * FROM users WHERE user=\''+v+'\' AND pass=\'****\'', 'ctf-m');
+      await ctfType('[DB] '+r.note, 'ctf-c');
+      await ctfType('  id | user   | pass    | role', 'ctf-g');
+      await ctfType('  ---+--------+---------+-----------', 'ctf-g');
+      for(var i=0;i<r.dump.length;i++){ var ro=r.dump[i]; await ctfType('  '+ro.id+'  | '+ro.user+(ro.user.length<6?'  ':' ')+' | '+ro.pass+'  | '+ro.role, 'ctf-g'); }
+      await ctfType('[+] Auth bypass: '+r.dump.length+' filas devueltas → sesión como admin', 'ctf-c');
+      await award('sqli');
+    } else if(r.error){
+      await ctfType(r.error, 'ctf-r');
+      await ctfType('   tip (error-based): cerrá la comilla y comentá el resto con  -- -', 'ctf-m');
+    } else { await ctfType('bash: '+v+': command not found', 'ctf-a'); }
+    return;
+  }
+  /* 5) desconocido */
+  await ctfType('bash: '+cmd+': command not found  (escribí  help )', 'ctf-a');
 }
 
 /* ═══ WIRING ═══ */
@@ -26822,6 +27023,7 @@ function ctfOpen(){
   var u = $('ctfUser');
   if(u && u.focus) setTimeout(function(){ try { u.focus(); } catch(e){} }, 250);
   ctfBoot();   /* fire-and-forget: la terminal arranca sola al abrir */
+  try { renderScore(); } catch(e){}
 }
 function ctfHideNow(){
   var gate = $('ctfGate'); if(gate) gate.style.display = 'none';
@@ -26832,22 +27034,20 @@ function wireForm(){
   f.addEventListener('submit', function(e){
     if(e && e.preventDefault) e.preventDefault();
     var u = (($('ctfUser')||{}).value || ''), p = (($('ctfPass')||{}).value || '');
-    if(ctfCreds(u, p)){ ctfWin('Default Credentials (OSINT del código fuente)', 'admin / Tudela'); return; }
-    if(ctfIsSqli(u)){ ctfWin('SQL Injection (Auth Bypass)', u); return; }
-    if(ctfIsSqli(p)){ ctfWin('SQL Injection (Auth Bypass)', '(por el campo de contraseña)'); return; }
+    if(ctfCreds(u, p)){ markFlag('osint'); ctfWin('Default Credentials (OSINT del código fuente)', 'admin / Tudela'); return; }
+    if(ctfIsSqli(u)){ markFlag('sqli'); ctfWin('SQL Injection (Auth Bypass)', u); return; }
+    if(ctfIsSqli(p)){ markFlag('sqli'); ctfWin('SQL Injection (Auth Bypass)', '(por el campo de contraseña)'); return; }
     ctfFail();
   });
 }
 function wireTop(){
   var btn = $('ctfTopBtn'), inp = $('ctfTop');
+  var busy = false;
   function run(){
     var v = (inp && inp.value) || '';
-    if(!v) return;
-    var vec = ctfTopVector(v);
-    if(vec){
-      if(vec.indexOf('XSS') > -1){ try { eval(String(v).replace(/<\/?script>/g, '')); } catch(e){} }
-      ctfWin(vec, v);
-    } else ctfFail('comando no reconocido por el gateway');
+    if(!v || busy) return;
+    busy = true; if(inp) inp.value = '';
+    Promise.resolve(ctfExec(v)).catch(function(){}).then(function(){ busy = false; var t = $('ctfOut'); if(t) t.scrollTop = t.scrollHeight; });
   }
   if(btn) btn.addEventListener('click', run);
   if(inp) inp.addEventListener('keydown', function(e){ if(e && e.key === 'Enter'){ if(e.preventDefault) e.preventDefault(); run(); } });

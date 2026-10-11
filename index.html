@@ -4050,6 +4050,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #payloads .pay-card.pay-danger{border-color:rgba(255,26,46,.4)!important;box-shadow:inset 0 0 0 1px rgba(255,26,46,.12);}
 #payloads .pay-card.pay-danger:hover{box-shadow:0 10px 40px rgba(255,26,46,.3);}
 #payloads .pay-card.pay-danger .pay-code{border-left:2px solid var(--acc,#ff1a2e);}
+#payloads .pay-dd-label-row{font-family:var(--mono);font-size:11px;color:rgba(240,238,248,.5);margin-bottom:13px;letter-spacing:.02em;}#payloads .pay-tabs{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:30px;}#payloads .pay-pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:rgba(240,238,248,.62);background:rgba(255,255,255,.02);border:1px solid var(--line,rgba(255,255,255,.1));border-radius:999px;padding:8px 15px;cursor:pointer;transition:transform .16s,background .16s,border-color .16s,color .16s,box-shadow .16s;white-space:nowrap;}#payloads .pay-pill:hover{color:#fff;border-color:rgba(255,26,46,.45);background:rgba(255,26,46,.06);transform:translateY(-2px);}#payloads .pay-pill .pay-pill-n{font-size:9px;font-weight:700;color:rgba(240,238,248,.45);background:rgba(255,255,255,.06);border-radius:999px;padding:1px 7px;line-height:1.5;}#payloads .pay-pill.active{color:#fff;background:linear-gradient(100deg,rgba(255,26,46,.92),rgba(196,0,26,.72));border-color:transparent;box-shadow:0 5px 20px rgba(255,26,46,.4);transform:translateY(-1px);}#payloads .pay-pill.active .pay-pill-n{color:#fff;background:rgba(0,0,0,.28);}#payloads .pay-pill .pay-pill-dot{width:7px;height:7px;border-radius:50%;background:var(--acc,#ff1a2e);box-shadow:0 0 9px var(--acc,#ff1a2e);flex:none;animation:brSkull 1.5s ease-in-out infinite;}#payloads .pay-pill.active .pay-pill-dot{background:#fff;box-shadow:0 0 9px #fff;}#payloads .pay-auth-note{display:flex;gap:8px;align-items:flex-start;font-family:var(--mono);font-size:9.5px;line-height:1.55;color:#ff9ba6;background:rgba(255,26,46,.07);border-top:1px solid rgba(255,26,46,.2);padding:8px 14px;}#payloads .pay-auth-note .pay-auth-ico{font-size:13px;line-height:1.1;flex:none;}#payloads .pay-auth-note b{color:#fff;}
 #breach .br-recent{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.1em;color:#001b10;background:var(--green,#00ffa3);border-radius:3px;padding:1px 6px;vertical-align:middle;box-shadow:0 0 10px rgba(0,255,163,.5);text-transform:uppercase;animation:brRecentPulse 1.6s ease-in-out infinite;}
 @keyframes brRecentPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,163,.4);}50%{box-shadow:0 0 16px rgba(0,255,163,.8);}}
 @media (prefers-reduced-motion:reduce){#breach .br-recent{animation:none!important;}}
@@ -4079,10 +4080,11 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
   var TIMEOUT    = 8000;
 
   /* Selectores DKIM comunes de proveedores reales (sondeo pasivo) */
-  var DKIM_SELECTORS = ['default','google','selector1','selector2','s1','s2','k1','k2',
-    'dkim','mail','smtp','mandrill','mailjet','sendgrid','sg','zoho','zmail','pm',
-    'protonmail','protonmail2','protonmail3','fm1','fm2','fm3','mxvault','everlytickey1',
-    'scph0920','ctct1','ctct2','dkim1','key1','sig1','mta','amazonses'];
+  var DKIM_SELECTORS = ['default','google','google2048','selector','selector1','selector2','s1','s2','s3','k1','k2','k3',
+    'dkim','dkim1','dkim2','mail','mail1','mail2','smtp','smtpapi','mandrill','mailjet','sendgrid','sg','sm1','sm2',
+    'zoho','zmail','pm','protonmail','protonmail2','protonmail3','fm1','fm2','fm3','mxvault','everlytickey1','everlytickey2',
+    'scph0920','scph1118','ctct1','ctct2','key1','key2','sig1','mta','amazonses','ses','mg','mailgun','sparkpost',
+    'yandex','email','e','d','turbo-smtp','proddkim','dkimrnt','20161025','20150623','ebmailerd','hs1','hs2'];
 
   var RRTYPE = {1:'A',2:'NS',5:'CNAME',6:'SOA',12:'PTR',15:'MX',16:'TXT',28:'AAAA',33:'SRV',43:'DS',48:'DNSKEY',52:'TLSA',257:'CAA'};
 
@@ -4142,6 +4144,8 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       else if(qual === '+'){ level='bad'; status='PASS-ALL (+all)'; note='CRÍTICO: +all autoriza a CUALQUIER servidor. El dominio es un relay abierto de identidad.'; }
       else { level='warn'; status='SIN "all"'; note='El registro no termina en un mecanismo "all" explícito: comportamiento indefinido.'; }
       if(lookups > 10){ level = (level==='ok'?'warn':level); note += ' Además: ' + lookups + ' lookups DNS (>10 = PermError, SPF deja de evaluarse).'; }
+      if(/\bptr[:\s]|\bptr$/i.test(rec)){ if(level==='ok') level='warn'; note += ' Usa el mecanismo "ptr" (obsoleto por RFC 7208 §5.5: lento, poco fiable y filtra info de PTR).'; }
+      if(/[\s][+](a|mx|ip4|ip6|include|exists)/i.test(rec)){ note += ' Contiene mecanismos con qualifier "+" explícito (pass forzado): revisá que no amplíen de más el conjunto autorizado.'; }
       return { level:level, status:status, record:rec, note:note, qualifier:qual, mechanisms:(rec.split(/\s+/).length-1), lookups:lookups };
     }).catch(function(e){ return { level:'bad', status:'ERROR', record:null, note:'No se pudo resolver TXT: ' + e.message, lookups:0 }; });
   }
@@ -4164,26 +4168,42 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       else { level='bad'; status='SIN POLÍTICA'; note='Registro DMARC sin tag "p" válido: inefectivo.'; }
       if(pct < 100 && level==='ok'){ level='warn'; note += ' pct=' + pct + ': la política solo se aplica al ' + pct + '% del correo.'; }
       var extra = [];
-      if(sp) extra.push('sp=' + sp);
-      if(tags.rua) extra.push('rua ✓'); else extra.push('sin rua (sin reportes agregados)');
-      if(tags.adkim) extra.push('adkim=' + tags.adkim);
-      if(tags.aspf) extra.push('aspf=' + tags.aspf);
+      if(sp) extra.push('sp=' + sp); else if(p) extra.push('sin sp → subdominios heredan p=' + p);
+      if(tags.rua){ extra.push('rua ✓');
+        var ruaDoms = (tags.rua.match(/@([a-z0-9.-]+)/gi) || []).map(function(x){ return x.slice(1).toLowerCase(); }).filter(function(d){ return d.indexOf(domain) === -1; });
+        if(ruaDoms.length) extra.push('⚠ rua externo (' + ruaDoms.join(',') + '): requiere record de autorización en el destino o se descartan los reportes');
+      } else extra.push('sin rua (sin reportes agregados: ciego a los ataques)');
+      if(tags.ruf) extra.push('ruf ✓ (forenses)');
+      if(tags.fo) extra.push('fo=' + tags.fo);
+      if(tags.adkim) extra.push('adkim=' + tags.adkim + (tags.adkim.toLowerCase()==='s'?' (estricto)':' (relajado)'));
+      if(tags.aspf) extra.push('aspf=' + tags.aspf + (tags.aspf.toLowerCase()==='s'?' (estricto)':' (relajado)'));
       return { level:level, status:status, record:rec, note:note, tags:tags, policy:p, pct:pct, extra:extra.join(' · ') };
     }).catch(function(e){ return { level:'bad', status:'ERROR', record:null, note:'No se pudo resolver _dmarc: ' + e.message }; });
   }
 
   /* ═══ SONDEO DKIM (selectores comunes en paralelo) ═══ */
   function auditDKIM(domain){
-    var found = [];
+    var found = [], keys = [];
     var probes = DKIM_SELECTORS.map(function(sel){
       return doh(sel + '._domainkey.' + domain, 'TXT').then(function(j){
         var hit = answers(j, 16).map(function(a){ return txt(a.data); }).filter(function(s){ return /v=DKIM1|k=rsa|p=[A-Za-z0-9+\/]/i.test(s); });
-        if(hit.length) found.push(sel);
+        if(hit.length){ found.push(sel); keys.push({ sel:sel, rec:hit[0] }); }
       }).catch(function(){ /* selector inexistente: normal */ });
     });
     return Promise.all(probes).then(function(){
-      if(found.length) return { level:'ok', status:found.length + ' SELECTOR(ES)', record:found.join(', '), note:'Se encontró clave pública DKIM en: ' + found.join(', ') + '. El correo puede firmarse criptográficamente.' };
-      return { level:'warn', status:'NO DETECTADO', record:null, note:'Ningún selector común respondió. DKIM puede existir bajo un selector propietario no sondeado (ausencia no concluyente).' };
+      if(!found.length) return { level:'warn', status:'NO DETECTADO', record:null, note:'Ningún selector común respondió (sondeé ' + DKIM_SELECTORS.length + '). DKIM puede existir bajo un selector propietario no listado (ausencia no concluyente).' };
+      /* análisis de fuerza de la clave pública por selector */
+      var analysis = keys.map(function(k){
+        var pm = k.rec.match(/p=([A-Za-z0-9+\/=]+)/i);
+        var kind;
+        if(!pm || !pm[1]){ kind = 'REVOCADA (p= vacío)'; }
+        else { var dl=0; try { dl = atob(pm[1].replace(/=+$/,'')).length; } catch(e){ dl = Math.floor(pm[1].length*0.75); }
+          kind = dl>=270 ? '≥2048-bit' : dl>=185 ? '~1536-bit' : dl>=150 ? '1024-bit DÉBIL' : '<1024-bit CRÍTICO'; }
+        return k.sel + ':' + kind;
+      });
+      var weak = analysis.some(function(a){ return /DÉBIL|CRÍTICO|REVOCADA/.test(a); });
+      return { level: weak?'warn':'ok', status:found.length + ' SELECTOR(ES)', record:found.join(', '),
+        note:'Claves DKIM — ' + analysis.join(' · ') + (weak?'  ⚠ Hay claves débiles/revocadas: rotá a RSA-2048.':'  Fuerza criptográfica adecuada.') };
     });
   }
 
@@ -4214,6 +4234,54 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       else if(/pphosted|proofpoint/.test(joined)) prov='Proofpoint';
       return { level:'info', status:prov, record:mx.map(function(s){return s.split(' ').pop();}).join(', '), note:mx.length + ' registro(s) MX. Proveedor inferido: ' + prov + '.' };
     }).catch(function(e){ return { level:'info', status:'N/D', record:null, note:e.message }; });
+  }
+
+  /* ═══ SWEEP DE SUBDOMAIN TAKEOVER (recon ofensivo pasivo vía CNAME) ═══ */
+  var TAKEOVER_SUBS = ['www','mail','webmail','autodiscover','blog','shop','store','status','help','support',
+    'cdn','assets','static','media','img','dev','staging','test','qa','docs','app','apps','api','portal',
+    'm','go','links','email','smtp','vpn','remote','git','jira','confluence','dashboard','beta','demo','careers'];
+  var TAKEOVER_FP = [
+    {re:/github\.io/i, svc:'GitHub Pages'},
+    {re:/herokuapp\.com|herokudns/i, svc:'Heroku'},
+    {re:/s3[.-]|s3-website|s3\.amazonaws/i, svc:'AWS S3'},
+    {re:/cloudfront\.net/i, svc:'CloudFront'},
+    {re:/azurewebsites\.net|cloudapp\.|trafficmanager\.net|blob\.core\.windows|azureedge/i, svc:'Azure'},
+    {re:/netlify\.app|netlify\.com/i, svc:'Netlify'},
+    {re:/vercel\.app|vercel-dns|now\.sh/i, svc:'Vercel'},
+    {re:/fly\.dev/i, svc:'Fly.io'},
+    {re:/ghost\.io/i, svc:'Ghost'},
+    {re:/wordpress\.com/i, svc:'WordPress.com'},
+    {re:/zendesk\.com/i, svc:'Zendesk'},
+    {re:/fastly\.net/i, svc:'Fastly'},
+    {re:/pantheonsite\.io/i, svc:'Pantheon'},
+    {re:/readthedocs\.io/i, svc:'ReadTheDocs'},
+    {re:/surge\.sh/i, svc:'Surge.sh'},
+    {re:/bitbucket\.io/i, svc:'Bitbucket'},
+    {re:/myshopify\.com/i, svc:'Shopify'},
+    {re:/unbounce\.com/i, svc:'Unbounce'},
+    {re:/helpscoutdocs\.com/i, svc:'HelpScout'},
+    {re:/statuspage\.io/i, svc:'Statuspage'},
+    {re:/wixdns\.net|wix\.com/i, svc:'Wix'},
+    {re:/desk\.com/i, svc:'Desk.com'},
+    {re:/tumblr\.com/i, svc:'Tumblr'},
+    {re:/aftership/i, svc:'AfterShip'},
+    {re:/launchrock/i, svc:'LaunchRock'},
+    {re:/cargocollective/i, svc:'Cargo'},
+    {re:/uservoice\.com/i, svc:'UserVoice'},
+    {re:/strikingly/i, svc:'Strikingly'}
+  ];
+  function auditTakeover(domain){
+    var hits = [];
+    var jobs = TAKEOVER_SUBS.map(function(sub){
+      var host = sub + '.' + domain;
+      return doh(host, 'CNAME').then(function(j){
+        var cn = answers(j,5).map(function(a){ return txt(a.data).replace(/\.$/,''); });
+        if(!cn.length) return;
+        var target = cn.join(', ');
+        for(var i=0;i<TAKEOVER_FP.length;i++){ if(TAKEOVER_FP[i].re.test(target)){ hits.push({ sub:host, target:target, svc:TAKEOVER_FP[i].svc }); break; } }
+      }).catch(function(){ /* sin CNAME o NXDOMAIN: normal */ });
+    });
+    return Promise.all(jobs).then(function(){ return hits; });
   }
 
   /* ═══ Registros DNS adicionales (potencia extra: NS, SOA, CAA, A/AAAA, MTA-STS, TLS-RPT, BIMI) ═══ */
@@ -4312,13 +4380,14 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
     tsReportPDF({
       title:'Email Spoofing & DNS Auditor — '+dasLast.domain,
       subtitle:'Postura DNS y autenticación de correo · SPF · DMARC · DKIM · DNSSEC · MTA-STS · TLS-RPT · BIMI · CAA · subdomain takeover',
-      engine:'DNS Auditor v1.0 (DNS-over-HTTPS)',
+      engine:'DNS Auditor v2.0 — agresivo (DNS-over-HTTPS)',
       target:dasLast.domain,
       verdict:v.title+'  ·  Security Score '+v.score+'/100',
       verdictColor:(v.level==='ok'?'#1a8f3c':v.level==='warn'?'#c98a00':'#ff1a2e'),
       stats:[
         { label:'Security Score', value:v.score+'/100', color:'#ff1a2e' },
         { label:'Suplantable', value:(v.spoofable===false?'NO':v.spoofable==='parcial'?'PARCIAL':'SÍ'), color:(v.spoofable===false?'#1a8f3c':'#ff1a2e') },
+        { label:'Takeover', value:(dasLast.takeover||0), color:((dasLast.takeover||0)>0?'#ff1a2e':'#1a8f3c') },
         { label:'Controles', value:dasLast.items.length, color:'#444' }
       ],
       columns:['Registro / Control','Estado','Detalle'],
@@ -4349,13 +4418,14 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       '[>] Consultando _dmarc.' + domain + '…',
       '[>] Sondeando ' + DKIM_SELECTORS.length + ' selectores DKIM en paralelo…',
       '[>] Verificando DNSSEC (DNSKEY / flag AD)…',
-      '[>] Enumerando MX · NS · CAA · MTA-STS · TLS-RPT · BIMI…'
+      '[>] Enumerando MX · NS · CAA · MTA-STS · TLS-RPT · BIMI…',
+      '[>] Barriendo ' + TAKEOVER_SUBS.length + ' subdominios por CNAME colgado (subdomain takeover)…'
     ];
     phases.forEach(function(ph, i){ setTimeout(function(){ var b=$('dasRun'); if(b && b.disabled) log(ph, 'lm'); }, 230 * (i + 1)); });
 
-    Promise.all([ auditSPF(domain), auditDMARC(domain), auditDKIM(domain), auditDNSSEC(domain), auditMX(domain), auditExtra(domain) ])
+    Promise.all([ auditSPF(domain), auditDMARC(domain), auditDKIM(domain), auditDNSSEC(domain), auditMX(domain), auditExtra(domain), auditTakeover(domain) ])
     .then(function(res){
-      var spf=res[0], dmarc=res[1], dkim=res[2], dnssec=res[3], mx=res[4], extra=res[5];
+      var spf=res[0], dmarc=res[1], dkim=res[2], dnssec=res[3], mx=res[4], extra=res[5], takeover=res[6];
       log('[+] SPF:    ' + spf.status, spf.level==='ok'?'lg':spf.level==='warn'?'la':'lr');
       log('[+] DMARC:  ' + dmarc.status, dmarc.level==='ok'?'lg':dmarc.level==='warn'?'la':'lr');
       log('[+] DKIM:   ' + dkim.status, dkim.level==='ok'?'lg':'la');
@@ -4379,6 +4449,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       var html = '<div class="das-verdict" style="color:' + vcolor + '">'
         + '<div class="vico">' + ico + '</div>'
         + '<div><p class="vttl">' + esc(v.title) + '</p><p class="vmsg">' + esc(v.msg) + '</p></div></div>';
+      if(takeover.length){ html += '<div class="das-verdict" style="color:var(--acc);margin-top:10px"><div class="vico">\u2622</div><div><p class="vttl">' + takeover.length + ' SUBDOMINIO(S) EXPUESTO(S) A TAKEOVER</p><p class="vmsg">Apuntan a servicios externos que podrían no estar reclamados: un atacante serviría contenido bajo tu propio dominio (phishing con tu marca, robo de sesiones). Prioridad crítica \u2014 detalle abajo en «Superficie de ataque».</p></div></div>'; }
 
       /* ── RISK METER ── */
       html += '<div class="das-meter-wrap">'
@@ -4405,7 +4476,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       var infra = [['DNSSEC',dnssec],['MX',mx],['MTA-STS',mtasts],['CAA',caa]];
       if(extra.tlsrpt.length) infra.push(['TLS-RPT',{level:'ok',status:'ACTIVO',record:extra.tlsrpt[0],note:'Reportes de fallos TLS habilitados.'}]);
       if(extra.bimi.length)   infra.push(['BIMI',{level:'info',status:'PRESENTE',record:extra.bimi[0],note:'Logo de marca verificado (requiere DMARC en enforcement).'}]);
-      if(extra.ns.length)     infra.push(['NS',{level:'info',status:extra.ns.length+' SERVIDORES',record:extra.ns.join(', '),note:'Servidores autoritativos del dominio.'}]);
+      if(extra.ns.length){ var _nsSpof=extra.ns.length<2; infra.push(['NS',{level:_nsSpof?'warn':'info',status:extra.ns.length+' SERVIDOR'+(extra.ns.length>1?'ES':''),record:extra.ns.join(', '),note:_nsSpof?'\u26A0 Un solo servidor NS = punto \u00fanico de falla (SPOF): si cae, el dominio entero queda sin DNS. Sum\u00e1 NS secundarios en otra red/proveedor.':'Servidores autoritativos del dominio.'}]); }
       if(ips.length)          infra.push(['A / AAAA',{level:'info',status:ips.length+' IP(S)',record:ips.join(', '),note:'Registros de dirección del dominio raíz.'}]);
       if(extra.cname && extra.cname.length){ var _cn=extra.cname.join(', '); var _to=/github\.io|herokuapp|s3[.-]|amazonaws|azurewebsites|cloudfront|netlify|ghost\.io|wordpress\.com|zendesk|fastly|pantheon|readthedocs|surge\.sh|bitbucket\.io|myshopify|shopify|unbounce|helpscout|cargocollective|statuspage/i.test(_cn); infra.push(['CNAME (www)', {level:_to?'bad':'info', status:_to?'⚠ TAKEOVER-PRONE':'presente', record:_cn, note:_to?'www apunta a un servicio tomable — si el recurso no está reclamado = SUBDOMAIN TAKEOVER.':'Alias del subdominio www.'}]); }
       if(extra.soa && extra.soa.length) infra.push(['SOA',{level:'info',status:'presente',record:String(extra.soa[0]).slice(0,90),note:'Registro de autoridad de la zona DNS.'}]);
@@ -4413,7 +4484,20 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       var infraHtml = infra.map(function(x){return card(x[0],x[1]);}).join('');
       html += grp('Infraestructura DNS', infraOk, infra.length, infraHtml);
 
-      dasLast = { domain: domain, v: v, items: mail.concat(infra) };
+      /* ── GRUPO 3: Superficie de ataque — Subdomain Takeover ── */
+      var toItems = [];
+      var toHtml;
+      if(takeover.length){
+        toHtml = takeover.map(function(t){ return card('\u21AF ' + t.sub, {level:'bad',status:'\u26A0 TAKEOVER-PRONE',record:t.target,note:'Apunta a ' + t.svc + '. Si ese recurso no est\u00e1 reclamado en el proveedor, un tercero puede reclamarlo y servir contenido hostil bajo tu subdominio.'}); }).join('');
+        takeover.forEach(function(t){ toItems.push(['\u21AF ' + t.sub, {level:'bad',status:'TAKEOVER-PRONE (' + t.svc + ')',record:t.target,note:'Servicio ' + t.svc + ' potencialmente sin reclamar.'}]); });
+      } else {
+        toHtml = card('Barrido de subdominios', {level:'ok',status:'LIMPIO',record:TAKEOVER_SUBS.length + ' subdominios sondeados',note:'Ninguno de los ' + TAKEOVER_SUBS.length + ' subdominios comunes apunta a un servicio externo tomable. Sin CNAMEs colgados detectados.'});
+      }
+      html += grp('Superficie de ataque \u2014 Subdomain Takeover', takeover.length?0:1, Math.max(1,takeover.length), toHtml);
+      if(takeover.length){ log('[!] TAKEOVER: ' + takeover.length + ' subdominio(s) con CNAME tomable \u2014 ' + takeover.map(function(t){return t.sub+' \u2192 '+t.svc;}).join(', '), 'lr'); }
+      else { log('[+] Takeover sweep: limpio (' + TAKEOVER_SUBS.length + ' subdominios)', 'lg'); }
+
+      dasLast = { domain: domain, v: v, items: mail.concat(infra).concat(toItems), takeover: takeover.length };
       html = '<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button id="dasPDF" class="das-btn" style="padding:9px 18px;font-size:12px;background:linear-gradient(90deg,#ff1a2e,#c2101f)">📄 REPORTE PDF</button></div>' + html;
       $('dasResults').innerHTML = html;
       var _pb = $('dasPDF'); if(_pb) _pb.addEventListener('click', dasExportPDF);
@@ -5650,10 +5734,8 @@ dig assets.lime.bike CNAME</div></div></div>
         <p>Varios de estos payloads pueden provocar <b>ejecución de código, exfiltración de datos o daño real</b> en un sistema. Úsalos <u>EXCLUSIVAMENTE</u> sobre objetivos donde tengas <b>autorización explícita por escrito</b> (programas de bug bounty activos o pentests contratados). El uso no autorizado es un <b>delito informático</b>. Los marcados con <span class="pay-risk">⚠ alto</span> son especialmente destructivos.</p>
       </div>
     </div>
-    <div class="pay-dd-wrap">
-      <label for="pay-select" class="pay-dd-label">📂 Categoría de payload:</label>
-      <select id="pay-select" class="pay-dd"></select>
-    </div>
+    <div class="pay-dd-label-row">📂 Elegí una categoría — el punto rojo marca las que traen payloads peligrosos</div>
+    <div class="pay-tabs" id="pay-tabs" role="tablist"></div>
     <div class="pay-grid" id="pay-grid"></div>
   </div>
 </section>
@@ -13642,7 +13724,7 @@ inp.addEventListener('keydown', function(e){
 
 /* \u2550\u2550 PAYLOAD LIBRARY \u2550\u2550 */
 (function(){
-var payTabs = document.getElementById('pay-select');
+var payTabs = document.getElementById('pay-tabs');
 var payGrid = document.getElementById('pay-grid');
 if(!payTabs || !payGrid) return;
 
@@ -13980,17 +14062,24 @@ function copyToClipboard(text){
 function renderPayTabs(){
  payTabs.innerHTML = '';
  PAY_CATS.forEach(function(cat){
- var opt = document.createElement('option');
- opt.value = cat.id;
- var n = (PAYLOADS[cat.id]||[]).length;
- opt.textContent = cat.label + ' (' + n + ')';
- if(activePay === cat.id) opt.selected = true;
- payTabs.appendChild(opt);
+   var list = PAYLOADS[cat.id] || [];
+   var n = list.length;
+   var danger = list.some(function(p){ return p.risk; });
+   var pill = document.createElement('button');
+   pill.type = 'button';
+   pill.className = 'pay-pill' + (activePay===cat.id?' active':'') + (danger?' danger':'');
+   pill.setAttribute('role','tab');
+   pill.innerHTML = (danger?'<span class="pay-pill-dot"></span>':'') + '<span class="pay-pill-lbl">'+cat.label+'</span><span class="pay-pill-n">'+n+'</span>';
+   pill.onclick = function(){
+     if(activePay===cat.id) return;
+     activePay = cat.id;
+     renderPayCards();
+     var all = payTabs.querySelectorAll('.pay-pill');
+     for(var k=0;k<all.length;k++) all[k].classList.remove('active');
+     pill.classList.add('active');
+   };
+   payTabs.appendChild(pill);
  });
- payTabs.onchange = function(){
- activePay = payTabs.value;
- renderPayCards();
- };
 }
 
 function renderPayCards(){
@@ -14006,7 +14095,8 @@ function renderPayCards(){
  + '<button class="pay-copy-btn" title="Copiar">\u29C9 Copiar</button>'
  + '</div>'
  + '<div class="pay-code">'+p.pay.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
- + (p.note ? '<div class="pay-note">// '+p.note+'</div>' : '');
+ + (p.note ? '<div class="pay-note">'+p.note.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>' : '')
+ + (p.risk ? '<div class="pay-auth-note"><span class="pay-auth-ico">\u26D4</span><span>Nunca ejecutes este payload en sistemas sin <b>autorizaci\u00F3n expl\u00EDcita por escrito</b>: hacerlo es delito. \u00DAsalo solo en tus propios labs o en programas de bug bounty con scope aprobado.</span></div>' : '');
  card.querySelector('.pay-copy-btn').onclick = function(){
  copyToClipboard(p.pay);
  this.textContent = '\u2713 Copiado!';

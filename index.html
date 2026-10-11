@@ -4033,6 +4033,10 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #breach .br-leak-list{font-size:10px;color:var(--muted,#8b899c);line-height:2;}
 #breach .br-leak-chip{display:inline-block;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(255,26,46,.16);border:1px solid rgba(255,26,46,.5);border-radius:4px;padding:2px 9px;margin:2px 5px 2px 0;letter-spacing:.04em;text-shadow:0 0 6px rgba(255,26,46,.4);}
 #breach .br-rowskull{margin-right:5px;filter:drop-shadow(0 0 4px rgba(255,26,46,.7));}
+#taint .tr-conf{display:inline-block;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:3px;text-transform:uppercase;vertical-align:middle;}
+#taint .tr-conf-alta{background:rgba(255,26,46,.16);color:#ff6b7d;border:1px solid rgba(255,26,46,.5);}
+#taint .tr-conf-media{background:rgba(255,176,32,.14);color:var(--amber,#ffb020);border:1px solid rgba(255,176,32,.45);}
+#taint .tr-conf-baja{background:rgba(79,195,247,.12);color:#4fc3f7;border:1px solid rgba(79,195,247,.45);}
 #breach .br-recent{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.1em;color:#001b10;background:var(--green,#00ffa3);border-radius:3px;padding:1px 6px;vertical-align:middle;box-shadow:0 0 10px rgba(0,255,163,.5);text-transform:uppercase;animation:brRecentPulse 1.6s ease-in-out infinite;}
 @keyframes brRecentPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,163,.4);}50%{box-shadow:0 0 16px rgba(0,255,163,.8);}}
 @media (prefers-reduced-motion:reduce){#breach .br-recent{animation:none!important;}}
@@ -28099,53 +28103,36 @@ function nbWaveReport(dom, origin){
        (onload en <body>), cierre del style seguro (solo la secuencia cruda de cierre de script rompe el bloque). ═══ */
     var px = document.getElementById('nbExportPdf');
     if(px) px.addEventListener('click', function(){
-      var w = window.open('', '_blank');
-      if(!w){ nbLog('[!] El navegador bloqueó la ventana del PDF — permití pop-ups y reintentá', 'warn'); return; }
-      function pdfEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      var esc = function(s){ return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;'); };
       var critRe = /PUBLIC|VULN|EXPUESTO|CRIT|TAKEOVER|CREDS/i;
-      var fRows = nbFindings.map(function(f, i){
-        return '<tr class="' + (critRe.test(f.category + ' ' + f.detail) ? 'crit' : '') + '"><td>' + (i+1) + '</td><td>' + pdfEsc(f.category) + '</td><td>' + pdfEsc(f.detail) + '</td></tr>';
-      }).join('');
-      var tkRows = nbDeadBuckets.map(function(b){ return '<li>' + pdfEsc(b) + '</li>'; }).join('');
-      var cnRows = nbCnameTakeovers.map(function(c){ return '<li>' + pdfEsc(c) + '</li>'; }).join('');
-      var probeRows = (nbBodyEl && nbBodyEl.innerHTML) ? nbBodyEl.innerHTML : '';
-      var fecha = new Date().toLocaleString();
-      w.document.write(
-        '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
-        '<title>TudelaSec — Nimbus Cloud Reaper — ' + dom + '</title>' +
-        '<style>' +
-        'body{font-family:Consolas,"Courier New",monospace;color:#101010;background:#fff;margin:24px;font-size:12px;}' +
-        'h1{font-size:19px;margin:0 0 2px;color:#ff1a2e;letter-spacing:1px;}' +
-        '.sub{color:#555;font-size:11px;margin-bottom:14px;}' +
-        '.stats{width:100%;border-collapse:collapse;margin-bottom:16px;}' +
-        '.stats td{border:1px solid #ddd;padding:8px 14px;font-size:12px;}' +
-        '.stats b{font-size:17px;display:block;color:#ff1a2e;}' +
-        '.stats span{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#666;}' +
-        'h2{font-size:13px;border-bottom:2px solid #ff1a2e;padding-bottom:3px;margin:20px 0 8px;}' +
-        'table.rep{width:100%;border-collapse:collapse;font-size:10.5px;}' +
-        'table.rep th{background:#f3eef0;border:1px solid #ddd;padding:5px 8px;text-align:left;}' +
-        'table.rep td{border:1px solid #e5e0e2;padding:5px 8px;vertical-align:top;word-break:break-all;}' +
-        'tr.crit td{background:#ffe3e7;color:#c4001a;font-weight:bold;}' +
-        'ul{margin:4px 0 0 18px;padding:0;}li{margin-bottom:3px;word-break:break-all;}' +
-        '.foot{margin-top:22px;border-top:1px solid #ccc;padding-top:8px;color:#777;font-size:10px;}' +
-        '</style></head><body onload="window.print()">' +
-        '<h1>⚡ TUDELASEC — NIMBUS CLOUD REAPER v3.0 REAPER XTREME</h1>' +
-        '<div class="sub">Cloud Attack Surface Report · target: ' + pdfEsc(dom) + ' · ' + pdfEsc(origin) + ' · generado: ' + fecha + '</div>' +
-        '<table class="stats"><tr>' +
-        '<td><b>' + nbCloudAssets.length + '</b><span>assets cloud</span></td>' +
-        '<td><b>' + nbFindings.length + '</b><span>hallazgos</span></td>' +
-        '<td><b>' + cnt.crit + '</b><span>críticos</span></td>' +
-        '<td><b>' + tk + '</b><span>takeover candidates</span></td>' +
-        '</tr></table>' +
-        '<h2>HALLAZGOS</h2>' +
-        (fRows ? '<table class="rep"><tr><th>#</th><th>CATEGORÍA</th><th>DETALLE</th></tr>' + fRows + '</table>' : '<div>Sin hallazgos.</div>') +
-        (tkRows ? '<h2>TAKEOVER CANDIDATES (buckets muertos)</h2><ul>' + tkRows + '</ul>' : '') +
-        (cnRows ? '<h2>CNAME TAKEOVERS</h2><ul>' + cnRows + '</ul>' : '') +
-        '<h2>LOG COMPLETO DE PROBES</h2>' +
-        '<table class="rep">' + probeRows + '</table>' +
-        '<div class="foot">TudelaSec — Matías Ramírez Tudela · Ethical Hacker & Bug Bounty Hunter · Reporte generado localmente por NIMBUS Cloud Reaper. Solo para uso en targets autorizados (bug bounty activos).</div>' +
-        '</body></html>');
-      w.document.close();
+      var rows = (nbFindings||[]).map(function(f, i){
+        var isC = critRe.test((f.category||'') + ' ' + (f.detail||''));
+        return [ String(i+1),
+          { html:true, text:'<b style="color:' + (isC?'#c4001a':'#222') + '">' + esc(f.category) + '</b>' },
+          { html:true, text:'<span style="color:' + (isC?'#c4001a':'#333') + '">' + esc(f.detail) + '</span>' } ];
+      });
+      (nbDeadBuckets||[]).forEach(function(bk){ rows.push([ String(rows.length+1), { html:true, text:'<b style="color:#c4001a">Takeover (bucket muerto)</b>' }, { html:true, text:'<span style="color:#c4001a">' + esc(bk) + '</span>' } ]); });
+      (nbCnameTakeovers||[]).forEach(function(cn){ rows.push([ String(rows.length+1), { html:true, text:'<b style="color:#c4001a">CNAME Takeover</b>' }, { html:true, text:'<span style="color:#c4001a">' + esc(cn) + '</span>' } ]); });
+      var vcolor = cnt.crit ? '#ff1a2e' : '#1a8f3c';
+      var ok = (typeof tsReportPDF === 'function') && tsReportPDF({
+        title:'Nimbus Cloud Reaper — Superficie de Ataque Cloud',
+        subtitle:'Enumeración multi-cloud (AWS · Azure · GCP · Firebase · Shopify · K8s/Docker/Registry) · metadata SSRF · CNAME takeover · cosecha de credenciales',
+        engine:'Nimbus Cloud Reaper v3.0',
+        target:dom,
+        verdict:'VEREDICTO: ' + nbFindings.length + ' hallazgos · ' + cnt.crit + ' críticos · ' + tk + ' takeover candidates',
+        verdictColor:vcolor,
+        stats:[
+          { label:'Assets cloud', value:nbCloudAssets.length, color:'#444' },
+          { label:'Hallazgos', value:nbFindings.length, color:'#ff1a2e' },
+          { label:'Críticos', value:cnt.crit, color:'#ff1a2e' },
+          { label:'Takeover', value:tk, color:'#e2571a' },
+          { label:'Probes', value:nbTotal, color:'#444' }
+        ],
+        columns:['#','Categoría','Detalle'],
+        rows:rows,
+        footer:'Solo para uso en targets autorizados (bug bounty activos).'
+      });
+      if(!ok){ nbLog('[!] El navegador bloqueó la ventana del PDF — permití pop-ups y reintentá', 'warn'); }
     });
   }
   nbLog('═══ NIMBUS COMPLETO: ' + nbFindings.length + ' hallazgos (' + cnt.crit + ' críticos) · ' + nbCloudAssets.length + ' assets · ' + tk + ' takeoverables ═══', cnt.crit ? 'hit' : 'ok');
@@ -28296,6 +28283,105 @@ var TR_SINKS = [
   ['TT',   'trustedTypes.createPolicy (bypass)', /createPolicy\s*\(/, 'bypass de Trusted Types', 'Policy vacía o createHTML identidad = bypass TOTAL — nombres únicos + createHTML restringido'],
   ['MXSS', 're-serialización (mXSS)',          /\.innerHTML\s*=[^=;]*\.(innerHTML|outerHTML)/, 're-parse del DOM', 'El DOM re-serializado NO conserva el sanitizado — mXSS: nunca reasignar innerHTML de innerHTML'],
   ['POLLUTE','prototype pollution',            /__proto__\b|Object\.prototype|constructor\s*\[\s*[\x22\x27]prototype|\[\s*__proto__/, 'cadenas de prototipos', 'Merge recursivo con __proto__/constructor[prototype] = contaminación global — gadget chain a XSS/RCE']
+];
+/* ═══ v3.0 — REGLAS MULTI-LENGUAJE (SQLi · XSS · cmd inj · secretos · crypto · deser · LFI · SSRF · comillas · más) ═══ */
+var TR_RULES = [
+  /* ── SQL Injection ── */
+  ['CRIT','SQL Injection','concatenación de variable en query SQL', /\b(SELECT|INSERT\s+INTO|UPDATE|DELETE\s+FROM|UNION\s+SELECT|DROP\s+TABLE|WHERE)\b[^;]{0,120}(['"`])\s*(\+|\.|%)\s*[\$\w]/i, 'Usar consultas PARAMETRIZADAS (prepared statements / bind params); nunca concatenar input en SQL', 'El input del usuario entra crudo a la consulta → inyección SQL'],
+  ['CRIT','SQL Injection','query()/execute() con string dinámico', /\b(query|execute|prepare|mysqli_query|mysql_query|pg_query|cursor\.execute|db\.raw)\s*\(\s*(['"`])[^'"`]*\2\s*(\+|\.|,)\s*[\$\w]/i, 'Prepared statements con placeholders (?, $1, :name) y binding de parámetros', ''],
+  ['CRIT','SQL Injection','template literal con interpolación en SQL', /`[^`]*\b(SELECT|INSERT|UPDATE|DELETE|WHERE|FROM|UNION)\b[^`]*\$\{/i, 'No interpolar en SQL: usar prepared statements parametrizados', 'Los ${} en un template SQL NO escapan → inyección'],
+  ['HIGH','SQL Injection','format string en SQL (Python/PHP)', /\b(SELECT|INSERT|UPDATE|DELETE)\b[^;]*(%s|%d|\.format\(|f["'])/i, 'Parametrizar con el driver (execute(sql, params)); no usar %/format/f-strings', ''],
+
+  /* ── XSS reflejado (server-side) ── */
+  ['CRIT','XSS Reflejado','echo/print de input sin escapar (PHP)', /\b(echo|print|printf)\b[^;]*\$_(GET|POST|REQUEST|COOKIE|SERVER)\b/i, 'Escapar con htmlspecialchars($x, ENT_QUOTES, "UTF-8") antes de imprimir', 'Input reflejado directo al HTML → XSS'],
+  ['CRIT','XSS Reflejado','etiqueta PHP corta con superglobal', /<\?=?\s*(php\s+)?(echo\s+)?\$_(GET|POST|REQUEST)/i, 'Escapar con htmlspecialchars antes de emitir en la vista', ''],
+  ['HIGH','XSS Reflejado','respuesta HTTP con input (Node)', /\bres\.(write|send|end)\s*\([^)]*\breq\.(query|params|body|headers)/i, 'Escapar/validar antes de responder; plantillas que auto-escapan', ''],
+  ['HIGH','XSS','auto-escape de plantilla desactivado', /\|\s*safe\b|autoescape\s*=?\s*(false|False|off)|\{\!\!/i, 'No desactivar el auto-escape; nunca marcar input de usuario como "safe"', 'Se está desactivando el escape automático de la plantilla'],
+
+  /* ── Command Injection ── */
+  ['CRIT','Command Injection','system/exec/shell con input (PHP)', /\b(system|exec|shell_exec|passthru|proc_open|popen)\s*\([^)]*(\$_|\$\w|\.\s*\$|\+)/i, 'Evitar shell; si es inevitable, escapeshellarg() + allow-list de comandos', 'Input del usuario al shell → ejecución de comandos'],
+  ['CRIT','Command Injection','os.system / subprocess shell=True (Python)', /\bos\.system\s*\(|subprocess\.(call|run|Popen|check_output)\s*\([^)]*shell\s*=\s*True/i, 'subprocess con lista de args y shell=False; validar input', ''],
+  ['CRIT','Command Injection','child_process con concatenación (Node)', /\b(exec|execSync|spawn|spawnSync)\s*\(\s*[`'"][^`'"]*[`'"]\s*\+|child_process/i, 'execFile/spawn con array de argumentos; nunca concatenar input', ''],
+
+  /* ── Code eval dinámico (PHP/Python; el JS lo cubre el motor DOM) ── */
+  ['CRIT','Code Injection','eval dinámico de input', /\beval\s*\(\s*[^)]*(\$_|request|req\.|input\(|params)/i, 'Eliminar eval; parsear/validar con esquema fijo', 'eval de datos externos = ejecución de código arbitrario'],
+
+  /* ── Secretos hardcodeados ── */
+  ['CRIT','Secreto Hardcodeado','credencial/clave en el código', /\b(password|passwd|pwd|secret|api[_-]?key|apikey|token|access[_-]?key|private[_-]?key|client[_-]?secret)\s*[:=]\s*(['"])[^'"]{4,}\2/i, 'Mover a variables de entorno / secret manager; rotar la credencial expuesta', 'Credencial en texto plano en el código fuente'],
+  ['CRIT','Secreto Hardcodeado','AWS Access Key', /\bAKIA[0-9A-Z]{16}\b/, 'Revocar la key YA en IAM; usar roles/variables de entorno', ''],
+  ['CRIT','Secreto Hardcodeado','clave privada embebida', /-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/, 'Nunca versionar claves privadas; rotarla y moverla a un vault', ''],
+  ['HIGH','Secreto Hardcodeado','token de servicio (Google/Slack/GitHub)', /\bAIza[0-9A-Za-z_\-]{35}\b|\bxox[baprs]-[0-9A-Za-z-]{10,}|\bgh[pousr]_[0-9A-Za-z]{20,}/, 'Revocar el token y moverlo a secret manager', ''],
+
+  /* ── Crypto débil / aleatoriedad ── */
+  ['HIGH','Crypto Débil','hash inseguro para contraseñas (MD5/SHA1)', /\b(md5|sha1)\s*\(/i, 'bcrypt/argon2/scrypt para contraseñas; SHA-256+ con salt para integridad', 'MD5/SHA1 son rompibles — no sirven para contraseñas'],
+  ['MED','Aleatoriedad Débil','Math.random para tokens/ids', /\bMath\.random\s*\(/, 'crypto.getRandomValues / crypto.randomBytes para tokens de seguridad', 'Math.random NO es criptográficamente seguro'],
+  ['MED','Crypto Débil','cifrado inseguro (DES/ECB/RC4)', /\b(DES|RC4)\b|ECB/, 'Usar AES-GCM (AEAD); nunca ECB/DES/RC4', ''],
+
+  /* ── Deserialización insegura ── */
+  ['CRIT','Deserialización Insegura','unserialize/pickle/yaml.load', /\bunserialize\s*\(|pickle\.loads|cPickle\.loads|yaml\.load\s*\((?![^)]*Loader)|Marshal\.load/i, 'JSON con validación; yaml.safe_load; nunca deserializar input no confiable', 'Deserializar input no confiable = RCE'],
+
+  /* ── Path traversal / LFI ── */
+  ['HIGH','Path Traversal / LFI','include/open de input sin validar', /\b(include|require|include_once|require_once|fopen|file_get_contents|readfile)\s*\([^)]*\$_(GET|POST|REQUEST)/i, 'Allow-list de archivos; basename()+realpath() y confinar al directorio permitido', ''],
+  ['HIGH','Path Traversal / LFI','lectura de archivo con input (Node/py)', /\b(readFile|readFileSync|createReadStream|open)\s*\([^)]*(\breq\.|request\.|input\()/i, 'Validar/normalizar la ruta y confinarla a un directorio base', ''],
+  ['MED','Path Traversal','secuencia ../ en ruta', /(\.\.\/){1,}|\.\.%2f/i, 'Normalizar y validar rutas; rechazar ../', ''],
+
+  /* ── SSRF ── */
+  ['HIGH','SSRF','petición HTTP a URL controlada por el usuario', /\b(fetch|axios\.(get|post)|requests\.(get|post)|urllib|http\.get|curl_exec|file_get_contents)\s*\([^)]*(\breq\.|\$_(GET|POST)|user|input\()/i, 'Allow-list de hosts/esquemas; bloquear IPs internas (169.254.169.254, 10/8, 127/8)', ''],
+
+  /* ── Transporte / CORS / cookies ── */
+  ['MED','Transporte Inseguro','URL http:// en texto plano', /http:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0|schemas?\.|www\.w3\.org|example\.)/i, 'Usar https:// siempre; forzar HSTS', ''],
+  ['HIGH','CORS Permisivo','Access-Control-Allow-Origin: *', /access-control-allow-origin['"\s:,=]*\*/i, 'Reflejar solo orígenes de una allow-list; nunca * con credenciales', ''],
+  ['MED','Cookie Insegura','cookie sin HttpOnly/Secure', /\b(setcookie\s*\(|document\.cookie\s*=|res\.cookie\s*\()/i, 'Setear HttpOnly, Secure y SameSite=Strict/Lax en cookies de sesión', ''],
+
+  /* ── Comparación/auth débil ── */
+  ['MED','Comparación Débil','== laxo en contexto de auth', /\b(password|passwd|token|secret|hash|auth)\w*\s*==[^=]/i, 'Comparación estricta (===) y hash_equals/timingSafeEqual para secretos', 'La comparación laxa (==) permite bypass por type juggling'],
+
+  /* ── Debug / fuga de info ── */
+  ['MED','Fuga de Información','salida de depuración en código', /\b(var_dump|print_r|console\.(log|debug|dir)|printStackTrace|display_errors\s*=\s*On)\b/i, 'Quitar logs/dumps de depuración de producción; usar logger con niveles', '']
+  ,
+  /* ═══ v4.0 — INYECCIONES AVANZADAS ═══ */
+  ['CRIT','RFI / LFI','include/require con input (ejecución remota)', /\b(include|require|include_once|require_once)\s*\(\s*(\$_(GET|POST|REQUEST|COOKIE)|\$\w+\s*\.\s*\$_)/i, 'Allow-list de archivos locales; allow_url_include=Off; basename()+realpath()', 'include() con input de usuario = RFI/LFI → ejecución de código', 'alta'],
+  ['CRIT','RFI','URL remota en include/require', /\b(include|require)(_once)?\s*\(\s*['"]https?:\/\//i, 'Deshabilitar allow_url_include; nunca incluir URLs remotas', '', 'alta'],
+  ['CRIT','SSTI (Template Injection)','render de template con input', /render_template_string\s*\(|Twig[^;]*->\s*render\s*\(|pug\.compile\s*\(|new\s+Template\s*\(|Handlebars\.compile\s*\(/i, 'Nunca pasar input al motor de templates; pasar datos como contexto, no el template', 'SSTI → RCE (Flask/Jinja2, Twig, Pug, Handlebars)', 'alta'],
+  ['HIGH','Template Injection','Jinja/Twig con concatenación/input', /\{\{[^}]*(\+|\breq\.|\$_)[^}]*\}\}|\{%[^%]*(request|\$_)/i, 'Pasar datos como contexto de variables, no construir el template con input', '', 'media'],
+  ['HIGH','LDAP Injection','ldap_search/bind con concatenación', /ldap_(search|bind|list|read)\s*\([^)]*(\$_|\+|\.\s*\$|\breq\.)/i, 'Escapar con ldap_escape(); filtros parametrizados', '', 'alta'],
+  ['HIGH','XPath Injection','consulta XPath con input', /\b(evaluate|selectNodes|selectSingleNode|xpath)\s*\([^)]*(\$_|\+|\breq\.|user)/i, 'Parametrizar XPath; escapar comillas; validar input', '', 'media'],
+  ['CRIT','NoSQL Injection','find/update con req.body sin castear (Mongo)', /\.(find|findOne|findOneAndUpdate|updateOne|updateMany|deleteOne|remove|count)\s*\(\s*\{[^}]*\breq\.(body|query|params)/i, 'Castear/validar tipos; $eq explícito; express-mongo-sanitize', 'req.body permite operadores ($ne,$gt,$where) → NoSQLi', 'alta'],
+  ['HIGH','NoSQL Injection','$where (eval server-side en Mongo)', /\$where\s*:/i, 'Nunca usar $where; es ejecución de JS en el servidor Mongo', '', 'alta'],
+  ['HIGH','XXE','parseo XML sin deshabilitar entidades', /DOMDocument\b|simplexml_load|xml\.etree|lxml\.etree|libxml_|new\s+SAXParser|DocumentBuilderFactory|XMLReader/i, 'Deshabilitar DTD/entidades externas (LIBXML_NONET, resolve_entities=False, FEATURE_SECURE_PROCESSING)', 'XXE → lectura de archivos locales / SSRF', 'media'],
+
+  /* ═══ v4.0 — AUTH Y SESIONES ═══ */
+  ['CRIT','JWT Inseguro','decode sin verificar firma / alg "none"', /jwt\.decode\s*\([^)]*verify\s*[:=]\s*(false|False)|algorithms?\s*[:=]\s*\[?\s*['"]none['"]|verify_signature\s*[:=]\s*False|alg['"]?\s*[:=]\s*['"]none/i, 'Verificar SIEMPRE la firma; fijar algoritmo; nunca aceptar "none"', 'alg=none / decode sin verify = falsificación total de tokens', 'alta'],
+  ['HIGH','JWT Inseguro','secreto JWT hardcodeado', /jwt\.(sign|verify)\s*\([^)]*,\s*['"][^'"]{4,}['"]/i, 'Secreto JWT desde variable de entorno; rotar si se filtró', '', 'media'],
+  ['MED','IDOR (heurístico)','findById(req.params) sin check de ownership', /\b(findById|findByPk|get_object_or_404|findOne)\s*\(\s*\{?\s*(req\.(params|query)|request\.|params\[)/i, 'Verificar que el recurso pertenece al usuario autenticado antes de devolverlo', 'HEURÍSTICO — revisar manualmente el control de acceso', 'baja'],
+  ['HIGH','Mass Assignment','create/update con req.body directo', /\.(create|update|insert|save|bulkCreate|findOrCreate)\s*\(\s*req\.(body|query|params)\s*[,)]/i, 'Allow-list de campos (pick/permit); nunca pasar req.body entero al modelo', '', 'media'],
+  ['HIGH','Open Redirect','redirect con URL de input', /\bres\.redirect\s*\([^)]*\breq\.(query|params|body)|header\s*\(\s*['"]\s*location\s*:[^'"]*\$_|window\.location(\.href)?\s*=\s*[^;=]*\b(param|query|url|redirect|next|return)\w*/i, 'Allow-list de destinos; validar que la URL sea relativa/interna', '', 'alta'],
+  ['HIGH','Prototype Pollution','merge/extend con input de usuario', /\b(merge|extend|assign|defaultsDeep|mergeWith|set|setWith)\s*\([^)]*\b(req\.(body|query)|JSON\.parse\s*\()/i, 'Rechazar __proto__/constructor/prototype; Object.create(null); validar claves', '', 'media'],
+
+  /* ═══ v4.0 — SINKS DE FRAMEWORK ═══ */
+  ['CRIT','PHP Sink','preg_replace con modificador /e', /preg_replace\s*\(\s*['"][^'"]*\/[a-zA-Z]*e[a-zA-Z]*['"]/i, 'preg_replace /e ejecuta código — usar preg_replace_callback', '', 'alta'],
+  ['CRIT','PHP Sink','extract() de superglobal', /\bextract\s*\(\s*\$_(GET|POST|REQUEST|COOKIE)/i, 'Nunca extract() de input; asignar variables explícitas', 'extract($_GET) sobreescribe variables arbitrarias', 'alta'],
+  ['HIGH','PHP Sink','move_uploaded_file sin validar', /move_uploaded_file\s*\(/i, 'Validar extensión/MIME/magic bytes; guardar fuera del webroot con nombre aleatorio', '', 'media'],
+  ['HIGH','Django Sink','.raw() / .extra() en ORM', /\.(raw|extra)\s*\(/i, 'Usar el ORM parametrizado; params=[] en raw()', '', 'media'],
+  ['HIGH','Django Sink','mark_safe / autoescape off', /mark_safe\s*\(|\{%\s*autoescape\s+off/i, 'No marcar input como safe; mantener el autoescape', '', 'media'],
+  ['CRIT','Java Sink','Runtime.exec / ProcessBuilder', /Runtime\.getRuntime\s*\(\s*\)\.exec|new\s+ProcessBuilder/i, 'Evitar exec; allow-list; usar APIs nativas', '', 'media'],
+  ['CRIT','Java Sink','Statement concatenado (no PreparedStatement)', /createStatement\s*\(\s*\)[^;]*execute\w*\s*\([^)]*\+|Statement\b[^;]*=\s*[^;]*\+\s*\w/i, 'Usar PreparedStatement con parámetros (?)', '', 'media'],
+  ['CRIT','Java Sink','InitialContext.lookup (JNDI / Log4Shell)', /InitialContext\s*\(\s*\)\s*\.lookup|ctx\.lookup\s*\(|\$\{jndi:/i, 'Nunca lookup JNDI con input; patrón Log4Shell', '', 'media'],
+  ['CRIT','Node Sink','vm.runInNewContext / vm.runInContext', /vm\.(runInNewContext|runInContext|runInThisContext|compileFunction)\s*\(/i, 'Evitar vm con input; es eval con sandbox débil', '', 'alta'],
+  ['HIGH','Node Sink','fs con path de usuario', /\bfs\.(readFile|writeFile|unlink|readdir|createReadStream|createWriteStream)\w*\s*\([^)]*(\breq\.|request\.)/i, 'Normalizar y confinar rutas a un directorio base', '', 'media'],
+
+  /* ═══ v4.0 — SECRETOS AGRESIVOS ═══ */
+  ['CRIT','Connection String','URI con usuario:password embebido', /\b(mysql|postgres|postgresql|mongodb(\+srv)?|redis|amqp|ftp|sftp):\/\/[^\s:@\/]+:[^\s:@\/]+@/i, 'Mover credenciales a variables de entorno; rotar', 'Credenciales dentro de la cadena de conexión', 'alta'],
+  ['CRIT','Secreto por Proveedor','Stripe live secret key (sk_live_)', /\bsk_live_[0-9A-Za-z]{10,}/, 'Revocar en Stripe YA; usar variables de entorno', '', 'alta'],
+  ['CRIT','Secreto por Proveedor','SendGrid API key (SG.)', /\bSG\.[0-9A-Za-z_\-]{16,}\.[0-9A-Za-z_\-]{16,}/, 'Revocar en SendGrid; env vars', '', 'alta'],
+  ['CRIT','Secreto por Proveedor','Firebase/Twilio/OpenAI key', /\bfirebase[^"']*:[^"']*["'][A-Za-z0-9_\-]{20,}|\bSK[0-9a-f]{32}\b|\bsk-[A-Za-z0-9]{20,}/i, 'Revocar y mover a secret manager', '', 'media'],
+  ['HIGH','Secreto en Comentario','credencial/IP interna/email en comentario', /(\/\/|#|\/\*|\*)[^\n]*\b(password|passwd|pwd|secret|api[_-]?key|token|creds?)\b\s*[:=]\s*\S|(\/\/|#)[^\n]*\b(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+)/i, 'Nunca dejar credenciales/IPs internas en comentarios; rotar y quitar', '', 'media'],
+
+  /* ═══ v4.0 — CRYPTO Y TRANSPORTE ═══ */
+  ['CRIT','TLS sin verificar','verificación de certificado desactivada', /rejectUnauthorized\s*:\s*false|verify\s*=\s*False|NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['"]?0|CURLOPT_SSL_VERIFYPEER\s*,\s*(0|false)|InsecureSkipVerify\s*:\s*true|ssl\._create_unverified/i, 'NUNCA desactivar la verificación TLS; usar la CA correcta', 'Permite ataques MITM — crítico y muy común', 'alta'],
+  ['MED','IV Estático','IV/nonce hardcodeado', /\b(iv|nonce)\s*[:=]\s*(['"][0-9A-Fa-f]{8,}['"]|Buffer\.(from|alloc)\s*\(\s*['"]|bytes\s*\(\s*['"])/i, 'IV aleatorio por mensaje (crypto.randomBytes); nunca fijo', 'IV fijo rompe la seguridad de CBC/GCM', 'media'],
+  ['MED','KDF Débil','bcrypt cost < 10 / PBKDF2 pocas iteraciones', /bcrypt[^;]*\b([1-9])\s*\)|pbkdf2[^;]*,\s*([1-9]\d{0,3}|[1-5]\d{4})\s*,/i, 'bcrypt cost >= 12; PBKDF2 >= 600000 iteraciones (OWASP 2023)', '', 'baja'],
+  ['MED','Token Predecible','Date.now()/time() como semilla de token', /\b(token|otp|reset|nonce|session|csrf)\w*\s*=\s*[^;]*\b(Date\.now\s*\(\s*\)|new\s+Date\s*\(|time\s*\(\s*\)|microtime\s*\(|rand\s*\()/i, 'Usar CSPRNG (crypto.randomBytes / getRandomValues) para tokens', 'Token predecible → password-reset/CSRF forjables', 'baja']
 ];
 /* ── SANITIZADORES DÉBILES (RECHAZADOS por política) ── */
 var TR_WEAK = [
@@ -28467,6 +28553,81 @@ function trAnalyze(code){
       }
     }
   }
+  /* ═══ v4.0 — PASADA MULTI-LENGUAJE (reglas + confianza + comillas + ofuscación + base64 + // nosec) ═══ */
+  (function(){
+    var perRule = {};
+    for (var ri = 0; ri < lines.length; ri++){
+      var RL = lines[ri], rln = ri + 1;
+      var isComment = /^\s*(\/\/|#|\*|<\!--|\/\*)/.test(RL);
+      for (var rr = 0; rr < TR_RULES.length; rr++){
+        var R = TR_RULES[rr];
+        var kindC = String(R[1]).toLowerCase();
+        /* las reglas de "secreto en comentario" SÍ miran comentarios; el resto no */
+        if (isComment && kindC.indexOf('comentario') === -1) continue;
+        if (R[3].test(RL)){
+          if (perRule[rr] === undefined) perRule[rr] = 0;
+          if (perRule[rr] >= 8) continue;
+          perRule[rr]++;
+          findings.push({ id:'TR-'+String(++fid).padLeft3(), sev:R[0], kind:R[1], sink:R[2], conf:(R[6]||'alta'), origin:'análisis estático multi-lenguaje', ln:rln, col:(RL.search(R[3])+1)||1, ctx:'patrón de código', patch:R[4], note:R[5]||'', trace:['[PATRÓN] '+R[1]+' — '+R[2]+' (línea '+rln+')','[EVIDENCIA] '+String(RL).trim().slice(0,150)] });
+        }
+      }
+    }
+    /* comillas / string sin cerrar (heurística léxica) */
+    var qcap = 0;
+    for (var qi = 0; qi < lines.length; qi++){
+      var QL = lines[qi];
+      if (/^\s*(\/\/|#|\*)/.test(QL)) continue;
+      var clean = QL.replace(/\\['"`]/g, '').replace(/\/\/.*$/, '').replace(/#.*$/, '');
+      var dq = (clean.match(/"/g) || []).length, sq = (clean.match(/'/g) || []).length, bt = (clean.match(/`/g) || []).length;
+      if (/[=;(){}]/.test(clean) && ((dq % 2 === 1) || (sq % 2 === 1) || (bt % 2 === 1)) && qcap < 6){
+        qcap++;
+        findings.push({ id:'TR-'+String(++fid).padLeft3(), sev:'MED', kind:'Sintaxis / Comillas', sink:'comilla o string sin cerrar', conf:'media', origin:'análisis léxico', ln:qi+1, col:1, ctx:'balance de comillas', patch:'Cerrar la comilla/string y revisar escapes — un string mal cerrado rompe el parseo y puede habilitar inyección', note:'Número impar de comillas (heurística)', trace:['[LÉXICO] comillas desbalanceadas (línea '+(qi+1)+')','[EVIDENCIA] '+String(QL).trim().slice(0,150)] });
+      }
+    }
+    /* ofuscación / posible webshell-backdoor */
+    var ocap = 0;
+    for (var oi = 0; oi < lines.length; oi++){
+      var OL = lines[oi];
+      var hit = /\beval\s*\(\s*(atob|unescape|decodeURIComponent|String\.fromCharCode|gzinflate|base64_decode|str_rot13)/i.test(OL)
+        || /(String\.fromCharCode\s*\([^)]*\)\s*\+\s*){3,}/.test(OL)
+        || /(\\x[0-9a-fA-F]{2}){8,}/.test(OL)
+        || /(\\u00[0-9a-fA-F]{2}){6,}/.test(OL)
+        || /\b(assert|create_function)\s*\(\s*(base64_decode|\$_)/i.test(OL);
+      if (hit && ocap < 6){
+        ocap++;
+        findings.push({ id:'TR-'+String(++fid).padLeft3(), sev:'CRIT', kind:'Ofuscación / Backdoor', sink:'código ofuscado ejecutado dinámicamente', conf:'alta', origin:'detección de ofuscación', ln:oi+1, col:1, ctx:'ejecución dinámica', patch:'Código ofuscado = señal de webshell/backdoor — auditar origen, NUNCA ejecutar atob/hex/fromCharCode con eval', note:'Patrón típico de malware/webshell', trace:['[OFUSCACIÓN] ejecución dinámica de payload codificado (línea '+(oi+1)+')','[EVIDENCIA] '+String(OL).trim().slice(0,150)] });
+      }
+    }
+    /* blobs Base64: decodificar y buscar secretos adentro */
+    try {
+      var bcap = 0, b64re = /[A-Za-z0-9+\/]{40,}={0,2}/g, bm;
+      for (var bi = 0; bi < lines.length && bcap < 4; bi++){
+        var BL = lines[bi];
+        b64re.lastIndex = 0;
+        while ((bm = b64re.exec(BL)) !== null && bcap < 4){
+          var dec = '';
+          try { dec = (typeof atob === 'function') ? atob(bm[0]) : ''; } catch(e){ dec = ''; }
+          if (dec && /-----BEGIN|PRIVATE KEY|password|passwd|AKIA|sk_live_|"alg"\s*:|eyJ/i.test(dec)){
+            bcap++;
+            findings.push({ id:'TR-'+String(++fid).padLeft3(), sev:'HIGH', kind:'Secreto en Base64', sink:'blob base64 con secreto decodificado', conf:'alta', origin:'decodificación base64', ln:bi+1, col:1, ctx:'dato embebido', patch:'No embeber secretos/claves en base64 en el código; moverlos a un vault y rotar', note:'Base64 decodificado contiene: '+String(dec).replace(/[^\x20-\x7e]/g,'.').slice(0,60), trace:['[BASE64] blob decodificado (línea '+(bi+1)+')','[CONTENIDO] '+String(dec).replace(/[^\x20-\x7e]/g,'.').slice(0,120)] });
+          }
+        }
+      }
+    } catch(eB64){}
+  })();
+  /* ═══ v4.0 — ALLOWLIST // nosec + CONFIANZA + ORDEN ═══ */
+  (function(){
+    /* líneas marcadas // nosec  (o # nosec , /* nosec *&#47;) quedan silenciadas */
+    var nosec = {};
+    for (var ni = 0; ni < lines.length; ni++){ if (/(\/\/|#|\/\*)\s*nosec\b/i.test(lines[ni])) nosec[ni + 1] = true; }
+    findings = findings.filter(function(f){ return !nosec[f.ln]; });
+    /* confianza por defecto para los hallazgos del motor DOM */
+    for (var fi = 0; fi < findings.length; fi++){ if (!findings[fi].conf) findings[fi].conf = 'alta'; }
+    /* orden: severidad (CRIT>HIGH>MED) y luego confianza (alta>media>baja) */
+    var sr = { CRIT:3, HIGH:2, MED:1 }, cr = { alta:3, media:2, baja:1 };
+    findings.sort(function(a, b){ return (sr[b.sev]||0) - (sr[a.sev]||0) || (cr[b.conf]||0) - (cr[a.conf]||0) || a.ln - b.ln; });
+    stats.nosec = Object.keys(nosec).length;
+  })();
   /* v2 — SCORING PARANOIDE */
   var nC = 0, nH = 0, nM = 0;
   for (k = 0; k < findings.length; k++){ var fs2 = findings[k].sev; if (fs2 === 'CRIT') nC++; else if (fs2 === 'HIGH') nH++; else nM++; }
@@ -28488,16 +28649,112 @@ function trLogEl(html, cls){
   trLog.appendChild(d);
   try { trLog.scrollTop = trLog.scrollHeight; } catch(e){}
 }
-function trRow(id, sev, flow, ln, patch){
+/* ═══ v4.0 — REPORTE PDF (genérico, print-to-PDF, tema TudelaSec) — reutilizable ═══ */
+function tsReportPDF(opts){
+  opts = opts || {};
+  var esc = function(s){ return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;'); };
+  var now = new Date().toLocaleString('es-CL');
+  var stats = (opts.stats||[]).map(function(s){ return '<div class="st"><div class="v" style="color:'+(s.color||'#ff1a2e')+'">'+esc(s.value)+'</div><div class="l">'+esc(s.label)+'</div></div>'; }).join('');
+  var cols = (opts.columns||[]).map(function(c){ return '<th>'+esc(c)+'</th>'; }).join('');
+  var rows = (opts.rows||[]).map(function(r){
+    return '<tr>'+r.map(function(cell){
+      if(cell && typeof cell==='object'){ return '<td style="'+(cell.style||'')+'">'+(cell.html ? cell.text : esc(cell.text))+'</td>'; }
+      return '<td>'+esc(cell)+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  var emptyNote = (opts.rows && opts.rows.length) ? '' : '<div class="verdict" style="color:#1a8f3c">✓ Sin hallazgos para reportar.</div>';
+  var html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+esc(opts.title||'Reporte')+'</title><style>'
+    + '@page{margin:13mm;}'
+    + '*{box-sizing:border-box;margin:0;padding:0;font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;}'
+    + 'body{background:#fff;color:#141414;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.hd{background:linear-gradient(120deg,#12060a,#2a0810);color:#fff;padding:24px 28px;border-bottom:4px solid #ff1a2e;}'
+    + '.hd .brand{font-size:10px;letter-spacing:.3em;color:#ff6b7d;text-transform:uppercase;}'
+    + '.hd h1{font-size:25px;margin:8px 0 4px;letter-spacing:1px;}'
+    + '.hd .sub{font-size:11px;color:#c9c2c8;line-height:1.5;}'
+    + '.hd .meta{margin-top:10px;font-size:9.5px;color:#9a8f94;}'
+    + '.verdict{padding:12px 28px;font-size:14px;font-weight:800;letter-spacing:.5px;background:#faf6f7;border-bottom:1px solid #eee;}'
+    + '.stats{display:flex;flex-wrap:wrap;gap:9px;padding:16px 28px;background:#faf7f8;border-bottom:1px solid #eee;}'
+    + '.st{flex:1;min-width:84px;text-align:center;border:1px solid #ececec;border-radius:8px;padding:11px 6px;background:#fff;}'
+    + '.st .v{font-size:24px;font-weight:800;line-height:1;}'
+    + '.st .l{font-size:8.5px;letter-spacing:.1em;color:#888;text-transform:uppercase;margin-top:5px;}'
+    + 'table{width:100%;border-collapse:collapse;}'
+    + 'thead th{background:#12060a;color:#ff9ba6;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:9px 10px;}'
+    + 'tbody td{font-size:10px;padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top;color:#222;word-break:break-word;}'
+    + 'tbody tr:nth-child(even){background:#faf8f9;}'
+    + '.sev{display:inline-block;color:#fff;font-weight:700;font-size:8.5px;padding:2px 7px;border-radius:4px;}'
+    + '.ft{padding:14px 28px;font-size:8.5px;color:#999;border-top:2px solid #ff1a2e;line-height:1.6;}'
+    + '@media print{.noprint{display:none;}}'
+    + '.bar{position:fixed;top:0;left:0;right:0;background:#111;color:#fff;padding:8px;text-align:center;font-size:12px;}'
+    + '.bar button{background:#ff1a2e;color:#fff;border:none;padding:6px 16px;border-radius:5px;font-weight:700;cursor:pointer;margin-left:8px;}'
+    + '</style></head><body>'
+    + '<div class="bar noprint">Reporte TudelaSec — usá «Guardar como PDF» en el diálogo de impresión <button onclick="window.print()">Imprimir / PDF</button></div>'
+    + '<div style="height:40px" class="noprint"></div>'
+    + '<div class="hd"><div class="brand">TudelaSec · Security Operations</div><h1>'+esc(opts.title||'Reporte de Seguridad')+'</h1><div class="sub">'+esc(opts.subtitle||'')+'</div><div class="meta">Generado: '+esc(now)+'  ·  Objetivo: '+esc(opts.target||'—')+'  ·  Motor: '+esc(opts.engine||'TudelaSec')+'</div></div>'
+    + (opts.verdict ? '<div class="verdict" style="color:'+(opts.verdictColor||'#ff1a2e')+'">'+esc(opts.verdict)+'</div>' : '')
+    + (stats ? '<div class="stats">'+stats+'</div>' : '')
+    + emptyNote
+    + (rows ? '<table><thead><tr>'+cols+'</tr></thead><tbody>'+rows+'</tbody></table>' : '')
+    + '<div class="ft"><b>TudelaSec</b> — Matías Ramírez Tudela · Ethical Hacker &amp; Bug Bounty Hunter · HackerOne / Bugcrowd / Intigriti<br>Reporte generado 100% client-side en el navegador — ningún dato salió de tu equipo. '+esc(opts.footer||'')+'</div>'
+    + '<script>window.onload=function(){setTimeout(function(){try{window.print();}catch(e){}},300);};<\/script>'
+    + '</body></html>';
+  var w = window.open('', '_blank');
+  if(!w) return false;
+  w.document.open(); w.document.write(html); w.document.close();
+  return true;
+}
+try { globalThis.tsReportPDF = tsReportPDF; } catch(e){}
+
+/* ── Reporte PDF del Taint Radar ── */
+function trExportPDF(st, findings){
+  var sevColor = function(s){ return s==='CRIT'?'#ff1a2e':s==='HIGH'?'#e2571a':'#c98a00'; };
+  var rows = (findings||[]).map(function(x){
+    var conf = x.conf || 'alta';
+    return [
+      x.id,
+      { html:true, text:'<span class="sev" style="background:'+sevColor(x.sev)+'">'+trEsc(x.sev)+'</span> <small style="color:#888">'+trEsc(conf)+'</small>' },
+      { html:true, text:'<b>'+trEsc(x.kind)+'</b><br><span style="color:#666;font-size:9px">'+trEsc(x.origin+' → '+x.sink)+'</span>'+(x.note?'<br><span style="color:#a00;font-size:8.5px">⚠ '+trEsc(x.note)+'</span>':'') },
+      String(x.ln)+(x.col?':'+x.col:''),
+      { html:true, text:'<span style="color:#1a6e2e">'+trEsc(x.patch)+'</span>' }
+    ];
+  });
+  var nC=st.crit||0, nH=st.high||0, nM=st.med||0;
+  var vcolor = st.score>=75?'#ff1a2e':st.score>=40?'#c98a00':'#1a8f3c';
+  var ok = tsReportPDF({
+    title:'Taint Radar — Auditoría Estática de Código',
+    subtitle:'Política Zero-Trust / Kernel-Paranoide · DOM XSS + inyecciones multi-lenguaje (SQLi, SSTI, RFI, NoSQL, XXE, JWT, RCE, secretos, crypto)',
+    engine:'Taint Radar v4.0',
+    target:(st.lines||0)+' líneas analizadas',
+    verdict:'VEREDICTO: '+(st.level||'')+'  ·  SCORE '+(st.score||0)+'/100',
+    verdictColor:vcolor,
+    stats:[
+      {label:'Hallazgos', value:(findings||[]).length, color:'#ff1a2e'},
+      {label:'Críticos', value:nC, color:'#ff1a2e'},
+      {label:'Altos', value:nH, color:'#e2571a'},
+      {label:'Medios', value:nM, color:'#c98a00'},
+      {label:'Score', value:(st.score||0)+'/100', color:vcolor},
+      {label:'Líneas', value:st.lines||0, color:'#444'}
+    ],
+    columns:['ID','Severidad / Conf','Vulnerabilidad · Flujo','Línea','Parche estructural'],
+    rows:rows
+  });
+  if(!ok) trLogEl('[x] Habilitá las ventanas emergentes (popups) para generar el PDF', 'warn');
+}
+function trRow(id, sev, flow, ln, patch, conf, kind){
   if (!trRowEl) return;
   var tr = document.createElement('tr');
   var vc = sev === 'CRIT' ? 'v-crit' : (sev === 'HIGH' ? 'v-high' : 'v-med');
-  tr.innerHTML = '<td>' + trEsc(id) + '</td><td class="' + vc + '">' + trEsc(sev) + '</td><td style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + trEsc(flow) + '">' + trEsc(flow) + '</td><td>' + trEsc(ln) + '</td><td style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + trEsc(patch) + '">' + trEsc(patch) + '</td>';
+  conf = conf || 'alta';
+  var cbadge = '<span class="tr-conf tr-conf-' + conf + '">' + (conf === 'baja' ? 'baja · revisar' : conf) + '</span>';
+  var kindTxt = kind ? '<b style="color:var(--acc)">' + trEsc(kind) + '</b> · ' : '';
+  tr.innerHTML = '<td>' + trEsc(id) + '</td><td class="' + vc + '">' + trEsc(sev) + '<br>' + cbadge + '</td><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + trEsc(flow) + '">' + kindTxt + trEsc(flow) + '</td><td>' + trEsc(ln) + '</td><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + trEsc(patch) + '">' + trEsc(patch) + '</td>';
   trRowEl.appendChild(tr);
 }
 function trProg(p){ if (trFill) trFill.style.width = Math.min(100, Math.round(p)) + '%'; }
 
 function trRun(){
+  /* v3: refrescar refs del DOM (robustez: siempre lee el textarea vivo) */
+  trCode = trDollar('trCode'); trRunBtn = trDollar('trRun'); trLog = trDollar('trLog');
+  trBody = trDollar('trBody'); trRowEl = trBody; trFill = trDollar('trFill'); trSummary = trDollar('trSummary');
   if (!trLog) return;
   trLog.innerHTML = '';
   if (trBody) trBody.innerHTML = '';
@@ -28518,14 +28775,16 @@ function trRun(){
   trLogEl('Analizadas ' + st.lines + ' líneas · ' + st.sources + ' hits de fuente · ' + st.sinks + ' hits de sumidero · ' + st.weak + ' sanitizadores débiles rechazados · ' + st.purify + ' DOMPurify · clobbering ' + st.clobber, 'dim');
   f.forEach(function(x){
     var cls = x.sev === 'CRIT' ? 'tr-find crit' : (x.sev === 'HIGH' ? 'tr-find high' : 'tr-find med');
-    var h = '<div class="' + cls + '"><b>[' + x.sev + '] ' + trEsc(x.id) + ': ' + trEsc(x.kind) + '</b> — ' + trEsc(x.sink) + ' <span class="tr-ln-ref">línea ' + x.ln + '</span></div>';
+    var _cf = x.conf || 'alta';
+    var _cfl = _cf === 'baja' ? 'CONF BAJA · revisar manual' : 'CONF ' + _cf.toUpperCase();
+    var h = '<div class="' + cls + '"><b>[' + x.sev + '] ' + trEsc(x.id) + ': ' + trEsc(x.kind) + '</b> <span class="tr-conf tr-conf-' + _cf + '">' + _cfl + '</span> — ' + trEsc(x.sink) + ' <span class="tr-ln-ref">línea ' + x.ln + (x.col ? ':' + x.col : '') + '</span></div>';
     h += '<div class="tr-steps">';
     x.trace.forEach(function(t, ti){ h += '<div class="tr-step">' + (ti + 1) + '. ' + trEsc(t) + '</div>'; });
     h += '</div>';
     h += '<div class="tr-meta">Contexto sintáctico: ' + trEsc(x.ctx) + (x.note ? ' · ⚠ ' + trEsc(x.note) : '') + '</div>';
     h += '<div class="tr-patch">Parche estructural: ' + trEsc(x.patch) + '</div>';
     trLogEl(h, 'tr-finding');
-    trRow(x.id, x.sev, x.origin + ' → ' + x.sink, x.ln, x.patch);
+    trRow(x.id, x.sev, x.origin + ' → ' + x.sink, (x.col ? x.ln + ':' + x.col : x.ln), x.patch, x.conf, x.kind);
   });
   trProg(100);
   if (f.length === 0){
@@ -28544,8 +28803,10 @@ function trRun(){
       '<div class="tr-stat c"><b>' + nCrit + '</b><span>críticos</span></div>' +
       '<div class="tr-stat h"><b>' + nHigh + '</b><span>altos</span></div>' +
       '<div class="tr-stat s"><b>' + st2.score + '</b><span>score/100</span></div>' +
-      '<button id="trExport" class="tr-export">⬇ EXPORT JSON</button>';
+      '<button id="trExport" class="tr-export">⬇ EXPORT JSON</button>' +
+      '<button id="trPDF" class="tr-export" style="background:linear-gradient(90deg,#ff1a2e,#c2101f);color:#fff;border-color:#ff1a2e">📄 REPORTE PDF</button>';
     var ex = document.getElementById('trExport');
+    var pdfB = document.getElementById('trPDF'); if (pdfB) pdfB.addEventListener('click', function(){ trExportPDF(st, f); });
     if (ex) ex.addEventListener('click', function(){
       try{
         var data = { tool: 'TudelaSec Taint Radar v2.0', policy: 'Zero-Trust Kernel/Paranoide', stats: st, findings: f };

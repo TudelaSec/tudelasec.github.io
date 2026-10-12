@@ -4766,6 +4766,15 @@ var EXAMPLES = {
 /* ─────────── PARSER (HAR o array de pasos) ─────────── */
 function b64urlDecode(s){ try { s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return decodeURIComponent(Array.prototype.map.call(atob(s),function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join('')); } catch(e){ try { return atob(String(s).replace(/-/g,'+').replace(/_/g,'/')); } catch(e2){ return ''; } } }
 function headersArrToObj(a){ var o={}; if(Array.isArray(a)){ a.forEach(function(h){ if(h&&h.name) o[h.name]=h.value; }); } return o; }
+var NX_ALLHOSTS=[];
+function nxIsTelemetry(s){
+  var b=String(s.reqBody||''); var hu=(String(s.to||'')+' '+String(s.url||'')).toLowerCase();
+  if(/"sensor_data"\s*:/.test(b)) return true;
+  if(/^\s*\$?[a-z0-9]{1,4}=\d+(?:%7c|\|)/i.test(b)) return true;
+  if(/nudatasecurity|akamai|doubleclick|google-analytics|googletagmanager|segment\.(io|com)|branch\.io|optimizely|hotjar|fullstory|mixpanel|newrelic|datadoghq|sentry\.io|cloudflareinsights|clarity\.ms|quantserve|scorecardresearch|bam\.nr-data|px-cloud|perimeterx/.test(hu)) return true;
+  if(/^(POST|PUT)$/.test(s.method||'') && (s.status===404||s.status===204||s.status===0) && b && b.charAt(0)!=='{' && b.charAt(0)!=='[') return true;
+  return false;
+}
 function parseHAR(j, keepAssets){
   var ents = j && j.log && j.log.entries; if(!Array.isArray(ents)) return null;
   var steps = ents.map(function(e){
@@ -4775,6 +4784,7 @@ function parseHAR(j, keepAssets){
     return { from:'Navegador', to:host(rq.url), method:rq.method||'GET', url:rq.url||'', status:(rs.status||0), ms:Math.round(e.time||0),
       reqHeaders:headersArrToObj(rq.headers), reqBody:body, respHeaders:headersArrToObj(rs.headers), respBody:rbody, started:e.startedDateTime||'' };
   });
+  NX_ALLHOSTS = steps.map(function(st){ return { host:st.to, url:st.url }; });
   if(!keepAssets){ steps = steps.filter(function(st){
     if(/\.(js|mjs|css|png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|eot|otf|map|mp4|webm|bmp|wasm)(\?|$)/i.test(st.url)) return false;
     var ct=String((st.respHeaders&&(st.respHeaders['Content-Type']||st.respHeaders['content-type']))||'').toLowerCase();
@@ -4853,6 +4863,7 @@ function authOf(step){
 }
 function analyze(steps){
   steps = steps.map(function(s){ return { from:s.from||'Navegador', to:s.to||host(s.url), method:(s.method||'GET').toUpperCase(), url:s.url||'', path:pathOf(s.url||s.path||''), status:s.status||0, ms:s.ms||0, server:!!s.server, reqHeaders:s.reqHeaders||{}, reqBody:s.reqBody||'', respHeaders:s.respHeaders||{}, respBody:s.respBody||'' }; });
+  steps.forEach(function(s){ s.telemetry=nxIsTelemetry(s); });
   /* actores en orden de aparición */
   var actors=[], seen={};
   steps.forEach(function(s){ [s.from, s.to].forEach(function(a){ if(a && !seen[a]){ seen[a]=1; actors.push(a); } }); });
@@ -5064,7 +5075,8 @@ var OWASP_MAP={
  'Moneda controlada por el cliente':['API6:2023','CWE-602'],
  'Cuenta/beneficiario manipulable (IDOR financiero)':['API1:2023','CWE-639'],
  'Transferencia sin clave de idempotencia (doble gasto)':['API6:2023','CWE-837'],
- 'Movimiento de dinero sin segundo factor (2FA/OTP)':['API2:2023','CWE-308']
+ 'Movimiento de dinero sin segundo factor (2FA/OTP)':['API2:2023','CWE-308'],
+ 'Recurso de terceros contactado (posible egress de datos)':['API8:2023','CWE-200']
 };
 var DATARE=[
  {t:'JWT',re:/eyJ[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{4,}/g},
@@ -5084,6 +5096,7 @@ var DATARE=[
  {t:'IP interna',re:/\b(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}\b/g},
  {t:'S3 bucket',re:/[a-z0-9.\-]+\.s3[.\-][a-z0-9.\-]*amazonaws\.com/gi},
  {t:'RUT chileno',re:/\b\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]\b/g},
+ {t:'RUT chileno',re:/"?rut"?\s*[:=]\s*"?\d{7,8}-?[\dkK]?/gi},
  {t:'IBAN',re:/\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/g},
  {t:'Cuenta/tarjeta larga',re:/"?(?:account|cuenta|cbu|clabe|numero_?cuenta|card_?number)"?\s*[:=]\s*"?\d{10,22}/gi}
 ];
@@ -5131,7 +5144,8 @@ var ATTACK_PB={
  'Moneda controlada por el cliente':{a:'Interceptar la operacion y cambiar el campo currency/moneda a una divisa de menor valor o inexistente para romper la conversion o pagar de menos.',i:'Perdida economica por conversion manipulada.',f:'Fijar la moneda server-side segun el producto/cuenta; nunca confiar en la divisa del cliente.',p:['currency CLP->USD','moneda inexistente','monto en una divisa, cobro en otra']},
  'Cuenta/beneficiario manipulable (IDOR financiero)':{a:'Cambiar el id de cuenta/beneficiario por el de otra victima para desviar la transferencia, leer movimientos o consultar saldos ajenos.',i:'Robo o desvio de fondos y fuga de datos financieros de terceros (BOLA).',f:'Validar la titularidad de la cuenta/beneficiario en cada operacion; identificadores no enumerables ligados a la sesion.',p:['account_id = victima','cuenta_destino +-1','?rut=<otra victima>','enumerar numeros de cuenta']},
  'Transferencia sin clave de idempotencia (doble gasto)':{a:'Reenviar la misma peticion de transferencia (replay) o lanzarla en paralelo (race) aprovechando que no hay Idempotency-Key ni nonce.',i:'Doble (o multiple) debito/abono por la misma orden: fraude o descuadre contable.',f:'Exigir Idempotency-Key/nonce por operacion y rechazar duplicados server-side; locks sobre la transaccion.',p:['reenviar la MISMA request','50 requests en paralelo','reutilizar el nonce anterior']},
- 'Movimiento de dinero sin segundo factor (2FA/OTP)':{a:'Si se roba la sesion (XSS, token filtrado, cookie), ejecutar la transferencia directamente porque no hay desafio OTP/2FA/clave dinamica.',i:'Transferencias no autorizadas con solo la sesion, sin step-up.',f:'Exigir segundo factor (OTP/clave dinamica/biometria) server-side en TODA operacion de dinero, no solo en el login.',p:['repetir la transferencia sin paso OTP','omitir el endpoint de challenge','reusar la sesion robada']}
+ 'Movimiento de dinero sin segundo factor (2FA/OTP)':{a:'Si se roba la sesion (XSS, token filtrado, cookie), ejecutar la transferencia directamente porque no hay desafio OTP/2FA/clave dinamica.',i:'Transferencias no autorizadas con solo la sesion, sin step-up.',f:'Exigir segundo factor (OTP/clave dinamica/biometria) server-side en TODA operacion de dinero, no solo en el login.',p:['repetir la transferencia sin paso OTP','omitir el endpoint de challenge','reusar la sesion robada']},
+ 'Recurso de terceros contactado (posible egress de datos)':{a:'Interceptar que datos salen hacia el host de terceros (biometria, analytics, tracking) y evaluar si incluyen sesion, PII o comportamiento sensible.',i:'Fuga de datos/comportamiento del usuario a un tercero fuera de tu control (privacidad/GDPR).',f:'Minimizar y anonimizar lo enviado a terceros; cargar bajo consentimiento; revisar contratos de datos y SRI.',p:['revisar el body del beacon','bloquear el dominio y reprobar el flujo','auditar consentimiento/cookies']}
 };
 function animateStats(){
   var bs=document.querySelectorAll('#nxStats .nx-stat b');
@@ -5229,7 +5243,7 @@ function nxEnrich(m){
 
   /* datos sensibles */
   var data=[], seen={};
-  m.steps.forEach(function(s,i){ scanData(s.url,i,'url',data,seen); scanData(s.reqBody,i,'request',data,seen); scanData(s.respBody,i,'response',data,seen); });
+  m.steps.forEach(function(s,i){ if(s.telemetry) return; scanData(s.url,i,'url',data,seen); scanData(s.reqBody,i,'request',data,seen); scanData(s.respBody,i,'response',data,seen); });
   m.sensitive=data;
 
   /* ── findings agresivos adicionales ── */
@@ -5273,6 +5287,11 @@ function nxEnrich(m){
   /* PII hacia terceros */
   if(thirdParties.length){ m.sensitive.forEach(function(d){ if(d.where!=='response'){ var s=m.steps[d.step]; if(s && baseDomain(s.to)!==primary && /Email|Tarjeta|Password/.test(d.type)) addF('med','PII enviada a un tercero','Se envía '+d.type+' al dominio de terceros '+s.to+' en el paso '+(d.step+1)+'.',d.step); } }); }
 
+  /* ── v2.5 egress a terceros (incluye scripts/beacons filtrados como assets) ── */
+  var NX_VEND={ 'nudatasecurity':'NuData — biometria de comportamiento antifraude (Mastercard)','akamai':'Akamai (bot manager / CDN)','doubleclick':'Google DoubleClick (ads)','google-analytics':'Google Analytics','googletagmanager':'Google Tag Manager','hotjar':'Hotjar (session replay)','fullstory':'FullStory (session replay)','clarity.ms':'Microsoft Clarity (session replay)','segment.':'Segment (CDP)','mixpanel':'Mixpanel (analytics)','newrelic':'New Relic (APM)','bam.nr-data':'New Relic (APM)','datadoghq':'Datadog (APM)','sentry.io':'Sentry (error tracking)','cloudflareinsights':'Cloudflare Insights','perimeterx':'PerimeterX (bot mgmt)','px-cloud':'PerimeterX (bot mgmt)' };
+  var _extSeen={}; m.extContacts=[];
+  (NX_ALLHOSTS||[]).forEach(function(h){ if(!h || !h.host) return; var hb=baseDomain(h.host); if(hb===primary) return; if(_extSeen[h.host]) return; _extSeen[h.host]=1; var inFlow=false; for(var hi=0;hi<m.hosts.length;hi++){ if(m.hosts[hi].host===h.host) inFlow=true; } if(inFlow) return; var vend=''; var key=(h.host+' '+(h.url||'')).toLowerCase(); for(var vk in NX_VEND){ if(key.indexOf(vk)>-1){ vend=NX_VEND[vk]; break; } } m.extContacts.push({host:h.host, vendor:vend}); });
+  m.extContacts.forEach(function(x){ addF('med','Recurso de terceros contactado (posible egress de datos)','El flujo carga o llama a '+x.host+(x.vendor?' — '+x.vendor:'')+'. Aunque sea un script o beacon, puede recibir datos de sesion o de comportamiento del usuario. Verifica que se le envia y bajo que consentimiento.',-1); });
   /* ── v2.3 modulo financiero: deteccion de movimiento de dinero (transferencias/pagos) ── */
   var MONEY_PATH=/(transfer|transferencia|transferir|giro|remes|\bpago\b|payment|\bpay\b|payout|withdraw|retiro|deposit|dep[oó]sito|abono|\bcargo\b|charge|send[-_]?money|\bwire\b|\bach\b|p2p|topup|recarga|movimiento|cuenta[-_]?destino)/i;
   var AMOUNT_RE=/"?(amount|monto|importe|valor|total|cantidad|value|price|precio)"?\s*[:=]\s*"?-?\d/i;
@@ -5281,6 +5300,7 @@ function nxEnrich(m){
   var moneySteps=[];
   m.steps.forEach(function(s,ix){
     var body=String(s.reqBody||''); var urlp=String(s.path||'');
+    if(s.telemetry || !(s.status>0 && s.status<400)) return;
     var isMoney=/^(POST|PUT|PATCH)$/.test(s.method) && (MONEY_PATH.test(urlp) || (AMOUNT_RE.test(body) && (MONEY_PATH.test(body)||ACCT_FIELD.test(body))));
     if(!isMoney) return;
     moneySteps.push(ix);
@@ -5297,7 +5317,7 @@ function nxEnrich(m){
     if(!hasOTP) addF('high','Movimiento de dinero sin segundo factor (2FA/OTP)','El flujo ejecuta una operacion de dinero (paso '+moneySteps.map(function(x){return x+1;}).join(', ')+') sin ningun desafio OTP/2FA/clave dinamica visible. Si la sesion se roba (XSS, token filtrado), el atacante transfiere sin step-up. Confirma que haya segundo factor server-side en la operacion, no solo en el login.',moneySteps[0]);
   }
   /* ── replay / race condition ── */
-  var _dup={}; m.steps.forEach(function(s){ if(/^(POST|PUT|PATCH)$/.test(s.method)){ var k=s.method+' '+s.path.split('?')[0]; _dup[k]=(_dup[k]||0)+1; } });
+  var _dup={}; m.steps.forEach(function(s){ if(s.telemetry) return; if(/^(POST|PUT|PATCH)$/.test(s.method)){ var k=s.method+' '+s.path.split('?')[0]; _dup[k]=(_dup[k]||0)+1; } });
   Object.keys(_dup).forEach(function(k){ if(_dup[k]>=3) addF('low','Request repetido (race condition / replay)','Se repite '+_dup[k]+'× la misma petición '+k+' — probá enviarlas en paralelo (race condition: doble gasto/canje) o reutilizar el token de un solo uso (replay).',-1); });
   /* ── target recon / fingerprint ── */
   var recon={server:'',powered:'',cdn:'',waf:'',framework:'',cookies:[]};
@@ -5383,7 +5403,8 @@ function renderNarrative(m){
   if(m.isFinancial){ add('r','[$] FLUJO FINANCIERO detectado — '+m.moneySteps.length+' operacion(es) de movimiento de dinero (paso '+m.moneySteps.map(function(x){return x+1;}).join(', ')+'). Apliqué el set de controles de transferencia: idempotencia, 2FA/OTP, titularidad de cuenta y manipulacion de monto/moneda.'); }
   var thirds=m.hosts.filter(function(h){ return h.party==='3rd'; });
   if(thirds.length) add('r','[!] El flujo cruza a '+thirds.length+' dominio(s) de terceros ('+thirds.slice(0,3).map(function(h){return h.host;}).join(', ')+') — controlá qué datos salen de tu dominio.');
-  else add('g','[+] Todo el tráfico queda dentro de tu dominio principal ('+(m.primaryBase||'—')+'). Sin fugas a terceros.');
+  else if(!(m.extContacts&&m.extContacts.length)) add('g','[+] Todo el tráfico queda dentro de tu dominio principal ('+(m.primaryBase||'—')+'). Sin fugas a terceros.');
+  if(m.extContacts&&m.extContacts.length) add('r','[!] Contacta '+m.extContacts.length+' recurso(s) de terceros (script/beacon): '+m.extContacts.map(function(x){return x.host;}).slice(0,3).join(', ')+' — posible egress de datos/comportamiento.');
   if(m.tokens.length){
     m.tokens.slice(0,3).forEach(function(t){
       var bs=m.steps[t.birth]; var w=[]; if(t.inURL) w.push('viaja en la URL (queda en logs/Referer)'); if(t.toThird) w.push('se envía a un tercero'); if(t.jwt) w.push('es un JWT '+((t.jwt.header&&t.jwt.header.alg)||'?'));
@@ -5411,11 +5432,16 @@ function renderNarrative(m){
 function renderChains(m){
   var el=$('nxChains'); if(!el) return;
   if(!m.chains || !m.chains.length){ el.innerHTML=''; return; }
-  el.innerHTML='<div class="nx-panel-h">☠ cadenas de ataque · cómo un atacante encadena estos hallazgos ('+m.chains.length+')</div>'
+  function metaFor(links){ var tags={}, steps={}, why=''; (m.findings||[]).forEach(function(f){ if(links.indexOf(f.title)>-1){ if(f.owasp) tags[f.owasp+(f.cwe?' · '+f.cwe:'')]=1; if(f.step>=0) steps[f.step+1]=1; } }); for(var qi=0;qi<links.length && !why;qi++){ var pb=ATTACK_PB[links[qi]]; if(pb&&pb.i) why=pb.i; } return { tags:Object.keys(tags), steps:Object.keys(steps).map(Number).sort(function(a,b){return a-b;}), why:why }; }
+  el.innerHTML='<div class="nx-panel-h">☠ cadenas de ataque · cómo un atacante encadena estos hallazgos ('+m.chains.length+') · nombre · por qué · cómo</div>'
     + m.chains.map(function(c){
       var steps=c.steps.map(function(st,i){ return '<div class="nx-ac-step"><span class="nx-ac-n">'+(i+1)+'</span><span>'+esc(st)+'</span></div>'; }).join('<div class="nx-ac-arr">↓</div>');
       var links=c.links.map(function(l){ return '<span class="nx-ac-link">'+esc(l)+'</span>'; }).join(' ');
-      return '<div class="nx-ac" style="border-left-color:'+SEVC[c.sev]+'"><div class="nx-ac-head"><span class="nx-sev" style="background:'+SEVC[c.sev]+'">'+c.sev.toUpperCase()+'</span> <b>'+esc(c.title)+'</b></div><div class="nx-ac-body">'+steps+'</div><div class="nx-ac-links">⛓ eslabones: '+links+'</div></div>';
+      var md=metaFor(c.links);
+      var tags=md.tags.length?'<span style="margin-left:8px;display:inline-flex;gap:4px;flex-wrap:wrap;vertical-align:middle">'+md.tags.map(function(t){return '<span style="font:600 10px ui-monospace,monospace;background:#1a1412;color:#ff6b3d;border:1px solid #ff6b3d55;border-radius:4px;padding:1px 6px">'+esc(t)+'</span>';}).join('')+'</span>':'';
+      var affects=md.steps.length?'<div style="font:600 11px ui-monospace,monospace;color:#ffb020;margin:6px 0 2px">🎯 afecta: '+md.steps.map(function(s){return 'paso '+s;}).join(', ')+'</div>':'';
+      var why=md.why?'<div style="font-size:12px;color:#c9d4e0;margin:4px 0 6px;line-height:1.5">💥 <b>Por qué importa:</b> '+esc(md.why)+'</div>':'';
+      return '<div class="nx-ac" style="border-left-color:'+SEVC[c.sev]+'"><div class="nx-ac-head"><span class="nx-sev" style="background:'+SEVC[c.sev]+'">'+c.sev.toUpperCase()+'</span> <b>'+esc(c.title)+'</b>'+tags+'</div>'+affects+why+'<div style="font:700 11px ui-monospace,monospace;color:#8aa0b8;margin:6px 0 4px;letter-spacing:.04em">⚔ Cómo se ejecuta:</div><div class="nx-ac-body">'+steps+'</div><div class="nx-ac-links">⛓ eslabones: '+links+'</div></div>';
     }).join('');
 }
 function toCurl(s){
@@ -5567,9 +5593,11 @@ function init(){
     dz.addEventListener('drop', function(e){ if(e&&e.preventDefault)e.preventDefault(); dz.classList.remove('nx-drag'); var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) nxReadFile(f); }); }
   var tabs=document.querySelectorAll('#nexus .nx-ex');
   for(var i=0;i<tabs.length;i++){ (function(t){ t.addEventListener('click', function(){ for(var k=0;k<tabs.length;k++) tabs[k].classList.remove('on'); t.classList.add('on'); loadExample(t.getAttribute('data-ex')); }); })(tabs[i]); }
-  /* precargar el primer ejemplo para que se vea épico de entrada */
-  var first=document.querySelector('#nexus .nx-ex'); if(first){ first.classList.add('on'); }
-  loadExample('signup');
+  /* estado inicial neutro — NO autocargar demo (evita que aparezca acme.io sin contexto) */
+  (function(){ var w=$('nxNarrative'); if(w){ w.innerHTML='<div class="nx-narr-head">🧠 NEXUS listo — motor de ingeniería inversa de flujos</div>'
+    +'<p class="nx-nl c">[*] Subí tu HAR real (DevTools → Network → Export HAR) para reconstruir la coreografía de TU objetivo.</p>'
+    +'<p class="nx-nl a">[i] O tocá un flujo de ejemplo de arriba — son datos 100% ficticios (dominios acme.io / shop.io), NO es tu tráfico.</p>'
+    +'<p class="nx-nl g">[✓] Todo corre 100% en tu navegador. Nada se sube a ningún servidor.</p>'; } })();
 }
 if(typeof document!=='undefined' && document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();

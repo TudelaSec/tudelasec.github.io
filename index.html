@@ -6246,6 +6246,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
         <button class="gasr-src" data-src="netlas">◈ Netlas.io</button>
         <button class="gasr-src" data-src="leakix">◆ LeakIX</button>
         <button class="gasr-src" data-src="censys">◎ Censys Search</button>
+        <button class="gasr-src" data-src="hunter">◇ Hunter.how (país)</button>
+        <button class="gasr-src" data-src="fofa">◈ FOFA (país)</button>
       </div>
       <div class="gasr-bar">
         <input id="gasrInput" type="text" spellcheck="false" placeholder="objetivo — dominio o IP (ej: 1.1.1.1 · ejemplo.com)" autocomplete="off">
@@ -6289,8 +6291,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 (function(){
   "use strict";
   var PROXY='https://scanner-proxy.matias-ramireztu.workers.dev';
-  var SRC_LABELS={shodan:'Shodan InternetDB',netlas:'Netlas.io',leakix:'LeakIX',censys:'Censys Search'};
-  var ALL=['shodan','netlas','leakix','censys'];
+  var SRC_LABELS={shodan:'Shodan InternetDB',netlas:'Netlas.io',leakix:'LeakIX',censys:'Censys Search',hunter:'Hunter.how',fofa:'FOFA'};
+  var ALL=['shodan','netlas','leakix','censys','hunter','fofa'];
   var TIMEOUT=14000;
   var RISKY={21:'FTP',22:'SSH',23:'TELNET',25:'SMTP',110:'POP3',135:'MS-RPC',139:'NETBIOS',445:'SMB',1433:'MSSQL',1521:'ORACLE',2181:'ZOOKEEPER',2375:'DOCKER API',2379:'ETCD',3306:'MYSQL',3389:'RDP',5432:'POSTGRES',5601:'KIBANA',5900:'VNC',6379:'REDIS',8500:'CONSUL',9200:'ELASTIC',11211:'MEMCACHED',27017:'MONGODB'};
   var state={src:'all',mode:'host',running:false,userAbort:false,ctrls:[],t0:0,last:{},hits:[]};
@@ -6492,11 +6494,12 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   function setProg(p){ var el=$g('gasrProg'); if(el) el.style.width=Math.max(0,Math.min(100,p))+'%'; }
   function setState(txt,cls){ var s=$g('gasrState'); if(s) s.textContent=txt; var d=$g('gasrDot'); if(d){ d.className='gasr-dot'+(cls?(' '+cls):''); } }
 
-  function run(){ if(state.mode==='pais') return runPais();
+  function run(){ var _v=(($g('gasrInput')||{}).value||''); if(autoDetect()) setMode('pais'); else if(/\./.test(_v)) setMode('host'); if(state.mode==='pais') return runPais();
     if(state.running) return;
     var target=(($g('gasrInput')||{}).value||'').trim().replace(/^https?:\/\//i,'').split('/')[0];
     if(!target){ setState('ingresá un objetivo','err'); return; }
-    var srcs = state.src==='all'?ALL.slice():[state.src];
+    if(state.src==='hunter'||state.src==='fofa'){ setState('este motor solo funciona en modo PAÍS','err'); return; }
+    var srcs = state.src==='all'?ALL.filter(function(s){ return !!ENG[s]; }):[state.src];
     state.running=true; state.userAbort=false; state.ctrls=[]; state.t0=now();
     state.last={target:target,sources:{}};
     var btn=$g('gasrRun'), ab=$g('gasrAbort'), rad=$g('gasrRadar');
@@ -6563,6 +6566,18 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     if(src==='censys') return 'https://search.censys.io/api/v2/hosts/search?per_page=25&q='+encodeURIComponent('location.country_code:'+cc+(extra?(' and '+extra):''));
     if(src==='netlas') return 'https://app.netlas.io/api/responses/?q='+encodeURIComponent('geo.country:'+cc+(extra?(' AND '+extra):''));
     if(src==='leakix') return 'https://leakix.net/search?scope=service&q='+encodeURIComponent('+country:'+(COUNTRY[cc]||cc)+(extra?(' +'+extra):''));
+    if(src==='fofa'){
+      var fq='country="'+cc+'"';
+      if(extra){ extra.split(/\s+/).forEach(function(t){ var m=t.split(':'); fq+=(m.length===2)?(' && '+m[0]+'="'+m[1]+'"'):(' && '+t); }); }
+      return 'https://en.fofa.info/api/v1/search/all?qbase64='+encodeURIComponent(btoa(fq))+'&fields=ip,port,host,country,org,title&size=50&page=1';
+    }
+    if(src==='hunter'){
+      var q='country="'+cc+'"';
+      if(extra){ extra.split(/\s+/).forEach(function(t){ var m=t.split(':'); q+=(m.length===2)?(' && '+m[0]+'="'+m[1]+'"'):(' && '+t); }); }
+      var b64=btoa(q).replace(/\+/g,'-').replace(/\//g,'_');
+      var f=function(d){ return d.toISOString().slice(0,10); };
+      return 'https://api.hunter.how/search?query='+encodeURIComponent(b64)+'&page=1&page_size=50&start_time='+f(new Date(Date.now()-365*864e5))+'&end_time='+f(new Date())+'&fields=ip,port,domain,protocol,web_title,country,city,url,as_org,status_code,updated_at';
+    }
     return null;
   }
   function normHits(src, d){
@@ -6572,6 +6587,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     else if(src==='censys'){ arr(d&&d.result&&d.result.hits).forEach(function(m){ var ps=arr(m.services).map(function(s){return s.port;}).filter(Boolean); push({ip:m.ip,port:ps.join(', '),org:(m.autonomous_system&&m.autonomous_system.name)||'',country:(m.location&&m.location.country_code)||'',note:''}); }); }
     else if(src==='leakix'){ arr(d).forEach(function(e){ if(!e||typeof e!=='object') return; push({ip:e.ip,port:String(e.port||''),org:(e.network&&e.network.organization_name)||'',country:(e.geoip&&e.geoip.country_iso_code)||'',note:e.summary||''}); }); }
     else if(src==='netlas'){ arr(d&&d.items).forEach(function(it){ var x=(it&&it.data)?it.data:it; if(!x) return; var ip=(typeof x.ip==='string')?x.ip:(x.ip&&x.ip.value); push({ip:ip,port:String(x.port||''),org:(x.asn&&x.asn.name)||'',country:(x.geo&&(x.geo.country_code||x.geo.country))||'',note:x.protocol||''}); }); }
+    else if(src==='fofa'){ arr(d&&d.results).forEach(function(r){ if(!Array.isArray(r)) return; push({ip:r[0],port:String(r[1]||''),org:r[4]||'',country:r[3]||'',note:r[5]||r[2]||''}); }); }
+    else if(src==='hunter'){ arr(d&&d.data&&d.data.list).forEach(function(x){ push({ip:x.ip,port:String(x.port||''),org:x.as_org||'',country:x.country||'',note:(x.web_title||x.domain||'')}); }); }
     return out;
   }
   function isRiskyPort(p){ return String(p).split(/,\s*/).some(function(x){ return !!RISKY[Number(x)]; }); }
@@ -6611,7 +6628,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   function dossierPais(){
     var A=analyzeHits(), S=scoreOf(A);
     var L=['# GLOBAL ASSET RECON — Búsqueda por país','','**Filtro:** '+state.last.target,'**Generado:** '+new Date().toISOString(),'**Hosts:** '+A.hosts+' · **IPs únicas:** '+A.ips+' · **Puertos de riesgo:** '+A.risky+' · **Exposición (heurística):** '+S+'/100 ('+levelOf(S)+')',''];
-    ['shodan','censys','netlas','leakix'].forEach(function(s){ var d=state.last.sources[s]; if(d===undefined) return; L.push('## '+(SRC_LABELS[s]||s)); if(d&&d.__error){ L.push('_sin respuesta ('+d.__error+')_',''); return; } state.hits.filter(function(h){return h.src===s;}).forEach(function(h){ L.push('- '+h.ip+(h.port?(':'+h.port):'')+(h.org?' · '+h.org:'')+(h.country?' · '+h.country:'')+(h.note?' · '+h.note:'')); }); L.push(''); });
+    ALL.forEach(function(s){ var d=state.last.sources[s]; if(d===undefined) return; L.push('## '+(SRC_LABELS[s]||s)); if(d&&d.__error){ L.push('_sin respuesta ('+d.__error+')_',''); return; } state.hits.filter(function(h){return h.src===s;}).forEach(function(h){ L.push('- '+h.ip+(h.port?(':'+h.port):'')+(h.org?' · '+h.org:'')+(h.country?' · '+h.country:'')+(h.note?' · '+h.note:'')); }); L.push(''); });
     L.push('---','## JSON crudo','```json',JSON.stringify(state.last,null,2),'```');
     saveMd('dossier-pais-'+String(state.last.target).replace(/[^a-z0-9.\-]/gi,'_')+'.md', L.join('\n'));
   }
@@ -6636,6 +6653,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       var ctrl=new AbortController(); state.ctrls.push(ctrl);
       return proxyFetch(paisUpstream(s,cc,extra),ctrl).then(function(r){
         done++; setProg(6+(done/srcs.length)*94);
+        if(r.ok && r.data && ((typeof r.data.code==='number' && r.data.code>=400) || r.data.error===true)){ r={ok:false,error:'upstream '+(r.data.code||'error'),detail:'el motor respondió: '+(r.data.message||r.data.errmsg||'error'),ms:r.ms}; }
         if(r.ok){
           state.last.sources[s]=r.data;
           var hits=normHits(s,r.data); hits.forEach(function(x){ x.src=s; state.hits.push(x); });
@@ -6664,6 +6682,17 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     });
   }
 
+  /* ---- autodetección: el usuario no tiene que elegir modo a mano ---- */
+  function autoDetect(){
+    var inp=$g('gasrInput'); if(!inp) return false;
+    var v=(inp.value||'').trim(); if(!v) return false;
+    var parts=v.split(/\s+/), first=parts[0].toLowerCase(), extra=parts.slice(1).join(' '), cc=null;
+    if(/^[a-z]{2}$/.test(first)) cc=first.toUpperCase();
+    else for(var k in COUNTRY){ if(COUNTRY[k].toLowerCase()===first){ cc=k; break; } }
+    if(!cc) return false;
+    inp.value=cc+(extra?(' '+extra):'');
+    return true;
+  }
   var inited=false;
   function gasrInit(){ if(inited) return; inited=true;
     var srcs=$g('gasrSrcs'); if(srcs){ srcs.addEventListener('click',function(e){ var b=e.target.closest?e.target.closest('.gasr-src'):null; if(!b) return; var all=srcs.querySelectorAll('.gasr-src'); for(var i=0;i<all.length;i++) all[i].classList.remove('on'); b.classList.add('on'); state.src=b.getAttribute('data-src'); }); }

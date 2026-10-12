@@ -6218,6 +6218,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 @keyframes gasrSpin{to{transform:rotate(360deg)}}
 .gasr-empty{padding:30px;text-align:center;color:#5a6b7d;font:12px 'JetBrains Mono',ui-monospace,monospace}
 .gasr-note{font:11px 'JetBrains Mono',ui-monospace,monospace;color:#5a6b7d;margin-top:14px;line-height:1.5}
+.gasr-threat.crit{border-color:#ff1a2e;animation:gasrCardIn .5s cubic-bezier(.2,.7,.2,1) both,gasrCrit 1.2s ease-in-out infinite}@keyframes gasrCrit{0%,100%{box-shadow:0 0 0 1px #ff1a2e33,0 0 30px -8px #ff1a2e88}50%{box-shadow:0 0 0 3px #ff1a2e88,0 0 60px -6px #ff1a2eee}}
 @media (prefers-reduced-motion:reduce){#gasr *,#gasr *::before,#gasr *::after{animation:none!important;transition:none!important}}
 </style>
 <section id="gasr">
@@ -6367,7 +6368,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     var cv=$g('gasrS_cve'); if(cv&&cv.parentNode) cv.parentNode.classList.toggle('hot',a.cves>0);
     setText('gasrThreatTitle',has?('THREAT SCORE · '+sc+'/100'):'THREAT SCORE · sin datos');
     var bar=$g('gasrGaugeBar'); if(bar) bar.style.transform='scaleX('+(has?(sc/100):0)+')';
-    var lv=$g('gasrGaugeLvl'); if(lv){ lv.textContent=has?levelOf(sc):'—'; lv.style.color=sc>=70?'var(--acc)':sc>=45?'var(--amb)':'var(--grn)'; }
+    panel.classList.toggle('crit',has&&sc>=70); var lv=$g('gasrGaugeLvl'); if(lv){ lv.textContent=has?levelOf(sc):'—'; lv.style.color=sc>=70?'var(--acc)':sc>=45?'var(--amb)':'var(--grn)'; }
     var rl=$g('gasrRiskList'); if(rl) rl.textContent=a.riskyList.length?('Puertos de riesgo: '+a.riskyList.map(function(p){return p+' '+RISKY[p];}).join(' · ')):'Sin puertos de riesgo conocidos en los motores consultados.';
   }
 
@@ -6423,15 +6424,47 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     card.innerHTML=h;
   }
 
-  /* ---- fetch vía Worker, con control por fuente (timeout o aborto del operador) ---- */
+  /* ---- resolución DNS (DoH de Cloudflare, con CORS) — los motores de IP necesitan IP, no dominio ---- */
+  function resolveTarget(target){
+    if(/^\d{1,3}(\.\d{1,3}){3}$/.test(target)) return Promise.resolve({host:target,ip:target});
+    return fetch('https://cloudflare-dns.com/dns-query?name='+encodeURIComponent(target)+'&type=A',{headers:{'Accept':'application/dns-json'}})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ var a=(j.Answer||[]).filter(function(x){return x.type===1;}); return {host:target,ip:a.length?a[0].data:null}; })
+      .catch(function(){ return {host:target,ip:null}; });
+  }
+
+  /* ---- contrato real del Worker: GET /?url=<URL upstream codificada> ---- */
+  var ENG={
+    shodan:{needIp:true,  url:function(ip){ return 'https://internetdb.shodan.io/'+encodeURIComponent(ip); }},
+    netlas:{needIp:false, url:function(h){  return 'https://app.netlas.io/api/host/'+encodeURIComponent(h)+'/'; }},
+    leakix:{needIp:true,  url:function(ip){ return 'https://leakix.net/host/'+encodeURIComponent(ip); }},
+    censys:{needIp:true,  url:function(ip){ return 'https://search.censys.io/api/v2/hosts/'+encodeURIComponent(ip); }}
+  };
+
   function fetchSource(target, source, ctrl){
-    var url=PROXY+'/?target='+encodeURIComponent(target)+'&source='+encodeURIComponent(source);
     var t0=now(), timedOut=false;
     var to=setTimeout(function(){ timedOut=true; try{ctrl.abort();}catch(e){} }, TIMEOUT);
-    return fetch(url,{signal:ctrl.signal,headers:{'Accept':'application/json'}})
-      .then(function(r){ return r.text().then(function(tx){ var j; try{ j=JSON.parse(tx); }catch(e){ j={raw:tx.slice(0,2000)}; } if(!r.ok) return {ok:false,error:'HTTP '+r.status,detail:'el Worker respondió HTTP '+r.status+': '+tx.slice(0,300),ms:Math.round(now()-t0)}; return {ok:true,data:j,ms:Math.round(now()-t0)}; }); })
+    return state.ctxP.then(function(ctx){
+        var eng=ENG[source];
+        var need=eng.needIp?ctx.ip:ctx.host;
+        if(!need){ var ne=new Error('DNS no resolvió '+ctx.host+' (este motor necesita IP)'); ne.code='NOIP'; throw ne; }
+        // POST con evade:false: el proxy lee 'evade' solo del body; sin headers de IP falsas hacia APIs de terceros
+        return fetch(PROXY+'/',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({url:eng.url(need),evade:false})})
+          .then(function(r){ return r.text().then(function(tx){
+            var ms=Math.round(now()-t0);
+            if(!r.ok) return {ok:false,error:'HTTP '+r.status,detail:'el Worker respondió HTTP '+r.status+': '+tx.slice(0,300),ms:ms};
+            // el proxy devuelve un envoltorio {ok,status,headers,body:string}: desempaquetamos el cuerpo upstream
+            var w; try{ w=JSON.parse(tx); }catch(e){ return {ok:false,error:'respuesta no JSON',detail:tx.slice(0,300),ms:ms}; }
+            if(w.error) return {ok:false,error:(w.blocked?'bloqueado':(w.error||'error')),detail:'proxy: '+w.error,ms:ms};
+            var up=w.status||0;
+            if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — el Worker no inyecta API key para este motor':'')+': '+String(w.body||'').slice(0,300),ms:ms};
+            var j; try{ j=JSON.parse(w.body); }catch(e){ j={raw:String(w.body||'').slice(0,2000)}; }
+            return {ok:true,data:j,ms:ms};
+          }); });
+      })
       .catch(function(e){
         var msg=String(e&&e.message||e);
+        if(e&&e.code==='NOIP') return {ok:false,error:'sin IP',detail:msg,ms:Math.round(now()-t0)};
         var err=state.userAbort?'abortado':(timedOut?'timeout':'red/CORS');
         return {ok:false,error:err,detail:msg+(err==='red/CORS'?' — mirá la consola (F12): el motivo exacto (CORS, CSP o red) aparece ahí':''),ms:Math.round(now()-t0)};
       })
@@ -6461,7 +6494,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     var res=$g('gasrResults'); if(res) res.innerHTML='';
     var th=$g('gasrThreat'); if(th) th.classList.remove('on');
     clearBlips(); clearLog();
-    logLine('','▶ ADQUISICIÓN · objetivo='+target+' · motores='+srcs.length);
+    logLine('','▶ ADQUISICIÓN · objetivo='+target+' · motores='+srcs.length); state.ctxP=resolveTarget(target).then(function(c){ logLine('ok','DNS · '+c.host+' → '+(c.ip||'sin registro A')); return c; });
     setState('adquiriendo '+srcs.length+' motor(es)…','live'); setProg(6);
     srcs.forEach(function(s){ renderCard(s,'load'); logLine('warn','→ '+(SRC_LABELS[s]||s)+' · consultando…'); });
     var done=0;

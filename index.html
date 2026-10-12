@@ -5182,7 +5182,7 @@ function nxProcess(raw){
 }
 function nxReadFile(f){
   var err=$('nxErr'); if(!f) return;
-  if(f.size > 80*1024*1024){ if(err){ err.className='nx-err'; err.textContent='✗ Archivo enorme (>80MB). En DevTools desactivá "Preserve log", filtrá por Fetch/XHR y borrá lo que no te interese antes de exportar el HAR.'; err.style.display='block'; } return; }
+  if(f.size > 200*1024*1024 && err){ err.className='nx-err nx-info'; err.textContent='ℹ Archivo muy grande ('+(f.size/1048576).toFixed(0)+' MB) — puede tardar unos segundos. Tip: filtrá por Fetch/XHR en DevTools para un HAR más liviano.'; err.style.display='block'; }
   var fn=$('nxFileName'); if(fn) fn.textContent='⏳ leyendo '+f.name+'…';
   var rd=new FileReader();
   rd.onload=function(){

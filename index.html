@@ -4593,7 +4593,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #nexus .nx-find-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:#fff;}
 #nexus .nx-sev{font-family:var(--mono);font-size:8.5px;font-weight:700;color:#120307;padding:2px 7px;border-radius:4px;letter-spacing:.06em;}
 #nexus .nx-find-step{font-family:var(--mono);font-size:8.5px;color:rgba(240,238,248,.45);border:1px solid var(--line);border-radius:999px;padding:1px 8px;}
-#nexus .nx-find p{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;line-height:1.55;color:rgba(240,238,248,.6);}
+#nexus .nx-find p{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;line-height:1.55;color:rgba(240,238,248,.6);}#nexus .nx-scanlog{display:none;margin:14px 0;border:1px solid rgba(255,26,46,.3);border-radius:10px;background:#050208;overflow:hidden;box-shadow:inset 0 0 30px rgba(0,0,0,.5),0 0 20px rgba(255,26,46,.1);}#nexus .nx-scanlog.on{display:block;}#nexus .nx-scan-head{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#ff6b7d;padding:9px 13px;border-bottom:1px solid rgba(255,26,46,.2);background:rgba(255,26,46,.05);text-shadow:0 0 7px rgba(255,26,46,.4);}#nexus .nx-scanlog .nx-sl{font-family:var(--mono);font-size:10.5px;line-height:1.5;margin:0;padding:3px 14px;color:rgba(240,238,248,.68);animation:nxSlIn .3s ease both;}#nexus .nx-scanlog .nx-sl:first-of-type{padding-top:9px;}#nexus .nx-scanlog .nx-sl:last-child{padding-bottom:10px;}#nexus .nx-sl.c{color:#9affd9;}#nexus .nx-sl.m{color:rgba(240,238,248,.6);}#nexus .nx-sl.r{color:#ff6b7d;font-weight:700;}#nexus .nx-sl.g{color:#00ffa3;font-weight:700;}@keyframes nxSlIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}#nexus .nx-pb{margin-top:9px;border-top:1px dashed rgba(255,26,46,.2);padding-top:9px;display:flex;flex-direction:column;gap:5px;}#nexus .nx-pb-l{font-family:var(--mono);font-size:10px;line-height:1.5;color:rgba(240,238,248,.62);}#nexus .nx-pb-i{font-weight:700;margin-right:6px;white-space:nowrap;}#nexus .nx-pb-i.atk{color:#ff6b3d;}#nexus .nx-pb-i.imp{color:#ff1a2e;}#nexus .nx-pb-i.fix{color:#00ffa3;}@media (prefers-reduced-motion:reduce){#nexus .nx-scanlog .nx-sl{animation:none!important;}}
 @media (max-width:760px){
   #nexus{padding:60px 0;}
   #nexus .nx-box{padding:15px;}
@@ -4656,6 +4656,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       </div>
 
 
+      <div id="nxScanlog" class="nx-scanlog"></div>
       <div id="nxVerdict" class="nx-verdict"></div>
       <div id="nxNarrative" class="nx-narrative"></div>
       <div id="nxStats" class="nx-stats"></div>
@@ -4989,7 +4990,8 @@ function renderFindings(m){
   var fs=m.findings.slice().sort(function(a,b){ return order[a.sev]-order[b.sev]; });
   el.innerHTML='<div class="nx-panel-h">🎯 debilidades · '+fs.length+' hallazgo(s) mapeados a OWASP API Top 10 / CWE</div>'+fs.map(function(f){
     var tags=(f.owasp?'<span class="nx-tag owasp">'+esc(f.owasp)+'</span>':'')+(f.cwe?'<span class="nx-tag cwe">'+esc(f.cwe)+'</span>':'');
-    return '<div class="nx-find" style="border-left-color:'+SEVC[f.sev]+'"><div class="nx-find-top"><span class="nx-sev" style="background:'+SEVC[f.sev]+'">'+f.sev.toUpperCase()+'</span> <b>'+esc(f.title)+'</b>'+(f.step>=0?' <span class="nx-find-step">paso '+(f.step+1)+'</span>':'')+' '+tags+'</div><p>'+esc(f.detail)+'</p></div>';
+    var pb=f.pb?'<div class="nx-pb"><div class="nx-pb-l"><span class="nx-pb-i atk">⚔ Cómo se explota</span> '+esc(f.pb.a)+'</div><div class="nx-pb-l"><span class="nx-pb-i imp">💥 Impacto</span> '+esc(f.pb.i)+'</div><div class="nx-pb-l"><span class="nx-pb-i fix">🛡 Mitigación</span> '+esc(f.pb.f)+'</div></div>':'';
+    return '<div class="nx-find" style="border-left-color:'+SEVC[f.sev]+'"><div class="nx-find-top"><span class="nx-sev" style="background:'+SEVC[f.sev]+'">'+f.sev.toUpperCase()+'</span> <b>'+esc(f.title)+'</b>'+(f.step>=0?' <span class="nx-find-step">paso '+(f.step+1)+'</span>':'')+' '+tags+'</div><p>'+esc(f.detail)+'</p>'+pb+'</div>';
   }).join('');
 }
 function nxAnim(){ try { if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false; return !(window.innerWidth>0 && window.innerWidth<760); } catch(e){ return true; } }
@@ -5051,6 +5053,63 @@ function scanData(text, step, where, out, seen){
   /* tarjetas de crédito (Luhn) */
   var cc=t.match(/\b(?:\d[ \-]?){13,19}\b/g)||[]; for(var i=0;i<cc.length;i++){ if(luhn(cc[i])){ var k='CC:'+cc[i]; if(!seen[k]){ seen[k]=1; out.push({type:'Tarjeta de crédito', sample:mask(cc[i].replace(/\D/g,'')), step:step, where:where}); } } }
 }
+/* ═══ NEXUS v2.1 — playbook ofensivo + escaneo progresivo estilo atacante ═══ */
+var ATTACK_PB={
+ 'Secreto en la URL':{a:'Recuperar el valor desde los logs del servidor, la cabecera Referer o el historial del navegador de la víctima, y reusarlo para saltarse el paso de verificación.',i:'Robo del token de confirmación o de sesión, que lleva a toma de cuenta.',f:'Enviar el secreto en el body o en un header Authorization, nunca como query param.'},
+ 'JWT alg:none':{a:'Cambiar el header del JWT a {"alg":"none"} y quitar la firma: el servidor acepta el token sin verificar y podés poner cualquier identidad o rol.',i:'Suplantacion total de cualquier usuario, incluido admin.',f:'Verificar SIEMPRE la firma, fijar el algoritmo esperado y rechazar alg=none.'},
+ 'JWT HMAC (HS256)':{a:'Si el secreto HMAC es debil, crackearlo offline (hashcat) y firmar tokens arbitrarios; o intentar confusion de algoritmo RS256 a HS256 usando la clave publica como secreto.',i:'Falsificacion de tokens y escalada de privilegios.',f:'Secreto largo y aleatorio, algoritmo fijado server-side, rotacion periodica.'},
+ 'JWT de vida larga':{a:'Un token robado (XSS, log, proxy) sirve durante horas o dias: el atacante lo reutiliza sin necesitar re-autenticarse.',i:'Ventana de abuso amplia tras cualquier filtracion del token.',f:'Access tokens cortos (minutos) + refresh token revocable.'},
+ 'Webhook sin verificación de firma':{a:'Forjar una peticion al endpoint del webhook simulando al proveedor (ej. pago exitoso) ya que no valida firma HMAC.',i:'Confirmar pedidos sin pagar, alterar estados internos.',f:'Validar la firma del webhook (X-Signature / Stripe-Signature) antes de procesar.'},
+ 'Monto controlado por el cliente':{a:'Interceptar la peticion de pago y cambiar el campo amount/price a un valor menor (o 0) antes de que llegue al backend.',i:'Comprar al precio que quiera el atacante (price tampering).',f:'Calcular el importe SIEMPRE en el servidor a partir del carrito, nunca confiar en el cliente.'},
+ 'Acción sensible sin autenticación':{a:'Llamar directamente al endpoint (confirm/reset/pago) sin presentar credenciales, o reusando un token de un solo uso.',i:'Ejecutar acciones de otros usuarios sin estar logueado.',f:'Exigir autenticacion y que el token del flujo sea de un solo uso y ligado al usuario.'},
+ 'OAuth sin parámetro state':{a:'Montar un CSRF de login: iniciar el flujo OAuth con la cuenta del atacante y hacer que la victima complete el callback, enlazando su sesion a la cuenta del atacante.',i:'Account takeover via login CSRF.',f:'Generar y validar un parametro state aleatorio por sesion.'},
+ 'IDs secuenciales (IDOR candidato)':{a:'Incrementar o decrementar el id numerico en la ruta (/users/1042 -> 1043) para leer o modificar recursos de otros usuarios.',i:'Acceso cross-account a datos ajenos (BOLA/IDOR).',f:'Verificar ownership del recurso en cada request; usar identificadores no predecibles (UUID).'},
+ 'CORS permisivo con credenciales':{a:'Desde un sitio malicioso, hacer fetch con credenciales al API: si responde ACAO reflejado + Allow-Credentials:true, el atacante lee la respuesta autenticada de la victima.',i:'Exfiltracion cross-origin de datos privados.',f:'Allow-list estricta de origenes; nunca wildcard con credenciales.'},
+ 'Cookie sin flags de seguridad':{a:'Sin HttpOnly, robar la cookie de sesion via XSS; sin Secure, interceptarla en HTTP; sin SameSite, abusarla en CSRF.',i:'Secuestro de sesion o acciones forzadas.',f:'Set-Cookie con HttpOnly, Secure y SameSite=Lax/Strict.'},
+ 'Tráfico en texto plano (HTTP)':{a:'Un atacante en la misma red (MITM) lee y modifica el trafico: captura tokens, cookies y datos en claro.',i:'Robo total de credenciales y manipulacion de respuestas.',f:'Forzar HTTPS en todo el flujo + HSTS con preload.'},
+ 'Token enviado a dominio de terceros':{a:'El token de sesion/acceso llega a un host de terceros (analytics, CDN): si ese tercero loguea o es comprometido, el atacante hereda la sesion.',i:'Fuga de la sesion fuera de tu control.',f:'Nunca mandar tokens propios a dominios de terceros; scope por audiencia.'},
+ 'Credenciales en texto claro en la respuesta':{a:'Leer la contrasena directamente en el body de la respuesta (via proxy, log o XSS).',i:'Compromiso inmediato de la cuenta.',f:'Nunca retornar credenciales; almacenarlas con hash fuerte (bcrypt/argon2).'},
+ 'Tarjeta de crédito en el cuerpo':{a:'Capturar el PAN completo desde el trafico o logs y usarlo para fraude.',i:'Fraude financiero y violacion de PCI-DSS.',f:'Tokenizar la tarjeta, nunca transmitir ni loguear el PAN completo.'},
+ 'Autenticación Basic (credenciales reversibles)':{a:'Decodificar el header Authorization (base64 es reversible) para obtener user:pass en claro.',i:'Robo de credenciales si se capturan.',f:'Usar tokens con expiracion en vez de Basic Auth.'},
+ 'Faltan headers de seguridad':{a:'Sin CSP, un XSS ejecuta libremente; sin X-Frame-Options, clickjacking; sin HSTS, downgrade a HTTP.',i:'Amplifica el impacto de XSS, clickjacking y MITM.',f:'Enviar CSP estricta, HSTS, X-Frame-Options/frame-ancestors y nosniff.'},
+ 'Introspección GraphQL habilitada':{a:'Lanzar la IntrospectionQuery para volcar todo el esquema (tipos, campos, mutations ocultas) y mapear la superficie de ataque.',i:'Reconocimiento completo de la API, incluidos campos sensibles.',f:'Deshabilitar introspeccion en produccion.'},
+ 'Posible session fixation':{a:'Fijar un ID de sesion conocido en la victima antes del login; tras autenticarse, el atacante reusa ese mismo ID ya autenticado.',i:'Secuestro de la sesion de la victima.',f:'Regenerar el ID de sesion inmediatamente despues del login.'},
+ 'PII enviada a un tercero':{a:'Capturar los datos personales que la app manda a un dominio de terceros (analytics/ads).',i:'Fuga de PII y problemas de privacidad/GDPR.',f:'Minimizar y anonimizar lo que se envia a terceros; revisar contratos de datos.'},
+ 'Error verboso del servidor':{a:'Provocar un 500 e inspeccionar el stacktrace para aprender tecnologia, rutas internas y queries.',i:'Reconocimiento que facilita ataques dirigidos.',f:'Mensajes de error genericos en produccion; loguear el detalle solo del lado servidor.'}
+};
+function animateStats(){
+  var bs=document.querySelectorAll('#nxStats .nx-stat b');
+  for(var i=0;i<bs.length;i++){ (function(b){
+    var mm=String(b.textContent).match(/^(\d+)(.*)$/); if(!mm) return;
+    var target=parseInt(mm[1],10), suf=mm[2], t0=0, dur=650;
+    function step(now){ if(!t0)t0=now; var p=Math.min(1,(now-t0)/dur); b.textContent=Math.round(target*(1-Math.pow(1-p,3)))+suf; if(p<1) requestAnimationFrame(step); }
+    b.textContent='0'+suf; requestAnimationFrame(step);
+  })(bs[i]); }
+}
+var nxScanGen=0;
+function playScan(m){
+  var el=$('nxScanlog'); if(!el) return; var st=m.stats; var gen=++nxScanGen;
+  var phases=[
+    ['c','[+] NEXUS engine iniciado — objetivo: '+st.requests+' request(s) de API'],
+    ['m','[>] fase 1/6 · parseo HAR + filtrado de ruido (assets)…  OK'],
+    ['m','[>] fase 2/6 · mapeo de hosts y fronteras de confianza…  '+st.services+' servicio(s)'+(st.thirdParties?' · '+st.thirdParties+' de 3ros [!]':'')],
+    ['m','[>] fase 3/6 · rastreo de propagacion de tokens (data-flow)…  '+st.props+' cadena(s)'],
+    ['m','[>] fase 4/6 · inventario de endpoints + esquema de auth…  '+st.endpoints+' endpoint(s)'],
+    ['m','[>] fase 5/6 · caza de datos sensibles en claro…  '+(st.sensitive?st.sensitive+' expuesto(s) [!]':'limpio')],
+    ['m','[>] fase 6/6 · evaluacion de vectores OWASP API Top 10…  '+st.findings+' debilidad(es)'],
+    [(st.crit?'r':'g'),'[=] VEREDICTO: nota '+st.grade+' · score '+st.score+'/100']
+  ];
+  el.innerHTML='<div class="nx-scan-head">⚡ escaneo en progreso — reconocimiento estilo atacante</div>';
+  el.classList.add('on');
+  if(!(typeof nxAnim==='function' && nxAnim())){ var h=''; for(var k=0;k<phases.length;k++){ h+='<p class="nx-sl '+phases[k][0]+'">'+esc(phases[k][1])+'</p>'; } el.insertAdjacentHTML('beforeend',h); animateStats(); return; }
+  var i=0;
+  (function next(){
+    if(gen!==nxScanGen || i>=phases.length) return;
+    var p=phases[i++]; var ln=document.createElement('p'); ln.className='nx-sl '+p[0]; ln.textContent=p[1]; el.appendChild(ln); el.scrollTop=el.scrollHeight;
+    if(i===3) animateStats();
+    setTimeout(next, 230);
+  })();
+}
 function nxEnrich(m){
   /* mapa de hosts + party */
   var hostSteps={}; m.steps.forEach(function(s,i){ (hostSteps[s.to]=hostSteps[s.to]||[]).push(i); });
@@ -5109,7 +5168,7 @@ function nxEnrich(m){
 
   /* backfill OWASP/CWE + dedup findings */
   var fseen={}, FF=[];
-  F.forEach(function(f){ var meta=f.owasp?[f.owasp,f.cwe]:OWASP_MAP[f.title]; if(meta){ f.owasp=meta[0]; f.cwe=meta[1]; } var k=f.title+'|'+f.step; if(!fseen[k]){ fseen[k]=1; FF.push(f); } });
+  F.forEach(function(f){ var meta=f.owasp?[f.owasp,f.cwe]:OWASP_MAP[f.title]; if(meta){ f.owasp=meta[0]; f.cwe=meta[1]; } f.pb=ATTACK_PB[f.title]||null; var k=f.title+'|'+f.step; if(!fseen[k]){ fseen[k]=1; FF.push(f); } });
   m.findings=FF;
 
   /* score + grade */
@@ -5194,7 +5253,7 @@ function renderNarrative(m){
   el.innerHTML='<div class="nx-narr-head">🧠 lectura del analista · qué significan estos resultados</div>'
     + L.map(function(line,i){ return '<p class="nx-nl '+line.c+'"'+(anim?' style="animation-delay:'+(i*0.09).toFixed(2)+'s"':'')+'>'+esc(line.t)+'</p>'; }).join('');
 }
-function renderAll(m){ MODEL=m; renderVerdict(m); renderNarrative(m); renderStats(m); renderServices(m); renderSeq(m); renderChain(m); renderTokens(m); renderEndpoints(m); renderData(m); renderFindings(m); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML='<div class="nx-ins-hint">▸ Clickeá un paso del diagrama para inspeccionar request/response, tokens y relaciones.</div>'; } }
+function renderAll(m){ MODEL=m; renderVerdict(m); renderNarrative(m); renderStats(m); renderServices(m); renderSeq(m); renderChain(m); renderTokens(m); renderEndpoints(m); renderData(m); renderFindings(m); playScan(m); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML='<div class="nx-ins-hint">▸ Clickeá un paso del diagrama para inspeccionar request/response, tokens y relaciones.</div>'; } }
 
 /* ─────────── PDF ─────────── */
 function nxPDF(){
@@ -5218,12 +5277,14 @@ function nxPDF(){
     verdictColor:MODEL.stats.crit?'#ff1a2e':'#1a8f3c',
     stats:[ {label:'Pasos',value:MODEL.stats.requests,color:'#ff1a2e'}, {label:'Servicios',value:MODEL.stats.services,color:'#7b4fff'}, {label:'Tokens propagados',value:MODEL.stats.props,color:'#c98a00'}, {label:'Hallazgos',value:MODEL.stats.findings,color:MODEL.stats.crit?'#ff1a2e':'#1a8f3c'} ],
     columns:['#','Método','Actor → Servicio','Ruta','Status','Rol','Auth','Emite','Usa / deriva de'], rows:rows,
-    footer:'Sección 1/4 — Pasos del flujo. Siguen: derivación, tokens y debilidades.'
+    footer:'Sección 1/5 — Pasos del flujo. Siguen: derivación, tokens, debilidades y playbook ofensivo.'
   });
-  setTimeout(function(){ tsReportPDF({ title:'NEXUS — Cadena de Derivación', subtitle:'Qué hace cada llamada y a qué paso deriva', engine:'NEXUS v1.1', target:MODEL.stats.requests+' pasos · '+MODEL.stats.props+' propagaciones', columns:['Paso','Qué hace','Deriva a'], rows:deriv, footer:'Sección 2/4 — Cadena de derivación.' }); }, 300);
+  setTimeout(function(){ tsReportPDF({ title:'NEXUS — Cadena de Derivación', subtitle:'Qué hace cada llamada y a qué paso deriva', engine:'NEXUS v1.1', target:MODEL.stats.requests+' pasos · '+MODEL.stats.props+' propagaciones', columns:['Paso','Qué hace','Deriva a'], rows:deriv, footer:'Sección 2/5 — Cadena de derivación.' }); }, 300);
   var tok=MODEL.tokens.map(function(t){ var exp=[]; if(t.inURL)exp.push('en URL'); if(t.toThird)exp.push('a 3ros'); if(t.jwt)exp.push('JWT '+((t.jwt.header&&t.jwt.header.alg)||'?')); var life=(t.jwt&&t.jwt.payload&&t.jwt.payload.exp&&t.jwt.payload.iat)?Math.round((t.jwt.payload.exp-t.jwt.payload.iat)/60)+'min':'—'; return [ esc(t.name), 'paso '+(t.birth+1), (t.uses.length?t.uses.map(function(u){return 'paso '+(u+1);}).join(', '):'no reutilizado'), life, (exp.join(', ')||'interno') ]; });
-  if(tok.length) setTimeout(function(){ tsReportPDF({ title:'NEXUS — Ciclo de Vida de Tokens', subtitle:'Dónde nace cada secreto, a dónde viaja y su exposición', engine:'NEXUS v2.0', target:tok.length+' tokens rastreados', columns:['Token','Origen','Consumido en','Vida','Exposición'], rows:tok, footer:'Sección 3/4 — Ciclo de vida de tokens.' }); }, 600);
-  if(fr.length){ setTimeout(function(){ tsReportPDF({ title:'NEXUS — Debilidades del Flujo', subtitle:'Hallazgos de la coreografía analizada', engine:'NEXUS v1.1', target:MODEL.stats.findings+' hallazgos', verdict:MODEL.stats.crit?'HAY HALLAZGOS DE ALTA PRIORIDAD':'Hallazgos informativos', verdictColor:MODEL.stats.crit?'#ff1a2e':'#c98a00', columns:['Severidad','Debilidad','Detalle'], rows:fr, footer:'Sección 4/4 — Debilidades (OWASP API / CWE). Reporte generado client-side por NEXUS.' }); }, 950); }
+  if(tok.length) setTimeout(function(){ tsReportPDF({ title:'NEXUS — Ciclo de Vida de Tokens', subtitle:'Dónde nace cada secreto, a dónde viaja y su exposición', engine:'NEXUS v2.0', target:tok.length+' tokens rastreados', columns:['Token','Origen','Consumido en','Vida','Exposición'], rows:tok, footer:'Sección 3/5 — Ciclo de vida de tokens.' }); }, 600);
+  if(fr.length){ setTimeout(function(){ tsReportPDF({ title:'NEXUS — Debilidades del Flujo', subtitle:'Hallazgos de la coreografía analizada', engine:'NEXUS v1.1', target:MODEL.stats.findings+' hallazgos', verdict:MODEL.stats.crit?'HAY HALLAZGOS DE ALTA PRIORIDAD':'Hallazgos informativos', verdictColor:MODEL.stats.crit?'#ff1a2e':'#c98a00', columns:['Severidad','Debilidad','Detalle'], rows:fr, footer:'Sección 4/5 — Debilidades (OWASP API / CWE).' }); }, 950); }
+  var pbrows=MODEL.findings.filter(function(f){return f.pb;}).map(function(f){ return [ { html:true, text:'<span class="sev" style="background:'+SEVC[f.sev]+'">'+f.sev.toUpperCase()+'</span>' }, esc(f.title)+(f.step>=0?' (p'+(f.step+1)+')':''), esc(f.pb.a), esc(f.pb.i), esc(f.pb.f) ]; });
+  if(pbrows.length) setTimeout(function(){ tsReportPDF({ title:'NEXUS — Playbook del Atacante', subtitle:'Cómo se explotaría cada debilidad · impacto · mitigación', engine:'NEXUS v2.1', target:pbrows.length+' vectores ofensivos', verdict:'PERSPECTIVA OFENSIVA — como lo haría un atacante real', verdictColor:'#ff1a2e', columns:['Sev','Debilidad','Cómo se explota','Impacto','Mitigación'], rows:pbrows, footer:'Sección 5/5 — Playbook ofensivo · solo para auditoría autorizada. Reporte client-side por NEXUS.' }); }, 1300);
 }
 
 /* ─────────── WIRING ─────────── */
@@ -5262,7 +5323,7 @@ function loadExample(key){
 function init(){
   if(!$('nxRun')) return;
   $('nxRun').addEventListener('click', run);
-  var c=$('nxClear'); if(c) c.addEventListener('click', function(){ var t=$('nxInput'); if(t) t.value=''; MODEL=null; ['nxVerdict','nxNarrative','nxStats','nxServices','nxSeq','nxFindings','nxChain','nxTokens','nxEndpoints','nxData'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; }); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML=''; } var fn=$('nxFileName'); if(fn) fn.textContent=''; var ch=$('nxChain'); if(ch) ch.innerHTML=''; });
+  var c=$('nxClear'); if(c) c.addEventListener('click', function(){ var t=$('nxInput'); if(t) t.value=''; MODEL=null; ['nxScanlog','nxVerdict','nxNarrative','nxStats','nxServices','nxSeq','nxFindings','nxChain','nxTokens','nxEndpoints','nxData'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; }); var _sl=$('nxScanlog'); if(_sl) _sl.classList.remove('on'); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML=''; } var fn=$('nxFileName'); if(fn) fn.textContent=''; var ch=$('nxChain'); if(ch) ch.innerHTML=''; });
   var pb=$('nxPDF'); if(pb) pb.addEventListener('click', nxPDF);
   var pl=$('nxPlay'); if(pl) pl.addEventListener('click', function(){ if(MODEL) renderSeq(MODEL); });
   var hb=$('nxHelp'), hp=$('nxHelpPanel'), hx=$('nxHelpClose');

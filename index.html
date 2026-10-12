@@ -3106,7 +3106,7 @@ a{color:inherit;text-decoration:none;}
 #ctfGate .ctf-vec code{color:#27c93f;background:rgba(39,201,63,.08);padding:0 4px;border-radius:2px;}
 #ctfGate .ctf-send{background:transparent;border:1px solid rgba(255,26,46,.4);border-radius:5px;color:var(--acc,#ff1a2e);padding:0 18px;cursor:pointer;font-family:var(--mono,monospace);font-weight:700;transition:all .3s;text-shadow:0 0 8px rgba(255,26,46,.5);}
 #ctfGate .ctf-send:hover{background:var(--acc,#ff1a2e);color:#000;box-shadow:0 0 20px rgba(255,26,46,.6);}
-#ctfGate .ctf-console{background:#030103;border:1px solid rgba(255,26,46,.25);border-radius:7px;overflow:hidden;display:block;box-shadow:inset 0 0 30px rgba(0,0,0,.75),0 0 18px rgba(255,26,46,.08);flex:1;}
+#ctfGate .ctf-console{contain:content;background:#030103;border:1px solid rgba(255,26,46,.25);border-radius:7px;overflow:hidden;display:block;box-shadow:inset 0 0 30px rgba(0,0,0,.75),0 0 18px rgba(255,26,46,.08);flex:1;}
 #ctfGate .ctf-chead{background:#0b0407;padding:9px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,26,46,.2);}
 #ctfGate .ctf-dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
 #ctfGate .ctf-dot.r{background:#ff5f56;box-shadow:0 0 8px rgba(255,95,86,.6)}#ctfGate .ctf-dot.y{background:#ffbd2e;box-shadow:0 0 8px rgba(255,189,46,.6)}#ctfGate .ctf-dot.g{background:#27c93f;box-shadow:0 0 8px rgba(39,201,63,.6)}
@@ -3158,7 +3158,7 @@ a{color:inherit;text-decoration:none;}
 #ctfGate .ctf-tk-btn{width:100%;padding:12px;background:linear-gradient(90deg,#27c93f,#149a2d);color:#021007;border:none;border-radius:6px;font-family:var(--mono,monospace);font-weight:700;letter-spacing:1.4px;cursor:pointer;transition:all .25s;box-shadow:0 0 20px rgba(39,201,63,.4);}
 #ctfGate .ctf-tk-btn:hover{box-shadow:0 0 38px rgba(39,201,63,.72);transform:translateY(-1px);}
 @media (max-width:720px){#ctfGate .ctf-main{flex-direction:column;gap:16px}#ctfGate .ctf-box{padding:22px 15px 16px}#ctfGate .ctf-title{font-size:19px;letter-spacing:1.5px}#ctfGate .ctf-body{height:170px;font-size:10px}#ctfGate .ctf-tk-granted{font-size:23px}}
-@media (prefers-reduced-motion: reduce){#ctfGate,#ctfGate::before,#ctfGate::after,.ctf-shake,#ctfGate .ctf-blink,#ctfGate .ctf-title,#ctfGate .ctf-btn,#ctfGate .ctf-label,#ctfGate .ctf-scanline,#ctfGate .ctf-stat i,#ctfGate .ctf-skull,#ctfGate .ctf-denied,#ctfGate .ctf-ticket,#ctfGate .ctf-tk-granted,#ctfGate .ctf-vlist,#ctfGate .ctf-vchevron{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion: reduce){#ctfGate,#ctfGate::before,#ctfGate::after,.ctf-shake,#ctfGate .ctf-blink,#ctfGate .ctf-title,#ctfGate .ctf-btn,#ctfGate .ctf-label,#ctfGate .ctf-scanline,#ctfGate .ctf-stat i,#ctfGate .ctf-skull,#ctfGate .ctf-denied,#ctfGate .ctf-ticket,#ctfGate .ctf-tk-granted,#ctfGate .ctf-vlist,#ctfGate .ctf-vchevron{animation:none!important;transition:none!important}}@media (max-width:860px){#ctfGate::before{animation:none!important;opacity:.32;}#ctfGate::after{display:none;}#ctfGate .ctf-scanline{display:none;}#ctfGate .ctf-title{animation:none!important;text-shadow:0 0 10px rgba(255,26,46,.5);}#ctfGate .ctf-btn{animation:none!important;}#ctfGate .ctf-stat i{animation:none!important;}#ctfGate .ctf-box{box-shadow:0 12px 44px rgba(0,0,0,.6);}#ctfGate .ctf-field:focus{box-shadow:0 0 8px rgba(255,26,46,.25);}#ctfGate .ctf-console{contain:content;}#ctfGate .ctf-body{height:150px;}}
 /* ══════════ SESIÓN #36 — PERF TURBO: la página VUELA sin cambiar NI un pixel ══════════
    content-visibility:auto → el navegador SALTA el layout+paint de las 34 secciones
    fuera de pantalla: el ~90% del DOM invisible deja de renderizarse en cada frame.
@@ -3448,6 +3448,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       <a href="#taint"        class="mega-link">☣ Taint Radar Zero-Trust</a>
       <a href="#breach"       class="mega-link">☢ Breach Radar Creds</a>
       <a href="#mailsec"      class="mega-link">✉ Mail Reaper Defense</a>
+<a href="#nexus"        class="mega-link">🧬 NEXUS Flow Reverse</a>
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
       <a href="#kraken" class="mega-link">🐙 Kraken Subdomains</a>
       <a href="#cerberus" class="mega-link">🐺 Cerberus Fuzzer</a>
@@ -4533,6 +4534,509 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 })();
 </script>
 
+<style>
+/* ══ NEXUS — Flow Reverse Engine · CSS ══ */
+#nexus{padding:90px 0;position:relative;}
+#nexus .nx-box{background:linear-gradient(165deg,rgba(18,7,11,.9),rgba(8,3,6,.95));border:1px solid var(--line,rgba(255,26,46,.12));border-radius:14px;padding:22px;box-shadow:inset 0 0 40px rgba(0,0,0,.4);}
+#nexus .nx-ex-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
+#nexus .nx-ex-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,120,130,.7);margin-right:4px;}
+#nexus .nx-ex{font-family:var(--mono);font-size:11px;color:rgba(240,238,248,.7);background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;transition:transform .16s,background .16s,border-color .16s,color .16s;}
+#nexus .nx-ex:hover{color:#fff;border-color:rgba(255,26,46,.45);transform:translateY(-1px);}
+#nexus .nx-ex.on{color:#fff;background:linear-gradient(100deg,rgba(255,26,46,.9),rgba(196,0,26,.7));border-color:transparent;box-shadow:0 4px 16px rgba(255,26,46,.35);}
+#nexus .nx-input{width:100%;min-height:92px;max-height:220px;resize:vertical;background:#08040a;border:1px solid var(--line);border-radius:8px;color:#9affd9;font-family:var(--mono);font-size:11px;line-height:1.5;padding:12px 14px;}
+#nexus .nx-input:focus{outline:none;border-color:rgba(255,26,46,.4);box-shadow:0 0 14px rgba(255,26,46,.18);}
+#nexus .nx-actions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0;}
+#nexus .nx-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:rgba(240,238,248,.75);background:transparent;border:1px solid rgba(255,26,46,.3);border-radius:5px;padding:9px 16px;cursor:pointer;transition:all .18s;text-transform:uppercase;}
+#nexus .nx-btn:hover{color:#fff;border-color:var(--acc);box-shadow:0 0 16px rgba(255,26,46,.3);}
+#nexus .nx-btn.primary{background:linear-gradient(90deg,#ff1a2e,#c2101f);color:#fff;border-color:transparent;font-weight:700;}
+#nexus .nx-err{display:none;font-family:var(--mono);font-size:11px;color:#ff6b7d;background:rgba(255,26,46,.08);border:1px solid rgba(255,26,46,.3);border-radius:6px;padding:9px 12px;margin-bottom:12px;}
+#nexus .nx-stats{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;}
+#nexus .nx-stat{flex:1;min-width:120px;text-align:center;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:9px;padding:13px 8px;}
+#nexus .nx-stat b{display:block;font-family:var(--disp,var(--mono));font-size:26px;line-height:1;}
+#nexus .nx-stat span{display:block;margin-top:6px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:rgba(240,238,248,.45);text-transform:uppercase;}
+#nexus .nx-services{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0 18px;}
+#nexus .nx-svc{font-family:var(--mono);font-size:11px;color:#ff9ba6;background:rgba(255,26,46,.08);border:1px solid rgba(255,26,46,.35);border-radius:6px;padding:5px 11px;}
+#nexus .nx-svc.cli{color:#9affd9;background:rgba(0,255,163,.08);border-color:rgba(0,255,163,.4);}
+#nexus .nx-svc-arr{color:rgba(255,120,130,.5);font-family:var(--mono);}
+#nexus .nx-diagram-wrap{border:1px solid var(--line);border-radius:10px;background:#06030880;overflow:hidden;margin-bottom:16px;}
+#nexus .nx-diagram-head{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,120,130,.7);padding:10px 14px;border-bottom:1px solid var(--line);background:rgba(255,26,46,.04);}
+#nexus .nx-seq{overflow-x:auto;overflow-y:hidden;padding:6px 10px 14px;}
+#nexus .nx-seq svg{display:block;}
+#nexus .nx-msg:hover rect{fill:rgba(255,26,46,.06);}
+#nexus .nx-inspector{display:none;border:1px solid rgba(255,26,46,.3);border-radius:10px;background:rgba(10,4,8,.7);padding:14px;margin-bottom:16px;}
+#nexus .nx-inspector.on{display:block;animation:nxIn .25s ease both;}
+@keyframes nxIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+#nexus .nx-ins-hint{font-family:var(--mono);font-size:11px;color:rgba(240,238,248,.4);text-align:center;padding:6px;}
+#nexus .nx-ins-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px;}
+#nexus .nx-mtag{font-family:var(--mono);font-size:10px;font-weight:700;color:#120307;padding:2px 9px;border-radius:4px;}
+#nexus .nx-ins-url{font-family:var(--mono);font-size:11px;color:#9affd9;word-break:break-all;}
+#nexus .nx-ins-meta{display:flex;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.55);margin-bottom:10px;}
+#nexus .nx-ins-meta b{color:#ffb020;}
+#nexus .nx-rels{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+#nexus .nx-rel{font-family:var(--mono);font-size:9.5px;color:#9affd9;background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.35);border-radius:5px;padding:3px 8px;}
+#nexus .nx-rel.prod{color:#ffd79a;background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.4);}
+#nexus .nx-rel b{color:#fff;}
+#nexus .nx-jwt{background:rgba(123,79,255,.07);border:1px solid rgba(123,79,255,.35);border-radius:7px;padding:9px 11px;margin-bottom:10px;}
+#nexus .nx-jwt b{font-family:var(--mono);font-size:10px;color:#b79aff;}
+#nexus .nx-jwt pre{margin:6px 0 0;font-family:var(--mono);font-size:10px;color:#d9ccff;white-space:pre-wrap;word-break:break-all;}
+#nexus .nx-ins-cols{display:flex;gap:12px;flex-wrap:wrap;}
+#nexus .nx-ins-col{flex:1;min-width:230px;background:#08040a;border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+#nexus .nx-ins-t{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:rgba(255,120,130,.7);margin-bottom:7px;text-transform:uppercase;}
+#nexus .nx-h{font-family:var(--mono);font-size:10px;color:rgba(240,238,248,.6);margin-bottom:3px;word-break:break-all;}
+#nexus .nx-h b{color:#ff9ba6;}
+#nexus .nx-h.nx-dim{color:rgba(240,238,248,.3);}
+#nexus .nx-pre{margin:8px 0 0;font-family:var(--mono);font-size:10px;line-height:1.5;color:#9affd9;background:#05020799;border:1px solid var(--line);border-radius:6px;padding:9px;max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-all;}
+#nexus .nx-findings{margin-top:4px;}
+#nexus .nx-fhead{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:#ff9ba6;margin-bottom:10px;text-transform:uppercase;}
+#nexus .nx-fempty{font-family:var(--mono);font-size:12px;color:#9affd9;background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.3);border-radius:8px;padding:12px 14px;}
+#nexus .nx-find{border:1px solid var(--line);border-left:3px solid #ff1a2e;border-radius:7px;background:rgba(255,255,255,.015);padding:10px 13px;margin-bottom:9px;}
+#nexus .nx-find-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:#fff;}
+#nexus .nx-sev{font-family:var(--mono);font-size:8.5px;font-weight:700;color:#120307;padding:2px 7px;border-radius:4px;letter-spacing:.06em;}
+#nexus .nx-find-step{font-family:var(--mono);font-size:8.5px;color:rgba(240,238,248,.45);border:1px solid var(--line);border-radius:999px;padding:1px 8px;}
+#nexus .nx-find p{margin:6px 0 0;font-family:var(--mono);font-size:10.5px;line-height:1.55;color:rgba(240,238,248,.6);}
+@media (max-width:760px){
+  #nexus{padding:60px 0;}
+  #nexus .nx-box{padding:15px;}
+  #nexus .nx-stat b{font-size:21px;}
+  #nexus .nx-ins-cols{flex-direction:column;}
+}
+/* NEXUS v1.1 — cadena de derivación + animaciones (optimizado: gated por JS nxAnim) */
+#nexus .nx-play{float:right;font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:#9affd9;background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.35);border-radius:999px;padding:3px 11px;cursor:pointer;text-transform:uppercase;transition:background .16s,color .16s;}#nexus .nx-play:hover{background:rgba(0,255,163,.18);color:#fff;}#nexus .nx-seq svg g.nx-msg.nx-anim{opacity:0;animation:nxMsgIn .5s cubic-bezier(.16,1,.3,1) forwards;will-change:transform,opacity;}@keyframes nxMsgIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}#nexus .nx-seq svg g.nx-arc{opacity:0;animation:nxArcFade .6s ease forwards;}@keyframes nxArcFade{to{opacity:1}}#nexus .nx-chain{margin:4px 0 18px;}#nexus .nx-chain-head{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,120,130,.7);margin-bottom:12px;}#nexus .nx-chain-step{display:flex;gap:12px;background:rgba(255,255,255,.015);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}@keyframes nxCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}#nexus .nx-cs-badge{flex:none;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;color:#120307;font-size:13px;}#nexus .nx-cs-body{flex:1;min-width:0;}#nexus .nx-cs-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:#fff;}#nexus .nx-cs-title b{color:#fff;}#nexus .nx-cs-title .nx-mtag{font-size:9px;}#nexus .nx-cs-path{color:rgba(240,238,248,.5);font-size:10px;word-break:break-all;font-weight:400;}#nexus .nx-cs-desc{font-family:var(--mono);font-size:11px;color:rgba(240,238,248,.72);margin-top:6px;line-height:1.5;}#nexus .nx-cs-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}#nexus .nx-cc{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:5px;}#nexus .nx-cc.emit{color:#ffd79a;background:rgba(255,176,32,.09);border:1px solid rgba(255,176,32,.4);}#nexus .nx-cc.use{color:#9affd9;background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.35);}#nexus .nx-cs-deriv{margin-top:8px;font-family:var(--mono);font-size:10.5px;color:#00ffa3;}#nexus .nx-cs-deriv b{color:#9affd9;}#nexus .nx-cs-deriv.end{color:rgba(240,238,248,.35);}#nexus .nx-chain-link{text-align:center;color:rgba(0,255,163,.5);font-size:15px;line-height:1;margin:3px 0;}@media (prefers-reduced-motion: reduce){#nexus .nx-seq svg g,#nexus .nx-chain-step,#nexus .nx-chain-link,#nexus .nx-inspector{animation:none!important;opacity:1!important;transform:none!important}}@media (max-width:760px){#nexus .nx-chain-step{gap:9px;padding:10px 11px;}#nexus .nx-play{float:none;display:inline-block;margin-right:8px;}}
+
+</style>
+<!-- ══ SECCIÓN: NEXUS — API Flow Reverse Engine ══ -->
+<section id="nexus">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">35 — API Choreography</div></div>
+    <h2 class="sec-title h2-anim" data-l1="NEXUS" data-l2="Reverse." aria-label="Nexus Reverse."></h2>
+    <p style="margin-bottom:24px;color:rgba(240,238,248,.6);max-width:760px;">Motor de <b style="color:var(--acc)">ingeniería inversa de flujos</b>: pegá un <b>HAR</b> (DevTools → Network → Export HAR) o elegí un flujo de ejemplo. NEXUS reconstruye la coreografía de APIs, <b style="color:var(--green)">detecta qué token viaja de una llamada a la siguiente</b>, decodifica JWTs y marca las debilidades. 100% en tu navegador.</p>
+
+    <div class="nx-box">
+      <div class="nx-ex-row">
+        <span class="nx-ex-lbl">▚ flujos de ejemplo</span>
+        <button class="nx-ex" data-ex="signup">🧬 Signup + Confirmación</button>
+        <button class="nx-ex" data-ex="oauth">🔑 OAuth2 Code</button>
+        <button class="nx-ex" data-ex="reset">🔄 Password Reset</button>
+        <button class="nx-ex" data-ex="checkout">💳 Checkout + Pago</button>
+      </div>
+      <textarea id="nxInput" class="nx-input" spellcheck="false" placeholder='Pegá acá un HAR exportado de DevTools (Network → Export HAR) o un array JSON de requests…'></textarea>
+      <div class="nx-actions">
+        <button id="nxRun" class="nx-btn primary">⟲ RECONSTRUIR FLUJO</button>
+        <button id="nxClear" class="nx-btn">✕ LIMPIAR</button>
+        <button id="nxPDF" class="nx-btn">📄 REPORTE PDF</button>
+      </div>
+      <div id="nxErr" class="nx-err"></div>
+
+      <div id="nxStats" class="nx-stats"></div>
+      <div id="nxServices" class="nx-services"></div>
+
+      <div class="nx-diagram-wrap">
+        <div class="nx-diagram-head"><button id="nxPlay" class="nx-play">▶ reproducir</button>⛓ DIAGRAMA DE SECUENCIA · las líneas punteadas verdes = datos que se propagan entre llamadas</div>
+        <div id="nxSeq" class="nx-seq"></div>
+      </div>
+
+      <div id="nxChain" class="nx-chain"></div>
+      <div id="nxInspector" class="nx-inspector"></div>
+      <div id="nxFindings" class="nx-findings"></div>
+    </div>
+  </div>
+</section>
+<!-- ══ FIN SECCIÓN NEXUS ══ -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEXUS — API Flow Reverse Engine (sesión #35)
+   Reconstruye la coreografía de APIs desde un HAR o flujos de ejemplo:
+   secuencia, propagación de tokens entre llamadas, JWT decode y debilidades.
+   100% client-side. ═══════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function $(id){ try { return document.getElementById(id); } catch(e){ return null; } }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function host(u){ try { return String(u).replace(/^[a-z]+:\/\//i,'').split('/')[0].split('?')[0] || 'local'; } catch(e){ return 'local'; } }
+function pathOf(u){ try { var m = String(u).replace(/^[a-z]+:\/\//i,''); var i = m.indexOf('/'); return i<0 ? '/' : m.slice(i); } catch(e){ return String(u); } }
+var MCOL = { GET:'#00ffa3', POST:'#ffb020', PUT:'#7b4fff', PATCH:'#ff2d78', DELETE:'#ff1a2e', HEAD:'#6a5865', OPTIONS:'#6a5865' };
+function mcol(m){ return MCOL[String(m).toUpperCase()] || '#9aa'; }
+var SEVC = { crit:'#ff1a2e', high:'#ff6b3d', med:'#ffb020', low:'#7b4fff', info:'#00ffa3' };
+
+/* ─────────── FLUJOS DE EJEMPLO (realistas, con propagación + hallazgos) ─────────── */
+var JWT_DEMO = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDQyIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MTAwMDAwMDAsImV4cCI6MTcxMDA4NjQwMH0.3bQ9Xk7sLmN2pQ8vR1tZ0yWcAeFgHiJkLmNoPqRsT';
+var EXAMPLES = {
+ signup: { name:'Signup + Confirmación por email', steps:[
+   { from:'Navegador', to:'api.acme.io', method:'POST', url:'https://api.acme.io/v1/users', status:201, ms:142,
+     reqHeaders:{'Content-Type':'application/json','Origin':'https://app.acme.io'},
+     reqBody:'{"email":"victima@gmail.com","password":"S3cr3t!","name":"Ana"}',
+     respHeaders:{'Content-Type':'application/json'},
+     respBody:'{"id":1042,"email":"victima@gmail.com","status":"pending","confirmation_token":"cnf_7f3a9e21c4d58b0a12"}' },
+   { from:'api.acme.io', to:'mail.acme.io', method:'POST', url:'https://mail.acme.io/internal/send', status:202, ms:63, server:true,
+     reqHeaders:{'Content-Type':'application/json','X-Internal-Auth':'svc_mail_key_9981'},
+     reqBody:'{"to":"victima@gmail.com","template":"confirm","link":"https://app.acme.io/confirm?token=cnf_7f3a9e21c4d58b0a12"}',
+     respHeaders:{'Content-Type':'application/json'}, respBody:'{"queued":true,"message_id":"msg_88b1"}' },
+   { from:'Navegador', to:'api.acme.io', method:'GET', url:'https://api.acme.io/v1/confirm?token=cnf_7f3a9e21c4d58b0a12', status:200, ms:88,
+     reqHeaders:{'Accept':'application/json'}, reqBody:'',
+     respHeaders:{'Content-Type':'application/json','Set-Cookie':'session=sess_a19f…; HttpOnly'},
+     respBody:'{"confirmed":true,"user_id":1042,"access_token":"'+JWT_DEMO+'"}' },
+   { from:'Navegador', to:'api.acme.io', method:'GET', url:'https://api.acme.io/v1/me', status:200, ms:54,
+     reqHeaders:{'Authorization':'Bearer '+JWT_DEMO}, reqBody:'',
+     respHeaders:{'Content-Type':'application/json'}, respBody:'{"id":1042,"email":"victima@gmail.com","role":"user"}' }
+ ]},
+ oauth: { name:'OAuth2 — Authorization Code', steps:[
+   { from:'Navegador', to:'auth.acme.io', method:'GET', url:'https://auth.acme.io/oauth/authorize?client_id=app_01&redirect_uri=https://app.acme.io/callback&response_type=code&state=xY3zK9&scope=profile', status:302, ms:120,
+     reqHeaders:{}, reqBody:'', respHeaders:{'Location':'https://app.acme.io/callback?code=AUTHc0d3_7781&state=xY3zK9'}, respBody:'' },
+   { from:'Navegador', to:'app.acme.io', method:'GET', url:'https://app.acme.io/callback?code=AUTHc0d3_7781&state=xY3zK9', status:302, ms:70,
+     reqHeaders:{}, reqBody:'', respHeaders:{'Location':'https://app.acme.io/dashboard'}, respBody:'' },
+   { from:'app.acme.io', to:'auth.acme.io', method:'POST', url:'https://auth.acme.io/oauth/token', status:200, ms:190, server:true,
+     reqHeaders:{'Content-Type':'application/x-www-form-urlencoded'},
+     reqBody:'grant_type=authorization_code&code=AUTHc0d3_7781&client_id=app_01&client_secret=cs_live_9a81bf22',
+     respHeaders:{'Content-Type':'application/json'},
+     respBody:'{"access_token":"'+JWT_DEMO+'","refresh_token":"rt_5540af99e2","expires_in":3600,"token_type":"Bearer"}' },
+   { from:'Navegador', to:'api.acme.io', method:'GET', url:'https://api.acme.io/me', status:200, ms:61,
+     reqHeaders:{'Authorization':'Bearer '+JWT_DEMO}, reqBody:'', respHeaders:{}, respBody:'{"sub":"1042","role":"user"}' }
+ ]},
+ reset: { name:'Password Reset', steps:[
+   { from:'Navegador', to:'api.acme.io', method:'POST', url:'https://api.acme.io/auth/forgot', status:200, ms:95,
+     reqHeaders:{'Content-Type':'application/json'}, reqBody:'{"email":"victima@gmail.com"}',
+     respHeaders:{}, respBody:'{"sent":true,"reset_token":"rst_1042_1710000000"}' },
+   { from:'api.acme.io', to:'mail.acme.io', method:'POST', url:'https://mail.acme.io/internal/send', status:202, ms:58, server:true,
+     reqHeaders:{'X-Internal-Auth':'svc_mail_key_9981'}, reqBody:'{"to":"victima@gmail.com","link":"https://app.acme.io/reset?token=rst_1042_1710000000"}',
+     respHeaders:{}, respBody:'{"queued":true}' },
+   { from:'Navegador', to:'api.acme.io', method:'POST', url:'https://api.acme.io/auth/reset', status:200, ms:102,
+     reqHeaders:{'Content-Type':'application/json'}, reqBody:'{"token":"rst_1042_1710000000","password":"NewPass!2024"}',
+     respHeaders:{}, respBody:'{"reset":true,"user_id":1042}' },
+   { from:'Navegador', to:'api.acme.io', method:'POST', url:'https://api.acme.io/auth/login', status:200, ms:77,
+     reqHeaders:{'Content-Type':'application/json'}, reqBody:'{"email":"victima@gmail.com","password":"NewPass!2024"}',
+     respHeaders:{}, respBody:'{"access_token":"'+JWT_DEMO+'"}' }
+ ]},
+ checkout: { name:'Checkout + Pago', steps:[
+   { from:'Navegador', to:'api.shop.io', method:'POST', url:'https://api.shop.io/cart', status:201, ms:110,
+     reqHeaders:{'Content-Type':'application/json','Authorization':'Bearer '+JWT_DEMO}, reqBody:'{"items":[{"sku":"GPU-4090","qty":1}]}',
+     respHeaders:{}, respBody:'{"cart_id":"cart_77","total":1899900}' },
+   { from:'Navegador', to:'api.shop.io', method:'POST', url:'https://api.shop.io/payment-intents', status:200, ms:168,
+     reqHeaders:{'Content-Type':'application/json','Authorization':'Bearer '+JWT_DEMO}, reqBody:'{"cart_id":"cart_77","amount":1899900,"currency":"clp"}',
+     respHeaders:{}, respBody:'{"intent_id":"pi_9f21","client_secret":"pi_9f21_secret_abc123"}' },
+   { from:'Navegador', to:'pay.gateway.io', method:'POST', url:'https://pay.gateway.io/v1/payment_intents/pi_9f21/confirm', status:200, ms:240,
+     reqHeaders:{'Content-Type':'application/json'}, reqBody:'{"client_secret":"pi_9f21_secret_abc123","pm":"card_visa"}',
+     respHeaders:{}, respBody:'{"status":"succeeded","intent_id":"pi_9f21"}' },
+   { from:'pay.gateway.io', to:'api.shop.io', method:'POST', url:'https://api.shop.io/webhooks/payment', status:200, ms:40, server:true,
+     reqHeaders:{'Content-Type':'application/json'}, reqBody:'{"intent_id":"pi_9f21","status":"succeeded","amount":1899900}',
+     respHeaders:{}, respBody:'{"ok":true}' }
+ ]}
+};
+
+/* ─────────── PARSER (HAR o array de pasos) ─────────── */
+function b64urlDecode(s){ try { s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return decodeURIComponent(Array.prototype.map.call(atob(s),function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join('')); } catch(e){ try { return atob(String(s).replace(/-/g,'+').replace(/_/g,'/')); } catch(e2){ return ''; } } }
+function headersArrToObj(a){ var o={}; if(Array.isArray(a)){ a.forEach(function(h){ if(h&&h.name) o[h.name]=h.value; }); } return o; }
+function parseHAR(j){
+  var ents = j && j.log && j.log.entries; if(!Array.isArray(ents)) return null;
+  var steps = ents.map(function(e){
+    var rq=e.request||{}, rs=e.response||{};
+    var body = rq.postData ? (rq.postData.text||'') : '';
+    var rbody = rs.content ? (rs.content.text||'') : '';
+    return { from:'Navegador', to:host(rq.url), method:rq.method||'GET', url:rq.url||'', status:(rs.status||0), ms:Math.round(e.time||0),
+      reqHeaders:headersArrToObj(rq.headers), reqBody:body, respHeaders:headersArrToObj(rs.headers), respBody:rbody, started:e.startedDateTime||'' };
+  });
+  steps.sort(function(a,b){ return String(a.started).localeCompare(String(b.started)); });
+  return steps;
+}
+function nxParse(text){
+  var t = String(text||'').trim(); if(!t) return { error:'Pegá un HAR o elegí un flujo de ejemplo.' };
+  var j; try { j = JSON.parse(t); } catch(e){ return { error:'No es JSON válido. Exportá un HAR desde DevTools → Network → Export HAR, o usá un ejemplo.' }; }
+  if(j && j.log && j.log.entries){ var s = parseHAR(j); return s && s.length ? { steps:s } : { error:'El HAR no tiene requests.' }; }
+  if(Array.isArray(j)) return { steps:j };
+  if(j && Array.isArray(j.steps)) return { steps:j.steps };
+  return { error:'Formato no reconocido. Se espera un HAR (.log.entries) o un array de requests.' };
+}
+
+/* ─────────── ANÁLISIS: tokens, propagación, JWT, findings ─────────── */
+var KEYRE = /(token|code|secret|session|jwt|otp|nonce|ticket|auth|refresh|access|client_secret|id|key|hash|sig)/i;
+function collectTokens(step, idx){
+  var out = [], seen = {};
+  function add(name, val){ val=String(val); if(val.length<6 || seen[val]) return; if(/^[0-9.]+$/.test(val) && val.length<8) return; seen[val]=1; out.push({ name:name, value:val, step:idx }); }
+  /* del body JSON */
+  try { var j = JSON.parse(step.respBody||'null');
+    (function walk(o,pre){ if(o&&typeof o==='object'){ for(var k in o){ if(!Object.prototype.hasOwnProperty.call(o,k)) continue; var v=o[k]; if(v&&typeof v==='object') walk(v,k); else if(typeof v==='string'||typeof v==='number'){ if(KEYRE.test(k)) add(k, v); } } } })(j,'');
+  } catch(e){}
+  /* valores con pinta de token aunque la clave no matchee */
+  var raw = String(step.respBody||'');
+  (raw.match(/[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{5,}/g)||[]).forEach(function(v){ add('jwt', v); });
+  /* Set-Cookie */
+  var sc = step.respHeaders && (step.respHeaders['Set-Cookie']||step.respHeaders['set-cookie']);
+  if(sc){ var cm = String(sc).split(';')[0]; add('cookie:'+cm.split('=')[0], cm.split('=').slice(1).join('=')); }
+  /* Location (redirect) → code/token/state */
+  var loc = step.respHeaders && (step.respHeaders['Location']||step.respHeaders['location']);
+  if(loc){ (String(loc).match(/[?&]([a-z_]+)=([^&]+)/gi)||[]).forEach(function(kv){ var m=kv.match(/[?&]([a-z_]+)=([^&]+)/i); if(m) add(m[1], decodeURIComponent(m[2])); }); }
+  return out;
+}
+function stepHaystack(step){
+  var h = [ step.url||'', step.reqBody||'' ];
+  if(step.reqHeaders) for(var k in step.reqHeaders){ h.push(String(step.reqHeaders[k])); }
+  return h.join(' \n ');
+}
+function jwtDecode(tok){
+  var parts = String(tok).split('.'); if(parts.length<2) return null;
+  try { var h = JSON.parse(b64urlDecode(parts[0])), p = JSON.parse(b64urlDecode(parts[1])); return { header:h, payload:p }; } catch(e){ return null; }
+}
+function roleOf(step){
+  var u = (step.url||'').toLowerCase(), m=(step.method||'').toUpperCase();
+  if(/signup|register|\/users\b/.test(u) && m==='POST') return 'crear cuenta';
+  if(/confirm|verify|activate/.test(u)) return 'confirmar';
+  if(/authorize|\/oauth\//.test(u)) return 'autorización';
+  if(/callback/.test(u)) return 'callback OAuth';
+  if(/token/.test(u) && m==='POST') return 'emitir token';
+  if(/forgot|reset|recover/.test(u)) return 'reset password';
+  if(/login|signin|auth\b/.test(u)) return 'login';
+  if(/logout/.test(u)) return 'logout';
+  if(/payment|charge|checkout|intent/.test(u)) return 'pago';
+  if(/webhook/.test(u)) return 'webhook';
+  if(/send|mail|notif|email/.test(u)) return 'notificación';
+  if(/\/me\b|profile|account/.test(u)) return 'perfil';
+  return m==='GET'?'lectura':'acción';
+}
+function authOf(step){
+  var a = step.reqHeaders && (step.reqHeaders['Authorization']||step.reqHeaders['authorization']);
+  if(a){ if(/^bearer/i.test(a)) return 'Bearer'; if(/^basic/i.test(a)) return 'Basic'; return 'Auth'; }
+  if(step.reqHeaders && (step.reqHeaders['Cookie']||step.reqHeaders['cookie'])) return 'Cookie';
+  if(step.reqHeaders){ for(var k in step.reqHeaders){ if(/x-.*-auth|api-?key|x-api/i.test(k)) return 'API-Key'; } }
+  return 'ninguna';
+}
+function analyze(steps){
+  steps = steps.map(function(s){ return { from:s.from||'Navegador', to:s.to||host(s.url), method:(s.method||'GET').toUpperCase(), url:s.url||'', path:pathOf(s.url||s.path||''), status:s.status||0, ms:s.ms||0, server:!!s.server, reqHeaders:s.reqHeaders||{}, reqBody:s.reqBody||'', respHeaders:s.respHeaders||{}, respBody:s.respBody||'' }; });
+  /* actores en orden de aparición */
+  var actors=[], seen={};
+  steps.forEach(function(s){ [s.from, s.to].forEach(function(a){ if(a && !seen[a]){ seen[a]=1; actors.push(a); } }); });
+  /* enriquecer */
+  steps.forEach(function(s){ s.role=roleOf(s); s.auth=authOf(s); s.tokens=collectTokens(s, 0); });
+  /* propagación */
+  var edges=[];
+  for(var i=0;i<steps.length;i++){
+    var toks = collectTokens(steps[i], i);
+    for(var ti=0;ti<toks.length;ti++){
+      var V = toks[ti].value;
+      for(var j=i+1;j<steps.length;j++){
+        if(stepHaystack(steps[j]).indexOf(V) > -1){ edges.push({ from:i, to:j, name:toks[ti].name, value:V }); }
+      }
+    }
+  }
+  /* dedup edges por (from,to,value) */
+  var eseen={}, E=[]; edges.forEach(function(e){ var k=e.from+'>'+e.to+':'+e.value; if(!eseen[k]){ eseen[k]=1; E.push(e); } }); edges=E;
+  /* findings */
+  var F=[];
+  function addF(sev,title,detail,step){ F.push({ sev:sev, title:title, detail:detail, step:(step==null?-1:step) }); }
+  steps.forEach(function(s,ix){
+    /* secreto en la URL */
+    var q = (s.url.split('?')[1]||'');
+    if(/(token|code|secret|key|session|password|pwd)=/i.test(q)) addF('med','Secreto en la URL','El paso '+(ix+1)+' ('+s.method+' '+s.path.split('?')[0]+') lleva un secreto como query param → queda en logs de servidor, Referer e historial del navegador. Mandalo en el body o en un header.',ix);
+    /* JWT */
+    (s.tokens||[]).forEach(function(t){ if(t.name==='jwt' || /\./.test(t.value) && t.value.split('.').length===3){ var d=jwtDecode(t.value); if(d){ var alg=(d.header&&d.header.alg)||''; if(/none/i.test(alg)) addF('crit','JWT alg:none','El token del paso '+(ix+1)+' usa alg="none" → firma no verificada, falsificación total de la identidad.',ix); else if(/^HS/i.test(alg)) addF('info','JWT HMAC ('+alg+')','Token simétrico en el paso '+(ix+1)+'. Verificá secreto fuerte y que el server fije el alg (evitar confusión RS256→HS256).',ix); if(d.payload&&d.payload.iat&&d.payload.exp){ var life=d.payload.exp-d.payload.iat; if(life>86400) addF('low','JWT de vida larga','El access_token del paso '+(ix+1)+' dura '+Math.round(life/3600)+'h. Tokens de acceso largos amplían la ventana de abuso si se filtran.',ix); } } } });
+    /* webhook sin firma */
+    if(/webhook/i.test(s.url)){ var hasSig=false; for(var k in s.reqHeaders){ if(/sign|signature|hmac|x-hub|stripe-signature/i.test(k)) hasSig=true; } if(!hasSig) addF('high','Webhook sin verificación de firma','El webhook del paso '+(ix+1)+' no trae header de firma (p.ej. X-Signature/Stripe-Signature). Un atacante podría forjar notificaciones de pago.',ix); }
+    /* precio/monto controlado por el cliente */
+    if(/amount|price|total/i.test(s.reqBody) && /payment|intent|charge|checkout|cart/i.test(s.url) && s.from==='Navegador') addF('high','Monto controlado por el cliente','El paso '+(ix+1)+' manda el importe desde el cliente. Si el server confía en ese valor → price tampering (pagar menos). El monto debe calcularse server-side.',ix);
+    /* acción sensible sin auth */
+    if(/confirm|reset|payment|intent|delete|admin/i.test(s.url) && s.auth==='ninguna' && !s.server && s.method!=='GET') addF('med','Acción sensible sin autenticación','El paso '+(ix+1)+' ('+s.role+') no presenta credenciales. Verificá que el token del flujo sea suficiente y no reutilizable.',ix);
+  });
+  /* OAuth state */
+  var hasAuthorize = steps.some(function(s){ return /authorize/i.test(s.url); });
+  if(hasAuthorize){ var cb = steps.filter(function(s){ return /callback/i.test(s.url); }); var stateOk = cb.some(function(s){ return /[?&]state=/.test(s.url); }); if(cb.length && !stateOk) addF('high','OAuth sin parámetro state','El callback no valida "state" → CSRF en el login OAuth (un atacante enlaza tu sesión a su cuenta).',-1); }
+  /* IDOR: ids numéricos secuenciales en paths */
+  var ids = []; steps.forEach(function(s){ var m=(s.path.match(/\/(\d{2,})(\b|\/)/)); if(m) ids.push(parseInt(m[1],10)); });
+  if(ids.length>=2){ ids.sort(function(a,b){return a-b;}); var seq=false; for(var z=1;z<ids.length;z++){ if(ids[z]-ids[z-1]===1) seq=true; } if(seq) addF('med','IDs secuenciales (IDOR candidato)','Se ven identificadores numéricos consecutivos en las rutas. Probá incrementar/decrementar el id para acceder a recursos de otros usuarios (BOLA/IDOR).',-1); }
+
+  var stats = {
+    requests: steps.length,
+    services: actors.filter(function(a){ return a!=='Navegador'; }).length,
+    props: edges.length,
+    findings: F.length,
+    crit: F.filter(function(f){return f.sev==='crit'||f.sev==='high';}).length
+  };
+  return { steps:steps, actors:actors, edges:edges, findings:F, stats:stats };
+}
+
+/* ─────────── RENDER ─────────── */
+var MODEL = null;
+function renderStats(m){
+  var el=$('nxStats'); if(!el) return;
+  var cards=[
+    ['PASOS', m.stats.requests, '#00ffa3'],
+    ['SERVICIOS', m.stats.services, '#7b4fff'],
+    ['TOKENS PROPAGADOS', m.stats.props, '#ffb020'],
+    ['HALLAZGOS', m.stats.findings, m.stats.crit?'#ff1a2e':'#00ffa3']
+  ];
+  el.innerHTML = cards.map(function(c){ return '<div class="nx-stat"><b style="color:'+c[2]+'">'+c[1]+'</b><span>'+c[0]+'</span></div>'; }).join('');
+}
+function renderServices(m){
+  var el=$('nxServices'); if(!el) return;
+  el.innerHTML = m.actors.map(function(a){ var cl = a==='Navegador'?'nx-svc cli':'nx-svc'; return '<span class="'+cl+'">'+(a==='Navegador'?'🖥 ':'⬡ ')+esc(a)+'</span>'; }).join('<span class="nx-svc-arr">→</span>');
+}
+function renderSeq(m){
+  var host_=$('nxSeq'); if(!host_) return;
+  var A=m.actors, S=m.steps;
+  var laneGap = A.length<=3?210:A.length<=4?175:150;
+  var padL=20, topH=64, rowH=62, padB=28;
+  var laneX={}; A.forEach(function(a,i){ laneX[a]=padL+70+i*laneGap; });
+  var W = padL+70+(A.length-1)*laneGap+90;
+  var H = topH + S.length*rowH + padB;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" font-family="monospace">';
+  svg+='<defs><marker id="nxArr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="currentColor"/></marker></defs>';
+  /* lifelines + headers */
+  A.forEach(function(a){ var x=laneX[a]; var cli=a==='Navegador';
+    svg+='<line x1="'+x+'" y1="'+topH+'" x2="'+x+'" y2="'+(H-padB+6)+'" stroke="rgba(255,26,46,.18)" stroke-dasharray="3 5"/>';
+    svg+='<rect x="'+(x-62)+'" y="14" width="124" height="34" rx="7" fill="'+(cli?'rgba(0,255,163,.08)':'rgba(255,26,46,.08)')+'" stroke="'+(cli?'rgba(0,255,163,.5)':'rgba(255,26,46,.45)')+'"/>';
+    svg+='<text x="'+x+'" y="35" text-anchor="middle" font-size="10" fill="'+(cli?'#9affd9':'#ff9ba6')+'">'+esc(a.length>16?a.slice(0,15)+'…':a)+'</text>';
+  });
+  /* mensajes */
+  S.forEach(function(s,i){
+    var y=topH+22+i*rowH, x1=laneX[s.from], x2=laneX[s.to], col=mcol(s.method);
+    var selfCall = x1===x2;
+    if(selfCall){ x2=x1+40; }
+    var dir = x2>=x1?1:-1;
+    var _a=nxAnim(); svg+='<g class="nx-msg'+(_a?' nx-anim':'')+'" data-step="'+i+'" style="cursor:pointer'+(_a?';animation-delay:'+(i*0.09).toFixed(2)+'s':'')+'">';
+    svg+='<rect x="'+(padL-6)+'" y="'+(y-16)+'" width="'+(W-padL-4)+'" height="'+(rowH-8)+'" fill="transparent"/>';
+    /* etiqueta */
+    var lx=(x1+x2)/2;
+    svg+='<text x="'+lx+'" y="'+(y-5)+'" text-anchor="middle" font-size="9.5" fill="'+col+'" font-weight="bold">'+esc(s.method)+' '+esc(s.path.split('?')[0].slice(0,34))+'</text>';
+    /* flecha request */
+    svg+='<line x1="'+x1+'" y1="'+y+'" x2="'+(x2-dir*8)+'" y2="'+y+'" stroke="'+col+'" stroke-width="1.6" color="'+col+'" marker-end="url(#nxArr)" '+(s.server?'stroke-dasharray="6 3"':'')+'/>';
+    /* step num */
+    svg+='<circle cx="'+x1+'" cy="'+y+'" r="8" fill="'+col+'"/><text x="'+x1+'" y="'+(y+3)+'" text-anchor="middle" font-size="9" fill="#120307" font-weight="bold">'+(i+1)+'</text>';
+    /* status pill */
+    var sc=s.status>=500?'#ff1a2e':s.status>=400?'#ff6b3d':s.status>=300?'#ffb020':'#00ffa3';
+    svg+='<rect x="'+(x2+6)+'" y="'+(y-8)+'" width="34" height="16" rx="8" fill="rgba(0,0,0,.5)" stroke="'+sc+'"/><text x="'+(x2+23)+'" y="'+(y+3.5)+'" text-anchor="middle" font-size="9" fill="'+sc+'">'+(s.status||'—')+'</text>';
+    if(s.server) svg+='<text x="'+lx+'" y="'+(y+13)+'" text-anchor="middle" font-size="7.5" fill="#6a5865">server→server</text>';
+    svg+='</g>';
+  });
+  /* arcos de propagación de tokens (gutter derecho) */
+  var gx = W-14;
+  var _aa=nxAnim();
+  m.edges.forEach(function(e,k){
+    var y1=topH+22+e.from*rowH, y2=topH+22+e.to*rowH;
+    var off = 16 + (k%3)*8;
+    svg+='<g'+(_aa?' class="nx-arc" style="animation-delay:'+(S.length*0.09+k*0.07).toFixed(2)+'s"':'')+'>';
+    svg+='<path d="M '+(gx-off)+' '+y1+' C '+(gx+10)+' '+y1+', '+(gx+10)+' '+y2+', '+(gx-off)+' '+y2+'" fill="none" stroke="#00ffa3" stroke-width="1.1" stroke-dasharray="2 3" opacity=".8"/>';
+    svg+='<circle cx="'+(gx-off)+'" cy="'+y1+'" r="3" fill="#00ffa3"/>';
+    svg+='<text x="'+(gx-off-4)+'" y="'+((y1+y2)/2)+'" text-anchor="end" font-size="8" fill="#00ffa3" transform="rotate(-90 '+(gx-off-4)+' '+((y1+y2)/2)+')">'+esc(e.name.slice(0,18))+'</text>';
+    svg+='</g>';
+  });
+  svg+='</svg>';
+  host_.innerHTML = svg;
+  var gs = host_.querySelectorAll('.nx-msg');
+  for(var i=0;i<gs.length;i++){ gs[i].addEventListener('click', function(){ inspect(parseInt(this.getAttribute('data-step'),10)); }); }
+}
+function hdrList(o){ var r=''; for(var k in o){ if(Object.prototype.hasOwnProperty.call(o,k)) r+='<div class="nx-h"><b>'+esc(k)+':</b> '+esc(o[k])+'</div>'; } return r||'<div class="nx-h nx-dim">— sin headers —</div>'; }
+function pretty(b){ try { return JSON.stringify(JSON.parse(b), null, 2); } catch(e){ return String(b||''); } }
+function inspect(i){
+  var el=$('nxInspector'); if(!el||!MODEL) return; var s=MODEL.steps[i]; if(!s) return;
+  var inc = MODEL.edges.filter(function(e){ return e.to===i; }).map(function(e){ return '<span class="nx-rel">⛓ usa <b>'+esc(e.name)+'</b> del paso '+(e.from+1)+'</span>'; }).join(' ');
+  var out = MODEL.edges.filter(function(e){ return e.from===i; }).map(function(e){ return '<span class="nx-rel prod">🔑 emite <b>'+esc(e.name)+'</b> → paso '+(e.to+1)+'</span>'; }).join(' ');
+  var jwt=''; (s.tokens||[]).forEach(function(t){ if(t.value.split('.').length===3){ var d=jwtDecode(t.value); if(d) jwt='<div class="nx-jwt"><b>JWT decodificado ('+esc((d.header&&d.header.alg)||'?')+')</b><pre>'+esc(JSON.stringify(d.payload,null,2))+'</pre></div>'; } });
+  el.innerHTML='<div class="nx-ins-head"><span class="nx-mtag" style="background:'+mcol(s.method)+'">'+esc(s.method)+'</span> <span class="nx-ins-url">'+esc(s.url)+'</span></div>'
+    +'<div class="nx-ins-meta"><span>Paso '+(i+1)+'</span><span>rol: <b>'+esc(s.role)+'</b></span><span>auth: <b>'+esc(s.auth)+'</b></span><span>status: <b>'+(s.status||'—')+'</b></span><span>'+(s.ms||0)+'ms</span></div>'
+    +((inc||out)?'<div class="nx-rels">'+out+' '+inc+'</div>':'')
+    +jwt
+    +'<div class="nx-ins-cols"><div class="nx-ins-col"><div class="nx-ins-t">▸ REQUEST</div>'+hdrList(s.reqHeaders)+(s.reqBody?'<pre class="nx-pre">'+esc(pretty(s.reqBody))+'</pre>':'')+'</div>'
+    +'<div class="nx-ins-col"><div class="nx-ins-t">◂ RESPONSE</div>'+hdrList(s.respHeaders)+(s.respBody?'<pre class="nx-pre">'+esc(pretty(s.respBody))+'</pre>':'')+'</div></div>';
+  el.classList.add('on');
+}
+function renderFindings(m){
+  var el=$('nxFindings'); if(!el) return;
+  if(!m.findings.length){ el.innerHTML='<div class="nx-fempty">✓ Sin debilidades evidentes en la coreografía.</div>'; return; }
+  var order={crit:0,high:1,med:2,low:3,info:4};
+  var fs=m.findings.slice().sort(function(a,b){ return order[a.sev]-order[b.sev]; });
+  el.innerHTML='<div class="nx-fhead">⚠ Debilidades detectadas ('+fs.length+')</div>'+fs.map(function(f){
+    return '<div class="nx-find" style="border-left-color:'+SEVC[f.sev]+'"><div class="nx-find-top"><span class="nx-sev" style="background:'+SEVC[f.sev]+'">'+f.sev.toUpperCase()+'</span> <b>'+esc(f.title)+'</b>'+(f.step>=0?' <span class="nx-find-step">paso '+(f.step+1)+'</span>':'')+'</div><p>'+esc(f.detail)+'</p></div>';
+  }).join('');
+}
+function nxAnim(){ try { if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false; return !(window.innerWidth>0 && window.innerWidth<760); } catch(e){ return true; } }
+function uniq(a){ var s={},o=[]; a.forEach(function(x){ if(!s[x]){ s[x]=1; o.push(x); } }); return o; }
+var ROLEVERB={ 'crear cuenta':'Crea la cuenta','confirmar':'Confirma la cuenta','autorización':'Solicita autorización','callback OAuth':'Recibe el callback de OAuth','emitir token':'Intercambia el code por tokens','reset password':'Procesa el reset de contraseña','login':'Autentica al usuario','logout':'Cierra la sesión','pago':'Procesa el pago','webhook':'Notifica el resultado (server→server)','notificación':'Dispara la notificación por email','perfil':'Lee el perfil del usuario' };
+function chainVerb(s,prod,cons){
+  var parts=[]; parts.push(ROLEVERB[s.role] || (s.method+' '+s.path.split('?')[0]));
+  if(cons && cons.length) parts.push('usando '+uniq(cons.map(function(e){ return e.name+' del paso '+(e.from+1); })).join(' y '));
+  if(prod && prod.length) parts.push('y emite '+uniq(prod.map(function(e){ return e.name; })).join(', '));
+  return parts.join(' ')+'.';
+}
+function renderChain(m){
+  var el=$('nxChain'); if(!el) return; var anim=nxAnim();
+  var html='<div class="nx-chain-head">⛓ cadena de derivación · cómo cada llamada deriva en la siguiente</div>';
+  m.steps.forEach(function(s,i){
+    var prod=m.edges.filter(function(e){ return e.from===i; });
+    var cons=m.edges.filter(function(e){ return e.to===i; });
+    var derivTo=uniq(prod.map(function(e){ return e.to; }));
+    var emite=uniq(prod.map(function(e){ return e.name; })).map(function(n){ return '<span class="nx-cc emit">🔑 emite '+esc(n)+'</span>'; }).join('');
+    var usa=cons.map(function(e){ return '<span class="nx-cc use">⛓ usa '+esc(e.name)+' (paso '+(e.from+1)+')</span>'; }).join('');
+    var dly=anim?' style="animation:nxCardIn .45s ease both;animation-delay:'+(i*0.08).toFixed(2)+'s"':'';
+    html+='<div class="nx-chain-step"'+dly+'>'
+      +'<div class="nx-cs-badge" style="background:'+mcol(s.method)+'">'+(i+1)+'</div>'
+      +'<div class="nx-cs-body">'
+        +'<div class="nx-cs-title"><span class="nx-mtag" style="background:'+mcol(s.method)+'">'+esc(s.method)+'</span><b>'+esc(s.role)+'</b><span class="nx-cs-path">'+esc(s.from+' → '+s.to+s.path.split('?')[0])+'</span></div>'
+        +'<div class="nx-cs-desc">'+esc(chainVerb(s,prod,cons))+'</div>'
+        +((emite||usa)?'<div class="nx-cs-chips">'+usa+emite+'</div>':'')
+        +(derivTo.length?'<div class="nx-cs-deriv">↳ deriva a '+derivTo.map(function(n){ return '<b>paso '+(n+1)+' ('+esc(m.steps[n].role)+')</b>'; }).join(', ')+'</div>':'<div class="nx-cs-deriv end">■ fin de rama</div>')
+      +'</div></div>';
+    if(i<m.steps.length-1){ var dl2=anim?' style="animation:nxCardIn .45s ease both;animation-delay:'+(i*0.08+0.04).toFixed(2)+'s"':''; html+='<div class="nx-chain-link"'+dl2+'>↓</div>'; }
+  });
+  el.innerHTML=html;
+}
+function renderAll(m){ MODEL=m; renderStats(m); renderServices(m); renderSeq(m); renderChain(m); renderFindings(m); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML='<div class="nx-ins-hint">▸ Clickeá un paso del diagrama para inspeccionar request/response, tokens y relaciones.</div>'; } }
+
+/* ─────────── PDF ─────────── */
+function nxPDF(){
+  if(!MODEL || typeof tsReportPDF!=='function') return;
+  var rows = MODEL.steps.map(function(s,i){
+    var emite = uniq(MODEL.edges.filter(function(e){return e.from===i;}).map(function(e){return e.name;})).join(', ');
+    var inc = MODEL.edges.filter(function(e){return e.to===i;}).map(function(e){return e.name+'←p'+(e.from+1);}).join(', ');
+    return [ String(i+1), { html:true, text:'<b>'+esc(s.method)+'</b>' }, esc(s.from+' → '+s.to), esc(s.path.split('?')[0]), String(s.status||'—'), esc(s.role), esc(s.auth), esc(emite||'—'), esc(inc||'—') ];
+  });
+  var deriv = MODEL.steps.map(function(s,i){
+    var prod = MODEL.edges.filter(function(e){return e.from===i;});
+    var cons = MODEL.edges.filter(function(e){return e.to===i;});
+    var to = uniq(prod.map(function(e){return e.to;})).map(function(n){return 'paso '+(n+1)+' ('+MODEL.steps[n].role+')';}).join(', ');
+    return [ String(i+1), esc(chainVerb(s,prod,cons)), esc(to||'— (fin de rama)') ];
+  });
+  var fr = MODEL.findings.map(function(f){ return [ { html:true, text:'<span class="sev" style="background:'+SEVC[f.sev]+'">'+f.sev.toUpperCase()+'</span>' }, esc(f.title), esc(f.detail) ]; });
+  tsReportPDF({
+    title:'NEXUS — Reverse Engineering de Flujo de API', subtitle:'Coreografía reconstruida · propagación de tokens · debilidades · 100% client-side',
+    engine:'NEXUS v1.1', target:MODEL.stats.requests+' pasos · '+MODEL.stats.services+' servicios',
+    verdict:'PROPAGACIÓN DE TOKENS: '+MODEL.stats.props+'  ·  HALLAZGOS: '+MODEL.stats.findings,
+    verdictColor:MODEL.stats.crit?'#ff1a2e':'#1a8f3c',
+    stats:[ {label:'Pasos',value:MODEL.stats.requests,color:'#ff1a2e'}, {label:'Servicios',value:MODEL.stats.services,color:'#7b4fff'}, {label:'Tokens propagados',value:MODEL.stats.props,color:'#c98a00'}, {label:'Hallazgos',value:MODEL.stats.findings,color:MODEL.stats.crit?'#ff1a2e':'#1a8f3c'} ],
+    columns:['#','Método','Actor → Servicio','Ruta','Status','Rol','Auth','Emite','Usa / deriva de'], rows:rows,
+    footer:'Sección 1/3 — Pasos del flujo. Sigue: cadena de derivación y debilidades.'
+  });
+  setTimeout(function(){ tsReportPDF({ title:'NEXUS — Cadena de Derivación', subtitle:'Qué hace cada llamada y a qué paso deriva', engine:'NEXUS v1.1', target:MODEL.stats.requests+' pasos · '+MODEL.stats.props+' propagaciones', columns:['Paso','Qué hace','Deriva a'], rows:deriv, footer:'Sección 2/3 — Cadena de derivación.' }); }, 300);
+  if(fr.length){ setTimeout(function(){ tsReportPDF({ title:'NEXUS — Debilidades del Flujo', subtitle:'Hallazgos de la coreografía analizada', engine:'NEXUS v1.1', target:MODEL.stats.findings+' hallazgos', verdict:MODEL.stats.crit?'HAY HALLAZGOS DE ALTA PRIORIDAD':'Hallazgos informativos', verdictColor:MODEL.stats.crit?'#ff1a2e':'#c98a00', columns:['Severidad','Debilidad','Detalle'], rows:fr, footer:'Sección 3/3 — Debilidades. Reporte generado client-side por NEXUS.' }); }, 650); }
+}
+
+/* ─────────── WIRING ─────────── */
+function run(){
+  var r = nxParse(($('nxInput')||{}).value||'');
+  var err=$('nxErr');
+  if(r.error){ if(err){ err.textContent='✗ '+r.error; err.style.display='block'; } return; }
+  if(err) err.style.display='none';
+  try { renderAll(analyze(r.steps)); } catch(e){ if(err){ err.textContent='✗ Error analizando: '+e.message; err.style.display='block'; } }
+}
+function loadExample(key){
+  var ex=EXAMPLES[key]; if(!ex) return;
+  var ta=$('nxInput'); if(ta) ta.value=JSON.stringify(ex.steps,null,2);
+  renderAll(analyze(ex.steps.slice()));
+  var err=$('nxErr'); if(err) err.style.display='none';
+}
+function init(){
+  if(!$('nxRun')) return;
+  $('nxRun').addEventListener('click', run);
+  var c=$('nxClear'); if(c) c.addEventListener('click', function(){ var t=$('nxInput'); if(t) t.value=''; MODEL=null; ['nxStats','nxServices','nxSeq','nxFindings'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; }); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML=''; } });
+  var pb=$('nxPDF'); if(pb) pb.addEventListener('click', nxPDF);
+  var pl=$('nxPlay'); if(pl) pl.addEventListener('click', function(){ if(MODEL) renderSeq(MODEL); });
+  var tabs=document.querySelectorAll('#nexus .nx-ex');
+  for(var i=0;i<tabs.length;i++){ (function(t){ t.addEventListener('click', function(){ for(var k=0;k<tabs.length;k++) tabs[k].classList.remove('on'); t.classList.add('on'); loadExample(t.getAttribute('data-ex')); }); })(tabs[i]); }
+  /* precargar el primer ejemplo para que se vea épico de entrada */
+  var first=document.querySelector('#nexus .nx-ex'); if(first){ first.classList.add('on'); }
+  loadExample('signup');
+}
+if(typeof document!=='undefined' && document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+})();
+
+</script>
 <!-- ══ SECCIÓN: MAIL REAPER — Email Security & Spoofing Defense + Phishing Simulator ══ -->
 <section id="mailsec">
   <div class="wrap">
@@ -26730,12 +27234,13 @@ var SKULL = [
 '    \\          /',
 '     \\`--------\\`'
 ].join('\n');
-function sleep(ms){ return new Promise(function(r){ setTimeout(r, (REDUCED || FAST) ? 0 : ms); }); }
+function smallScreen(){ try { return window.innerWidth > 0 && window.innerWidth < 820; } catch(e){ return false; } }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, (REDUCED || FAST || smallScreen()) ? 0 : ms); }); }
 async function ctfType(text, cls, speed){
   var t = $('ctfOut'); if(!t) return;
   var sp = document.createElement ? document.createElement('span') : null;
   if(sp){ sp.className = cls || ''; t.appendChild(sp); }
-  if(REDUCED || FAST){
+  if(REDUCED || FAST || smallScreen()){
     if(sp) sp.textContent = text;
   } else {
     var chars = String(text);

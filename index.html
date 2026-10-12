@@ -5724,6 +5724,13 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 .nxa-vd-d{font-size:12px;color:#9fb0c2;line-height:1.5}
 .nxa-tag{font:600 10px ui-monospace,monospace;background:#7b4fff22;color:#9d7bff;border:1px solid #7b4fff44;border-radius:4px;padding:1px 6px;margin-left:6px}
 .nxa-empty{padding:22px;text-align:center;color:#5a6b7d;font:12px ui-monospace,monospace}
+.nxa-guide{margin:0 0 16px;border:1px dashed #ff1a2e66;border-radius:10px;background:#070a0fb3;padding:0 14px}
+.nxa-guide summary{cursor:pointer;padding:10px 0;font:800 11px ui-monospace,monospace;letter-spacing:.08em;color:#ff8a8a;list-style:none}
+.nxa-guide summary::-webkit-details-marker{display:none}
+.nxa-guide-b{padding:0 0 12px;color:#9fb0c2;font:12.5px/1.6 Inter,system-ui,sans-serif}
+.nxa-guide-b code{color:#9affd9;background:#00ffa314;border-radius:4px;padding:0 5px;font-family:ui-monospace,monospace;font-size:11.5px}
+.nxa-guide-b ol{padding-left:20px;margin:8px 0}
+.nxa-guide-b li{margin:5px 0}
 </style>
 <section id="nexusactive">
   <div class="wrap">
@@ -5737,6 +5744,25 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       <label class="nxa-gate"><input type="checkbox" id="nxaAuth"><span>Confirmo que tengo <b>autorización expresa</b> para probar el endpoint configurado y asumo la responsabilidad del uso.</span></label>
     </div>
 
+    <details class="nxa-guide">
+      <summary>▸ CÓMO SE USA · guía paso a paso</summary>
+      <div class="nxa-guide-b">
+        <p><b>Qué hace:</b> toma una request real que vos definís y la repite con variantes: replay (¿se duplica una acción?), mutación de campos (¿acepta valores inválidos?), sustitución de IDs (¿accede a recursos ajenos?) y concurrencia (¿hay race conditions?). Compara cada respuesta contra el <b>baseline</b> y da veredictos que son <b>hipótesis a verificar</b>, no hallazgos.</p>
+        <ol>
+          <li><b>Autorizá.</b> Marcá la casilla de uso responsable. Sin eso, los botones quedan desactivados.</li>
+          <li><b>Endpoint.</b> Usá un endpoint <b>tuyo</b> (staging, laboratorio o programa autorizado). Ejemplo: <code>https://staging.tuapp.com/api/transferencias</code>. Escribí la URL completa, incluido el path.</li>
+          <li><b>Headers.</b> Una por línea. Si la API pide sesión, pegá <code>Authorization: Bearer TU_TOKEN</code> de una cuenta de prueba.</li>
+          <li><b>Body.</b> JSON con los campos que querés probar, p. ej. <code>{"monto": 1000, "id": 1}</code>. También podés cargarlo desde un archivo <code>.json</code> con el botón de archivo.</li>
+          <li><b>Ruta.</b> <b>Vía Worker</b> (recomendado) pasa la request por tu scanner-proxy, así no hay bloqueo de CORS y ves el status real. <b>Directo</b> lo envía desde el navegador; si el servidor no permite CORS, la respuesta queda ilegible.</li>
+          <li><b>Baseline primero.</b> Pulsá ▶ Baseline. Si la columna Status muestra un número, la conexión funciona. Todas las demás pruebas se comparan contra esa fila.</li>
+          <li><b>Pruebas.</b> Replay: N copias de la misma request. Mutación: prueba 12 valores inválidos por campo. IDs: prueba IDs +1, −1, 0 y 1 (usá dos cuentas tuyas para confirmar acceso cruzado). Concurrencia: N requests simultáneas. Activá "ráfaga" para que sean en paralelo.</li>
+          <li><b>Verificá.</b> Cada veredicto dice "candidato a verificar". Confirmá a mano con la respuesta cruda o con el export cURL en Burp.</li>
+        </ol>
+        <p><b>Demo rápida:</b> botón ⚡ Cargar demo. Usa httpbin.org, un servicio público de pruebas que devuelve lo que enviás. Sirve para ver el flujo sin tocar nada tuyo.</p>
+        <p><b>Desde GASR:</b> el botón ⇡ Enviar a NEXUS Active toma el objetivo del buscador y lo deja como <code>https://objetivo/</code>. No ejecuta nada; completá el path y autorizá.</p>
+      </div>
+    </details>
+
     <div class="nxa-grid">
       <div class="nxa-card">
         <h3>① Request</h3>
@@ -5748,6 +5774,15 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
         </div>
         <div class="nxa-field"><label>Headers (uno por línea — Clave: Valor)</label><textarea id="nxaHeaders" spellcheck="false" placeholder="Content-Type: application/json&#10;Authorization: Bearer ..."></textarea></div>
         <div class="nxa-field"><label>Body (JSON)</label><textarea id="nxaBody" spellcheck="false" placeholder='{"campo": "valor", "monto": 1000, "id": 1}'></textarea></div>
+        <div class="nxa-row" style="margin-top:2px">
+          <div class="nxa-field" style="flex:1"><label>Ruta de envío</label>
+            <select id="nxaRoute"><option value="worker" selected>Vía Worker · sin CORS (recomendado)</option><option value="direct">Directo desde el navegador · sujeto a CORS</option></select>
+          </div>
+        </div>
+        <div class="nxa-btns">
+          <button class="nxa-btn ghost" id="nxaDemo">⚡ Cargar demo (httpbin)</button>
+          <label class="nxa-btn ghost" style="cursor:pointer">📂 Cargar body desde archivo<input type="file" id="nxaFile" accept=".json,.txt,application/json,text/plain" style="display:none"></label>
+        </div>
       </div>
       <div class="nxa-card">
         <h3>② Plan de pruebas</h3>
@@ -5806,7 +5841,15 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   }
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function pushVerdict(cls,title,detail){ var v=$a('nxaVerdicts'); if(!v) return; var d=document.createElement('div'); d.className='nxa-vd '+(cls||''); d.innerHTML='<div class="nxa-vd-t">'+esc(title)+'<span class="nxa-tag">candidato a verificar</span></div><div class="nxa-vd-d">'+esc(detail)+'</div>'; v.insertBefore(d, v.firstChild); }
-  function doFetch(req){ var t0=(performance&&performance.now)?performance.now():Date.now();
+  var WORKER='https://scanner-proxy.matias-ramireztu.workers.dev';
+  /* envío vía Worker: el navegador no lee la respuesta cruda del objetivo, el Worker sí */
+  function viaWorker(req){ var t0=Date.now(); var body=(req.method!=='GET'&&req.method!=='HEAD')?String(req.body||''):'';
+    return fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({url:req.url,method:req.method,headers:req.headers,body:body,evade:false,cache_bust:true})})
+      .then(function(r){ return r.text().then(function(tx){ var ms=Date.now()-t0, w; try{ w=JSON.parse(tx); }catch(e){ return {req:req,status:0,ms:ms,size:null,error:'PROXY',body:tx.slice(0,300)}; }
+        if(!w.ok) return {req:req,status:w.status||0,ms:ms,size:null,error:(w.blocked?'BLOQUEADO':'PROXY'),body:String(w.error||'').slice(0,300)};
+        var b=String(w.body||''); return {req:req,status:w.status||0,ms:(w.timing_ms!=null?Math.round(w.timing_ms):ms),size:b.length,body:b.slice(0,400)}; }); })
+      .catch(function(e){ return {req:req,status:0,ms:Date.now()-t0,size:null,error:'ERR',body:String(e&&e.message||e)}; }); }
+  function doFetch(req){ if((($a('nxaRoute')||{}).value||'worker')!=='direct') return viaWorker(req); var t0=(performance&&performance.now)?performance.now():Date.now();
     var opt={ method:req.method, headers:req.headers };
     if(req.body && req.method!=='GET' && req.method!=='HEAD') opt.body=req.body;
     return fetch(req.url, opt).then(function(res){ return res.text().then(function(tx){ var ms=Math.round(((performance&&performance.now)?performance.now():Date.now())-t0); return { req:req, status:res.status, ms:ms, size:(tx!=null?tx.length:null), body:String(tx||'').slice(0,400) }; }); })
@@ -5814,7 +5857,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   function validUrl(u){ return /^https?:\/\//i.test(u); }
   function guardRun(){ if(!authz()){ needAuth(); return false; } var req=buildReq(); if(!validUrl(req.url)){ pushVerdict('crit','URL inválida','Ingresá una URL http(s) del endpoint a probar.'); return false; } return true; }
 
-  function runBaseline(){ if(!guardRun()) return; var req=buildReq(); doFetch(req).then(function(r){ baseline=r; addRow('baseline','request original', r); if(r.error){ pushVerdict('','Baseline no legible ('+r.error+')','El navegador no pudo leer la respuesta (probable CORS). El baseline queda registrado; usá el export cURL para correrlo en Burp/terminal.'); } else { pushVerdict('ok','Baseline capturado','status '+r.status+' · '+r.ms+'ms · '+fmtSize(r.size)+'. Es la referencia para comparar las demás pruebas.'); } }); }
+  function runBaseline(){ if(!guardRun()) return; var req=buildReq(); doFetch(req).then(function(r){ baseline=r; addRow('baseline','request original', r); if(r.error){ pushVerdict('','Baseline no legible ('+r.error+')','No se pudo leer la respuesta. Si la ruta es Directa, probable CORS: cambiá a Vía Worker. Si es Worker, revisá la URL y el token. Export cURL sirve para correrlo en Burp o terminal.'); } else { pushVerdict('ok','Baseline capturado','status '+r.status+' · '+r.ms+'ms · '+fmtSize(r.size)+'. Es la referencia para comparar las demás pruebas.'); } }); }
 
   function runReplay(){ if(!guardRun()) return; var req=buildReq(); var n=Math.max(1,Math.min(50,parseInt(($a('nxaN')||{}).value,10)||10)); var burst=($a('nxaBurst')||{}).checked; var reqs=[]; for(var i=0;i<n;i++) reqs.push(req);
     var tasks=reqs.map(function(rq,i){ return function(){ return doFetch(rq).then(function(r){ addRow('replay','copia #'+(i+1)+(burst?' (ráfaga)':''), r); return r; }); }; });
@@ -5870,11 +5913,17 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 
   function resetConsole(){ GEN=[]; ROWN=0; baseline=null; var tb=$a('nxaRows'); if(tb) tb.innerHTML='<tr><td colspan="7" class="nxa-empty">Consola limpia — ejecutá el baseline para empezar.</td></tr>'; var v=$a('nxaVerdicts'); if(v) v.innerHTML=''; var c=$a('nxaCount'); if(c) c.textContent='0 pruebas'; }
 
+  function loadDemo(){ var u=$a('nxaUrl'), m=$a('nxaMethod'), h=$a('nxaHeaders'), b=$a('nxaBody'), r=$a('nxaRoute');
+    if(u) u.value='https://httpbin.org/post'; if(m) m.value='POST'; if(h) h.value='Content-Type: application/json'; if(b) b.value='{"usuario":"demo","monto":1000,"cantidad":5,"id":1}'; if(r) r.value='worker';
+    pushVerdict('ok','Demo cargada','httpbin.org/post es un servicio público de pruebas que devuelve lo que enviás. Marcá la autorización y ejecutá ▶ Baseline.'); }
+  function loadFile(f){ if(!f) return; if(f.size>512*1024){ pushVerdict('crit','Archivo demasiado grande','El body admite hasta 512 KB.'); return; }
+    var fr=new FileReader(); fr.onload=function(){ var b=$a('nxaBody'); if(b) b.value=String(fr.result||''); pushVerdict('ok','Body cargado desde archivo', f.name+' ('+f.size+' bytes)'); }; fr.readAsText(f); }
   function nxaInit(){ if(started) return; started=true;
-    var map={ nxaBaseline:runBaseline, nxaReplay:runReplay, nxaMutate:runMutate, nxaIdsub:runIdsub, nxaConc:runConc, nxaCurl:exportCurl, nxaReset:resetConsole };
+    var map={ nxaBaseline:runBaseline, nxaReplay:runReplay, nxaMutate:runMutate, nxaIdsub:runIdsub, nxaConc:runConc, nxaCurl:exportCurl, nxaReset:resetConsole, nxaDemo:loadDemo };
     Object.keys(map).forEach(function(id){ var b=$a(id); if(b) b.addEventListener('click', map[id]); });
     function syncGate(){ var on=authz(); ['nxaBaseline','nxaReplay','nxaMutate','nxaIdsub','nxaConc'].forEach(function(id){ var b=$a(id); if(b) b.disabled=!on; }); }
     var chk=$a('nxaAuth'); if(chk) chk.addEventListener('change', syncGate); syncGate();
+    var fi=$a('nxaFile'); if(fi) fi.addEventListener('change', function(){ loadFile(this.files&&this.files[0]); });
   }
   if(typeof IntersectionObserver!=='undefined'){ var sec=document.getElementById('nexusactive'); if(sec){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ nxaInit(); io.disconnect(); } }); },{rootMargin:'200px'}); io.observe(sec); } else { nxaInit(); } }
   else { if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', nxaInit); else nxaInit(); }
@@ -6143,6 +6192,16 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 .gasr-bar{display:flex;gap:10px;flex-wrap:wrap}
 .gasr-bar input{flex:1;min-width:240px;background:#040104;border:1px solid #2a3442;border-radius:10px;color:var(--ink);font:14px 'JetBrains Mono',ui-monospace,monospace;padding:12px 14px;outline:none;transition:border-color .15s,box-shadow .15s}
 .gasr-bar input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #ff1a2e22}
+.gasr-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.gasr-chips-lbl{font:800 9.5px 'Orbitron',sans-serif;letter-spacing:.14em;color:var(--dim);margin-right:2px}
+.gasr-chip{cursor:pointer;border:1px solid #2a3442;background:#070a0f;color:#ffb3b3;font:11px 'JetBrains Mono',ui-monospace,monospace;padding:5px 9px;border-radius:7px;transition:transform .12s,border-color .12s,background .12s}
+.gasr-chip:hover{transform:translateY(-1px);border-color:var(--acc);background:#ff1a2e1a;color:#fff}
+.gasr-guide{margin-top:12px;border:1px dashed #ff1a2e66;border-radius:10px;background:#070a0fb3;padding:0 14px}
+.gasr-guide summary{cursor:pointer;padding:10px 0;font:800 11px 'Orbitron',sans-serif;letter-spacing:.08em;color:var(--acc);list-style:none}
+.gasr-guide summary::-webkit-details-marker{display:none}
+.gasr-guide-b{padding:0 0 12px;color:var(--dim);font:12px/1.6 'JetBrains Mono',ui-monospace,monospace}
+.gasr-guide-b code{color:var(--grn);background:#00ffa314;border-radius:4px;padding:0 5px}
+.gasr-guide-b li{margin:4px 0}
 .gasr-run{cursor:pointer;border:1px solid var(--acc);background:linear-gradient(180deg,#ff1a2e,#b3121f);color:#fff;font:800 13px 'Orbitron',sans-serif;letter-spacing:.06em;padding:12px 22px;border-radius:10px;transition:transform .12s,filter .12s;will-change:transform}
 .gasr-run:hover{transform:translateY(-1px);filter:brightness(1.12)}
 .gasr-run[disabled]{opacity:.5;cursor:not-allowed}
@@ -6253,6 +6312,41 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
         <input id="gasrInput" type="text" spellcheck="false" placeholder="objetivo — dominio o IP (ej: 1.1.1.1 · ejemplo.com)" autocomplete="off">
         <button class="gasr-run" id="gasrRun">▶ ADQUIRIR</button>
       </div>
+      <div class="gasr-chips" id="gasrChips">
+        <span class="gasr-chips-lbl">PAÍS</span>
+        <button class="gasr-chip" data-cc="CL">CL Chile</button>
+        <button class="gasr-chip" data-cc="AR">AR Argentina</button>
+        <button class="gasr-chip" data-cc="PE">PE Perú</button>
+        <button class="gasr-chip" data-cc="BR">BR Brasil</button>
+        <button class="gasr-chip" data-cc="MX">MX México</button>
+        <button class="gasr-chip" data-cc="US">US Estados Unidos</button>
+        <span class="gasr-chips-lbl">FILTRO</span>
+        <button class="gasr-chip" data-f="port:3306">:3306 MySQL</button>
+        <button class="gasr-chip" data-f="port:5432">:5432 Postgres</button>
+        <button class="gasr-chip" data-f="port:3389">:3389 RDP</button>
+        <button class="gasr-chip" data-f="port:22">:22 SSH</button>
+        <button class="gasr-chip" data-f="port:6379">:6379 Redis</button>
+        <button class="gasr-chip" data-f="port:9200">:9200 Elastic</button>
+        <button class="gasr-chip" data-f="port:27017">:27017 Mongo</button>
+        <span class="gasr-chips-lbl">PANELES</span>
+        <button class="gasr-chip" data-f="port:5601">:5601 Kibana</button>
+        <button class="gasr-chip" data-f="port:3000">:3000 Grafana</button>
+        <button class="gasr-chip" data-f="port:8080">:8080 Jenkins/web</button>
+        <button class="gasr-chip" data-f="port:443">:443 HTTPS</button>
+      </div>
+      <details class="gasr-guide">
+        <summary>▸ CÓMO BUSCAR · paneles, puertos y filtros</summary>
+        <div class="gasr-guide-b">
+          <ol>
+            <li><b>Base:</b> <code>CL</code> = hosts expuestos en Chile. Sin filtro devuelve todo lo indexado, así que conviene acotar.</li>
+            <li><b>Filtro de puerto:</b> <code>CL port:3306</code> busca MySQL expuesto. Los chips de FILTRO reemplazan el filtro del mismo tipo.</li>
+            <li><b>Varios filtros:</b> se separan con espacio, p. ej. <code>CL port:9200 port:5601</code>.</li>
+            <li><b>Paneles típicos:</b> Kibana 5601, Grafana 3000, Elastic 9200, Jenkins 8080, web/paneles 80 y 443. Un panel encontrado no es una invitación: solo analizá lo que sea tuyo o esté autorizado.</li>
+            <li><b>Rojo = riesgo:</b> puertos de bases de datos, RDP, Docker, Redis y similares se marcan en rojo en las tarjetas.</li>
+            <li><b>Sin resultados:</b> probá otro país, quitá filtros, o revisá en el JSON crudo de cada tarjeta. Censys, FOFA y Hunter necesitan key en el Worker.</li>
+          </ol>
+        </div>
+      </details>
       <div class="gasr-status">
         <span class="gasr-st"><span class="gasr-radar" id="gasrRadar" aria-hidden="true"></span><span><span class="gasr-dot" id="gasrDot"></span><span id="gasrState">en espera</span></span></span>
         <span id="gasrMeta"></span>
@@ -6280,6 +6374,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       <button class="gasr-act" id="gasrDossier">⬇ Exportar Dossier</button>
       <button class="gasr-act" id="gasrKraken">⇡ Enviar a Kraken</button>
       <button class="gasr-act" id="gasrCrawler">⇡ Enviar a Crawler</button>
+      <button class="gasr-act" id="gasrNexus">⇡ Enviar a NEXUS Active</button>
     </div>
 
     <div class="gasr-grid" id="gasrResults"><div class="gasr-empty">Ingresá un objetivo y pulsá ADQUIRIR — los motores responden en paralelo, cada tarjeta se renderiza apenas llega y el log registra cada evento.</div></div>
@@ -6550,6 +6645,11 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       if(n.ports.length)L.push('- Puertos: '+n.ports.map(function(p){return RISKY[p]?(p+' ('+RISKY[p]+', RIESGO)'):String(p);}).join(', ')); if(n.cves.length)L.push('- CVEs: '+n.cves.join(', ')); if(n.leaks.length)L.push('- Fugas: '+n.leaks.slice(0,20).join(' | ')); L.push(''); }
     L.push('---','## JSON crudo','```json',JSON.stringify(state.last,null,2),'```');
     var blob=new Blob([L.join('\n')],{type:'text/markdown'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dossier-'+String(state.last.target).replace(/[^a-z0-9.\-]/gi,'_')+'.md'; document.body.appendChild(a); a.click(); setTimeout(function(){ try{URL.revokeObjectURL(a.href);a.remove();}catch(e){} },2000); }
+  function sendNexus(){ var t=(state.last&&state.last.mode==='pais'&&state.hits.length)?String(state.hits[0].ip):((((state.last&&state.last.target)||(($g('gasrInput')||{}).value||'')))+'').trim().replace(/^https?:\/\//i,'').split('/')[0];
+    if(!t){ setState('sin objetivo para enviar a NEXUS','err'); return; }
+    var inp=document.getElementById('nxaUrl'); if(!inp) return; inp.value='https://'+t+'/'; try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+    var sec=document.getElementById('nexusactive'); if(sec&&sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth',block:'start'});
+    setState('URL cargada en NEXUS Active: completá el path, autorizá y ejecutá','ok'); }
   function sendTo(inputId,sectionId,label){ var t=(state.last&&state.last.mode==='pais'&&state.hits.length)?String(state.hits[0].ip):((((state.last&&state.last.target)||(($g('gasrInput')||{}).value||'')))+'').trim(); if(!t){ setState('sin objetivo para enviar','err'); return; } var inp=document.getElementById(inputId); if(inp){ inp.value=t; try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} } var sec=document.getElementById(sectionId); if(sec&&sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth',block:'start'}); if(inp){ setTimeout(function(){ try{inp.focus();}catch(e){} },420); } setState('objetivo enviado a '+label,'ok'); }
 
   /* ---- MODO PAÍS: búsqueda por país con la sintaxis nativa de cada motor ---- */
@@ -6693,13 +6793,24 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     inp.value=cc+(extra?(' '+extra):'');
     return true;
   }
+  /* ---- chips de país y filtro: arman la consulta y lanzan la búsqueda ---- */
+  function chipApply(cc, f){
+    var inp=$g('gasrInput'); if(!inp) return;
+    var toks=(inp.value||'').trim().split(/\s+/).filter(Boolean);
+    var cur=(toks[0]&&/^[A-Za-z]{2}$/.test(toks[0]))?toks[0].toUpperCase():'';
+    var rest=cur?toks.slice(1):[];
+    if(f){ var key=f.split(':')[0]; rest=rest.filter(function(t){ return t.split(':')[0]!==key; }); rest.push(f); }
+    inp.value=[(cc||cur||'CL')].concat(rest).join(' ');
+    setMode('pais'); run();
+  }
   var inited=false;
   function gasrInit(){ if(inited) return; inited=true;
     var srcs=$g('gasrSrcs'); if(srcs){ srcs.addEventListener('click',function(e){ var b=e.target.closest?e.target.closest('.gasr-src'):null; if(!b) return; var all=srcs.querySelectorAll('.gasr-src'); for(var i=0;i<all.length;i++) all[i].classList.remove('on'); b.classList.add('on'); state.src=b.getAttribute('data-src'); }); }
+    var ch=$g('gasrChips'); if(ch) ch.addEventListener('click',function(e){ var b=e.target.closest?e.target.closest('.gasr-chip'):null; if(!b) return; chipApply(b.getAttribute('data-cc')||'', b.getAttribute('data-f')||''); });
     var btn=$g('gasrRun'); if(btn) btn.addEventListener('click',run);
     var mbs=document.querySelectorAll('.gasr-mode'); for(var mi=0;mi<mbs.length;mi++){ mbs[mi].addEventListener('click',function(){ setMode(this.getAttribute('data-mode')); }); }
     var inp=$g('gasrInput'); if(inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') run(); if(e.key==='Escape') abortRun(); });
-    var map={gasrAbort:abortRun,gasrCopy:copyJSON,gasrDossier:dossier,gasrKraken:function(){sendTo('kr-input','kraken','Kraken');},gasrCrawler:function(){sendTo('crw-input','crawler','Crawler');}};
+    var map={gasrAbort:abortRun,gasrCopy:copyJSON,gasrDossier:dossier,gasrKraken:function(){sendTo('kr-input','kraken','Kraken');},gasrCrawler:function(){sendTo('crw-input','crawler','Crawler');},gasrNexus:sendNexus};
     Object.keys(map).forEach(function(id){ var b=$g(id); if(b) b.addEventListener('click',map[id]); });
   }
   if(typeof IntersectionObserver!=='undefined'){ var sec=document.getElementById('gasr'); if(sec){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ gasrInit(); io.disconnect(); } }); },{rootMargin:'250px'}); io.observe(sec); } else { gasrInit(); } }

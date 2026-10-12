@@ -4549,7 +4549,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #nexus .nx-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:rgba(240,238,248,.75);background:transparent;border:1px solid rgba(255,26,46,.3);border-radius:5px;padding:9px 16px;cursor:pointer;transition:all .18s;text-transform:uppercase;}
 #nexus .nx-btn:hover{color:#fff;border-color:var(--acc);box-shadow:0 0 16px rgba(255,26,46,.3);}
 #nexus .nx-btn.primary{background:linear-gradient(90deg,#ff1a2e,#c2101f);color:#fff;border-color:transparent;font-weight:700;}
-#nexus .nx-err{display:none;font-family:var(--mono);font-size:11px;color:#ff6b7d;background:rgba(255,26,46,.08);border:1px solid rgba(255,26,46,.3);border-radius:6px;padding:9px 12px;margin-bottom:12px;}
+#nexus .nx-btn.up{border-color:rgba(0,255,163,.4);color:#9affd9;}#nexus .nx-btn.up:hover{border-color:#00ffa3;box-shadow:0 0 16px rgba(0,255,163,.3);color:#fff;}#nexus .nx-filename{font-family:var(--mono);font-size:10px;color:#9affd9;align-self:center;word-break:break-all;}#nexus .nx-input.nx-drag{border-color:#00ffa3;background:#06120d;box-shadow:0 0 20px rgba(0,255,163,.3);}#nexus .nx-err.nx-info{color:#9affd9;background:rgba(0,255,163,.07);border-color:rgba(0,255,163,.3);}#nexus .nx-err{display:none;font-family:var(--mono);font-size:11px;color:#ff6b7d;background:rgba(255,26,46,.08);border:1px solid rgba(255,26,46,.3);border-radius:6px;padding:9px 12px;margin-bottom:12px;}
 #nexus .nx-stats{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;}
 #nexus .nx-stat{flex:1;min-width:120px;text-align:center;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:9px;padding:13px 8px;}
 #nexus .nx-stat b{display:block;font-family:var(--disp,var(--mono));font-size:26px;line-height:1;}
@@ -4619,11 +4619,14 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
         <button class="nx-ex" data-ex="reset">🔄 Password Reset</button>
         <button class="nx-ex" data-ex="checkout">💳 Checkout + Pago</button>
       </div>
-      <textarea id="nxInput" class="nx-input" spellcheck="false" placeholder='Pegá acá un HAR exportado de DevTools (Network → Export HAR) o un array JSON de requests…'></textarea>
+      <textarea id="nxInput" class="nx-input" spellcheck="false" placeholder='Arrastrá acá tu archivo .har (o pegá el JSON). Exportalo en DevTools → Network → botón ⬇ / clic derecho → Save all as HAR…'></textarea>
       <div class="nx-actions">
+        <button id="nxUpload" class="nx-btn up">📂 SUBIR HAR</button>
+        <input id="nxFile" type="file" accept=".har,.json,application/json" style="display:none">
         <button id="nxRun" class="nx-btn primary">⟲ RECONSTRUIR FLUJO</button>
         <button id="nxClear" class="nx-btn">✕ LIMPIAR</button>
         <button id="nxPDF" class="nx-btn">📄 REPORTE PDF</button>
+        <span id="nxFileName" class="nx-filename"></span>
       </div>
       <div id="nxErr" class="nx-err"></div>
 
@@ -4734,6 +4737,12 @@ function parseHAR(j){
     var rbody = rs.content ? (rs.content.text||'') : '';
     return { from:'Navegador', to:host(rq.url), method:rq.method||'GET', url:rq.url||'', status:(rs.status||0), ms:Math.round(e.time||0),
       reqHeaders:headersArrToObj(rq.headers), reqBody:body, respHeaders:headersArrToObj(rs.headers), respBody:rbody, started:e.startedDateTime||'' };
+  });
+  steps = steps.filter(function(st){
+    if(/\.(js|mjs|css|png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|eot|otf|map|mp4|webm|bmp|wasm)(\?|$)/i.test(st.url)) return false;
+    var ct=String((st.respHeaders&&(st.respHeaders['Content-Type']||st.respHeaders['content-type']))||'').toLowerCase();
+    if(/image\/|font\/|text\/css|javascript/.test(ct)) return false;
+    return true;
   });
   steps.sort(function(a,b){ return String(a.started).localeCompare(String(b.started)); });
   return steps;
@@ -5008,12 +5017,23 @@ function nxPDF(){
 }
 
 /* ─────────── WIRING ─────────── */
+function nxReadFile(f){
+  var err=$('nxErr'); if(!f) return;
+  if(f.size > 15*1024*1024){ if(err){ err.className='nx-err'; err.textContent='✗ Archivo muy grande (>15MB). En DevTools filtrá por Fetch/XHR antes de exportar el HAR.'; err.style.display='block'; } return; }
+  var rd=new FileReader();
+  rd.onload=function(){ var ta=$('nxInput'); if(ta) ta.value=String(rd.result||''); var fn=$('nxFileName'); if(fn) fn.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)'; run(); };
+  rd.onerror=function(){ if(err){ err.className='nx-err'; err.textContent='✗ No pude leer el archivo.'; err.style.display='block'; } };
+  rd.readAsText(f);
+}
 function run(){
   var r = nxParse(($('nxInput')||{}).value||'');
   var err=$('nxErr');
-  if(r.error){ if(err){ err.textContent='✗ '+r.error; err.style.display='block'; } return; }
-  if(err) err.style.display='none';
-  try { renderAll(analyze(r.steps)); } catch(e){ if(err){ err.textContent='✗ Error analizando: '+e.message; err.style.display='block'; } }
+  if(r.error){ if(err){ err.className='nx-err'; err.textContent='✗ '+r.error; err.style.display='block'; } return; }
+  var steps=r.steps, note='';
+  if(!steps.length){ if(err){ err.className='nx-err'; err.textContent='✗ El HAR no tiene requests de API (quizá eran todos assets estáticos — probá con un flujo con llamadas XHR/fetch).'; err.style.display='block'; } return; }
+  if(steps.length>120){ note='ℹ Mostrando los primeros 120 de '+steps.length+' requests (la propagación se calcula sobre ese subconjunto).'; steps=steps.slice(0,120); }
+  if(err){ if(note){ err.className='nx-err nx-info'; err.textContent=note; err.style.display='block'; } else { err.style.display='none'; err.className='nx-err'; } }
+  try { renderAll(analyze(steps)); } catch(e){ if(err){ err.className='nx-err'; err.textContent='✗ Error analizando: '+e.message; err.style.display='block'; } }
 }
 function loadExample(key){
   var ex=EXAMPLES[key]; if(!ex) return;
@@ -5024,9 +5044,15 @@ function loadExample(key){
 function init(){
   if(!$('nxRun')) return;
   $('nxRun').addEventListener('click', run);
-  var c=$('nxClear'); if(c) c.addEventListener('click', function(){ var t=$('nxInput'); if(t) t.value=''; MODEL=null; ['nxStats','nxServices','nxSeq','nxFindings'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; }); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML=''; } });
+  var c=$('nxClear'); if(c) c.addEventListener('click', function(){ var t=$('nxInput'); if(t) t.value=''; MODEL=null; ['nxStats','nxServices','nxSeq','nxFindings'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; }); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML=''; } var fn=$('nxFileName'); if(fn) fn.textContent=''; var ch=$('nxChain'); if(ch) ch.innerHTML=''; });
   var pb=$('nxPDF'); if(pb) pb.addEventListener('click', nxPDF);
   var pl=$('nxPlay'); if(pl) pl.addEventListener('click', function(){ if(MODEL) renderSeq(MODEL); });
+  var uf=$('nxUpload'), fi=$('nxFile');
+  if(uf&&fi){ uf.addEventListener('click', function(){ fi.value=''; fi.click(); }); fi.addEventListener('change', function(){ if(fi.files&&fi.files[0]) nxReadFile(fi.files[0]); }); }
+  var dz=$('nxInput');
+  if(dz){ ['dragenter','dragover'].forEach(function(ev){ dz.addEventListener(ev,function(e){ if(e&&e.preventDefault)e.preventDefault(); dz.classList.add('nx-drag'); }); });
+    ['dragleave','dragend'].forEach(function(ev){ dz.addEventListener(ev,function(){ dz.classList.remove('nx-drag'); }); });
+    dz.addEventListener('drop', function(e){ if(e&&e.preventDefault)e.preventDefault(); dz.classList.remove('nx-drag'); var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) nxReadFile(f); }); }
   var tabs=document.querySelectorAll('#nexus .nx-ex');
   for(var i=0;i<tabs.length;i++){ (function(t){ t.addEventListener('click', function(){ for(var k=0;k<tabs.length;k++) tabs[k].classList.remove('on'); t.classList.add('on'); loadExample(t.getAttribute('data-ex')); }); })(tabs[i]); }
   /* precargar el primer ejemplo para que se vea épico de entrada */

@@ -6392,7 +6392,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   }
   function clearLog(){ var box=$g('gasrLog'); if(box) box.innerHTML=''; }
 
-  function renderCard(source, status, payload, ms){
+  function renderCard(source, status, payload, ms, detail){
     var id='gasrcard-'+source;
     var card=$g(id);
     if(!card){ card=document.createElement('div'); card.id=id; var res=$g('gasrResults'); if(res) res.appendChild(card); }
@@ -6402,7 +6402,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       return;
     }
     if(status==='err'){
-      card.innerHTML='<div class="gasr-ch"><b>'+esc(SRC_LABELS[source]||source)+'</b><span class="gasr-cstat err">✕ '+esc(payload||'error')+'</span></div><div class="gasr-cb"><span class="gasr-src-badge">La fuente no respondió, dio timeout o fue abortada. Las demás siguen activas.</span></div>';
+      card.innerHTML='<div class="gasr-ch"><b>'+esc(SRC_LABELS[source]||source)+'</b><span class="gasr-cstat err">✕ '+esc(payload||'error')+'</span></div><div class="gasr-cb"><span class="gasr-src-badge">'+esc(detail||'La fuente no respondió, dio timeout o fue abortada. Las demás siguen activas.')+'</span></div>';
       return;
     }
     var n=normalize(source, payload);
@@ -6429,11 +6429,11 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     var t0=now(), timedOut=false;
     var to=setTimeout(function(){ timedOut=true; try{ctrl.abort();}catch(e){} }, TIMEOUT);
     return fetch(url,{signal:ctrl.signal,headers:{'Accept':'application/json'}})
-      .then(function(r){ return r.text().then(function(tx){ var j; try{ j=JSON.parse(tx); }catch(e){ j={raw:tx.slice(0,2000)}; } return {ok:r.ok,data:j,ms:Math.round(now()-t0)}; }); })
+      .then(function(r){ return r.text().then(function(tx){ var j; try{ j=JSON.parse(tx); }catch(e){ j={raw:tx.slice(0,2000)}; } if(!r.ok) return {ok:false,error:'HTTP '+r.status,detail:'el Worker respondió HTTP '+r.status+': '+tx.slice(0,300),ms:Math.round(now()-t0)}; return {ok:true,data:j,ms:Math.round(now()-t0)}; }); })
       .catch(function(e){
         var msg=String(e&&e.message||e);
-        var err=state.userAbort?'abortado':(timedOut?'timeout':(/Failed to fetch|NetworkError|load failed/i.test(msg)?'CORS/red':'error'));
-        return {ok:false,error:err,ms:Math.round(now()-t0)};
+        var err=state.userAbort?'abortado':(timedOut?'timeout':'red/CORS');
+        return {ok:false,error:err,detail:msg+(err==='red/CORS'?' — mirá la consola (F12): el motivo exacto (CORS, CSP o red) aparece ahí':''),ms:Math.round(now()-t0)};
       })
       .then(function(res){ clearTimeout(to); return res; });
   }
@@ -6451,7 +6451,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 
   function run(){
     if(state.running) return;
-    var target=(($g('gasrInput')||{}).value||'').trim();
+    var target=(($g('gasrInput')||{}).value||'').trim().replace(/^https?:\/\//i,'').split('/')[0];
     if(!target){ setState('ingresá un objetivo','err'); return; }
     var srcs = state.src==='all'?ALL.slice():[state.src];
     state.running=true; state.userAbort=false; state.ctrls=[]; state.t0=now();
@@ -6475,8 +6475,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
           logLine((n.cves.length||rp.length)?'hit':'ok','✓ '+(SRC_LABELS[s]||s)+' '+r.ms+'ms · '+n.ports.length+' puertos · '+rp.length+' de riesgo · '+n.cves.length+' CVE · '+n.leaks.length+' fugas');
           addBlip(!!(n.cves.length||rp.length));
         } else {
-          state.last.sources[s]={__error:r.error||'sin respuesta'}; renderCard(s,'err',r.error||'sin respuesta');
-          logLine('hit','✕ '+(SRC_LABELS[s]||s)+' · '+(r.error||'sin respuesta')+(state.userAbort?'':' · las demás siguen'));
+          state.last.sources[s]={__error:r.error||'sin respuesta'}; renderCard(s,'err',r.error||'sin respuesta',0,r.detail);
+          logLine('hit','✕ '+(SRC_LABELS[s]||s)+' · '+(r.error||'sin respuesta')+(r.detail?(' · '+r.detail):'')+(state.userAbort?'':' · las demás siguen'));
         }
       });
     });

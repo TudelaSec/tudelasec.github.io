@@ -6219,6 +6219,15 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 .gasr-empty{padding:30px;text-align:center;color:#5a6b7d;font:12px 'JetBrains Mono',ui-monospace,monospace}
 .gasr-note{font:11px 'JetBrains Mono',ui-monospace,monospace;color:#5a6b7d;margin-top:14px;line-height:1.5}
 .gasr-threat.crit{border-color:#ff1a2e;animation:gasrCardIn .5s cubic-bezier(.2,.7,.2,1) both,gasrCrit 1.2s ease-in-out infinite}@keyframes gasrCrit{0%,100%{box-shadow:0 0 0 1px #ff1a2e33,0 0 30px -8px #ff1a2e88}50%{box-shadow:0 0 0 3px #ff1a2e88,0 0 60px -6px #ff1a2eee}}
+.gasr-modes{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.gasr-mode{cursor:pointer;border:1px solid #27313f;background:#070a0f;color:var(--dim);font:800 11px 'Orbitron',sans-serif;letter-spacing:.06em;padding:8px 14px;border-radius:9px;transition:transform .12s,border-color .12s,color .12s}
+.gasr-mode:hover{transform:translateY(-1px);color:#fff;border-color:var(--acc)}
+.gasr-mode.on{background:linear-gradient(180deg,#ff1a2e,#b3121f);border-color:var(--acc);color:#fff;box-shadow:0 0 18px -4px #ff1a2e}
+.gasr-hit{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid #141a24;font:11.5px/1.5 'JetBrains Mono',ui-monospace,monospace}
+.gasr-hip{color:#fff;font-weight:700}
+.gasr-hport{color:var(--grn);background:#00ffa314;border:1px solid #00ffa340;border-radius:4px;padding:0 6px}
+.gasr-hport.hot{color:#ff8a8a;background:#ff1a2e1f;border-color:#ff1a2e99}
+.gasr-hmeta{color:var(--dim);word-break:break-word}
 @media (prefers-reduced-motion:reduce){#gasr *,#gasr *::before,#gasr *::after{animation:none!important;transition:none!important}}
 </style>
 <section id="gasr">
@@ -6230,6 +6239,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     <p class="gasr-sub">Buscador de infraestructura global sobre datos públicos ya indexados. Consultá un dominio o IP contra varios motores de inteligencia de activos en paralelo — puertos, ASN, geolocalización, banners, certificados, CVEs y servicios mal configurados — enrutado por tu Cloudflare Worker (claves protegidas en el backend).</p>
 
     <div class="gasr-acq">
+      <div class="gasr-modes"><button class="gasr-mode on" data-mode="host">◉ HOST · IP / dominio</button><button class="gasr-mode" data-mode="pais">⚑ PAÍS · búsqueda por país</button></div>
       <div class="gasr-srcs" id="gasrSrcs">
         <button class="gasr-src on" data-src="all">⟐ All Engines</button>
         <button class="gasr-src" data-src="shodan">◉ Shodan InternetDB</button>
@@ -6283,7 +6293,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   var ALL=['shodan','netlas','leakix','censys'];
   var TIMEOUT=14000;
   var RISKY={21:'FTP',22:'SSH',23:'TELNET',25:'SMTP',110:'POP3',135:'MS-RPC',139:'NETBIOS',445:'SMB',1433:'MSSQL',1521:'ORACLE',2181:'ZOOKEEPER',2375:'DOCKER API',2379:'ETCD',3306:'MYSQL',3389:'RDP',5432:'POSTGRES',5601:'KIBANA',5900:'VNC',6379:'REDIS',8500:'CONSUL',9200:'ELASTIC',11211:'MEMCACHED',27017:'MONGODB'};
-  var state={src:'all',running:false,userAbort:false,ctrls:[],t0:0,last:{}};
+  var state={src:'all',mode:'host',running:false,userAbort:false,ctrls:[],t0:0,last:{},hits:[]};
   function $g(id){return document.getElementById(id);}
   function now(){return (performance&&performance.now)?performance.now():Date.now();}
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -6341,7 +6351,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   function riskyPorts(ports){ return ports.filter(function(p){ return !!RISKY[p]; }); }
 
   /* ---- threat model (heurístico, para priorizar) ---- */
-  function analyzeAll(){
+  function analyzeAll(){ if(state.last&&state.last.mode==='pais') return analyzeHits();
     var ips={}, ports={}, risky={}, cves={}, leaks=0;
     for(var s in state.last.sources){
       var d=state.last.sources[s]; if(!d||d.__error) continue;
@@ -6363,10 +6373,10 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     var panel=$g('gasrThreat'); if(!panel) return;
     var a=analyzeAll(), sc=scoreOf(a), has=(a.ips+a.ports+a.cves+a.leaks)>0;
     panel.classList.add('on');
-    setText('gasrS_ips',a.ips); setText('gasrS_ports',a.ports); setText('gasrS_risk',a.risky); setText('gasrS_cve',a.cves); setText('gasrS_leak',a.leaks);
+    setText('gasrS_ips',a.ips); setText('gasrS_ports',a.ports); setText('gasrS_risk',a.risky); setText('gasrS_cve',(state.last&&state.last.mode==='pais')?'—':a.cves); setText('gasrS_leak',a.leaks);
     var rk=$g('gasrS_risk'); if(rk&&rk.parentNode) rk.parentNode.classList.toggle('hot',a.risky>0);
     var cv=$g('gasrS_cve'); if(cv&&cv.parentNode) cv.parentNode.classList.toggle('hot',a.cves>0);
-    setText('gasrThreatTitle',has?('THREAT SCORE · '+sc+'/100'):'THREAT SCORE · sin datos');
+    var pais=!!(state.last&&state.last.mode==='pais'); setText('gasrThreatTitle',has?((pais?'EXPOSICIÓN POR PAÍS · ':'THREAT SCORE · ')+sc+'/100'):(pais?'EXPOSICIÓN POR PAÍS · sin datos':'THREAT SCORE · sin datos'));
     var bar=$g('gasrGaugeBar'); if(bar) bar.style.transform='scaleX('+(has?(sc/100):0)+')';
     panel.classList.toggle('crit',has&&sc>=70); var lv=$g('gasrGaugeLvl'); if(lv){ lv.textContent=has?levelOf(sc):'—'; lv.style.color=sc>=70?'var(--acc)':sc>=45?'var(--amb)':'var(--grn)'; }
     var rl=$g('gasrRiskList'); if(rl) rl.textContent=a.riskyList.length?('Puertos de riesgo: '+a.riskyList.map(function(p){return p+' '+RISKY[p];}).join(' · ')):'Sin puertos de riesgo conocidos en los motores consultados.';
@@ -6482,7 +6492,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   function setProg(p){ var el=$g('gasrProg'); if(el) el.style.width=Math.max(0,Math.min(100,p))+'%'; }
   function setState(txt,cls){ var s=$g('gasrState'); if(s) s.textContent=txt; var d=$g('gasrDot'); if(d){ d.className='gasr-dot'+(cls?(' '+cls):''); } }
 
-  function run(){
+  function run(){ if(state.mode==='pais') return runPais();
     if(state.running) return;
     var target=(($g('gasrInput')||{}).value||'').trim().replace(/^https?:\/\//i,'').split('/')[0];
     if(!target){ setState('ingresá un objetivo','err'); return; }
@@ -6529,7 +6539,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   }
 
   function copyJSON(){ var txt=JSON.stringify(state.last||{},null,2); try{ navigator.clipboard.writeText(txt); setState('JSON copiado al portapapeles','ok'); }catch(e){ var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(_){ } ta.remove(); setState('JSON copiado','ok'); } }
-  function dossier(){ if(!state.last||!state.last.target){ setState('nada que exportar — ejecutá una adquisición','err'); return; }
+  function dossier(){ if(state.last&&state.last.mode==='pais') return dossierPais(); if(!state.last||!state.last.target){ setState('nada que exportar — ejecutá una adquisición','err'); return; }
     var A=analyzeAll(), S=scoreOf(A);
     var L=['# GLOBAL ASSET RECON — Dossier','','**Objetivo:** '+state.last.target,'**Generado:** '+new Date().toISOString(),'**Motores:** '+Object.keys(state.last.sources||{}).join(', '),'**Threat score:** '+S+'/100 ('+levelOf(S)+') — heurístico, para priorizar revisión manual',''];
     for(var s in state.last.sources){ var d=state.last.sources[s]; L.push('## '+(SRC_LABELS[s]||s)); if(d&&d.__error){ L.push('_sin respuesta ('+d.__error+')_',''); continue; } var n=normalize(s,d);
@@ -6537,12 +6547,128 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       if(n.ports.length)L.push('- Puertos: '+n.ports.map(function(p){return RISKY[p]?(p+' ('+RISKY[p]+', RIESGO)'):String(p);}).join(', ')); if(n.cves.length)L.push('- CVEs: '+n.cves.join(', ')); if(n.leaks.length)L.push('- Fugas: '+n.leaks.slice(0,20).join(' | ')); L.push(''); }
     L.push('---','## JSON crudo','```json',JSON.stringify(state.last,null,2),'```');
     var blob=new Blob([L.join('\n')],{type:'text/markdown'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dossier-'+String(state.last.target).replace(/[^a-z0-9.\-]/gi,'_')+'.md'; document.body.appendChild(a); a.click(); setTimeout(function(){ try{URL.revokeObjectURL(a.href);a.remove();}catch(e){} },2000); }
-  function sendTo(inputId,sectionId,label){ var t=((state.last&&state.last.target)||(($g('gasrInput')||{}).value||'')).trim(); if(!t){ setState('sin objetivo para enviar','err'); return; } var inp=document.getElementById(inputId); if(inp){ inp.value=t; try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} } var sec=document.getElementById(sectionId); if(sec&&sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth',block:'start'}); if(inp){ setTimeout(function(){ try{inp.focus();}catch(e){} },420); } setState('objetivo enviado a '+label,'ok'); }
+  function sendTo(inputId,sectionId,label){ var t=(state.last&&state.last.mode==='pais'&&state.hits.length)?String(state.hits[0].ip):((((state.last&&state.last.target)||(($g('gasrInput')||{}).value||'')))+'').trim(); if(!t){ setState('sin objetivo para enviar','err'); return; } var inp=document.getElementById(inputId); if(inp){ inp.value=t; try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} } var sec=document.getElementById(sectionId); if(sec&&sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth',block:'start'}); if(inp){ setTimeout(function(){ try{inp.focus();}catch(e){} },420); } setState('objetivo enviado a '+label,'ok'); }
+
+  /* ---- MODO PAÍS: búsqueda por país con la sintaxis nativa de cada motor ---- */
+  var COUNTRY={CL:'Chile',AR:'Argentina',PE:'Peru',BO:'Bolivia',PY:'Paraguay',UY:'Uruguay',BR:'Brazil',CO:'Colombia',EC:'Ecuador',VE:'Venezuela',MX:'Mexico',US:'United States',ES:'Spain'};
+  function setMode(m){
+    state.mode=m;
+    var bs=document.querySelectorAll('.gasr-mode'); for(var i=0;i<bs.length;i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-mode')===m); }
+    var inp=$g('gasrInput'); if(inp) inp.placeholder=(m==='pais')?'código ISO — ej: CL   ·   con filtro: CL port:3306':'objetivo — dominio o IP (ej: 1.1.1.1 · ejemplo.com)';
+    setState(m==='pais'?'modo PAÍS — ingresá un código ISO de 2 letras':'modo HOST — ingresá un dominio o IP','');
+  }
+  function paisUpstream(src, cc, extra){
+    var ex=extra?(' '+extra):'';
+    if(src==='shodan') return 'https://api.shodan.io/shodan/host/search?query='+encodeURIComponent('country:'+cc+ex);
+    if(src==='censys') return 'https://search.censys.io/api/v2/hosts/search?per_page=25&q='+encodeURIComponent('location.country_code:'+cc+(extra?(' and '+extra):''));
+    if(src==='netlas') return 'https://app.netlas.io/api/responses/?q='+encodeURIComponent('geo.country:'+cc+(extra?(' AND '+extra):''));
+    if(src==='leakix') return 'https://leakix.net/search?scope=service&q='+encodeURIComponent('+country:'+(COUNTRY[cc]||cc)+(extra?(' +'+extra):''));
+    return null;
+  }
+  function normHits(src, d){
+    var out=[];
+    function push(h){ if(h&&h.ip) out.push(h); }
+    if(src==='shodan'){ arr(d&&d.matches).forEach(function(m){ push({ip:m.ip_str||m.ip,port:String(m.port||''),org:m.org||'',country:(m.location&&m.location.country_code)||'',note:(m.hostnames&&m.hostnames[0])||''}); }); }
+    else if(src==='censys'){ arr(d&&d.result&&d.result.hits).forEach(function(m){ var ps=arr(m.services).map(function(s){return s.port;}).filter(Boolean); push({ip:m.ip,port:ps.join(', '),org:(m.autonomous_system&&m.autonomous_system.name)||'',country:(m.location&&m.location.country_code)||'',note:''}); }); }
+    else if(src==='leakix'){ arr(d).forEach(function(e){ if(!e||typeof e!=='object') return; push({ip:e.ip,port:String(e.port||''),org:(e.network&&e.network.organization_name)||'',country:(e.geoip&&e.geoip.country_iso_code)||'',note:e.summary||''}); }); }
+    else if(src==='netlas'){ arr(d&&d.items).forEach(function(it){ var x=(it&&it.data)?it.data:it; if(!x) return; var ip=(typeof x.ip==='string')?x.ip:(x.ip&&x.ip.value); push({ip:ip,port:String(x.port||''),org:(x.asn&&x.asn.name)||'',country:(x.geo&&(x.geo.country_code||x.geo.country))||'',note:x.protocol||''}); }); }
+    return out;
+  }
+  function isRiskyPort(p){ return String(p).split(/,\s*/).some(function(x){ return !!RISKY[Number(x)]; }); }
+  function proxyFetch(upstream, ctrl){
+    var t0=now(), timedOut=false;
+    var to=setTimeout(function(){ timedOut=true; try{ctrl.abort();}catch(e){} }, TIMEOUT);
+    return fetch(PROXY+'/',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({url:upstream,evade:false})})
+      .then(function(r){ return r.text().then(function(tx){
+        var ms=Math.round(now()-t0);
+        if(!r.ok) return {ok:false,error:'HTTP '+r.status,detail:'el Worker respondió HTTP '+r.status+': '+tx.slice(0,300),ms:ms};
+        var w; try{ w=JSON.parse(tx); }catch(e){ return {ok:false,error:'respuesta no JSON',detail:tx.slice(0,300),ms:ms}; }
+        if(w.error) return {ok:false,error:(w.blocked?'bloqueado':(w.error||'error')),detail:'proxy: '+w.error,ms:ms};
+        var up=w.status||0;
+        if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — falta API key en el Worker':'')+': '+String(w.body||'').slice(0,300),ms:ms};
+        var j; try{ j=JSON.parse(w.body); }catch(e){ j={raw:String(w.body||'').slice(0,2000)}; }
+        return {ok:true,data:j,ms:ms};
+      }); })
+      .catch(function(e){ var err=state.userAbort?'abortado':(timedOut?'timeout':'red/CORS'); return {ok:false,error:err,detail:String(e&&e.message||e),ms:Math.round(now()-t0)}; })
+      .then(function(res){ clearTimeout(to); return res; });
+  }
+  function renderHitCard(src, hits, ms, raw){
+    var id='gasrcard-'+src; var card=$g(id);
+    if(!card){ card=document.createElement('div'); card.id=id; var res=$g('gasrResults'); if(res) res.appendChild(card); }
+    card.className='gasr-card'+(hits.some(function(h){ return isRiskyPort(h.port); })?' hot':'');
+    var h='<div class="gasr-ch"><b>'+esc(SRC_LABELS[src]||src)+'</b><span class="gasr-cstat ok">✓ '+ms+'ms · '+hits.length+' hosts</span></div><div class="gasr-cb">';
+    if(!hits.length) h+='<span class="gasr-src-badge">Sin resultados para este filtro. Revisá la sintaxis del motor o el JSON crudo.</span>';
+    hits.slice(0,50).forEach(function(x){ var rk=isRiskyPort(x.port); h+='<div class="gasr-hit"><span class="gasr-hip">'+esc(x.ip)+'</span><span class="gasr-hport'+(rk?' hot':'')+'">'+esc(x.port||'·')+'</span><span class="gasr-hmeta">'+esc([x.org,x.country,x.note].filter(Boolean).join(' · '))+'</span></div>'; });
+    h+='<details class="gasr-raw"><summary>▸ JSON crudo</summary><pre>'+esc(JSON.stringify(raw,null,2).slice(0,6000))+'</pre></details></div>';
+    card.innerHTML=h;
+  }
+  function analyzeHits(){
+    var ips={}, ports={}, risky={};
+    state.hits.forEach(function(h){ if(h.ip) ips[h.ip]=1; String(h.port||'').split(/,\s*/).forEach(function(x){ var n=Number(x); if(!n) return; ports[n]=1; if(RISKY[n]) risky[n]=1; }); });
+    return {ips:Object.keys(ips).length, ports:Object.keys(ports).length, risky:Object.keys(risky).length, riskyList:Object.keys(risky).map(Number), cves:0, leaks:0, hosts:state.hits.length};
+  }
+  function saveMd(name, text){ var blob=new Blob([text],{type:'text/markdown'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ try{URL.revokeObjectURL(a.href);a.remove();}catch(e){} },2000); }
+  function dossierPais(){
+    var A=analyzeHits(), S=scoreOf(A);
+    var L=['# GLOBAL ASSET RECON — Búsqueda por país','','**Filtro:** '+state.last.target,'**Generado:** '+new Date().toISOString(),'**Hosts:** '+A.hosts+' · **IPs únicas:** '+A.ips+' · **Puertos de riesgo:** '+A.risky+' · **Exposición (heurística):** '+S+'/100 ('+levelOf(S)+')',''];
+    ['shodan','censys','netlas','leakix'].forEach(function(s){ var d=state.last.sources[s]; if(d===undefined) return; L.push('## '+(SRC_LABELS[s]||s)); if(d&&d.__error){ L.push('_sin respuesta ('+d.__error+')_',''); return; } state.hits.filter(function(h){return h.src===s;}).forEach(function(h){ L.push('- '+h.ip+(h.port?(':'+h.port):'')+(h.org?' · '+h.org:'')+(h.country?' · '+h.country:'')+(h.note?' · '+h.note:'')); }); L.push(''); });
+    L.push('---','## JSON crudo','```json',JSON.stringify(state.last,null,2),'```');
+    saveMd('dossier-pais-'+String(state.last.target).replace(/[^a-z0-9.\-]/gi,'_')+'.md', L.join('\n'));
+  }
+  function runPais(){
+    if(state.running) return;
+    var raw=(($g('gasrInput')||{}).value||'').trim().split(/\s+/);
+    var cc=(raw[0]||'').toUpperCase(), extra=raw.slice(1).join(' ').trim();
+    if(!/^[A-Z]{2}$/.test(cc)){ setState('código ISO de 2 letras (ej: CL)','err'); return; }
+    var srcs=state.src==='all'?ALL.slice():[state.src];
+    state.running=true; state.userAbort=false; state.ctrls=[]; state.t0=now(); state.hits=[];
+    state.last={target:cc+(extra?(' '+extra):''),mode:'pais',sources:{}};
+    var btn=$g('gasrRun'), ab=$g('gasrAbort'), rad=$g('gasrRadar');
+    if(btn) btn.disabled=true; if(ab) ab.disabled=false; if(rad) rad.classList.add('on');
+    var res=$g('gasrResults'); if(res) res.innerHTML='';
+    var th=$g('gasrThreat'); if(th) th.classList.remove('on');
+    clearBlips(); clearLog();
+    logLine('','▶ BÚSQUEDA POR PAÍS · '+cc+(COUNTRY[cc]?' ('+COUNTRY[cc]+')':'')+(extra?' · filtro: '+extra:'')+' · motores='+srcs.length);
+    setState('buscando en '+srcs.length+' motor(es)…','live'); setProg(6);
+    srcs.forEach(function(s){ renderCard(s,'load'); logLine('warn','→ '+(SRC_LABELS[s]||s)+' · consultando…'); });
+    var done=0;
+    var tasks=srcs.map(function(s){
+      var ctrl=new AbortController(); state.ctrls.push(ctrl);
+      return proxyFetch(paisUpstream(s,cc,extra),ctrl).then(function(r){
+        done++; setProg(6+(done/srcs.length)*94);
+        if(r.ok){
+          state.last.sources[s]=r.data;
+          var hits=normHits(s,r.data); hits.forEach(function(x){ x.src=s; state.hits.push(x); });
+          renderHitCard(s,hits,r.ms,r.data);
+          logLine(hits.length?'hit':'ok','✓ '+(SRC_LABELS[s]||s)+' '+r.ms+'ms · '+hits.length+' hosts en '+cc);
+          addBlip(hits.length>0);
+        } else {
+          state.last.sources[s]={__error:r.error||'sin respuesta'};
+          renderCard(s,'err',r.error||'sin respuesta',0,r.detail);
+          logLine('hit','✕ '+(SRC_LABELS[s]||s)+' · '+(r.error||'sin respuesta')+(r.detail?(' · '+r.detail):''));
+        }
+      });
+    });
+    Promise.all(tasks).then(function(){
+      state.running=false; state.ctrls=[];
+      if(btn) btn.disabled=false; if(ab) ab.disabled=true; if(rad) rad.classList.remove('on');
+      var okc=0; for(var k in state.last.sources){ if(state.last.sources[k] && !state.last.sources[k].__error) okc++; }
+      var aborted=state.userAbort;
+      setState(aborted?('abortado · '+okc+'/'+srcs.length+' respondieron'):(okc+'/'+srcs.length+' motor(es) respondieron'), aborted?'err':'ok');
+      setProg(100);
+      var mt=$g('gasrMeta'); if(mt) mt.textContent='filtro: '+state.last.target;
+      renderThreat();
+      var A=analyzeHits(), S=scoreOf(A);
+      logLine(S>=45?'hit':'ok','■ CICLO COMPLETO · '+A.hosts+' hosts en '+cc+' · exposición '+S+'/100 ('+levelOf(S)+') · '+A.ips+' IP · '+A.risky+' puertos de riesgo');
+      setTimeout(function(){ setProg(0); }, 1200);
+    });
+  }
 
   var inited=false;
   function gasrInit(){ if(inited) return; inited=true;
     var srcs=$g('gasrSrcs'); if(srcs){ srcs.addEventListener('click',function(e){ var b=e.target.closest?e.target.closest('.gasr-src'):null; if(!b) return; var all=srcs.querySelectorAll('.gasr-src'); for(var i=0;i<all.length;i++) all[i].classList.remove('on'); b.classList.add('on'); state.src=b.getAttribute('data-src'); }); }
     var btn=$g('gasrRun'); if(btn) btn.addEventListener('click',run);
+    var mbs=document.querySelectorAll('.gasr-mode'); for(var mi=0;mi<mbs.length;mi++){ mbs[mi].addEventListener('click',function(){ setMode(this.getAttribute('data-mode')); }); }
     var inp=$g('gasrInput'); if(inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') run(); if(e.key==='Escape') abortRun(); });
     var map={gasrAbort:abortRun,gasrCopy:copyJSON,gasrDossier:dossier,gasrKraken:function(){sendTo('kr-input','kraken','Kraken');},gasrCrawler:function(){sendTo('crw-input','crawler','Crawler');}};
     Object.keys(map).forEach(function(id){ var b=$g(id); if(b) b.addEventListener('click',map[id]); });
@@ -33083,7 +33209,9 @@ var HELP_DATA={
  'headers':{name:'HTTP Headers',what:'Referencia completa de 68 cabeceras HTTP (request, response, seguridad): cada una con su función, un ejemplo y su riesgo de seguridad asociado.',how:['Filtrá por categoría (request, response, seguridad…).','Leé la función, el ejemplo y la nota de riesgo de cada header.']},
  'conocimiento':{name:'Vuln Database',what:'Base de conocimiento de 30 vulnerabilidades (inyección, XSS, server-side, auth, control de acceso, Active Directory, infra) con su CWE, criticidad y explicación.',how:['Buscá o filtrá por categoría.','Abrí cada vulnerabilidad para ver su detalle, CWE y cómo se explota/mitiga.']},
  'hackertools':{name:'Hacker Tools',what:'Arsenal curado de 31 herramientas externas (CyberChef, JWT.io, GTFOBins, Shodan, HackTricks…) organizadas por objetivo, cada una con para qué sirve y acceso directo.',how:['Filtrá por categoría (Encoding, OSINT, PrivEsc, Payloads…).','Leé la descripción y abrí la herramienta que necesites.']},
- 'cheatsheet':{name:'Cheatsheet',what:'Chuleta de comandos y técnicas de pentesting para tener a mano los recursos más usados sin salir del portafolio.',how:['Buscá la técnica o comando.','Copiá y adaptá a tu target.']}
+ 'cheatsheet':{name:'Cheatsheet',what:'Chuleta de comandos y técnicas de pentesting para tener a mano los recursos más usados sin salir del portafolio.',how:['Buscá la técnica o comando.','Copiá y adaptá a tu target.']},
+ 'gasr':{name:'Global Asset Recon — guía de búsqueda',what:'Buscador de activos expuestos sobre datos públicos ya indexados por Shodan InternetDB, Netlas, LeakIX y Censys. Dos modos: HOST (una IP o dominio, perfil completo) y PAÍS (hosts expuestos en un país, con filtros del motor).',how:['1 · Elegí el modo arriba: HOST para un activo puntual, PAÍS para explorar un país.','2 · Elegí un motor o All Engines, y pulsá ADQUIRIR o Enter. Escape aborta.','3 · HOST: escribí un dominio (enel.cl) o una IP (190.10.2.5). Con dominio, primero se resuelve la IP por DNS; sin registro A, los motores de IP no corren.','4 · PAÍS: escribí el código ISO y, opcional, un filtro: CL · CL port:3306 · CL product:mysql · CL port:9200.','5 · Sintaxis por motor: Shodan query=country:CL port:3306 · Censys q=location.country_code:CL and port:3306 · Netlas q=geo.country:CL AND port:3306 · LeakIX q=+country:Chile +port:3306 (usa nombre de país, no ISO).','6 · Tarjetas: una por motor. Puerto en rojo = puerto de riesgo (bases de datos, RDP, Docker, Redis…). CVE en rojo = vulnerabilidad reportada. ✕ = el motor falló y la tarjeta dice por qué.','7 · THREAT SCORE / EXPOSICIÓN (0–100): heurística. Suma cantidad de puertos, puertos de riesgo (pesan más), CVEs y fugas. Sirve para priorizar qué mirar primero, no es un veredicto.','8 · LOG: cada evento con su tiempo. ✓ = respuesta OK, ✕ = error, ■ = ciclo terminado con el resumen.','9 · RADAR: gira mientras consulta. Blip verde = respuesta limpia, rojo = hallazgo. Si el panel pulsa en rojo, el score es crítico (≥70).','10 · Exportar: Dossier .md (resumen + JSON), Copiar JSON, o Kraken / Crawler (envía la IP).','11 · Si un filtro no existe o tiene sintaxis mala, el motor responde 400 y la tarjeta muestra su mensaje. Probá un filtro a la vez.'],note:'Las claves de API viven en el Worker (secrets), nunca en el navegador. Las búsquedas por país consumen créditos en Shodan. Usalo solo sobre infraestructura propia o autorizada: es recon pasivo sobre datos ya indexados, no explota nada.'}
+
 };
 function buildHTML(id,d){
   var how=(d.how||[]).map(function(h,i){return '<p class="xh"><span class="n">'+(i+1)+'</span>'+esc(h)+'</p>';}).join('');

@@ -4766,7 +4766,7 @@ var EXAMPLES = {
 /* ─────────── PARSER (HAR o array de pasos) ─────────── */
 function b64urlDecode(s){ try { s=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return decodeURIComponent(Array.prototype.map.call(atob(s),function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join('')); } catch(e){ try { return atob(String(s).replace(/-/g,'+').replace(/_/g,'/')); } catch(e2){ return ''; } } }
 function headersArrToObj(a){ var o={}; if(Array.isArray(a)){ a.forEach(function(h){ if(h&&h.name) o[h.name]=h.value; }); } return o; }
-function parseHAR(j){
+function parseHAR(j, keepAssets){
   var ents = j && j.log && j.log.entries; if(!Array.isArray(ents)) return null;
   var steps = ents.map(function(e){
     var rq=e.request||{}, rs=e.response||{};
@@ -4775,19 +4775,25 @@ function parseHAR(j){
     return { from:'Navegador', to:host(rq.url), method:rq.method||'GET', url:rq.url||'', status:(rs.status||0), ms:Math.round(e.time||0),
       reqHeaders:headersArrToObj(rq.headers), reqBody:body, respHeaders:headersArrToObj(rs.headers), respBody:rbody, started:e.startedDateTime||'' };
   });
-  steps = steps.filter(function(st){
+  if(!keepAssets){ steps = steps.filter(function(st){
     if(/\.(js|mjs|css|png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|eot|otf|map|mp4|webm|bmp|wasm)(\?|$)/i.test(st.url)) return false;
     var ct=String((st.respHeaders&&(st.respHeaders['Content-Type']||st.respHeaders['content-type']))||'').toLowerCase();
     if(/image\/|font\/|text\/css|javascript/.test(ct)) return false;
     return true;
-  });
+  }); }
   steps.sort(function(a,b){ return String(a.started).localeCompare(String(b.started)); });
   return steps;
 }
 function nxParse(text){
   var t = String(text||'').trim(); if(!t) return { error:'Pegá un HAR o elegí un flujo de ejemplo.' };
   var j; try { j = JSON.parse(t); } catch(e){ return { error:'No es JSON válido. Exportá un HAR desde DevTools → Network → Export HAR, o usá un ejemplo.' }; }
-  if(j && j.log && j.log.entries){ var s = parseHAR(j); return s && s.length ? { steps:s } : { error:'El HAR no tiene requests.' }; }
+  if(j && j.log && j.log.entries){
+    var raw = j.log.entries.length;
+    var s = parseHAR(j);
+    if(s && s.length) return { steps:s };
+    if(raw>0){ var s2=parseHAR(j, true); if(s2 && s2.length) return { steps:s2, note:'ℹ No detecté llamadas de API — este HAR parece de una página estática ('+raw+' peticiones, todas assets). Te muestro TODAS igual. Para una coreografía real, en DevTools filtrá por Fetch/XHR antes de exportar.' }; }
+    return { error:'El HAR no contiene peticiones ('+raw+' entries). ¿Exportaste con la pestaña Network activa?' };
+  }
   if(Array.isArray(j)) return { steps:j };
   if(j && Array.isArray(j.steps)) return { steps:j.steps };
   return { error:'Formato no reconocido. Se espera un HAR (.log.entries) o un array de requests.' };
@@ -5472,7 +5478,7 @@ function nxProcess(raw){
   var err=$('nxErr');
   var r = nxParse(raw||'');
   if(r.error){ if(err){ err.className='nx-err'; err.textContent='✗ '+r.error; err.style.display='block'; } return; }
-  var steps=r.steps, note='';
+  var steps=r.steps, note=r.note||'';
   if(!steps.length){ if(err){ err.className='nx-err'; err.textContent='✗ El HAR no trae llamadas de API (quizá eran todos assets: imágenes/CSS/JS). Capturá el flujo con la pestaña Fetch/XHR activa.'; err.style.display='block'; } return; }
   var total=r.steps.length;
   if(steps.length>150){ note='ℹ '+total+' requests de API detectadas — mapeando las primeras 150 (la propagación se calcula sobre ese subconjunto).'; steps=steps.slice(0,150); }
@@ -5487,7 +5493,7 @@ function nxReadFile(f){
   rd.onload=function(){
     var txt=String(rd.result||''); var ta=$('nxInput');
     if(ta) ta.value = (txt.length>400000) ? ('// HAR cargado: '+f.name+' ('+Math.round(f.size/1024)+' KB) — no se vuelca al editor por tamaño (evita el lag). Analizando directo…') : txt;
-    if(fn) fn.textContent='📎 '+f.name+' ('+(f.size>1048576?(f.size/1048576).toFixed(1)+' MB':Math.round(f.size/1024)+' KB')+')';
+    if(fn) fn.textContent='📎 '+f.name+' ('+(f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size>=1024?Math.round(f.size/1024)+' KB':f.size+' B'))+')';
     setTimeout(function(){ nxProcess(txt); }, 10);
   };
   rd.onerror=function(){ if(err){ err.className='nx-err'; err.textContent='✗ No pude leer el archivo.'; err.style.display='block'; } };

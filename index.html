@@ -5060,7 +5060,11 @@ var OWASP_MAP={
  'CORS permisivo con credenciales':['API8:2023','CWE-942'],'Cookie sin flags de seguridad':['API8:2023','CWE-1004'],'Tráfico en texto plano (HTTP)':['API8:2023','CWE-319'],
  'Token enviado a dominio de terceros':['API8:2023','CWE-200'],'Credenciales en texto claro en la respuesta':['API3:2023','CWE-256'],'Tarjeta de crédito en el cuerpo':['API3:2023','CWE-311'],
  'Autenticación Basic (credenciales reversibles)':['API2:2023','CWE-522'],'Faltan headers de seguridad':['API8:2023','CWE-693'],'Introspección GraphQL habilitada':['API9:2023','CWE-200'],
- 'Posible session fixation':['API2:2023','CWE-384'],'PII enviada a un tercero':['API8:2023','CWE-200'],'Error verboso del servidor':['API8:2023','CWE-209']
+ 'Posible session fixation':['API2:2023','CWE-384'],'PII enviada a un tercero':['API8:2023','CWE-200'],'Error verboso del servidor':['API8:2023','CWE-209'],
+ 'Moneda controlada por el cliente':['API6:2023','CWE-602'],
+ 'Cuenta/beneficiario manipulable (IDOR financiero)':['API1:2023','CWE-639'],
+ 'Transferencia sin clave de idempotencia (doble gasto)':['API6:2023','CWE-837'],
+ 'Movimiento de dinero sin segundo factor (2FA/OTP)':['API2:2023','CWE-308']
 };
 var DATARE=[
  {t:'JWT',re:/eyJ[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{4,}/g},
@@ -5078,7 +5082,10 @@ var DATARE=[
  {t:'Email',re:/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/ig},
  {t:'Password en claro',re:/"?(?:password|passwd|pwd|pass)"?\s*[:=]\s*"?[^",&\s}]{3,}/ig},
  {t:'IP interna',re:/\b(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}\b/g},
- {t:'S3 bucket',re:/[a-z0-9.\-]+\.s3[.\-][a-z0-9.\-]*amazonaws\.com/gi}
+ {t:'S3 bucket',re:/[a-z0-9.\-]+\.s3[.\-][a-z0-9.\-]*amazonaws\.com/gi},
+ {t:'RUT chileno',re:/\b\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]\b/g},
+ {t:'IBAN',re:/\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/g},
+ {t:'Cuenta/tarjeta larga',re:/"?(?:account|cuenta|cbu|clabe|numero_?cuenta|card_?number)"?\s*[:=]\s*"?\d{10,22}/gi}
 ];
 function scanData(text, step, where, out, seen){
   var t=String(text||''); if(!t) return;
@@ -5120,7 +5127,11 @@ var ATTACK_PB={
  'Introspección GraphQL habilitada':{a:'Lanzar la IntrospectionQuery para volcar todo el esquema (tipos, campos, mutations ocultas) y mapear la superficie de ataque.',i:'Reconocimiento completo de la API, incluidos campos sensibles.',f:'Deshabilitar introspeccion en produccion.'},
  'Posible session fixation':{a:'Fijar un ID de sesion conocido en la victima antes del login; tras autenticarse, el atacante reusa ese mismo ID ya autenticado.',i:'Secuestro de la sesion de la victima.',f:'Regenerar el ID de sesion inmediatamente despues del login.'},
  'PII enviada a un tercero':{a:'Capturar los datos personales que la app manda a un dominio de terceros (analytics/ads).',i:'Fuga de PII y problemas de privacidad/GDPR.',f:'Minimizar y anonimizar lo que se envia a terceros; revisar contratos de datos.'},
- 'Error verboso del servidor':{a:'Provocar un 500 e inspeccionar el stacktrace para aprender tecnologia, rutas internas y queries.',i:'Reconocimiento que facilita ataques dirigidos.',f:'Mensajes de error genericos en produccion; loguear el detalle solo del lado servidor.'}
+ 'Error verboso del servidor':{a:'Provocar un 500 e inspeccionar el stacktrace para aprender tecnologia, rutas internas y queries.',i:'Reconocimiento que facilita ataques dirigidos.',f:'Mensajes de error genericos en produccion; loguear el detalle solo del lado servidor.'},
+ 'Moneda controlada por el cliente':{a:'Interceptar la operacion y cambiar el campo currency/moneda a una divisa de menor valor o inexistente para romper la conversion o pagar de menos.',i:'Perdida economica por conversion manipulada.',f:'Fijar la moneda server-side segun el producto/cuenta; nunca confiar en la divisa del cliente.',p:['currency CLP->USD','moneda inexistente','monto en una divisa, cobro en otra']},
+ 'Cuenta/beneficiario manipulable (IDOR financiero)':{a:'Cambiar el id de cuenta/beneficiario por el de otra victima para desviar la transferencia, leer movimientos o consultar saldos ajenos.',i:'Robo o desvio de fondos y fuga de datos financieros de terceros (BOLA).',f:'Validar la titularidad de la cuenta/beneficiario en cada operacion; identificadores no enumerables ligados a la sesion.',p:['account_id = victima','cuenta_destino +-1','?rut=<otra victima>','enumerar numeros de cuenta']},
+ 'Transferencia sin clave de idempotencia (doble gasto)':{a:'Reenviar la misma peticion de transferencia (replay) o lanzarla en paralelo (race) aprovechando que no hay Idempotency-Key ni nonce.',i:'Doble (o multiple) debito/abono por la misma orden: fraude o descuadre contable.',f:'Exigir Idempotency-Key/nonce por operacion y rechazar duplicados server-side; locks sobre la transaccion.',p:['reenviar la MISMA request','50 requests en paralelo','reutilizar el nonce anterior']},
+ 'Movimiento de dinero sin segundo factor (2FA/OTP)':{a:'Si se roba la sesion (XSS, token filtrado, cookie), ejecutar la transferencia directamente porque no hay desafio OTP/2FA/clave dinamica.',i:'Transferencias no autorizadas con solo la sesion, sin step-up.',f:'Exigir segundo factor (OTP/clave dinamica/biometria) server-side en TODA operacion de dinero, no solo en el login.',p:['repetir la transferencia sin paso OTP','omitir el endpoint de challenge','reusar la sesion robada']}
 };
 function animateStats(){
   var bs=document.querySelectorAll('#nxStats .nx-stat b');
@@ -5188,6 +5199,10 @@ function buildChains(m){
   if(has['Webhook sin verificación de firma']) add('high','Webhook forjado → estado falso', ['El endpoint de webhook no valida la firma del proveedor.','El atacante le manda un evento falso (ej. "pago exitoso").','El sistema marca el pedido como pagado sin cobro real.'], ['Webhook sin verificación de firma']);
   var dlk=[]; if(has['Credenciales en texto claro en la respuesta'])dlk.push('Credenciales en texto claro en la respuesta'); if(has['Tarjeta de crédito en el cuerpo'])dlk.push('Tarjeta de crédito en el cuerpo');
   if(dlk.length) add('crit','Exposición directa de datos sensibles', ['La respuesta devuelve credenciales o datos de tarjeta en claro.','Cualquiera con acceso al tráfico, a los logs o vía un XSS los lee.','Compromiso de cuenta o fraude financiero inmediato.'], dlk);
+  if(has['Transferencia sin clave de idempotencia (doble gasto)']) add('crit','Doble transferencia por replay/race', ['Una orden de transferencia se envia sin Idempotency-Key ni nonce.','El atacante reenvia la MISMA peticion varias veces (o en paralelo).','El backend procesa cada copia como una transferencia nueva.','Se debita/abona el mismo monto dos o mas veces (doble gasto).'], ['Transferencia sin clave de idempotencia (doble gasto)']);
+  if(has['Cuenta/beneficiario manipulable (IDOR financiero)']) add('crit','Desvio de fondos por IDOR de beneficiario', ['La operacion de dinero lleva el id de cuenta/beneficiario desde el cliente.','El atacante lo cambia por otra cuenta (o enumera cuentas ajenas).','Sin validacion de titularidad, desvia la transferencia o lee saldos de terceros.'], ['Cuenta/beneficiario manipulable (IDOR financiero)']);
+  var mlk=[]; if(has['Movimiento de dinero sin segundo factor (2FA/OTP)'])mlk.push('Movimiento de dinero sin segundo factor (2FA/OTP)'); if(has['Monto controlado por el cliente'])mlk.push('Monto controlado por el cliente');
+  if(has['Movimiento de dinero sin segundo factor (2FA/OTP)']) add('high','Sesion robada -> transferencia sin step-up', ['El atacante obtiene la sesion de la victima (XSS, token filtrado, cookie sin flags).','Como la transferencia no pide OTP/2FA, la ejecuta directamente con esa sesion.',(has['Monto controlado por el cliente']?'Ademas fija el monto desde el cliente, moviendo el valor que quiera.':'Mueve fondos a una cuenta que controla.')], mlk);
   return C;
 }
 function nxEnrich(m){
@@ -5258,6 +5273,29 @@ function nxEnrich(m){
   /* PII hacia terceros */
   if(thirdParties.length){ m.sensitive.forEach(function(d){ if(d.where!=='response'){ var s=m.steps[d.step]; if(s && baseDomain(s.to)!==primary && /Email|Tarjeta|Password/.test(d.type)) addF('med','PII enviada a un tercero','Se envía '+d.type+' al dominio de terceros '+s.to+' en el paso '+(d.step+1)+'.',d.step); } }); }
 
+  /* ── v2.3 modulo financiero: deteccion de movimiento de dinero (transferencias/pagos) ── */
+  var MONEY_PATH=/(transfer|transferencia|transferir|giro|remes|\bpago\b|payment|\bpay\b|payout|withdraw|retiro|deposit|dep[oó]sito|abono|\bcargo\b|charge|send[-_]?money|\bwire\b|\bach\b|p2p|topup|recarga|movimiento|cuenta[-_]?destino)/i;
+  var AMOUNT_RE=/"?(amount|monto|importe|valor|total|cantidad|value|price|precio)"?\s*[:=]\s*"?-?\d/i;
+  var ACCT_FIELD=/"?(account|cuenta|cuenta[_-]?destino|destino|to[_-]?account|beneficiar\w*|beneficiary|iban|cbu|clabe|tarjeta|card|numero[_-]?cuenta|account[_-]?id|payee|target[_-]?account|rut)"?\s*[:=]/i;
+  var CURRENCY_RE=/"?(currency|moneda|divisa)"?\s*[:=]\s*"?[A-Za-z]{3}/i;
+  var moneySteps=[];
+  m.steps.forEach(function(s,ix){
+    var body=String(s.reqBody||''); var urlp=String(s.path||'');
+    var isMoney=/^(POST|PUT|PATCH)$/.test(s.method) && (MONEY_PATH.test(urlp) || (AMOUNT_RE.test(body) && (MONEY_PATH.test(body)||ACCT_FIELD.test(body))));
+    if(!isMoney) return;
+    moneySteps.push(ix);
+    if(AMOUNT_RE.test(body)) addF('high','Monto controlado por el cliente','El paso '+(ix+1)+' ('+s.path.split('?')[0]+') envia el importe desde el cliente en una operacion de dinero. Si el server confia en ese valor -> amount tampering (transferir/pagar un monto alterado). El importe debe calcularse y validarse server-side.',ix);
+    if(CURRENCY_RE.test(body)) addF('med','Moneda controlada por el cliente','El paso '+(ix+1)+' manda la divisa/moneda desde el cliente -> se puede alterar la conversion o pagar en una moneda de menor valor.',ix);
+    var am=body.match(ACCT_FIELD)||urlp.match(ACCT_FIELD); if(am){ var fld=String(am[1]||'cuenta').replace(/[^a-zA-Z_\-]/g,''); addF('high','Cuenta/beneficiario manipulable (IDOR financiero)','El paso '+(ix+1)+' lleva un identificador de cuenta/beneficiario ("'+fld+'") en una operacion de dinero. Sin validar la titularidad, se puede cambiar el destino de la transferencia o leer saldos/movimientos de otra cuenta (BOLA sobre fondos).',ix); }
+    var hasIdem=false; for(var hk in (s.reqHeaders||{})){ if(/idempotency|idempotent|x-request-id|x-correlation|x-transaction-id|x-nonce/i.test(hk)) hasIdem=true; }
+    if(!hasIdem && !/idempotency|idempotent|nonce|request_id|transaction_id/i.test(body)) addF('high','Transferencia sin clave de idempotencia (doble gasto)','El paso '+(ix+1)+' mueve dinero sin Idempotency-Key ni nonce -> reenviarlo (replay) o mandarlo en paralelo (race) puede ejecutar la MISMA transferencia dos o mas veces (doble debito/abono).',ix);
+  });
+  if(moneySteps.length){
+    m.isFinancial=true; m.moneySteps=moneySteps;
+    var hasOTP=false;
+    m.steps.forEach(function(s){ var blob=String(s.url||'')+' '+String(s.reqBody||'')+' '+String(s.respBody||''); for(var hk2 in (s.reqHeaders||{})) blob+=' '+hk2; if(/(\botp\b|\bmfa\b|2fa|totp|one[-_ ]?time|sms[-_ ]?code|verification[-_ ]?code|codigo[-_ ]?(sms|de[-_ ]?verif|dinamic)|challenge|step[-_ ]?up|tarjeta[-_ ]?(de[-_ ]?)?coordenada|clave[-_ ]?dinamica|digipass|dynamic[-_ ]?key)/i.test(blob)) hasOTP=true; });
+    if(!hasOTP) addF('high','Movimiento de dinero sin segundo factor (2FA/OTP)','El flujo ejecuta una operacion de dinero (paso '+moneySteps.map(function(x){return x+1;}).join(', ')+') sin ningun desafio OTP/2FA/clave dinamica visible. Si la sesion se roba (XSS, token filtrado), el atacante transfiere sin step-up. Confirma que haya segundo factor server-side en la operacion, no solo en el login.',moneySteps[0]);
+  }
   /* ── replay / race condition ── */
   var _dup={}; m.steps.forEach(function(s){ if(/^(POST|PUT|PATCH)$/.test(s.method)){ var k=s.method+' '+s.path.split('?')[0]; _dup[k]=(_dup[k]||0)+1; } });
   Object.keys(_dup).forEach(function(k){ if(_dup[k]>=3) addF('low','Request repetido (race condition / replay)','Se repite '+_dup[k]+'× la misma petición '+k+' — probá enviarlas en paralelo (race condition: doble gasto/canje) o reutilizar el token de un solo uso (replay).',-1); });
@@ -5342,6 +5380,7 @@ function renderNarrative(m){
   var L=[]; function add(c,t){ L.push({c:c,t:t}); }
   var st=m.stats;
   add('c','[*] Reconstruí la coreografía: '+st.requests+' llamada(s) de API entre '+st.services+' servicio(s)'+(st.endpoints?' · '+st.endpoints+' endpoint(s) únicos.':'.'));
+  if(m.isFinancial){ add('r','[$] FLUJO FINANCIERO detectado — '+m.moneySteps.length+' operacion(es) de movimiento de dinero (paso '+m.moneySteps.map(function(x){return x+1;}).join(', ')+'). Apliqué el set de controles de transferencia: idempotencia, 2FA/OTP, titularidad de cuenta y manipulacion de monto/moneda.'); }
   var thirds=m.hosts.filter(function(h){ return h.party==='3rd'; });
   if(thirds.length) add('r','[!] El flujo cruza a '+thirds.length+' dominio(s) de terceros ('+thirds.slice(0,3).map(function(h){return h.host;}).join(', ')+') — controlá qué datos salen de tu dominio.');
   else add('g','[+] Todo el tráfico queda dentro de tu dominio principal ('+(m.primaryBase||'—')+'). Sin fugas a terceros.');
@@ -5502,7 +5541,9 @@ function nxReadFile(f){
 function run(){ nxProcess(($('nxInput')||{}).value||''); }
 function loadExample(key){
   var ex=EXAMPLES[key]; if(!ex) return;
+  var NXEXNAMES={signup:'Signup + Confirmacion',oauth:'OAuth2 Code',reset:'Password Reset',checkout:'Checkout + Pago'};
   var ta=$('nxInput'); if(ta) ta.value=JSON.stringify(ex.steps,null,2);
+  var fn=$('nxFileName'); if(fn) fn.textContent='\uD83E\uDDEA flujo de ejemplo (DEMO) \u2014 '+(NXEXNAMES[key]||key)+' \u00B7 datos ficticios, NO es tu HAR';
   renderAll(analyze(ex.steps.slice()));
   var err=$('nxErr'); if(err) err.style.display='none';
 }

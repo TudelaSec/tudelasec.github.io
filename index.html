@@ -3191,6 +3191,39 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #cheatsheet .cmd-code{background:#020504;border:1px dashed #1f3a2a;border-radius:4px;}
 #cheatsheet .cmd-code code{color:#b6ffd0;}
 #cheatsheet .copy-btn{color:#39ff88;}
+/* ══ NAV HACKER v2 — círculo + menú completo ══ */
+.quicknav-toggle{background:radial-gradient(circle at 50% 40%,#1a0610,#05020a 70%);box-shadow:0 0 0 1px rgba(255,26,46,.25),0 0 22px rgba(255,26,46,.18);overflow:visible;}
+.quicknav-toggle::after{content:"";position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,26,46,.55),transparent 28%);animation:qnSweep 2.8s linear infinite;pointer-events:none;z-index:0;}
+.quicknav.open .quicknav-toggle::after{display:none;}
+.quicknav-toggle-icon{font-family:var(--mono);font-weight:700;text-shadow:0 0 8px rgba(255,26,46,.7);}
+.quicknav-panel{background:linear-gradient(180deg,#0b0410,#050208);border:1px solid rgba(255,26,46,.45);border-radius:4px;box-shadow:0 0 34px rgba(255,26,46,.18),inset 0 0 40px rgba(0,0,0,.7);overflow:hidden;width:300px;}
+.quicknav-panel::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,26,46,.045) 0 1px,transparent 1px 3px);z-index:0;}
+.quicknav-panel-head,.quicknav-list{position:relative;z-index:1;}
+.quicknav-panel-head{background:linear-gradient(90deg,rgba(255,26,46,.18),transparent);}
+.quicknav-panel-title{text-transform:uppercase;letter-spacing:.14em;text-shadow:0 0 10px rgba(255,26,46,.5);}
+.quicknav-list{counter-reset:qn;max-height:min(62vh,520px);scrollbar-width:thin;scrollbar-color:rgba(255,26,46,.5) transparent;}
+.quicknav-item{counter-increment:qn;text-transform:uppercase;letter-spacing:.06em;font-size:11.5px;border-left:2px solid transparent;transition:background .15s,border-color .15s,transform .15s;}
+.quicknav-item::before{content:"[" counter(qn,decimal-leading-zero) "]";color:rgba(255,26,46,.55);font-size:10px;flex-shrink:0;}
+.quicknav-item:hover{transform:translateX(4px);border-left-color:var(--acc);text-shadow:0 0 8px rgba(255,26,46,.6);}
+.quicknav-item.active{border-left-color:var(--acc);box-shadow:inset 0 0 18px rgba(255,26,46,.12);}
+.quicknav-item.active::before{content:">>";margin-right:0;}
+@keyframes qnSweep{to{transform:rotate(360deg);}}
+
+.mega-menu{background:radial-gradient(ellipse at 80% 0%,rgba(255,26,46,.10),transparent 55%),rgba(4,1,4,.97);}
+.mega-header{background:linear-gradient(90deg,rgba(255,26,46,.14),transparent 70%);border-bottom:1px solid rgba(255,26,46,.35);}
+.mega-close{text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+.mega-col-title{font-size:10px;letter-spacing:.2em;color:var(--acc);text-shadow:0 0 8px rgba(255,26,46,.45);}
+.mega-col-title::before{content:"> ";}
+.mega-link{text-transform:uppercase;letter-spacing:.05em;font-size:12px;transition:color .15s,transform .15s;}
+.mega-link::before{content:"› ";color:var(--acc);opacity:0;transition:opacity .15s;}
+.mega-link:hover{text-shadow:0 0 10px rgba(255,26,46,.7);transform:translateX(6px);}
+.mega-link:hover::before{opacity:1;}
+.mega-menu.open .mega-col{animation:mmIn .35s ease-out both;}
+.mega-menu.open .mega-col:nth-child(2){animation-delay:.05s;}
+.mega-menu.open .mega-col:nth-child(3){animation-delay:.1s;}
+.mega-menu.open .mega-col:nth-child(4){animation-delay:.15s;}
+@keyframes mmIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.quicknav-toggle::after,.mega-menu.open .mega-col{animation:none;}}
 </style>
 
 <script type="application/ld+json">
@@ -15108,6 +15141,16 @@ var NAV_ITEMS = [
  {id:'contacto',     icon:'\uD83D\uDCEC',  label:'Contacto'},
 ];
 
+/* scroll robusto: el destino cambia mientras baja (secciones que crecen), así que re-ajustamos */
+function goTo(sec){
+ function y(){ return sec.getBoundingClientRect().top + window.pageYOffset; }
+ window.scrollTo({ top:y(), behavior:'smooth' });
+ [650,1300,2200].forEach(function(ms){
+ setTimeout(function(){
+ if(Math.abs(sec.getBoundingClientRect().top) > 4) window.scrollTo({ top:y(), behavior:'auto' });
+ }, ms);
+ });
+}
 var itemEls = {};
 NAV_ITEMS.forEach(function(item){
  var sec = document.getElementById(item.id);
@@ -15118,7 +15161,7 @@ NAV_ITEMS.forEach(function(item){
  el.innerHTML = '<span class=\"quicknav-item-icon\">' + item.icon + '</span><span>' + item.label + '</span>';
  el.addEventListener('click', function(ev){
  ev.preventDefault();
- sec.scrollIntoView({ behavior:'smooth', block:'start' });
+ goTo(sec);
  closePanel();
  });
  listEl.appendChild(el);

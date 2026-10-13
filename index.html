@@ -4147,6 +4147,54 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 @keyframes brRecentPulse{0%,100%{box-shadow:0 0 8px rgba(0,255,163,.4);}50%{box-shadow:0 0 16px rgba(0,255,163,.8);}}
 @media (prefers-reduced-motion:reduce){#breach .br-recent{animation:none!important;}}
 @media (prefers-reduced-motion:reduce){#breach .br-skull{animation:none!important;}}
+/* ══ v3: TRÍADA + SEMÁFORO DE IMPACTO + PoC ══ */
+#dns-auditor .tri-wrap{border:1px solid var(--line);border-radius:8px;background:rgba(5,3,5,.6);padding:14px 16px;margin-bottom:16px;font-family:var(--mono);}
+#dns-auditor .tri-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-bottom:12px;}
+#dns-auditor .tri-head b{font-size:12px;letter-spacing:.1em;}
+#dns-auditor .tri-head.ok b{color:var(--green);}
+#dns-auditor .tri-head.warn b{color:var(--amber);}
+#dns-auditor .tri-head.bad b{color:var(--acc);}
+#dns-auditor .tri-row{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;}
+#dns-auditor .tri-cell{flex:1 1 120px;border:1px solid;border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:rgba(0,0,0,.35);}
+#dns-auditor .tri-cell.ok{border-color:var(--green);color:var(--green);box-shadow:0 0 14px rgba(0,255,163,.12);}
+#dns-auditor .tri-cell.warn{border-color:var(--amber);color:var(--amber);}
+#dns-auditor .tri-cell.bad{border-color:var(--acc);color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,.15);}
+#dns-auditor .tri-tag{font-size:10px;letter-spacing:.2em;color:var(--muted);}
+#dns-auditor .tri-val{font-size:15px;font-weight:700;letter-spacing:.08em;}
+#dns-auditor .tri-sep{color:var(--muted);align-self:center;font-style:normal;}
+#dns-auditor .tri-gaps{margin-top:10px;font-size:11px;color:var(--amber);line-height:1.5;}
+#dns-auditor .tri-gaps.ok{color:var(--green);}
+
+#dns-auditor .imp-wrap{border:1px solid;border-radius:8px;padding:16px 18px;margin-bottom:16px;font-family:var(--mono);background:rgba(5,3,5,.7);}
+#dns-auditor .imp-wrap.red{border-color:var(--acc);box-shadow:0 0 26px rgba(255,26,46,.18);}
+#dns-auditor .imp-wrap.yellow{border-color:var(--amber);box-shadow:0 0 26px rgba(255,176,32,.14);}
+#dns-auditor .imp-wrap.green{border-color:var(--green);box-shadow:0 0 26px rgba(0,255,163,.14);}
+#dns-auditor .imp-lamps{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+#dns-auditor .imp-lamp{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.16em;color:var(--muted);padding:5px 10px;border:1px solid var(--line);border-radius:4px;opacity:.4;}
+#dns-auditor .imp-lamp i{width:9px;height:9px;border-radius:50%;background:currentColor;}
+#dns-auditor .imp-lamp.red{color:var(--acc);}
+#dns-auditor .imp-lamp.yellow{color:var(--amber);}
+#dns-auditor .imp-lamp.green{color:var(--green);}
+#dns-auditor .imp-lamp.on{opacity:1;border-color:currentColor;box-shadow:0 0 12px currentColor;}
+#dns-auditor .imp-lamp.on i{animation:impPulse 1.4s ease-in-out infinite;}
+#dns-auditor .imp-title{font-size:15px;font-weight:700;letter-spacing:.06em;margin:0 0 6px;}
+#dns-auditor .imp-wrap.red .imp-title{color:var(--acc);}
+#dns-auditor .imp-wrap.yellow .imp-title{color:var(--amber);}
+#dns-auditor .imp-wrap.green .imp-title{color:var(--green);}
+#dns-auditor .imp-msg{font-size:12.5px;color:var(--text);line-height:1.6;margin:0 0 10px;}
+#dns-auditor .imp-note{font-size:11px;color:var(--muted);border-left:2px solid var(--muted);padding-left:10px;margin:0;line-height:1.5;}
+@keyframes impPulse{50%{opacity:.25;}}
+
+#dns-auditor .poc-wrap{border:1px dashed rgba(255,26,46,.45);border-radius:8px;padding:14px 16px;margin-bottom:16px;background:#030103;font-family:var(--mono);font-size:12px;}
+#dns-auditor .poc-head{font-size:10px;letter-spacing:.18em;color:var(--acc);margin-bottom:10px;}
+#dns-auditor .poc-line{color:var(--text);line-height:1.8;word-break:break-all;}
+#dns-auditor .poc-line span{color:var(--muted);display:inline-block;min-width:118px;}
+#dns-auditor .poc-verdict{margin-top:12px;padding:10px 12px;border-radius:6px;border:1px solid;font-weight:700;letter-spacing:.06em;}
+#dns-auditor .poc-verdict.red{color:var(--acc);border-color:var(--acc);background:rgba(255,26,46,.08);}
+#dns-auditor .poc-verdict.yellow{color:var(--amber);border-color:var(--amber);background:rgba(255,176,32,.08);}
+#dns-auditor .poc-verdict.green{color:var(--green);border-color:var(--green);background:rgba(0,255,163,.08);}
+#dns-auditor .poc-note{margin-top:10px;font-size:10.5px;color:var(--muted);line-height:1.5;}
+@media (prefers-reduced-motion:reduce){#dns-auditor .imp-lamp.on i{animation:none;}}
 </style>
 <script>
 /* ════════════════════════════════════════════════════════════════════════
@@ -4408,22 +4456,92 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
     if(dnssec.level==='ok') s+=15; else if(dnssec.level==='warn') s+=6;
     s = Math.max(0, Math.min(100, s));
 
-    /* Veredicto pentester: el From visible solo se protege con DMARC en
-       enforcement (reject/quarantine). SPF -all NO basta por sí solo. */
-    var spoofable, vlevel, vttl, vmsg;
-    if(dmarc.policy==='reject'){
-      spoofable=false; vlevel='ok'; vttl='DOMINIO PROTEGIDO';
-      vmsg='DMARC en p=reject: un atacante no puede suplantar el "From" visible y entregar en bandeja. Postura sólida.';
-    } else if(dmarc.policy==='quarantine'){
-      spoofable='parcial'; vlevel='warn'; vttl='SUPLANTACIÓN MITIGADA (no bloqueada)';
-      vmsg='DMARC en quarantine: el correo falsificado llega a Spam, no se rechaza. Un usuario podría rescatarlo. Subí a p=reject.';
+    /* Semáforo de impacto: DMARC manda; SPF -all es requisito para VERDE */
+    var imp = impactOf(spf, dmarc);
+    var m = { red:{spoof:true, level:'bad'}, yellow:{spoof:'parcial', level:'warn'}, green:{spoof:false, level:'ok'} }[imp.level];
+    return { score:s, spoofable:m.spoof, level:m.level, title:imp.title, msg:imp.msg, impact:imp, triad:triadState(spf, dmarc, dkim) };
+  }
+  /* ═══ TRÍADA SPF | DKIM | DMARC ═══ */
+  function triadState(spf, dmarc, dkim){
+    var sp = !spf.record ? {k:'FAIL', c:'bad'}
+      : spf.level==='ok' ? {k:'OK', c:'ok'} : spf.level==='warn' ? {k:'WARN', c:'warn'} : {k:'FAIL', c:'bad'};
+    var dk = !dkim.record ? {k:'MISSING', c:'bad'}
+      : dkim.level==='ok' ? {k:'OK', c:'ok'} : {k:'WARN', c:'warn'};
+    var dm = !dmarc.record ? {k:'MISSING', c:'bad'}
+      : dmarc.policy==='reject' ? {k:'REJECT', c:'ok'}
+      : dmarc.policy==='quarantine' ? {k:'QUARANTINE', c:'warn'}
+      : {k:'NONE', c:'bad'};
+    var gaps = [];
+    if(sp.c!=='ok') gaps.push('SPF ' + sp.k + (spf.qualifier ? ' (' + spf.qualifier + 'all)' : ''));
+    if(dk.c!=='ok') gaps.push('DKIM ' + dk.k);
+    if(dm.c!=='ok') gaps.push('DMARC ' + dm.k + (dm.k==='NONE' ? ' (sin enforcement)' : ''));
+    return { spf:sp, dkim:dk, dmarc:dm, aligned: gaps.length===0, gaps:gaps };
+  }
+  function renderTriad(t){
+    function cell(tag, o){ return '<div class="tri-cell ' + o.c + '"><span class="tri-tag">' + tag + '</span><span class="tri-val">' + o.k + '</span></div>'; }
+    var head  = t.aligned ? 'TRÍADA ALINEADA' : (t.dmarc.c==='ok' ? 'DMARC ACTIVO · TRÍADA INCOMPLETA' : 'BRECHA ABIERTA');
+    var hc    = t.aligned ? 'ok' : (t.dmarc.c==='ok' ? 'warn' : 'bad');
+    var gaps  = t.gaps.length
+      ? '<div class="tri-gaps">▸ Brechas: ' + esc(t.gaps.join('  ·  ')) + '</div>'
+      : '<div class="tri-gaps ok">▸ Sin brechas: SPF, DKIM y DMARC alineados.</div>';
+    return '<div class="tri-wrap">'
+      + '<div class="tri-head ' + hc + '"><span>// AUTENTICACIÓN DE CORREO</span><b>' + head + '</b></div>'
+      + '<div class="tri-row">' + cell('SPF', t.spf) + '<i class="tri-sep">|</i>' + cell('DKIM', t.dkim) + '<i class="tri-sep">|</i>' + cell('DMARC', t.dmarc) + '</div>'
+      + gaps + '</div>';
+  }
+
+  /* ═══ SEMÁFORO DE IMPACTO ═══ */
+  function impactOf(spf, dmarc){
+    var pol = dmarc.policy;
+    var level = (pol!=='reject' && pol!=='quarantine') ? 'red'
+      : (pol==='reject' && spf.qualifier==='-') ? 'green' : 'yellow';
+    var title, msg;
+    if(level==='red'){
+      title = 'VULNERABLE A SUPLANTACIÓN DIRECTA (SPOOFING)';
+      msg = !dmarc.record
+        ? 'No existe DMARC: ningún receptor tiene instrucciones para el correo que falla autenticación. Un atacante puede enviar como admin@dominio y el mensaje llega a la bandeja.'
+        : 'DMARC ' + (pol ? 'p=' + pol : 'sin política válida') + ' solo monitorea o no aplica acción: el correo falsificado se entrega igual. Subí a p=quarantine y luego a p=reject.';
+    } else if(level==='yellow'){
+      title = 'POLÍTICA PERMISIVA / MONITOREO';
+      msg = pol==='quarantine'
+        ? 'DMARC en quarantine: el correo falsificado va a Spam, no se rechaza. Subí a p=reject para bloquearlo en el gateway.'
+        : 'SPF ' + (spf.qualifier ? spf.qualifier + 'all' : 'sin mecanismo all') + ': SPF no bloquea a los no autorizados. Con DMARC reject, usá -all para cerrar la brecha.';
     } else {
-      spoofable=true; vlevel='bad'; vttl='VULNERABLE A EMAIL SPOOFING';
-      vmsg = (spf.level==='ok')
-        ? 'Aunque el SPF sea estricto (-all), SPF NO valida el "From" que ve el usuario. Sin DMARC en reject/quarantine, un atacante puede suplantar el dominio en el remitente visible.'
-        : 'Sin DMARC en enforcement y con SPF débil/ausente, el dominio puede ser suplantado trivialmente en campañas de phishing.';
+      title = 'ENFORCEMENT ACTIVO (PROTEGIDO)';
+      msg = 'DMARC p=reject con SPF -all: el correo que falla autenticación se rechaza en el gateway SMTP. Postura sólida.';
     }
-    return { score:s, spoofable:spoofable, level:vlevel, title:vttl, msg:vmsg };
+    return { level:level, title:title, msg:msg };
+  }
+  function renderImpact(imp){
+    var lamps = [['red','CRÍTICO'],['yellow','MEDIO'],['green','PROTEGIDO']].map(function(x){
+      return '<span class="imp-lamp ' + x[0] + (imp.level===x[0] ? ' on' : '') + '"><i></i>' + x[1] + '</span>';
+    }).join('');
+    return '<div class="imp-wrap ' + imp.level + '">'
+      + '<div class="imp-lamps">' + lamps + '</div>'
+      + '<p class="imp-title">' + esc(imp.title) + '</p>'
+      + '<p class="imp-msg">' + esc(imp.msg) + '</p>'
+      + '<p class="imp-note">Nota técnica: Una sintaxis válida en el registro DNS no equivale a una protección efectiva contra suplantación.</p>'
+      + '</div>';
+  }
+
+  /* ═══ PROOF OF CONCEPT — predicción por política, sin tráfico ═══ */
+  function renderPoC(domain, spf, dmarc, imp){
+    var spfRes = !spf.record ? 'none' : spf.qualifier==='-' ? 'fail' : spf.qualifier==='~' ? 'softfail'
+      : spf.qualifier==='+' ? 'pass' : 'neutral';
+    var dmarcRes = dmarc.record ? 'fail' : 'none';
+    var pol = dmarc.policy, verdict, vc, pctNote = '';
+    if(pol==='reject'){ verdict = '[Rechazado/Rebotado en el Gateway SMTP]'; vc = 'green'; }
+    else if(pol==='quarantine'){ verdict = '[Enviado a Carpeta de Spam]'; vc = 'yellow'; }
+    else { verdict = '[Entregado en Bandeja de Entrada]'; vc = 'red'; }
+    if(pol==='reject' && dmarc.pct < 100) pctNote = ' Con pct=' + dmarc.pct + ', solo ~' + dmarc.pct + '% de los falsificados se rechaza; el resto pasa.';
+    return '<div class="poc-wrap">'
+      + '<div class="poc-head">// PROOF OF CONCEPT — SIMULACIÓN (no se envía ningún correo)</div>'
+      + '<div class="poc-line"><span>From (falsif.)</span>admin@' + esc(domain) + '</div>'
+      + '<div class="poc-line"><span>To</span>usuario@destino.tld</div>'
+      + '<div class="poc-line"><span>Auth-Results</span>spf=' + spfRes + ' · dkim=none · dmarc=' + dmarcRes + (pol ? ' (p=' + esc(pol) + ')' : '') + '</div>'
+      + '<div class="poc-verdict ' + vc + '">Veredicto de entrega del receptor: ' + verdict + '</div>'
+      + '<div class="poc-note">Predicción según la política DNS publicada: asume que el atacante no posee la clave DKIM del dominio ni controla un host autorizado en SPF.' + esc(pctNote) + '</div>'
+      + '</div>';
   }
   function grade(s){ return s>=90?'A':s>=75?'B':s>=55?'C':s>=35?'D':'F'; }
   function colorFor(level){ return level==='ok'?'var(--green)':level==='warn'?'var(--amber)':level==='bad'?'var(--acc)':'var(--magenta)'; }
@@ -4538,10 +4656,12 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       /* ── VEREDICTO ── */
       var risk = 100 - v.score;
       var riskLbl = risk>=66?'ALTO':risk>=33?'MEDIO':'BAJO';
-      var html = '<div class="das-verdict" style="color:' + vcolor + '">'
+      var html = '<div class="das-verdict" style="display:none;color:' + vcolor + '">'
         + '<div class="vico">' + ico + '</div>'
         + '<div><p class="vttl">' + esc(v.title) + '</p><p class="vmsg">' + esc(v.msg) + '</p></div></div>';
       if(takeover.length){ html += '<div class="das-verdict" style="color:var(--acc);margin-top:10px"><div class="vico">\u2622</div><div><p class="vttl">' + takeover.length + ' SUBDOMINIO(S) EXPUESTO(S) A TAKEOVER</p><p class="vmsg">Apuntan a servicios externos que podrían no estar reclamados: un atacante serviría contenido bajo tu propio dominio (phishing con tu marca, robo de sesiones). Prioridad crítica \u2014 detalle abajo en «Superficie de ataque».</p></div></div>'; }
+
+      html = renderTriad(v.triad) + renderImpact(v.impact) + renderPoC(domain, spf, dmarc, v.impact) + html;
 
       /* ── RISK METER ── */
       html += '<div class="das-meter-wrap">'

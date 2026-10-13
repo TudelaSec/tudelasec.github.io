@@ -3451,7 +3451,6 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 <a href="#nexus"        class="mega-link">🧬 NEXUS Flow Reverse</a>
 <a href="#nexusactive"  class="mega-link">⚔ NEXUS Active</a>
 <a href="#gasr"           class="mega-link">🛰 Global Asset Recon</a>
-<a href="#assetrecon"   class="mega-link">🛰 Global Asset Recon</a>
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
       <a href="#kraken" class="mega-link">🐙 Kraken Subdomains</a>
       <a href="#cerberus" class="mega-link">🐺 Cerberus Fuzzer</a>
@@ -4042,6 +4041,46 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #taint .tr-conf-alta{background:rgba(255,26,46,.16);color:#ff6b7d;border:1px solid rgba(255,26,46,.5);}
 #taint .tr-conf-media{background:rgba(255,176,32,.14);color:var(--amber,#ffb020);border:1px solid rgba(255,176,32,.45);}
 #taint .tr-conf-baja{background:rgba(79,195,247,.12);color:#4fc3f7;border:1px solid rgba(79,195,247,.45);}
+/* ── Payload Library v2: buscador, filtros, favoritos, tarjetas ── */
+#payloads .pl-bar{display:flex;flex-direction:column;gap:12px;margin:0 0 18px;}
+#payloads .pl-search{position:relative;}
+#payloads .pl-search input{width:100%;box-sizing:border-box;background:#070a0f;border:1px solid #2a3442;border-radius:12px;color:#f0eef8;font:13px ui-monospace,'JetBrains Mono',monospace;padding:14px 16px 14px 42px;outline:none;transition:border-color .2s,box-shadow .2s;}
+#payloads .pl-search input:focus{border-color:var(--acc,#ff1a2e);box-shadow:0 0 0 3px rgba(255,26,46,.15),0 0 24px -6px rgba(255,26,46,.4);}
+#payloads .pl-ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--acc,#ff1a2e);font-size:17px;pointer-events:none;}
+#payloads .pl-chips{display:flex;flex-wrap:wrap;gap:8px;}
+#payloads .pl-chip{cursor:pointer;font:600 11px ui-monospace,monospace;letter-spacing:.04em;color:rgba(240,238,248,.7);background:rgba(255,255,255,.02);border:1px solid #2a3442;border-radius:999px;padding:7px 14px;transition:all .18s;}
+#payloads .pl-chip:hover{color:#fff;border-color:rgba(255,26,46,.5);}
+#payloads .pl-chip.on{color:#fff;background:linear-gradient(100deg,rgba(255,26,46,.9),rgba(196,0,26,.7));border-color:transparent;box-shadow:0 4px 16px rgba(255,26,46,.35);}
+#payloads .pl-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font:11px ui-monospace,monospace;color:rgba(240,238,248,.55);}
+#payloads .pl-copyall{cursor:pointer;font:600 11px ui-monospace,monospace;color:#9affd9;background:rgba(0,255,163,.07);border:1px solid rgba(0,255,163,.35);border-radius:8px;padding:6px 12px;transition:box-shadow .2s,color .2s;}
+#payloads .pl-copyall:hover{box-shadow:0 0 16px rgba(0,255,163,.25);color:#fff;}
+#payloads .pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+#payloads .pl-card{position:relative;background:linear-gradient(170deg,#100609,#070307);border:1px solid #2a1218;border-radius:14px;padding:14px 14px 12px 17px;display:flex;flex-direction:column;gap:9px;overflow:hidden;transition:transform .2s,box-shadow .2s,border-color .2s;}
+#payloads .pl-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#7b4fff,transparent);}
+#payloads .pl-card.risk::before{background:linear-gradient(180deg,var(--acc,#ff1a2e),transparent);}
+#payloads .pl-card:hover{transform:translateY(-3px);border-color:rgba(255,26,46,.35);box-shadow:0 12px 36px rgba(255,26,46,.14);}
+#payloads .pl-top{display:flex;gap:10px;align-items:flex-start;}
+#payloads .pl-idx{font:700 11px ui-monospace,monospace;color:rgba(255,120,130,.6);padding-top:4px;}
+#payloads .pl-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+#payloads .pl-cat{font:600 9px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#9d7bff;}
+#payloads .pl-title b{font:700 14px 'Orbitron',Inter,sans-serif;color:#fff;overflow-wrap:anywhere;}
+#payloads .pl-fav{cursor:pointer;background:none;border:none;color:rgba(240,238,248,.35);font-size:18px;line-height:1;padding:2px 4px;transition:color .15s,transform .15s;}
+#payloads .pl-fav:hover{color:#ffb020;transform:scale(1.15);}
+#payloads .pl-fav.on{color:#ffb020;text-shadow:0 0 10px rgba(255,176,32,.6);}
+#payloads .pl-code{margin:0;white-space:pre-wrap;word-break:break-all;background:#050205;border:1px solid #1d0c12;border-left:2px solid #00ffa3;border-radius:8px;padding:10px 12px;font:12px/1.5 ui-monospace,monospace;color:#9affd9;max-height:150px;overflow:auto;}
+#payloads .pl-card.risk .pl-code{border-left-color:var(--acc,#ff1a2e);color:#ffb3b3;}
+#payloads .pl-note{font:11.5px/1.5 ui-monospace,monospace;color:rgba(240,238,248,.6);}
+#payloads .pl-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;}
+#payloads .pl-copy{cursor:pointer;font:700 11px ui-monospace,monospace;color:#fff;background:linear-gradient(100deg,#ff1a2e,#c2101f);border:none;border-radius:8px;padding:8px 14px;transition:transform .15s,box-shadow .15s,background .15s;}
+#payloads .pl-copy:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,26,46,.35);}
+#payloads .pl-copy.ok{background:linear-gradient(100deg,#00ffa3,#00b872);color:#021007;}
+#payloads .pl-warn{font:600 9.5px ui-monospace,monospace;color:#ffb0b0;letter-spacing:.04em;}
+#payloads .pl-empty{grid-column:1/-1;text-align:center;padding:40px 10px;font:12px ui-monospace,monospace;color:rgba(240,238,248,.5);border:1px dashed #2a1218;border-radius:12px;}
+#payloads .pl-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:#0d0408;border:1px solid var(--acc,#ff1a2e);color:#fff;font:600 12px ui-monospace,monospace;padding:10px 16px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 20px rgba(255,26,46,.25);pointer-events:none;transition:opacity .25s,transform .25s;z-index:9999;}
+#payloads .pl-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:560px){#payloads .pl-grid{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){#payloads .pl-card,#payloads .pl-toast{transition:none!important;}}
+
 /* ── Payload Library: advertencia + riesgo + cards ── */
 #payloads .pay-warn{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(100deg,rgba(255,26,46,.12),rgba(255,26,46,.02));border:1px solid rgba(255,26,46,.45);border-left:4px solid var(--acc,#ff1a2e);border-radius:8px;padding:14px 18px;margin-bottom:26px;max-width:860px;box-shadow:0 0 24px rgba(255,26,46,.1);}
 #payloads .pay-warn-ico{font-size:26px;line-height:1;animation:brSkull 1.4s ease-in-out infinite;}
@@ -4630,6 +4669,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
         <button id="nxClear" class="nx-btn">✕ LIMPIAR</button>
         <button id="nxPDF" class="nx-btn">📄 REPORTE PDF</button>
         <button id="nxHelp" class="nx-btn help">☠ CÓMO FUNCIONA</button>
+        <button id="nxSendActive" class="nx-btn up">⇡ TIRAR TODO A NEXUS ACTIVE</button>
         <button id="nxJSON" class="nx-btn">⬇ JSON</button>
         <button id="nxMD" class="nx-btn">⬇ MD</button>
         <button id="nxPoC" class="nx-btn">⬇ PoC</button>
@@ -5246,7 +5286,7 @@ function nxEnrich(m){
   m.tokens.forEach(function(t){ if(t.pred && t.pred.weak){ m.findings.push({ sev:(t.pred.ts||t.pred.seq?'high':'med'), title:'Token predecible o de baja entropía', detail:'El token "'+t.name+'" (paso '+(t.birth+1)+') '+(t.pred.ts?'parece contener un timestamp':(t.pred.seq?'parece contener un id secuencial':'tiene baja entropía (~'+t.pred.bits+' bits)'))+' → se puede adivinar o enumerar por fuerza bruta.', step:t.birth }); } });
 
   /* inventario de endpoints */
-  var emap={}; m.steps.forEach(function(s){ var p=s.path.split('?')[0]; var k=s.method+' '+s.to+p; if(!emap[k]) emap[k]={method:s.method,host:s.to,path:p,auth:s.auth,count:0,status:s.status,party:(baseDomain(s.to)===primary?'1st':'3rd')}; emap[k].count++; });
+  var emap={}; m.steps.forEach(function(s){ var p=s.path.split('?')[0]; var k=s.method+' '+s.to+p; if(!emap[k]) emap[k]={method:s.method,host:s.to,path:p,auth:s.auth,count:0,status:s.status,party:(baseDomain(s.to)===primary?'1st':'3rd'),url:s.url,reqHeaders:s.reqHeaders||{},reqBody:s.reqBody||''}; emap[k].count++; });
   m.endpoints=Object.keys(emap).map(function(k){ return emap[k]; });
 
   /* datos sensibles */
@@ -5649,6 +5689,7 @@ function init(){
   var c=$('nxClear'); if(c) c.addEventListener('click', function(){ var t=$('nxInput'); if(t) t.value=''; MODEL=null; ['nxScanlog','nxVerdict','nxExec','nxNarrative','nxStats','nxServices','nxRecon','nxSeq','nxFindings','nxChain','nxTokens','nxEndpoints','nxData','nxChains'].forEach(function(id){ var e=$(id); if(e) e.innerHTML=''; }); var _sl=$('nxScanlog'); if(_sl) _sl.classList.remove('on'); var ins=$('nxInspector'); if(ins){ ins.classList.remove('on'); ins.innerHTML=''; } var fn=$('nxFileName'); if(fn) fn.textContent=''; var ch=$('nxChain'); if(ch) ch.innerHTML=''; });
   var pb=$('nxPDF'); if(pb) pb.addEventListener('click', nxPDF);
   var ej=$('nxJSON'); if(ej) ej.addEventListener('click', nxExportJSON);
+  var sa=$('nxSendActive'); if(sa) sa.addEventListener('click', function(){ if(!MODEL||!MODEL.endpoints||!MODEL.endpoints.length){ var er=$('nxErr'); if(er){ er.textContent='Primero reconstruí el flujo: no hay endpoints para enviar.'; er.style.display='block'; } return; } document.dispatchEvent(new CustomEvent('nexus:endpoints',{detail:MODEL.endpoints})); var tg=document.getElementById('nexusactive'); if(tg) tg.scrollIntoView({behavior:'smooth',block:'start'}); });
   var em=$('nxMD'); if(em) em.addEventListener('click', nxExportMD);
   var ep=$('nxPoC'); if(ep) ep.addEventListener('click', nxExportPoC);
   var pl=$('nxPlay'); if(pl) pl.addEventListener('click', function(){ if(MODEL) renderSeq(MODEL); });
@@ -5766,6 +5807,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     <div class="nxa-grid">
       <div class="nxa-card">
         <h3>① Request</h3>
+        <div class="nxa-field"><label>Endpoints importados desde NEXUS Flow Reverse (elegí uno)</label><select id="nxaPick"><option value="">— ninguno todavía —</option></select></div>
         <div class="nxa-row">
           <div class="nxa-field"><label>Método</label>
             <select id="nxaMethod"><option>GET</option><option selected>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select>
@@ -5918,12 +5960,29 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     pushVerdict('ok','Demo cargada','httpbin.org/post es un servicio público de pruebas que devuelve lo que enviás. Marcá la autorización y ejecutá ▶ Baseline.'); }
   function loadFile(f){ if(!f) return; if(f.size>512*1024){ pushVerdict('crit','Archivo demasiado grande','El body admite hasta 512 KB.'); return; }
     var fr=new FileReader(); fr.onload=function(){ var b=$a('nxaBody'); if(b) b.value=String(fr.result||''); pushVerdict('ok','Body cargado desde archivo', f.name+' ('+f.size+' bytes)'); }; fr.readAsText(f); }
+  /* ---- endpoints importados desde NEXUS Flow Reverse: se cargan en el formulario, nada se ejecuta solo ---- */
+  var IMPORTED=[];
+  function fillFromEndpoint(e){
+    if(!e) return;
+    var m=$a('nxaMethod'); if(m) m.value=e.method||'GET';
+    var u=$a('nxaUrl'); if(u) u.value=e.url||('https://'+e.host+(e.path||''));
+    var h=$a('nxaHeaders'); if(h){ var lines=[]; var rh=e.reqHeaders||{}; Object.keys(rh).forEach(function(k){ if(/^(content-length|host|connection|accept-encoding)$/i.test(k)) return; lines.push(k+': '+rh[k]); }); h.value=lines.join('\n'); }
+    var b=$a('nxaBody'); if(b) b.value=e.reqBody||'';
+    pushVerdict('ok','Endpoint cargado', e.method+' '+(e.host||'')+(e.path||'')+' · revisá la URL, marcá la autorización y ejecutá ▶ Baseline.');
+  }
+  document.addEventListener('nexus:endpoints', function(ev){
+    IMPORTED=(ev.detail||[]).slice();
+    var sel=$a('nxaPick'); if(!sel) return;
+    sel.innerHTML='<option value="">— elegí un endpoint ('+IMPORTED.length+') —</option>'+IMPORTED.map(function(e,i){ return '<option value="'+i+'">'+esc(e.method+' '+e.host+e.path)+' ('+e.count+'×)</option>'; }).join('');
+    pushVerdict('ok','Endpoints importados', IMPORTED.length+' endpoint(s) listos en el selector ① Request. Elegí uno, revisá y ejecutá la prueba.');
+  });
   function nxaInit(){ if(started) return; started=true;
     var map={ nxaBaseline:runBaseline, nxaReplay:runReplay, nxaMutate:runMutate, nxaIdsub:runIdsub, nxaConc:runConc, nxaCurl:exportCurl, nxaReset:resetConsole, nxaDemo:loadDemo };
     Object.keys(map).forEach(function(id){ var b=$a(id); if(b) b.addEventListener('click', map[id]); });
     function syncGate(){ var on=authz(); ['nxaBaseline','nxaReplay','nxaMutate','nxaIdsub','nxaConc'].forEach(function(id){ var b=$a(id); if(b) b.disabled=!on; }); }
     var chk=$a('nxaAuth'); if(chk) chk.addEventListener('change', syncGate); syncGate();
     var fi=$a('nxaFile'); if(fi) fi.addEventListener('change', function(){ loadFile(this.files&&this.files[0]); });
+    var pk=$a('nxaPick'); if(pk) pk.addEventListener('change', function(){ var i=parseInt(this.value,10); if(!isNaN(i)) fillFromEndpoint(IMPORTED[i]); });
   }
   if(typeof IntersectionObserver!=='undefined'){ var sec=document.getElementById('nexusactive'); if(sec){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ nxaInit(); io.disconnect(); } }); },{rootMargin:'200px'}); io.observe(sec); } else { nxaInit(); } }
   else { if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', nxaInit); else nxaInit(); }
@@ -5932,237 +5991,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 
 <!-- ══ SECCIÓN: GLOBAL ASSET RECON — Netlas · LeakIX · Censys · Shodan (vía Cloudflare Worker) ══ -->
 <style>
-#assetrecon{padding:72px 0;background:radial-gradient(1200px 500px at 50% -10%,#10040a 0%,#080305 42%,#020005 100%);color:#e8edf5;position:relative;overflow:hidden}
-#assetrecon::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(255,26,46,.03) 2px 3px);pointer-events:none;opacity:.5;z-index:0}
-#assetrecon .wrap{max-width:1200px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
-#assetrecon .gar-eyebrow{font:800 12px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.22em;color:#ff1a2e;text-transform:uppercase;text-shadow:0 0 12px #ff1a2e55}
-#assetrecon h2{font:800 clamp(28px,5.2vw,50px)/1.02 'Orbitron','Rajdhani',Inter,system-ui,sans-serif;margin:8px 0 6px;color:#fff;letter-spacing:.02em;text-shadow:0 0 22px #ff1a2e33}
-#assetrecon .gar-sub{color:#9fb0c2;font:14px/1.6 'JetBrains Mono',ui-monospace,monospace;max-width:820px;margin-bottom:20px}
-.gar-panel{border:1px solid #2a0d13;background:linear-gradient(180deg,#0a0407,#060206);border-radius:14px;padding:18px;box-shadow:0 0 0 1px #ff1a2e14,0 24px 60px -30px #ff1a2e22;position:relative}
-.gar-panel::after{content:"";position:absolute;inset:0;border-radius:14px;border:1px solid transparent;pointer-events:none;animation:garBreath 4s ease-in-out infinite}
-@keyframes garBreath{0%,100%{box-shadow:inset 0 0 0 1px #ff1a2e18}50%{box-shadow:inset 0 0 22px -6px #ff1a2e44}}
-.gar-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.gar-input{flex:1;min-width:240px;background:#020005;border:1px solid #37101a;border-radius:9px;color:#e8edf5;font:14px 'JetBrains Mono',ui-monospace,monospace;padding:12px 14px;outline:none;transition:border-color .2s,box-shadow .2s}
-.gar-input:focus{border-color:#ff1a2e;box-shadow:0 0 0 1px #ff1a2e55,0 0 18px -4px #ff1a2e66}
-.gar-run{cursor:pointer;border:1px solid #ff1a2e;background:linear-gradient(180deg,#2c0a0f,#15060a);color:#ff8a8a;font:800 13px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;padding:12px 20px;border-radius:9px;transition:transform .12s,box-shadow .2s,color .2s;will-change:transform}
-.gar-run:hover{color:#fff;box-shadow:0 0 22px -4px #ff1a2e;transform:translateY(-1px)}
-.gar-run:active{transform:translateY(0)}
-.gar-run[disabled]{opacity:.5;cursor:progress}
-.gar-srcs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.gar-src{cursor:pointer;border:1px solid #2a3442;background:#070a0f;color:#9fb0c2;font:600 12px 'JetBrains Mono',ui-monospace,monospace;padding:7px 13px;border-radius:999px;transition:.16s;user-select:none}
-.gar-src:hover{border-color:#ff1a2e66;color:#e8edf5}
-.gar-src.on{border-color:#ff1a2e;color:#fff;background:#1a060a;box-shadow:0 0 14px -4px #ff1a2e88}
-.gar-src .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#ff1a2e;margin-right:6px;vertical-align:middle;box-shadow:0 0 8px #ff1a2e}
-.gar-proxy{margin-top:10px;font:11px 'JetBrains Mono',ui-monospace,monospace;color:#5a6b7d;display:flex;align-items:center;gap:8px}
-.gar-proxy input{flex:1;background:#020005;border:1px dashed #2a3442;border-radius:7px;color:#7a8aa0;font:11px 'JetBrains Mono',ui-monospace,monospace;padding:6px 9px}
-.gar-status{margin-top:14px;font:12px 'JetBrains Mono',ui-monospace,monospace;color:#7affc0;min-height:18px;display:flex;align-items:center;gap:8px}
-.gar-spin{display:inline-block;width:12px;height:12px;border:2px solid #ff1a2e44;border-top-color:#ff1a2e;border-radius:50%;animation:garSpin .7s linear infinite}
-@keyframes garSpin{to{transform:rotate(360deg)}}
-.gar-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.gar-abtn{cursor:pointer;border:1px solid #2a3442;background:#0b0e14;color:#cfe;font:600 12px 'JetBrains Mono',ui-monospace,monospace;padding:9px 14px;border-radius:8px;transition:.15s;display:inline-flex;gap:6px;align-items:center}
-.gar-abtn:hover{border-color:#ff1a2e;color:#fff;box-shadow:0 0 0 1px #ff1a2e33}
-.gar-abtn[disabled]{opacity:.4;cursor:not-allowed}
-.gar-results{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
-@media(min-width:880px){.gar-results{grid-template-columns:1fr 1fr}}
-.gar-card{border:1px solid #1d2533;background:#070a0f;border-radius:13px;overflow:hidden;animation:garCardIn .5s cubic-bezier(.2,.7,.2,1) both;contain:content;will-change:transform,opacity}
-@keyframes garCardIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
-.gar-card-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 15px;border-bottom:1px solid #1d2533;background:linear-gradient(90deg,#0d0609,#070a0f)}
-.gar-card-h .src{font:800 13px 'Orbitron','JetBrains Mono',monospace;letter-spacing:.06em;color:#fff}
-.gar-pill{font:700 10px 'JetBrains Mono',monospace;border-radius:5px;padding:2px 8px}
-.gar-pill.ok{background:#00ffa322;color:#00ffa3}
-.gar-pill.err{background:#ff1a2e22;color:#ff6b6b}
-.gar-pill.load{background:#7b4fff22;color:#9d7bff}
-.gar-card-b{padding:13px 15px;font:12.5px 'JetBrains Mono',ui-monospace,monospace;line-height:1.55}
-.gar-kv{display:flex;gap:8px;margin:3px 0;flex-wrap:wrap}
-.gar-kv .k{color:#5a6b7d;min-width:68px}
-.gar-kv .v{color:#e8edf5;word-break:break-word}
-.gar-sec-t{color:#ff6b3d;font-weight:700;margin:11px 0 5px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-top:1px solid #141a24;padding-top:9px}
-.gar-ports{display:flex;flex-wrap:wrap;gap:6px}
-.gar-port{font:700 11px 'JetBrains Mono',monospace;border-radius:5px;padding:2px 8px;background:#00ffa314;color:#00ffa3;border:1px solid #00ffa33a;box-shadow:0 0 10px -3px #00ffa355}
-.gar-svc{margin:4px 0;padding:5px 8px;background:#0b0e14;border-radius:6px;border-left:2px solid #2a3442}
-.gar-svc b{color:#7affc0}
-.gar-cve{display:inline-block;margin:3px 4px 0 0;font:700 11px 'JetBrains Mono',monospace;border-radius:5px;padding:2px 8px;background:#ff1a2e1c;color:#ff5a6a;border:1px solid #ff1a2e55;animation:garPulse 2.4s ease-in-out infinite}
-@keyframes garPulse{0%,100%{box-shadow:0 0 0 0 #ff1a2e00}50%{box-shadow:0 0 12px -2px #ff1a2e99}}
-.gar-leak{margin:4px 0;padding:6px 9px;background:#140608;border:1px solid #37101a;border-radius:6px;color:#ffb0b0}
-.gar-raw{margin-top:10px}
-.gar-raw summary{cursor:pointer;color:#5a6b7d;font-size:11px;user-select:none}
-.gar-raw pre{margin:6px 0 0;max-height:220px;overflow:auto;background:#020005;border:1px solid #141a24;border-radius:7px;padding:9px;font:11px 'JetBrains Mono',monospace;color:#8fa6bd;white-space:pre-wrap;word-break:break-word}
-.gar-empty{color:#5a6b7d;font-style:italic}
-.gar-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0b0e14;border:1px solid #ff1a2e;color:#fff;font:600 13px 'JetBrains Mono',monospace;padding:11px 18px;border-radius:9px;box-shadow:0 0 24px -6px #ff1a2e;opacity:0;pointer-events:none;transition:.28s;z-index:9999}
-.gar-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
-<section id="assetrecon">
-  <div class="wrap">
-    <div class="sec-num reveal-wrap"><div class="reveal-inner">37 — Global Asset Recon</div></div>
-    <div class="gar-eyebrow">🛰 Superficie de ataque global</div>
-    <h2>GLOBAL ASSET RECON</h2>
-    <p class="gar-sub">Buscador de infraestructura global multi-fuente — Shodan InternetDB, Netlas, LeakIX y Censys — enrutado por tu Cloudflare Worker para evitar CORS y proteger las claves en el backend. IPs, ASN, geo, puertos, banners, certificados TLS, CVEs críticos y fugas, parseados y correlacionados en vivo.</p>
-
-    <div class="gar-panel">
-      <div class="gar-bar">
-        <input class="gar-input" id="garTarget" placeholder="objetivo — IP · dominio · host (ej. 1.1.1.1 · empresa.com)" autocomplete="off" spellcheck="false">
-        <button class="gar-run" id="garRun">⟐ ADQUIRIR</button>
-      </div>
-      <div class="gar-srcs" id="garSrcs">
-        <span class="gar-src on" data-src="all"><span class="dot"></span>All Engines</span>
-        <span class="gar-src" data-src="shodan">Shodan InternetDB</span>
-        <span class="gar-src" data-src="netlas">Netlas.io</span>
-        <span class="gar-src" data-src="leakix">LeakIX</span>
-        <span class="gar-src" data-src="censys">Censys</span>
-      </div>
-      <div class="gar-proxy"><span>⇄ proxy:</span><input id="garProxy" value="https://scanner-proxy.matias-ramireztu.workers.dev/" spellcheck="false"></div>
-      <div class="gar-status" id="garStatus">[ idle ] configurá un objetivo y presioná ADQUIRIR</div>
-      <div class="gar-actions">
-        <button class="gar-abtn" id="garCopy" disabled>⧉ Copiar JSON</button>
-        <button class="gar-abtn" id="garDossier" disabled>⬇ Exportar Dossier</button>
-        <button class="gar-abtn" id="garKraken" disabled>→ Enviar a Kraken</button>
-        <button class="gar-abtn" id="garCrawler" disabled>→ Enviar a Crawler</button>
-      </div>
-    </div>
-
-    <div class="gar-results" id="garResults"></div>
-  </div>
-  <div class="gar-toast" id="garToast"></div>
-</section>
-<script>
-(function(){
-  function $g(id){ return document.getElementById(id); }
-  var SRCS=['shodan','netlas','leakix','censys'];
-  var LABEL={shodan:'Shodan InternetDB',netlas:'Netlas.io',leakix:'LeakIX',censys:'Censys',all:'All Engines'};
-  var sel='all', LAST=null, running=false, started=false;
-  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function toast(msg){ var t=$g('garToast'); if(!t) return; t.textContent=msg; t.classList.add('on'); clearTimeout(t._tm); t._tm=setTimeout(function(){ t.classList.remove('on'); },2200); }
-  function proxy(){ var p=($g('garProxy')||{}).value||''; p=p.trim(); if(!/^https?:\/\//i.test(p)) p='https://'+p; if(p.slice(-1)!=='/' && p.indexOf('?')<0) p+='/'; return p; }
-
-  function garFetch(src,target){
-    var url=proxy()+'?target='+encodeURIComponent(target)+'&source='+encodeURIComponent(src);
-    var t0=(performance&&performance.now)?performance.now():Date.now();
-    var ctrl=('AbortController' in window)?new AbortController():null;
-    var tmo=ctrl?setTimeout(function(){ try{ctrl.abort();}catch(e){} },15000):0;
-    return fetch(url, ctrl?{signal:ctrl.signal}:{}).then(function(res){
-      return res.text().then(function(tx){ var data; try{ data=JSON.parse(tx); }catch(e){ data=tx; }
-        return { src:src, ok:res.ok, status:res.status, ms:Math.round(((performance&&performance.now)?performance.now():Date.now())-t0), data:data }; });
-    }).catch(function(e){ return { src:src, ok:false, ms:Math.round(((performance&&performance.now)?performance.now():Date.now())-t0), error:(e&&e.name==='AbortError')?'timeout (15s)':(String(e&&e.message||e)||'error de red / CORS') }; })
-      .then(function(r){ if(tmo) clearTimeout(tmo); return r; });
-  }
-
-  function arr(x){ return Array.isArray(x)?x:(x==null?[]:[x]); }
-  function pick(o){ for(var i=1;i<arguments.length;i++){ var k=arguments[i]; if(o && o[k]!=null && o[k]!=='') return o[k]; } return null; }
-  function garNorm(d){
-    var n={ip:null,hosts:[],asn:null,org:null,country:null,ports:[],services:[],ssl:[],cves:[],leaks:[]};
-    if(!d || typeof d!=='object') return n;
-    n.ip=pick(d,'ip','ip_str','host','a','address');
-    n.hosts=arr(pick(d,'hostnames','hostname','domains','dns','names')).filter(Boolean);
-    n.asn=pick(d,'asn','as','autonomous_system_number') || (d.autonomous_system&&(d.autonomous_system.asn||d.autonomous_system.name));
-    n.org=pick(d,'org','as_org','isp','organization') || (d.autonomous_system&&(d.autonomous_system.name||d.autonomous_system.organization));
-    n.country=pick(d,'country','country_name','country_code') || (d.location&&(d.location.country||d.location.country_code));
-    // ports
-    var ports=pick(d,'ports','open_ports'); if(ports) n.ports=arr(ports).map(function(p){ return (p&&typeof p==='object')?(p.port||p.port_number):p; }).filter(function(x){return x!=null;});
-    // services / banners
-    var svc=pick(d,'services','data','banners','matches'); arr(svc).forEach(function(s){ if(!s||typeof s!=='object') return;
-      var port=pick(s,'port','port_number'); var proto=pick(s,'transport','protocol','proto');
-      var prod=pick(s,'product','software','service_name','service') || (s.software&&s.software[0]&&s.software[0].product);
-      var ver=pick(s,'version'); var banner=pick(s,'banner','data','raw','response');
-      if(port!=null && n.ports.indexOf(port)<0) n.ports.push(port);
-      if(port!=null||prod||banner) n.services.push({port:port,proto:proto,product:prod,version:ver,banner:banner?String(banner).slice(0,180):null});
-      // tls inside service
-      var tls=pick(s,'tls','ssl','certificate','cert'); if(tls) collectTLS(tls,n);
-      // cves inside service
-      var vs=pick(s,'vulns','vulnerabilities','cves'); if(vs) collectCVE(vs,n);
-    });
-    // top-level tls
-    var tls=pick(d,'tls','ssl','certificate','certificates','cert'); if(tls) arr(tls).forEach(function(t){ collectTLS(t,n); });
-    // top-level cves
-    var v=pick(d,'vulns','vulnerabilities','cves','cpes'); if(v) collectCVE(v,n);
-    // leaks (LeakIX style)
-    var lk=pick(d,'leaks','events','results','Services','L9'); arr(lk).forEach(function(e){ if(!e) return; if(typeof e==='object'){ var ev=pick(e,'event_type','type','plugin','summary','title','name'); var sev=pick(e,'severity','level'); if(ev||sev) n.leaks.push((sev?'['+sev+'] ':'')+(ev||'evento')+(e.port?' :'+e.port:'')); } else n.leaks.push(String(e)); });
-    n.ports=n.ports.filter(function(x,i,a){return a.indexOf(x)===i;}).sort(function(a,b){return a-b;});
-    n.cves=n.cves.filter(function(x,i,a){return a.indexOf(x)===i;});
-    return n;
-  }
-  function collectTLS(t,n){ if(!t) return; if(typeof t==='string'){ n.ssl.push({subject:t}); return; }
-    var subj=pick(t,'subject','subject_dn','cn','common_name') || (t.subject&&(t.subject.CN||t.subject.common_name));
-    var iss=pick(t,'issuer','issuer_dn') || (t.issuer&&(t.issuer.CN||t.issuer.organization));
-    var exp=pick(t,'not_after','expires','valid_to','notAfter','expiry');
-    var sans=arr(pick(t,'names','dns_names','san','subject_alt_name','altNames'));
-    if(subj||iss||exp||sans.length) n.ssl.push({subject:subj&&(typeof subj==='object'?JSON.stringify(subj):subj),issuer:iss&&(typeof iss==='object'?JSON.stringify(iss):iss),expires:exp,sans:sans.filter(Boolean).slice(0,8)});
-  }
-  function collectCVE(v,n){ arr(v).forEach(function(x){ if(typeof x==='string'){ var m=x.match(/CVE-\d{4}-\d{3,7}/i); if(m) n.cves.push(m[0].toUpperCase()); } else if(x&&typeof x==='object'){ var id=pick(x,'cve','id','name'); if(id&&/CVE-/i.test(id)) n.cves.push(String(id).toUpperCase()); } }); }
-
-  function renderCard(r){
-    var res=$g('garResults'); if(!res) return;
-    var card=document.createElement('div'); card.className='gar-card'; card.id='gar-card-'+r.src;
-    var pill = r.ok? '<span class="gar-pill ok">OK · '+r.ms+'ms</span>' : '<span class="gar-pill err">FALLÓ · '+esc(r.error||('HTTP '+r.status))+'</span>';
-    var body='';
-    if(r.ok){
-      var n=garNorm(r.data);
-      var kv='';
-      if(n.ip) kv+='<div class="gar-kv"><span class="k">IP</span><span class="v">'+esc(n.ip)+'</span></div>';
-      if(n.hosts.length) kv+='<div class="gar-kv"><span class="k">Hosts</span><span class="v">'+n.hosts.slice(0,6).map(esc).join(', ')+'</span></div>';
-      if(n.asn||n.org) kv+='<div class="gar-kv"><span class="k">ASN/Org</span><span class="v">'+esc([n.asn,n.org].filter(Boolean).join(' · '))+'</span></div>';
-      if(n.country) kv+='<div class="gar-kv"><span class="k">Geo</span><span class="v">'+esc(n.country)+'</span></div>';
-      body+=kv||'';
-      if(n.ports.length){ body+='<div class="gar-sec-t">puertos abiertos ('+n.ports.length+')</div><div class="gar-ports">'+n.ports.map(function(p){return '<span class="gar-port">'+esc(p)+'</span>';}).join('')+'</div>'; }
-      if(n.services.length){ body+='<div class="gar-sec-t">servicios / banners</div>'+n.services.slice(0,8).map(function(s){ return '<div class="gar-svc">'+(s.port!=null?'<b>:'+esc(s.port)+'</b> ':'')+esc([s.proto,s.product,s.version].filter(Boolean).join(' '))+(s.banner?'<br><span style="color:#6b7d90">'+esc(s.banner)+'</span>':'')+'</div>'; }).join(''); }
-      if(n.ssl.length){ body+='<div class="gar-sec-t">certificados TLS</div>'+n.ssl.slice(0,4).map(function(c){ return '<div class="gar-svc">'+(c.subject?'CN: '+esc(c.subject):'')+(c.issuer?'<br>Issuer: '+esc(c.issuer):'')+(c.expires?'<br>Expira: '+esc(c.expires):'')+(c.sans&&c.sans.length?'<br>SAN: '+c.sans.map(esc).join(', '):'')+'</div>'; }).join(''); }
-      if(n.cves.length){ body+='<div class="gar-sec-t" style="color:#ff5a6a">CVEs críticos ('+n.cves.length+')</div>'+n.cves.slice(0,30).map(function(c){return '<span class="gar-cve">'+esc(c)+'</span>';}).join(''); }
-      if(n.leaks.length){ body+='<div class="gar-sec-t" style="color:#ff5a6a">fugas / servicios mal configurados</div>'+n.leaks.slice(0,10).map(function(l){return '<div class="gar-leak">'+esc(l)+'</div>';}).join(''); }
-      if(!kv && !n.ports.length && !n.services.length && !n.cves.length && !n.leaks.length) body+='<div class="gar-empty">Sin datos estructurados para este objetivo en esta fuente.</div>';
-      body+='<details class="gar-raw"><summary>▸ JSON crudo</summary><pre>'+esc(typeof r.data==='string'?r.data:JSON.stringify(r.data,null,2)).slice(0,6000)+'</pre></details>';
-    } else {
-      body='<div class="gar-empty">La fuente no respondió ('+esc(r.error||('HTTP '+r.status))+'). Las demás fuentes siguen su curso.</div>';
-    }
-    card.innerHTML='<div class="gar-card-h"><span class="src">'+esc(LABEL[r.src]||r.src)+'</span>'+pill+'</div><div class="gar-card-b">'+body+'</div>';
-    var old=$g('gar-card-'+r.src); if(old) old.parentNode.replaceChild(card,old); else res.appendChild(card);
-  }
-
-  function run(){
-    if(running) return;
-    var target=($g('garTarget')||{}).value.trim();
-    if(!target){ toast('Ingresá un objetivo (IP o dominio)'); return; }
-    running=true; var btn=$g('garRun'); if(btn){ btn.disabled=true; btn.textContent='⟳ ADQUIRIENDO'; }
-    var res=$g('garResults'); if(res) res.innerHTML='';
-    var list = (sel==='all')?SRCS.slice():[sel];
-    LAST={ target:target, ts:new Date().toISOString(), bySource:{} };
-    // skeleton cards
-    list.forEach(function(s){ renderCard({src:s,ok:false,error:'…consultando',status:0,ms:0}); var c=$g('gar-card-'+s); if(c){ var p=c.querySelector('.gar-pill'); if(p){ p.className='gar-pill load'; p.textContent='…'; } var b=c.querySelector('.gar-card-b'); if(b) b.innerHTML='<div class="gar-empty"><span class="gar-spin"></span> consultando '+esc(LABEL[s])+'…</div>'; } });
-    var st=$g('garStatus'); if(st) st.innerHTML='<span class="gar-spin"></span> escaneando '+list.length+' fuente(s) sobre <b style="color:#fff">'+esc(target)+'</b>…';
-    var done=0;
-    list.forEach(function(s){ garFetch(s,target).then(function(r){ LAST.bySource[s]=r; renderCard(r); done++;
-      if(st) st.innerHTML='<span class="gar-spin"></span> '+done+'/'+list.length+' fuentes · '+esc(target);
-      if(done===list.length){ running=false; if(btn){ btn.disabled=false; btn.textContent='⟐ ADQUIRIR'; }
-        var okc=Object.keys(LAST.bySource).filter(function(k){return LAST.bySource[k].ok;}).length;
-        if(st) st.innerHTML='[ listo ] '+okc+'/'+list.length+' fuentes respondieron · objetivo '+esc(target);
-        ['garCopy','garDossier','garKraken','garCrawler'].forEach(function(id){ var b=$g(id); if(b) b.disabled=false; });
-      }
-    }); });
-  }
-
-  function copyJSON(){ if(!LAST) return; var s=JSON.stringify(LAST,null,2);
-    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(s).then(function(){toast('JSON copiado al portapapeles');},function(){fallbackCopy(s);}); } else fallbackCopy(s); }
-  function fallbackCopy(s){ try{ var ta=document.createElement('textarea'); ta.value=s; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('JSON copiado'); }catch(e){ toast('No pude copiar'); } }
-  function dossier(){ if(!LAST) return; var L=['# GLOBAL ASSET RECON — Dossier','','**Objetivo:** '+LAST.target,'**Generado:** '+LAST.ts,''];
-    Object.keys(LAST.bySource).forEach(function(s){ var r=LAST.bySource[s]; L.push('## '+(LABEL[s]||s)); if(!r.ok){ L.push('- Estado: FALLÓ ('+(r.error||('HTTP '+r.status))+')',''); return; } var n=garNorm(r.data);
-      if(n.ip) L.push('- IP: '+n.ip); if(n.hosts.length) L.push('- Hosts: '+n.hosts.join(', ')); if(n.asn||n.org) L.push('- ASN/Org: '+[n.asn,n.org].filter(Boolean).join(' · ')); if(n.country) L.push('- Geo: '+n.country);
-      if(n.ports.length) L.push('- Puertos: '+n.ports.join(', ')); if(n.cves.length) L.push('- CVEs: '+n.cves.join(', ')); if(n.leaks.length){ L.push('- Fugas:'); n.leaks.forEach(function(x){L.push('  - '+x);}); } L.push(''); });
-    L.push('---','> Recon pasivo de superficie de ataque. Usar solo en el marco de programas con scope autorizado.');
-    var blob=new Blob([L.join('\n')],{type:'text/markdown'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='recon-dossier-'+String(LAST.target).replace(/[^a-z0-9.\-]/gi,'_')+'.md'; document.body.appendChild(a); a.click(); setTimeout(function(){try{URL.revokeObjectURL(a.href);a.parentNode.removeChild(a);}catch(e){}},2000); toast('Dossier exportado'); }
-  function sendTo(id,label){ if(!LAST) return; var inp=document.getElementById(id); if(!inp){ toast('No encontré el módulo '+label); return; } inp.value=LAST.target; inp.dispatchEvent(new Event('input',{bubbles:true}));
-    var sec=inp.closest('section'); if(sec&&sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth',block:'start'}); toast('Objetivo enviado a '+label); }
-
-  function nxgInit(){ if(started) return; started=true;
-    var r=$g('garRun'); if(r) r.addEventListener('click', run);
-    var t=$g('garTarget'); if(t) t.addEventListener('keydown', function(e){ if(e.key==='Enter') run(); });
-    var srcs=$g('garSrcs'); if(srcs) srcs.addEventListener('click', function(e){ var el=e.target.closest('.gar-src'); if(!el) return; sel=el.getAttribute('data-src'); var all=srcs.querySelectorAll('.gar-src'); for(var i=0;i<all.length;i++) all[i].classList.remove('on'); el.classList.add('on'); });
-    var cp=$g('garCopy'); if(cp) cp.addEventListener('click', copyJSON);
-    var ds=$g('garDossier'); if(ds) ds.addEventListener('click', dossier);
-    var kr=$g('garKraken'); if(kr) kr.addEventListener('click', function(){ sendTo('kr-input','Kraken'); });
-    var cw=$g('garCrawler'); if(cw) cw.addEventListener('click', function(){ sendTo('crw-input','Crawler'); });
-  }
-  if(typeof IntersectionObserver!=='undefined'){ var s=document.getElementById('assetrecon'); if(s){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ nxgInit(); io.disconnect(); } }); },{rootMargin:'250px'}); io.observe(s); } else nxgInit(); }
-  else { if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', nxgInit); else nxgInit(); }
-})();
-</script>
 
 <!-- ══ SECCIÓN: GLOBAL ASSET RECON — Netlas · LeakIX · Censys · Shodan ══ -->
 <style>
@@ -6386,7 +6215,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 (function(){
   "use strict";
   var PROXY='https://scanner-proxy.matias-ramireztu.workers.dev';
-  var SRC_LABELS={shodan:'Shodan InternetDB',netlas:'Netlas.io',leakix:'LeakIX',censys:'Censys Search',hunter:'Hunter.how',fofa:'FOFA'};
+  var SRC_LABELS={shodan:'Shodan InternetDB',netlas:'Netlas.io',leakix:'LeakIX',censys:'Censys Platform (v3)',hunter:'Hunter.how',fofa:'FOFA'};
   var ALL=['shodan','netlas','leakix','censys','hunter','fofa'];
   var TIMEOUT=14000;
   var RISKY={21:'FTP',22:'SSH',23:'TELNET',25:'SMTP',110:'POP3',135:'MS-RPC',139:'NETBIOS',445:'SMB',1433:'MSSQL',1521:'ORACLE',2181:'ZOOKEEPER',2375:'DOCKER API',2379:'ETCD',3306:'MYSQL',3389:'RDP',5432:'POSTGRES',5601:'KIBANA',5900:'VNC',6379:'REDIS',8500:'CONSUL',9200:'ELASTIC',11211:'MEMCACHED',27017:'MONGODB'};
@@ -6409,6 +6238,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       arr(root.cpes).forEach(function(c){ n.services.push({banner:String(c)}); });
     }
     // Censys: {ip, autonomous_system:{asn,name,country_code}, location, services:[{port,service_name,certificate}]}
+    if(source==='censys' && root.result && root.result.hits){ root=(root.result.hits[0]&&(root.result.hits[0].host||root.result.hits[0]))||{}; }
     if(source==='censys'||root.autonomous_system||root.services){
       n.ip=root.ip||n.ip;
       var as=root.autonomous_system||{}; if(as.asn) n.asn='AS'+as.asn; if(as.name) n.org=as.name;
@@ -6545,7 +6375,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     shodan:{needIp:true,  url:function(ip){ return 'https://internetdb.shodan.io/'+encodeURIComponent(ip); }},
     netlas:{needIp:false, url:function(h){  return 'https://app.netlas.io/api/host/'+encodeURIComponent(h)+'/'; }},
     leakix:{needIp:true,  url:function(ip){ return 'https://leakix.net/host/'+encodeURIComponent(ip); }},
-    censys:{needIp:true,  url:function(ip){ return 'https://search.censys.io/api/v2/hosts/'+encodeURIComponent(ip); }}
+    censys:{needIp:true,  url:function(){ return 'https://api.platform.censys.io/v3/global/search/query'; }, post:function(ip){ return {query:'host.ip = "'+ip+'"', page_size:10}; }}
   };
 
   function fetchSource(target, source, ctrl){
@@ -6556,7 +6386,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
         var need=eng.needIp?ctx.ip:ctx.host;
         if(!need){ var ne=new Error('DNS no resolvió '+ctx.host+' (este motor necesita IP)'); ne.code='NOIP'; throw ne; }
         // POST con evade:false: el proxy lee 'evade' solo del body; sin headers de IP falsas hacia APIs de terceros
-        return fetch(PROXY+'/',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({url:eng.url(need),evade:false})})
+        var pl={url:eng.url(need),evade:false}; if(eng.post){ pl.method='POST'; pl.body=eng.post(need); }
+        return fetch(PROXY+'/',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(pl)})
           .then(function(r){ return r.text().then(function(tx){
             var ms=Math.round(now()-t0);
             if(!r.ok) return {ok:false,error:'HTTP '+r.status,detail:'el Worker respondió HTTP '+r.status+': '+tx.slice(0,300),ms:ms};
@@ -6663,7 +6494,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   function paisUpstream(src, cc, extra){
     var ex=extra?(' '+extra):'';
     if(src==='shodan') return 'https://api.shodan.io/shodan/host/search?query='+encodeURIComponent('country:'+cc+ex);
-    if(src==='censys') return 'https://search.censys.io/api/v2/hosts/search?per_page=25&q='+encodeURIComponent('location.country_code:'+cc+(extra?(' and '+extra):''));
+    if(src==='censys') return 'https://api.platform.censys.io/v3/global/search/query';
     if(src==='netlas') return 'https://app.netlas.io/api/responses/?q='+encodeURIComponent('geo.country:'+cc+(extra?(' AND '+extra):''));
     if(src==='leakix') return 'https://leakix.net/search?scope=service&q='+encodeURIComponent('+country:'+(COUNTRY[cc]||cc)+(extra?(' +'+extra):''));
     if(src==='fofa'){
@@ -6684,7 +6515,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     var out=[];
     function push(h){ if(h&&h.ip) out.push(h); }
     if(src==='shodan'){ arr(d&&d.matches).forEach(function(m){ push({ip:m.ip_str||m.ip,port:String(m.port||''),org:m.org||'',country:(m.location&&m.location.country_code)||'',note:(m.hostnames&&m.hostnames[0])||''}); }); }
-    else if(src==='censys'){ arr(d&&d.result&&d.result.hits).forEach(function(m){ var ps=arr(m.services).map(function(s){return s.port;}).filter(Boolean); push({ip:m.ip,port:ps.join(', '),org:(m.autonomous_system&&m.autonomous_system.name)||'',country:(m.location&&m.location.country_code)||'',note:''}); }); }
+    else if(src==='censys'){ var hs=arr(d&&d.result&&d.result.hits).length?d.result.hits:arr(d&&d.hits); hs.forEach(function(m){ var hh=m.host||m; var ps=arr(hh.services).map(function(s){return s.port;}).filter(Boolean); push({ip:hh.ip||m.ip,port:ps.join(', '),org:(hh.autonomous_system&&hh.autonomous_system.name)||'',country:(hh.location&&(hh.location.country_code||hh.location.country))||'',note:''}); }); }
     else if(src==='leakix'){ arr(d).forEach(function(e){ if(!e||typeof e!=='object') return; push({ip:e.ip,port:String(e.port||''),org:(e.network&&e.network.organization_name)||'',country:(e.geoip&&e.geoip.country_iso_code)||'',note:e.summary||''}); }); }
     else if(src==='netlas'){ arr(d&&d.items).forEach(function(it){ var x=(it&&it.data)?it.data:it; if(!x) return; var ip=(typeof x.ip==='string')?x.ip:(x.ip&&x.ip.value); push({ip:ip,port:String(x.port||''),org:(x.asn&&x.asn.name)||'',country:(x.geo&&(x.geo.country_code||x.geo.country))||'',note:x.protocol||''}); }); }
     else if(src==='fofa'){ arr(d&&d.results).forEach(function(r){ if(!Array.isArray(r)) return; push({ip:r[0],port:String(r[1]||''),org:r[4]||'',country:r[3]||'',note:r[5]||r[2]||''}); }); }
@@ -6692,17 +6523,34 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     return out;
   }
   function isRiskyPort(p){ return String(p).split(/,\s*/).some(function(x){ return !!RISKY[Number(x)]; }); }
-  function proxyFetch(upstream, ctrl){
+  /* ---- diagnóstico de errores de motor: explica la causa y qué tocar ---- */
+  var KEYNAME={shodan:'SHODAN_KEY',netlas:'NETLAS_KEY',leakix:'LEAKIX_KEY',hunter:'HUNTER_KEY',fofa:'FOFA_KEY',censys:'CENSYS_PAT'};
+  function hintFor(src,d){ d=String(d||'');
+    var mk=d.match(/missing_key:([A-Z_]+)/); if(mk) return 'Falta el secret '+mk[1]+' en el Worker: npx wrangler secret put '+mk[1]+' y después npx wrangler deploy.';
+    if(/Just a moment|cf-mitigated|challenge-platform|HTML de Cloudflare/i.test(d)) return 'Cloudflare devolvió un challenge en vez de datos. Causa típica: el Worker no tiene la key del motor (secret '+(KEYNAME[src]||'?')+') o la IP del Worker está challengeada. Cargá el secret y reintentá.';
+    if(/decommissioned|Legacy Search/i.test(d)) return 'Censys Legacy Search fue dada de baja (30/09/2026). Censys queda fuera de la búsqueda por país.';
+    if(/daily_request_limit|429/i.test(d)) return 'Cuota diaria agotada en el plan de '+(SRC_LABELS[src]||src)+'. Esperá el reset o subí de plan. No es un bug del código.';
+    if(/Token missing|Account Invalid|-700|401|403|falta API key/i.test(d)) return 'Key ausente o inválida para '+(SRC_LABELS[src]||src)+'. Verificá: npx wrangler secret list y que el Worker inyecte '+(KEYNAME[src]||'la key')+' en la URL o header.';
+    return '';
+  }
+  function cleanBody(b){ var s=String(b||''); if(/<html|<!doctype/i.test(s)) return 'HTML de Cloudflare (challenge), no datos'; return s.slice(0,300); }
+  function paisBody(src, cc, extra){
+    if(src!=='censys') return null;
+    var q='host.location.country = "'+cc+'"'; var m=String(extra||'').match(/port:(\d+)/); if(m) q+=' and host.services.port = "'+m[1]+'"';
+    return {query:q, page_size:50};
+  }
+  function proxyFetch(upstream, ctrl, post){
     var t0=now(), timedOut=false;
     var to=setTimeout(function(){ timedOut=true; try{ctrl.abort();}catch(e){} }, TIMEOUT);
-    return fetch(PROXY+'/',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({url:upstream,evade:false})})
+    var pl={url:upstream,evade:false}; if(post){ pl.method='POST'; pl.body=post; }
+    return fetch(PROXY+'/',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(pl)})
       .then(function(r){ return r.text().then(function(tx){
         var ms=Math.round(now()-t0);
         if(!r.ok) return {ok:false,error:'HTTP '+r.status,detail:'el Worker respondió HTTP '+r.status+': '+tx.slice(0,300),ms:ms};
         var w; try{ w=JSON.parse(tx); }catch(e){ return {ok:false,error:'respuesta no JSON',detail:tx.slice(0,300),ms:ms}; }
         if(w.error) return {ok:false,error:(w.blocked?'bloqueado':(w.error||'error')),detail:'proxy: '+w.error,ms:ms};
         var up=w.status||0;
-        if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — falta API key en el Worker':'')+': '+String(w.body||'').slice(0,300),ms:ms};
+        if(up>=400) return {ok:false,error:'upstream '+up,detail:'el motor respondió HTTP '+up+((up===401||up===403)?' — falta API key en el Worker':'')+': '+cleanBody(w.body),ms:ms};
         var j; try{ j=JSON.parse(w.body); }catch(e){ j={raw:String(w.body||'').slice(0,2000)}; }
         return {ok:true,data:j,ms:ms};
       }); })
@@ -6751,7 +6599,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     var done=0;
     var tasks=srcs.map(function(s){
       var ctrl=new AbortController(); state.ctrls.push(ctrl);
-      return proxyFetch(paisUpstream(s,cc,extra),ctrl).then(function(r){
+      return proxyFetch(paisUpstream(s,cc,extra),ctrl,paisBody(s,cc,extra)).then(function(r){
         done++; setProg(6+(done/srcs.length)*94);
         if(r.ok && r.data && ((typeof r.data.code==='number' && r.data.code>=400) || r.data.error===true)){ r={ok:false,error:'upstream '+(r.data.code||'error'),detail:'el motor respondió: '+(r.data.message||r.data.errmsg||'error'),ms:r.ms}; }
         if(r.ok){
@@ -6762,8 +6610,9 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
           addBlip(hits.length>0);
         } else {
           state.last.sources[s]={__error:r.error||'sin respuesta'};
-          renderCard(s,'err',r.error||'sin respuesta',0,r.detail);
-          logLine('hit','✕ '+(SRC_LABELS[s]||s)+' · '+(r.error||'sin respuesta')+(r.detail?(' · '+r.detail):''));
+          var hn=hintFor(s,r.detail);
+          renderCard(s,'err',r.error||'sin respuesta',0,(r.detail||'')+(hn?(' · → '+hn):''));
+          logLine('hit','✕ '+(SRC_LABELS[s]||s)+' · '+(r.error||'sin respuesta')+(r.detail?(' · '+r.detail):'')+(hintFor(s,r.detail)?(' · → '+hintFor(s,r.detail)):''));
         }
       });
     });
@@ -8019,6 +7868,7 @@ dig assets.lime.bike CNAME</div></div></div>
       </div>
     </div>
     <div class="pay-dd-label-row">📂 Elegí una categoría — el punto rojo marca las que traen payloads peligrosos</div>
+    <div class="pl-bar" id="pl-bar"></div>
     <div class="pay-tabs" id="pay-tabs" role="tablist"></div>
     <div class="pay-grid" id="pay-grid"></div>
   </div>
@@ -16343,56 +16193,124 @@ function copyToClipboard(text){
  });
 }
 
+var FAV_KEY = 'pl-favs';
+var favs = [];
+try { favs = JSON.parse(localStorage.getItem(FAV_KEY) || '[]') || []; } catch(e) { favs = []; }
+function saveFavs(){ try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch(e) {} }
+var plQ = '', plFilt = 'all';
+function escH(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function catLabel(id){ for (var i = 0; i < PAY_CATS.length; i++) if (PAY_CATS[i].id === id) return PAY_CATS[i].label; return id; }
+function keyOf(cat, i){ return cat + '|' + i; }
+function isFav(k){ return favs.indexOf(k) >= 0; }
+function toggleFav(k){ var i = favs.indexOf(k); if (i >= 0) favs.splice(i, 1); else favs.push(k); saveFavs(); renderBar(); renderPayCards(); }
+function plToast(msg){
+  var t = document.getElementById('pl-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'pl-toast'; t.className = 'pl-toast'; document.getElementById('payloads').appendChild(t); }
+  t.textContent = msg; t.classList.add('on'); clearTimeout(t._tm); t._tm = setTimeout(function(){ t.classList.remove('on'); }, 1600);
+}
+function visibleItems(){
+  var q = plQ.trim().toLowerCase();
+  var cats = q ? PAY_CATS.map(function(c){ return c.id; }) : [activePay];
+  var out = [];
+  cats.forEach(function(cid){
+    (PAYLOADS[cid] || []).forEach(function(p, i){
+      var k = keyOf(cid, i);
+      if (plFilt === 'safe' && p.risk) return;
+      if (plFilt === 'risk' && !p.risk) return;
+      if (plFilt === 'fav' && !isFav(k)) return;
+      if (q && (p.label + ' ' + p.pay + ' ' + (p.note || '') + ' ' + catLabel(cid)).toLowerCase().indexOf(q) < 0) return;
+      out.push({ cat: cid, i: i, p: p, k: k });
+    });
+  });
+  return out;
+}
+function plChip(f, label){ return '<button type="button" class="pl-chip' + (plFilt === f ? ' on' : '') + '" data-f="' + f + '">' + label + '</button>'; }
+function renderBar(){
+  var bar = document.getElementById('pl-bar'); if (!bar) return;
+  var total = 0; PAY_CATS.forEach(function(c){ total += (PAYLOADS[c.id] || []).length; });
+  bar.innerHTML =
+    '<div class="pl-search"><span class="pl-ico">⌕</span><input id="pl-q" type="search" placeholder="Buscar entre ' + total + ' payloads (XSS, ?id=, 169.254...)" value="' + escH(plQ) + '" autocomplete="off" spellcheck="false"></div>'
+    + '<div class="pl-chips">' + plChip('all', 'Todos') + plChip('safe', 'Sin riesgo alto') + plChip('risk', '⚠ Riesgo alto') + plChip('fav', '★ Favoritos (' + favs.length + ')') + '</div>'
+    + '<div class="pl-meta"><span id="pl-count"></span><button type="button" class="pl-copyall" id="pl-copyall">⧉ Copiar lista visible</button></div>';
+  updateCount();
+}
+function updateCount(){
+  var c = document.getElementById('pl-count'); if (!c) return;
+  var n = visibleItems().length;
+  c.textContent = n + (n === 1 ? ' payload' : ' payloads') + (plQ.trim() ? ' en todas las categorías' : ' en ' + catLabel(activePay));
+}
 function renderPayTabs(){
  payTabs.innerHTML = '';
  PAY_CATS.forEach(function(cat){
    var list = PAYLOADS[cat.id] || [];
-   var n = list.length;
    var danger = list.some(function(p){ return p.risk; });
    var pill = document.createElement('button');
    pill.type = 'button';
-   pill.className = 'pay-pill' + (activePay===cat.id?' active':'') + (danger?' danger':'');
-   pill.setAttribute('role','tab');
-   pill.innerHTML = (danger?'<span class="pay-pill-dot"></span>':'') + '<span class="pay-pill-lbl">'+cat.label+'</span><span class="pay-pill-n">'+n+'</span>';
+   pill.className = 'pay-pill' + (activePay === cat.id ? ' active' : '') + (danger ? ' danger' : '');
+   pill.setAttribute('role', 'tab');
+   pill.innerHTML = (danger ? '<span class="pay-pill-dot"></span>' : '') + '<span class="pay-pill-lbl">' + cat.label + '</span><span class="pay-pill-n">' + list.length + '</span>';
    pill.onclick = function(){
-     if(activePay===cat.id) return;
-     activePay = cat.id;
-     renderPayCards();
-     var all = payTabs.querySelectorAll('.pay-pill');
-     for(var k=0;k<all.length;k++) all[k].classList.remove('active');
-     pill.classList.add('active');
+     if (activePay === cat.id && !plQ) return;
+     activePay = cat.id; plQ = '';
+     var inp = document.getElementById('pl-q'); if (inp) inp.value = '';
+     renderPayTabs(); renderPayCards();
    };
    payTabs.appendChild(pill);
  });
 }
-
 function renderPayCards(){
- var items = PAYLOADS[activePay] || [];
+ var items = visibleItems();
  payGrid.innerHTML = '';
- items.forEach(function(p, i){
- var card = document.createElement('div');
- card.className = 'pay-card' + (p.risk ? ' pay-danger' : '');
- card.style.animation = 'cardIn 0.35s '+(i*0.04)+'s cubic-bezier(.22,1,.36,1) both';
- card.innerHTML =
- '<div class="pay-card-head">'
- + '<span class="pay-card-label">'+p.label+(p.risk ? ' <span class="pay-risk">\u26A0 '+p.risk+'</span>' : '')+'</span>'
- + '<button class="pay-copy-btn" title="Copiar">\u29C9 Copiar</button>'
- + '</div>'
- + '<div class="pay-code">'+p.pay.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
- + (p.note ? '<div class="pay-note">'+p.note.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>' : '')
- + (p.risk ? '<div class="pay-auth-note"><span class="pay-auth-ico">\u26D4</span><span>Nunca ejecutes este payload en sistemas sin <b>autorizaci\u00F3n expl\u00EDcita por escrito</b>: hacerlo es delito. \u00DAsalo solo en tus propios labs o en programas de bug bounty con scope aprobado.</span></div>' : '');
- card.querySelector('.pay-copy-btn').onclick = function(){
- copyToClipboard(p.pay);
- this.textContent = '\u2713 Copiado!';
- var btn = this;
- setTimeout(function(){ btn.textContent = '\u29C9 Copiar'; }, 1500);
- };
- payGrid.appendChild(card);
+ payGrid.classList.add('pl-grid');
+ updateCount();
+ if (!items.length) {
+   payGrid.innerHTML = '<div class="pl-empty">Sin resultados' + (plQ.trim() ? ' para «' + escH(plQ) + '»' : ' con este filtro') + '. Probá otra categoría o quitá el filtro.</div>';
+   return;
+ }
+ items.forEach(function(it, n){
+   var p = it.p, fav = isFav(it.k);
+   var card = document.createElement('div');
+   card.className = 'pl-card' + (p.risk ? ' risk' : '');
+   card.style.animation = 'cardIn 0.35s ' + Math.min(n * 0.03, 0.4) + 's cubic-bezier(.22,1,.36,1) both';
+   card.innerHTML =
+     '<div class="pl-top"><span class="pl-idx">' + String(n + 1).padStart(2, '0') + '</span>'
+     + '<div class="pl-title"><span class="pl-cat">' + escH(catLabel(it.cat)) + '</span><b>' + escH(p.label) + '</b></div>'
+     + '<button type="button" class="pl-fav' + (fav ? ' on' : '') + '" title="' + (fav ? 'Quitar de favoritos' : 'Guardar en favoritos') + '">' + (fav ? '★' : '☆') + '</button></div>'
+     + '<pre class="pl-code">' + escH(p.pay) + '</pre>'
+     + (p.note ? '<div class="pl-note">' + escH(p.note) + (p.risk ? ' · <b style="color:#ffb0b0">riesgo ' + escH(p.risk) + '</b>' : '') + '</div>' : (p.risk ? '<div class="pl-note"><b style="color:#ffb0b0">riesgo ' + escH(p.risk) + '</b></div>' : ''))
+     + '<div class="pl-foot"><button type="button" class="pl-copy">⧉ Copiar payload</button>'
+     + (p.risk ? '<span class="pl-warn">⛔ Solo con autorización escrita</span>' : '') + '</div>';
+   card.querySelector('.pl-fav').onclick = function(){ toggleFav(it.k); };
+   var cb = card.querySelector('.pl-copy');
+   cb.onclick = function(){
+     copyToClipboard(p.pay);
+     cb.textContent = '✓ Copiado'; cb.classList.add('ok');
+     plToast('Copiado: ' + p.label);
+     setTimeout(function(){ cb.textContent = '⧉ Copiar payload'; cb.classList.remove('ok'); }, 1400);
+   };
+   payGrid.appendChild(card);
  });
 }
-
+(function bindBar(){
+  var bar = document.getElementById('pl-bar'); if (!bar) return;
+  bar.addEventListener('input', function(e){
+    if (e.target && e.target.id === 'pl-q') { plQ = e.target.value; renderPayTabs(); renderPayCards(); }
+  });
+  bar.addEventListener('click', function(e){
+    var ch = e.target.closest ? e.target.closest('.pl-chip') : null;
+    if (ch) { plFilt = ch.getAttribute('data-f'); renderBar(); renderPayCards(); return; }
+    var ca = e.target.closest ? e.target.closest('#pl-copyall') : null;
+    if (ca) {
+      var items = visibleItems(); if (!items.length) { plToast('No hay payloads visibles'); return; }
+      copyToClipboard(items.map(function(it){ return it.p.pay; }).join('\n'));
+      plToast(items.length + ' payload(s) copiados');
+    }
+  });
+})();
+renderBar();
 renderPayTabs();
 renderPayCards();
+
 })();
 
 /* \u2550\u2550 ROADMAP \u2550\u2550 */

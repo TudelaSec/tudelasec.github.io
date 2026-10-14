@@ -3513,6 +3513,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       <a href="#cheatsheet"   class="mega-link">📖 Cheatsheet</a>
       <a href="#payloads"     class="mega-link">💣 Payload Library</a>
       <a href="#burpsuite"    class="mega-link">🔄 Burp Suite</a>
+      <a href="#proxyrep" class="mega-link">⇄ Proxy y Repeater</a>
       <a href="#termlab"      class="mega-link">💻 Command Lab</a>
       <a href="#rsg"          class="mega-link">🐚 Reverse Shell Gen</a>
       <a href="#hashcalc"     class="mega-link"># Hash Calculator</a>
@@ -4195,6 +4196,61 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #dns-auditor .poc-verdict.green{color:var(--green);border-color:var(--green);background:rgba(0,255,163,.08);}
 #dns-auditor .poc-note{margin-top:10px;font-size:10.5px;color:var(--muted);line-height:1.5;}
 @media (prefers-reduced-motion:reduce){#dns-auditor .imp-lamp.on i{animation:none;}}
+/* ══ PROXY & REPEATER ══ */
+#proxyrep .pr-sub{color:rgba(240,238,248,.6);max-width:760px;margin:0 0 22px;font-size:14px;}
+#proxyrep .pr-auth{display:flex;gap:10px;align-items:flex-start;font-size:13px;margin-bottom:14px;color:#e6edf3;cursor:pointer;border-radius:4px;padding:4px;}
+#proxyrep .pr-auth input{margin-top:3px;width:16px;height:16px;accent-color:#ff1a2e;}
+#proxyrep .pr-auth.flash{animation:prFlash .5s 3;}
+@keyframes prFlash{50%{background:rgba(255,26,46,.25);}}
+#proxyrep .pr-bar,#proxyrep .pr-rep-row{display:flex;gap:8px;flex-wrap:wrap;}
+#proxyrep select,#proxyrep .pr-url,#proxyrep textarea{background:#05020a;border:1px solid rgba(255,26,46,.3);color:#e6edf3;font-family:var(--mono);font-size:13px;border-radius:4px;padding:9px 10px;}
+#proxyrep .pr-url{flex:1 1 300px;min-width:0;}
+#proxyrep textarea{width:100%;box-sizing:border-box;margin-top:6px;resize:vertical;}
+#proxyrep .pr-btn{background:#ff1a2e;color:#fff;border:0;border-radius:4px;padding:10px 18px;font-family:var(--mono);font-weight:700;letter-spacing:.08em;cursor:pointer;}
+#proxyrep .pr-btn:hover{box-shadow:0 0 18px rgba(255,26,46,.5);}
+#proxyrep .pr-btn-s{margin-top:14px;background:transparent;border:1px solid rgba(255,26,46,.5);color:var(--acc);font-family:var(--mono);font-size:12px;padding:8px 14px;border-radius:4px;cursor:pointer;}
+#proxyrep .pr-btn-s:hover{background:rgba(255,26,46,.1);}
+#proxyrep .pr-top-h{margin:10px 0;font-family:var(--mono);font-size:12px;color:var(--muted);}
+#proxyrep .pr-top-h summary{cursor:pointer;}
+#proxyrep .pr-status{font-family:var(--mono);font-size:12px;color:var(--green);margin:8px 0 16px;min-height:18px;}
+#proxyrep .pr-status.err{color:var(--acc);}
+#proxyrep .pr-body{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;}
+#proxyrep .pr-hist,#proxyrep .pr-main{border:1px solid rgba(255,26,46,.22);border-radius:8px;background:rgba(5,3,5,.7);min-width:0;}
+#proxyrep .pr-hh{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid rgba(255,26,46,.2);font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--acc);}
+#proxyrep .pr-hh button{background:none;border:1px solid rgba(255,26,46,.3);color:var(--muted);font-family:var(--mono);font-size:10px;border-radius:3px;padding:3px 8px;cursor:pointer;}
+#proxyrep .pr-list{max-height:560px;overflow:auto;}
+#proxyrep .pr-row{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;font-family:var(--mono);font-size:12px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 8px;}
+#proxyrep .pr-row:hover{background:rgba(255,26,46,.06);}
+#proxyrep .pr-row.on{background:rgba(255,26,46,.12);box-shadow:inset 3px 0 0 var(--acc);}
+#proxyrep .pr-m{font-weight:700;font-size:11px;}
+#proxyrep .pr-u{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6edf3;}
+#proxyrep .pr-meta{grid-column:1/-1;font-size:11px;color:var(--muted);}
+#proxyrep .pr-src{font-style:normal;color:var(--magenta);}
+#proxyrep .pr-empty{padding:16px;color:var(--muted);font-family:var(--mono);font-size:12px;}
+#proxyrep [data-m="GET"],#proxyrep [data-m="HEAD"]{color:var(--green);}
+#proxyrep [data-m="POST"]{color:var(--amber);}
+#proxyrep [data-m="PUT"],#proxyrep [data-m="PATCH"]{color:var(--magenta);}
+#proxyrep [data-m="DELETE"]{color:var(--acc);}
+#proxyrep [data-m="OPTIONS"]{color:var(--muted);}
+#proxyrep .st-ok{color:var(--green);}
+#proxyrep .st-mid{color:var(--amber);}
+#proxyrep .st-bad{color:#ff7a59;}
+#proxyrep .st-err{color:var(--acc);}
+#proxyrep .pr-tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid rgba(255,26,46,.2);flex-wrap:wrap;}
+#proxyrep .pr-tab{background:transparent;border:1px solid rgba(255,26,46,.25);color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:7px 12px;border-radius:4px;cursor:pointer;}
+#proxyrep .pr-tab.on{color:#fff;background:rgba(255,26,46,.18);border-color:var(--acc);}
+#proxyrep .pr-pane{display:none;padding:14px;}
+#proxyrep .pr-pane.on{display:block;}
+#proxyrep h4{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--acc);margin:14px 0 6px;font-weight:700;}
+#proxyrep pre{background:#020104;border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:10px;font-family:var(--mono);font-size:12px;color:#cfe8d7;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow:auto;margin:0;}
+#proxyrep .pr-line{font-family:var(--mono);font-size:13px;margin-bottom:6px;word-break:break-all;}
+#proxyrep .pr-links{display:flex;flex-wrap:wrap;gap:6px;}
+#proxyrep .pr-chip{background:#0b0410;border:1px solid rgba(255,26,46,.3);color:#e6edf3;font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:4px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#proxyrep .pr-chip:hover{border-color:var(--acc);color:var(--acc);}
+#proxyrep .pr-lbl{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-top:12px;}
+#proxyrep .pr-diff{font-family:var(--mono);font-size:12px;padding:10px;border:1px dashed rgba(255,176,32,.4);border-radius:6px;margin:12px 0;color:#e6edf3;word-break:break-all;line-height:1.6;}
+@media (max-width:820px){#proxyrep .pr-body{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){#proxyrep .pr-auth.flash{animation:none;}}
 </style>
 <script>
 /* ════════════════════════════════════════════════════════════════════════
@@ -8127,6 +8183,63 @@ dig assets.lime.bike CNAME</div></div></div>
   </div>
 </section>
 
+
+<section id="proxyrep">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">19·B — Proxy &amp; Repeater</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Proxy" data-l2="Repeater." aria-label="Proxy y Repeater."></h2>
+    <p class="pr-sub">Mini-navegador con historial de peticiones y Repeater. Todo sale por el Worker (scanner-proxy). Esta herramienta ve solo lo que pedís desde aquí, no el tráfico de otras pestañas.</p>
+
+    <label class="pr-auth" id="prAuthWrap"><input type="checkbox" id="prAuth"><span>Confirmo <b>autorización expresa</b> para probar los objetivos que ingrese.</span></label>
+
+    <div class="pr-bar">
+      <select id="prMethod" aria-label="Método">
+        <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+      </select>
+      <input id="prUrl" class="pr-url" placeholder="https://objetivo.tld/ruta" spellcheck="false" autocomplete="off">
+      <button type="button" id="prSend" class="pr-btn">▸ ENVIAR</button>
+    </div>
+    <details class="pr-top-h">
+      <summary>Headers y body opcionales (cookies de sesión, JSON…)</summary>
+      <textarea id="prTopHdr" rows="3" spellcheck="false" placeholder="Cookie: session=…&#10;Authorization: Bearer …"></textarea>
+      <textarea id="prTopBody" rows="3" spellcheck="false" placeholder="body (solo POST / PUT / PATCH)"></textarea>
+    </details>
+    <div class="pr-status" id="prStatus">Listo. Ingresá una URL y enviá.</div>
+
+    <div class="pr-body">
+      <aside class="pr-hist">
+        <div class="pr-hh"><span>HISTORIAL · <b id="prCount">0</b></span><button type="button" id="prClear">limpiar</button></div>
+        <div id="prList" class="pr-list"></div>
+      </aside>
+      <div class="pr-main">
+        <div class="pr-tabs">
+          <button type="button" class="pr-tab on" data-tab="req">REQUEST</button>
+          <button type="button" class="pr-tab" data-tab="res">RESPONSE</button>
+          <button type="button" class="pr-tab" data-tab="rep">REPEATER</button>
+        </div>
+        <div class="pr-pane on" id="prP-req">
+          <div id="prReqView"></div>
+          <button type="button" class="pr-btn-s" id="prToRep">⇢ Enviar a Repeater</button>
+        </div>
+        <div class="pr-pane" id="prP-res"><div id="prResView"></div></div>
+        <div class="pr-pane" id="prP-rep">
+          <div class="pr-rep-row">
+            <select id="prRepMethod" aria-label="Método del Repeater">
+              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+            </select>
+            <input id="prRepUrl" class="pr-url" spellcheck="false">
+          </div>
+          <label class="pr-lbl">Headers (Clave: valor, una por línea)</label>
+          <textarea id="prRepHdr" rows="5" spellcheck="false"></textarea>
+          <label class="pr-lbl">Body</label>
+          <textarea id="prRepBody" rows="6" spellcheck="false"></textarea>
+          <button type="button" class="pr-btn" id="prRepSend">⟳ REENVIAR</button>
+          <div id="prRepOut"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- CONTACTO -->
 
@@ -15246,6 +15359,7 @@ var NAV_ITEMS = [
  {id:'cheatsheet',   icon:'\uD83D\uDCD6',  label:'Cheatsheet'},
  {id:'payloads',     icon:'\uD83D\uDCA3',  label:'Payload Library'},
  {id:'burpsuite',    icon:'\uD83D\uDD04',  label:'Burp Suite'},
+ {id:'proxyrep',    icon:'\u21C4',        label:'Proxy y Repeater'},
  {id:'termlab',      icon:'\uD83D\uDCBB',  label:'Command Lab'},
  {id:'laboratorio',  icon:'\uD83C\uDFAE',  label:'Laboratorio Ofensivo'},
  {id:'hashcalc',     icon:'#',             label:'Hash Calculator'},
@@ -33593,5 +33707,174 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 })();
 </script>
 
+<script>
+/* ══ PROXY & REPEATER — lógica ══ */
+(function(){
+'use strict';
+var WORKER='https://scanner-proxy.matias-ramireztu.workers.dev';
+var hist=[], selId=null, seq=0, repBase=null;
+var $=function(id){ return document.getElementById(id); };
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function stCls(st){ return !st ? 'st-err' : st>=500 ? 'st-err' : st>=400 ? 'st-bad' : st>=300 ? 'st-mid' : st>=200 ? 'st-ok' : 'st-err'; }
+function parseHdr(t){ var h={}; String(t||'').split(/\r?\n/).forEach(function(l){ var i=l.indexOf(':'); if(i>0){ var k=l.slice(0,i).trim(); if(k) h[k]=l.slice(i+1).trim(); } }); return h; }
+function hdrText(h){ return Object.keys(h||{}).map(function(k){ return k+': '+h[k]; }).join('\n'); }
+function status(msg,err){ var s=$('prStatus'); if(!s) return; s.textContent=msg; s.className='pr-status'+(err?' err':''); }
+function gate(){
+  var a=$('prAuth'); if(a && a.checked) return true;
+  status('✕ Marcá la autorización expresa para enviar peticiones.', true);
+  var w=$('prAuthWrap'); if(w){ w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); }
+  return false;
+}
+function findE(id){ for(var i=0;i<hist.length;i++) if(hist[i].id===id) return hist[i]; return null; }
+var SHOW_MAX=60000;
+function fmtBody(b){ var t=String(b||''); try{ t=JSON.stringify(JSON.parse(t),null,2); }catch(e){} return t.length>SHOW_MAX ? t.slice(0,SHOW_MAX)+'\n… [truncado en vista: '+t.length+' car.]' : t; }
+function links(body, base){
+  var out=[], seen={}, re=/(?:href|src|action)\s*=\s*["']([^"'#][^"']*)["']/gi, m;
+  while((m=re.exec(String(body||'')))!==null && out.length<60){
+    try{ var u=new URL(m[1], base).href; if(/^https?:/i.test(u) && !seen[u]){ seen[u]=1; out.push(u); } }catch(e){}
+  }
+  return out;
+}
+
+/* envío vía Worker: el Worker devuelve status, headers, body y tiempo */
+function send(req, src){
+  var t0=Date.now();
+  var payload=(req.method==='GET'||req.method==='HEAD')?'':String(req.body||'');
+  return fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({url:req.url,method:req.method,headers:req.headers||{},body:payload,evade:false,cache_bust:true})})
+  .then(function(r){ return r.text().then(function(tx){
+    var ms=Date.now()-t0, w;
+    try{ w=JSON.parse(tx); }catch(e){ return add(req,src,{status:0,ms:ms,error:'Respuesta no válida del Worker',headers:{},body:tx.slice(0,2000)}); }
+    if(!w.status) return add(req,src,{status:0,ms:ms,error:(w.blocked?'Bloqueado: ':'Error del Worker: ')+String(w.error||'sin respuesta'),headers:{},body:''});
+    return add(req,src,{status:w.status,ms:(w.timing_ms!=null?Math.round(w.timing_ms):ms),error:null,headers:w.headers||{},body:String(w.body||'')});
+  }); })
+  .catch(function(e){ return add(req,src,{status:0,ms:Date.now()-t0,error:'Sin conexión con el Worker: '+(e&&e.message||e),headers:{},body:''}); });
+}
+function add(req,src,res){
+  var e={id:++seq, ts:new Date().toLocaleTimeString(), src:src, req:req, res:res, size:String(res.body||'').length};
+  hist.unshift(e); if(hist.length>200) hist.length=200;
+  selId=e.id; render();
+  return e;
+}
+
+/* render */
+function render(){ renderList(); renderSel(); }
+function renderList(){
+  var L=$('prList'); if(!L) return;
+  $('prCount').textContent=hist.length;
+  if(!hist.length){ L.innerHTML='<div class="pr-empty">Sin peticiones todavía. Ingresá una URL arriba.</div>'; return; }
+  L.innerHTML=hist.map(function(e){
+    var srcTag = e.src==='repeater' ? ' <i class="pr-src">REP</i>' : e.src==='nav' ? ' <i class="pr-src">NAV</i>' : '';
+    return '<div class="pr-row'+(e.id===selId?' on':'')+'" data-id="'+e.id+'">'
+      +'<span class="pr-m" data-m="'+esc(e.req.method)+'">'+esc(e.req.method)+'</span>'
+      +'<span class="pr-u" title="'+esc(e.req.url)+'">'+esc(e.req.url)+'</span>'
+      +'<span class="pr-meta"><b class="'+stCls(e.res.status)+'">'+esc(e.res.status||'ERR')+'</b> · '+e.size+' B · '+e.res.ms+' ms'+srcTag+'</span>'
+      +'</div>';
+  }).join('');
+}
+function renderSel(){
+  var e=findE(selId), rv=$('prReqView'), sv=$('prResView');
+  if(!e){
+    rv.innerHTML='<div class="pr-empty">Seleccioná una petición del historial o enviá una nueva.</div>';
+    sv.innerHTML='<div class="pr-empty">Sin respuesta seleccionada.</div>';
+    return;
+  }
+  rv.innerHTML='<div class="pr-line"><b data-m="'+esc(e.req.method)+'">'+esc(e.req.method)+'</b> '+esc(e.req.url)+'</div>'
+    +'<h4>HEADERS</h4><pre>'+esc(hdrText(e.req.headers)||'(ninguno)')+'</pre>'
+    +(e.req.body?'<h4>BODY</h4><pre>'+esc(e.req.body)+'</pre>':'');
+  sv.innerHTML=resHTML(e);
+}
+function resHTML(e){
+  var r=e.res;
+  if(!r.status && r.error) return '<div class="pr-line st-err">✕ '+esc(r.error)+'</div>'+(r.body?'<pre>'+esc(r.body)+'</pre>':'');
+  var ls=links(r.body, e.req.url);
+  return '<div class="pr-line"><b class="'+stCls(r.status)+'">HTTP '+r.status+'</b> · '+r.ms+' ms · '+e.size+' B</div>'
+    +'<h4>HEADERS</h4><pre>'+esc(hdrText(r.headers)||'(sin headers)')+'</pre>'
+    +'<h4>BODY</h4><pre>'+esc(fmtBody(r.body)||'(vacío)')+'</pre>'
+    +(ls.length ? '<h4>LINKS ('+ls.length+') · click para navegar</h4><div class="pr-links">'
+      + ls.map(function(u){ return '<button type="button" class="pr-chip" data-go="'+esc(u)+'" title="'+esc(u)+'">'+esc(u)+'</button>'; }).join('')
+      + '</div>' : '');
+}
+
+function tab(t){
+  document.querySelectorAll('#proxyrep .pr-tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===t); });
+  document.querySelectorAll('#proxyrep .pr-pane').forEach(function(p){ p.classList.toggle('on', p.id==='prP-'+t); });
+}
+
+/* mini-navegador */
+function navSend(url, method, body){
+  if(!gate()) return;
+  url=String(url||'').trim();
+  if(!/^https?:\/\//i.test(url)){ status('✕ Ingresá una URL completa (https://…).', true); return; }
+  var req={method:method||'GET', url:url, headers:parseHdr($('prTopHdr').value), body:body!=null?body:$('prTopBody').value};
+  status('⟳ Pidiendo '+url+' vía Worker…');
+  send(req,'nav').then(function(e){
+    status('Listo: HTTP '+(e.res.status||'ERR')+' · '+e.res.ms+' ms');
+    tab('res');
+  });
+}
+
+/* repeater */
+function toRep(e){
+  if(!e) return;
+  $('prRepMethod').value=e.req.method;
+  $('prRepUrl').value=e.req.url;
+  $('prRepHdr').value=hdrText(e.req.headers);
+  $('prRepBody').value=e.req.body||'';
+  repBase=e.id;
+  $('prRepOut').innerHTML='<div class="pr-empty">Editá la petición y pulsá REENVIAR. Se compara con la original #'+e.id+'.</div>';
+  tab('rep');
+}
+function diffHTML(a,b){
+  if(!a) return '';
+  var ba=String(a.res.body||''), bb=String(b.res.body||'');
+  var same=ba===bb, first=-1;
+  if(!same){ var n=Math.min(ba.length,bb.length); for(var i=0;i<n;i++){ if(ba[i]!==bb[i]){ first=i; break; } } if(first<0) first=n; }
+  return '<div class="pr-diff"><b>vs #'+a.id+':</b> status '+esc(a.res.status)+' → '+esc(b.res.status)
+    +' · tamaño '+ba.length+' → '+bb.length+' B · '
+    + (same ? '<span class="st-ok">cuerpo IDÉNTICO</span>'
+            : '<span class="st-bad">cuerpo DISTINTO · primera diferencia en el car. '+first+': …'+esc(bb.slice(Math.max(0,first-30), first+60))+'…</span>')
+    +'</div>';
+}
+function repSend(){
+  if(!gate()) return;
+  var url=$('prRepUrl').value.trim();
+  if(!/^https?:\/\//i.test(url)){ status('✕ URL inválida en el Repeater.', true); return; }
+  var req={method:$('prRepMethod').value, url:url, headers:parseHdr($('prRepHdr').value), body:$('prRepBody').value};
+  var base=findE(repBase);
+  status('⟳ Reenviando desde Repeater…');
+  send(req,'repeater').then(function(e){
+    status('Listo: HTTP '+(e.res.status||'ERR')+' · '+e.res.ms+' ms');
+    $('prRepOut').innerHTML = diffHTML(base,e) + resHTML(e);
+  });
+}
+
+/* eventos */
+document.addEventListener('DOMContentLoaded', init);
+if(document.readyState!=='loading') init();
+var inited=false;
+function init(){
+  if(inited) return; inited=true;
+  var root=$('proxyrep'); if(!root) return;
+  $('prSend').addEventListener('click', function(){ navSend($('prUrl').value, $('prMethod').value); });
+  $('prUrl').addEventListener('keydown', function(ev){ if(ev.key==='Enter') navSend($('prUrl').value, $('prMethod').value); });
+  $('prClear').addEventListener('click', function(){ hist=[]; selId=null; render(); status('Historial limpio.'); });
+  $('prList').addEventListener('click', function(ev){
+    var row=ev.target.closest('.pr-row'); if(!row) return;
+    selId=+row.getAttribute('data-id'); render();
+  });
+  $('prResView').addEventListener('click', function(ev){
+    var c=ev.target.closest('.pr-chip'); if(!c) return;
+    var u=c.getAttribute('data-go');
+    $('prUrl').value=u; $('prMethod').value='GET';
+    navSend(u,'GET','');
+  });
+  $('prToRep').addEventListener('click', function(){ toRep(findE(selId)); });
+  $('prRepSend').addEventListener('click', repSend);
+  root.querySelectorAll('.pr-tab').forEach(function(b){ b.addEventListener('click', function(){ tab(b.getAttribute('data-tab')); }); });
+  render();
+}
+})();
+</script>
 </body>
 </html>

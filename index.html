@@ -3957,8 +3957,8 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 
           <button type="button" class="pr-tab on" data-tab="req">REQUEST</button>
 
-          <button type="button" class="pr-tab" data-tab="web">MINI-NAVEGADOR</button>
           <button type="button" class="pr-tab" data-tab="res">RESPONSE</button>
+          <button type="button" class="pr-tab" data-tab="render">RENDER</button>
 
           <button type="button" class="pr-tab" data-tab="rep">REPEATER</button>
 
@@ -3973,6 +3973,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
           <button type="button" class="pr-tab" data-tab="tgt">TARGET</button>
 
           <button type="button" class="pr-tab" data-tab="an">ANÁLISIS</button>
+          <button type="button" class="pr-tab" data-tab="web">MINI-NAVEGADOR</button>
 
         </div>
 
@@ -4002,6 +4003,12 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
         </div>
 
 
+
+        <div class="pr-pane" id="prP-render">
+          <div class="pr-acts"><span class="pr-findn" id="prRenN">sin respuesta seleccionada</span><button type="button" class="pr-btn-s" id="prRenFresh">⟳ RENDERIZAR SELECCIÓN</button></div>
+          <div class="pr-web-frame"><iframe id="prRenFrame" sandbox="allow-scripts" title="Vista renderizada"></iframe></div>
+          <div class="pr-note">Vista renderizada de la respuesta seleccionada. CSS y JS salen del historial (lo que el Worker ya trajo). Imágenes y fuentes no cargan en esta vista. Sin red: la página no puede salir a internet desde aquí.</div>
+        </div>
 
         <div class="pr-pane" id="prP-res">
 
@@ -4057,6 +4064,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 
           <textarea id="prRepBody" rows="6" spellcheck="false"></textarea>
 
+          <div id="prRepWire" class="pr-wire"></div>
           <div id="prRepOut"></div>
 
         </div>
@@ -4143,8 +4151,12 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
             <div id="prFrameMsg" class="pr-empty">Lanzá una instancia para navegar.</div>
           </div>
           <div class="pr-note">Todo el tráfico sale por el Worker y queda en el HISTORIAL. Los recursos externos no cargan directo en el visor: el Worker los pide y aparecen abajo. Los fetch de la página se reenvían por el Worker; los XHR solo se registran (no devuelven datos a la página).</div>
-          <div class="pr-lbl">LLAMADAS DE LA INSTANCIA</div>
-          <div id="prWebLog" class="pr-list"></div>
+          <div class="pr-acts pr-scope">
+            <button type="button" class="pr-btn-s on" data-scope="inst">SOLO INSTANCIA</button>
+            <button type="button" class="pr-btn-s" data-scope="all">TODO EL HISTORIAL</button>
+            <span class="pr-findn" id="prWebN"></span>
+          </div>
+          <div class="pr-tablewrap" id="prWebLog"><table id="prWebTable"></table></div>
         </div>
 
         <div class="pr-pane" id="prP-hh">
@@ -4746,6 +4758,17 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #proxyrep #prReqHdrs{margin-bottom:10px;}
 #proxyrep #prReqHdrs .pr-hdrs{border-left-color:var(--acc);}
 @media (prefers-reduced-motion:reduce){#proxyrep #prFrame{transition:none;}}
+/* ══ PROXY v6 — render, envío real, historial de instancia ══ */
+#proxyrep .pr-scope{margin:4px 0 8px;}
+#proxyrep .pr-btn-s.on{border-color:var(--acc);color:#fff;box-shadow:0 0 10px rgba(255,26,46,.35);}
+#proxyrep #prRenFrame{display:block;width:100%;height:460px;border:0;background:#050208;}
+#proxyrep .pr-wire{margin:8px 0;}
+#proxyrep .pr-wire-box{border:1px dashed rgba(0,255,163,.35);padding:8px 10px;margin:8px 0;background:rgba(0,255,163,.025);}
+#proxyrep .pr-wire-pre{max-height:220px;overflow:auto;margin:6px 0;}
+#proxyrep .pr-wire-warn{margin:6px 0 0 16px;font-family:var(--mono);font-size:11px;color:var(--amber);}
+#proxyrep .pr-wire-warn li{margin:2px 0;}
+#proxyrep #prRepWire:empty{display:none;}
+
 
 
 /* ── v3 extras ── */
@@ -34187,7 +34210,21 @@ var crawlStop=false;
 var $=function(id){ return document.getElementById(id); };
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function stCls(st){ return !st ? 'st-err' : st>=500 ? 'st-err' : st>=400 ? 'st-bad' : st>=300 ? 'st-mid' : st>=200 ? 'st-ok' : 'st-err'; }
-function parseHdr(t){ var h={}; String(t||'').split(/\r?\n/).forEach(function(l){ var i=l.indexOf(':'); if(i>0){ var k=l.slice(0,i).trim(); if(k) h[k]=l.slice(i+1).trim(); } }); return h; }
+var FORBID={'host':1,'content-length':1,'connection':1,'transfer-encoding':1,'keep-alive':1,'upgrade':1,'te':1,'trailer':1,'proxy-connection':1,'expect':1};
+function parseHdrFull(t){
+  var h={}, bad=[], dup=[];
+  String(t||'').split(/\r?\n/).forEach(function(l,idx){
+    if(!l.trim()) return;
+    var i=l.indexOf(':'); if(i<=0){ bad.push(idx+1); return; }
+    var k=l.slice(0,i).trim(), v=l.slice(i+1).trim();
+    if(!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(k)){ bad.push(idx+1); return; }
+    var lk=k.toLowerCase(), found=Object.keys(h).filter(function(x){ return x.toLowerCase()===lk; })[0];
+    if(found!==undefined){ h[found]=h[found]+(lk==='cookie'?'; ':', ')+v; dup.push(k); }
+    else h[k]=v;
+  });
+  return {h:h, bad:bad, dup:dup};
+}
+function parseHdr(t){ return parseHdrFull(t).h; }
 function hdrText(h){ return Object.keys(h||{}).map(function(k){ return k+': '+h[k]; }).join('\n'); }
 function status(msg,err){ var s=$('prStatus'); if(!s) return; s.textContent=msg; s.className='pr-status'+(err?' err':''); }
 function hostOf(u){ try{ return new URL(u).hostname.toLowerCase(); }catch(e){ return ''; } }
@@ -34228,6 +34265,39 @@ function extractEndpoints(t){
     if(!seen[p]){ seen[p]=1; out.push(p); }
   }
   return out;
+}
+
+/* ── envío real: lo que el Worker reenvía (según scanner-proxy-v13) ── */
+function wireOf(req, dupList, badList){
+  var m=String(req.method||'GET').toUpperCase(), h=req.headers||{}, lk={};
+  var u=null; try{ u=new URL(req.url); }catch(x){}
+  var lines=[m+' '+(u?(u.pathname||'/')+(u.search||''):req.url)+' HTTP/1.1', 'Host: '+(u?u.host:'—')+'  (runtime del Worker)'];
+  var warn=[], dropped=[];
+  Object.keys(h).forEach(function(k){
+    lk[k.toLowerCase()]=1;
+    if(FORBID[k.toLowerCase()]){ dropped.push(k); return; }
+    lines.push(k+': '+h[k]);
+  });
+  var hasBody=['POST','PUT','PATCH'].indexOf(m)>=0, body=String(req.body||'');
+  if(!lk['user-agent']) lines.push('User-Agent: (la del Worker, rota por intento · no visible)');
+  if(!lk['accept']) lines.push('Accept: */*  (default del Worker)');
+  if(hasBody && body){
+    if(!lk['content-type']) lines.push('Content-Type: application/json  (default del Worker: no lo definiste)');
+    if(!lk['content-length']) lines.push('Content-Length: '+(typeof TextEncoder!=='undefined'?new TextEncoder().encode(body).length:body.length)+'  (auto)');
+    lines.push(''); lines.push(body.length>600?body.slice(0,600)+' …':body);
+  }
+  if(dropped.length) warn.push('No se envían (Worker las descarta): '+dropped.join(', '));
+  if(body && !hasBody) warn.push(m+' no lleva body en el Worker: el body se descarta.');
+  if(hasBody && body && !lk['content-type']) warn.push('Sin Content-Type el Worker manda application/json.');
+  if(dupList && dupList.length) warn.push('Cabeceras duplicadas fusionadas: '+dupList.join(', ')+' (el Worker recibe un solo valor).');
+  if(badList && badList.length) warn.push('Líneas ignoradas (formato inválido): '+badList.join(', ')+'.');
+  warn.push('El Worker sigue redirecciones: la respuesta puede venir de otra URL.');
+  return {lines:lines, warn:warn};
+}
+function wireHTML(req, dupList, badList){
+  var w=wireOf(req, dupList, badList);
+  return '<div class="pr-wire-box"><div class="pr-lbl">ENVÍO REAL · VÍA WORKER</div><pre class="pr-raw pr-wire-pre">'+esc(w.lines.join('\n'))+'</pre>'
+    +'<ul class="pr-wire-warn">'+w.warn.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>';
 }
 
 /* ── gate + scope ── */
@@ -34354,7 +34424,7 @@ function renderSel(){
     return;
   }
   $('prReqRaw').textContent=rawReq(e.req);
-  $('prReqHdrs').innerHTML=hdrHTML(e,true);
+  $('prReqHdrs').innerHTML=hdrHTML(e,true)+wireHTML(e.req);
   $('prResRaw').textContent=rawRes(e);
   var ls=linksOf(e.res.body, e.req.url);
   $('prLinks').innerHTML = ls.length ? '<div class="pr-lbl" style="width:100%">LINKS EN LA RESPUESTA ('+ls.length+') · click para navegar</div>'
@@ -34379,6 +34449,7 @@ function tab(t){
   if(t==='tgt') renderTree();
   if(t==='an') renderAnalysis();
   if(t==='web') renderWebLog();
+  if(t==='render') renderRender();
 }
 
 /* ── mini-navegador + recursos ── */
@@ -34418,7 +34489,7 @@ function crawl(parent){
     });
   }
   var jobs=[]; for(var k=0;k<CRAWL_CONC;k++) jobs.push(next());
-  Promise.all(jobs).then(function(){
+  return Promise.all(jobs).then(function(){
     status('✓ HTTP HISTORY: '+total+' recursos cargados desde '+mainHost+(total>=CRAWL_MAX?' (límite alcanzado)':'')+'.');
     render();
   });
@@ -34478,16 +34549,47 @@ function hookJS(){
   }, true);
 }
 var CSP_META="<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data:; form-action 'none'\">";
-function frameDoc(e){
+function bodyOf(url){
+  for(var i=0;i<hist.length;i++){ var h=hist[i]; if(h.req.url===url && h.res.status && h.res.status<400) return String(h.res.body||''); }
+  return null;
+}
+function inlineRes(html, base){
+  var abs=function(u){ try{ return new URL(String(u).replace(/&amp;/g,'&'), base).href; }catch(x){ return null; } };
+  html=html.replace(/<link\b[^>]*>/gi, function(tag){
+    if(!/rel\s*=\s*["']?stylesheet/i.test(tag)) return tag;
+    var m=/href\s*=\s*["']([^"']+)["']/i.exec(tag); if(!m) return tag;
+    var b=bodyOf(abs(m[1])); if(b==null) return tag;
+    return '<style>'+b.replace(/<\/style/gi,'<\\/style')+'</style>';
+  });
+  html=html.replace(/<script\b([^>]*?)\bsrc\s*=\s*["']([^"']+)["']([^>]*)>\s*<\/script>/gi, function(tag,a,src,c){
+    var b=bodyOf(abs(src)); if(b==null) return tag;
+    return '<script'+a+c+'>'+b.replace(/<\/script/gi,'<\\/script')+'<\/script>';
+  });
+  return html;
+}
+var CSP_META="<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data:; form-action 'none'\">";
+function frameDoc(e, noHook){
   var st=e.res.status, ct=ctype(e), body=String(e.res.body||''), base=e.req.url;
   var box='background:#050208;color:#7CFFCB;font:13px ui-monospace,monospace;padding:20px';
   if(!st) return '<!doctype html><body style="'+box+'">✕ '+esc(e.res.error||'sin respuesta')+'</body>';
   if(/html/i.test(ct) || (!ct && /<html|<!doctype|<body/i.test(body))){
-    var hook='<base href="'+esc(base)+'">'+CSP_META+'<script>('+hookJS.toString()+')();<\/script>';
-    return /<head[^>]*>/i.test(body) ? body.replace(/<head[^>]*>/i, function(m){ return m+hook; }) : hook+body;
+    body=inlineRes(body, base);
+    var pre='<base href="'+esc(base)+'">'+CSP_META+(noHook?'':'<script>('+hookJS.toString()+')();<\/script>');
+    return /<head(\s[^>]*)?>/i.test(body) ? body.replace(/<head(\s[^>]*)?>/i, function(m){ return m+pre; }) : pre+body;
   }
   if(/^text\/|json|javascript|xml/i.test(ct)) return '<!doctype html>'+CSP_META+'<pre style="white-space:pre-wrap;word-break:break-all;margin:0;padding:12px;font:12px ui-monospace,monospace;color:#cfe;background:#050208">'+esc(body)+'</pre>';
   return '<!doctype html><body style="'+box+'">[contenido no textual · '+esc(ct||'desconocido')+' · '+e.size+' car.]</body>';
+}
+function renderRender(){
+  var f=$('prRenFrame'), n=$('prRenN'); if(!f) return;
+  var e=findE(selId), note='';
+  if(e && !(/html/i.test(ctype(e)) || (!ctype(e) && /<html|<!doctype|<body/i.test(String(e.res.body||''))))){
+    note=' · la selección no es HTML: se muestra la última página';
+    e=hist.filter(function(h){ return h.res.status && /html/i.test(ctype(h)); })[0]||null;
+  }
+  if(!e){ f.srcdoc='<!doctype html><body style="background:#050208;color:#7CFFCB;font:13px monospace;padding:20px">Seleccioná una respuesta en el historial.</body>'; n.textContent='sin respuesta seleccionada'; return; }
+  f.srcdoc=frameDoc(e,true);
+  n.textContent='#'+e.id+' · '+e.req.method+' '+e.req.url+' · HTTP '+(e.res.status||'ERR')+note;
 }
 function countInst(id){ var n=0; hist.forEach(function(e){ if(e.inst===id) n++; }); return n; }
 function updWebState(){
@@ -34500,13 +34602,17 @@ function updWebState(){
   st.className='pr-findn '+(on?'pr-inst-on':'pr-inst-off');
   st.textContent=on ? '● INSTANCIA #'+inst.id+' · '+countInst(inst.id)+' llamadas' : '○ sin instancia';
 }
+var webScope='inst';
 function renderWebLog(){
-  var L=$('prWebLog'); if(!L) return;
-  if(!inst){ L.innerHTML='<div class="pr-empty">Lanzá una instancia para ver cada llamada que dispare el navegador.</div>'; return; }
-  var rows=hist.filter(function(e){ return e.inst===inst.id; });
-  if(!rows.length){ L.innerHTML='<div class="pr-empty">Sin llamadas todavía.</div>'; return; }
-  var vis=rows.slice(0,listLim);
-  L.innerHTML=vis.map(rowHTML).join('')+(rows.length>vis.length?'<div class="pr-empty">… '+(rows.length-vis.length)+' más en HTTP HISTORY</div>':'');
+  var T=$('prWebTable'); if(!T) return;
+  document.querySelectorAll('#prP-web .pr-scope button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-scope')===webScope); });
+  var list;
+  if(webScope==='all') list=hist.slice();
+  else list = inst ? hist.filter(function(e){ return e.inst===inst.id; }) : [];
+  var shown=list.slice(0,hhLim);
+  $('prWebN').textContent = webScope==='all' ? hist.length+' peticiones en el historial' : (inst ? list.length+' llamadas de la instancia #'+inst.id : 'sin instancia activa');
+  if(!list.length){ T.innerHTML='<tr><td class="pr-empty">'+(webScope==='inst' && !inst ? 'Lanzá una instancia para ver aquí sus llamadas.' : 'Sin peticiones.')+'</td></tr>'; return; }
+  T.innerHTML=hhHTML(shown.slice().reverse());
 }
 function instStart(){
   if(inst){ status('Ya hay una instancia activa (#'+inst.id+').'); return; }
@@ -34528,12 +34634,12 @@ function instEnd(){
   updWebState(); renderWebLog();
   status('■ Instancia #'+id+' finalizada · '+n+' llamadas.');
 }
-function webGo(url,m,body,ctype,nopush){
+function webGo(url,m,body,ctp,nopush){
   if(!inst){ status('✕ Lanzá una instancia primero.', true); return; }
   url=String(url||'').trim();
   if(!canSend(url)) return;
   m=(m||'GET').toUpperCase();
-  var hd=parseHdr($('prTopHdr').value); if(ctype) hd['Content-Type']=ctype;
+  var hd=parseHdr($('prTopHdr').value); if(ctp) hd['Content-Type']=ctp;
   var req={method:m, url:url, headers:hd, body:(m==='GET'||m==='HEAD')?'':String(body||'')};
   if(!nopush){ inst.stack=inst.stack.slice(0,inst.idx+1); inst.stack.push(url); inst.idx=inst.stack.length-1; }
   $('prWebUrl').value=url;
@@ -34546,8 +34652,10 @@ function webGo(url,m,body,ctype,nopush){
     inst.pageId=e.id;
     fr.srcdoc=frameDoc(e); fr.hidden=false; msg.hidden=true;
     status('Listo: HTTP '+(e.res.status||'ERR')+' · '+e.res.ms+' ms · instancia #'+id);
-    if(e.res.status && /html/i.test(ctype(e)) && $('prCrawl').checked) crawl(e);
     updWebState();
+    if(e.res.status && /html/i.test(ctype(e)) && $('prCrawl').checked){
+      crawl(e).then(function(){ if(inst && inst.id===id && inst.pageId===e.id){ fr.srcdoc=frameDoc(e); } updWebState(); });
+    }
   });
 }
 function reply(rid,ok,st,hd,body){
@@ -34593,6 +34701,7 @@ function copyText(t, okMsg){
 function setRep(method,url,hdr,body){
   $('prRepMethod').value=method||'GET'; $('prRepUrl').value=url||'';
   $('prRepHdr').value=hdr||''; $('prRepBody').value=body||'';
+  if(typeof repWire==='function') repWire();
 }
 function toRep(e){
   if(!e){ status('✕ Seleccioná una petición primero (historial o HTTP HISTORY).', true); return; }
@@ -34619,10 +34728,16 @@ function diffHTML(a,b){
             : '<span class="st-bad">cuerpo DISTINTO · primera diferencia en el car. '+first+': …'+esc(bb.slice(Math.max(0,first-30), first+60))+'…</span>')
     +'</div>';
 }
+function repWire(){
+  var pf=parseHdrFull($('prRepHdr').value);
+  var req={method:$('prRepMethod').value, url:$('prRepUrl').value.trim(), headers:pf.h, body:$('prRepBody').value};
+  $('prRepWire').innerHTML=wireHTML(req, pf.dup, pf.bad);
+}
 function repSend(){
   var url=$('prRepUrl').value.trim();
   if(!canSend(url)) return;
-  var req={method:$('prRepMethod').value, url:url, headers:parseHdr($('prRepHdr').value), body:$('prRepBody').value};
+  var pf=parseHdrFull($('prRepHdr').value);
+  var req={method:$('prRepMethod').value, url:url, headers:pf.h, body:$('prRepBody').value};
   var base=findE(repBase);
   status('⟳ Reenviando desde Repeater…');
   send(req,'repeater').then(function(e){
@@ -34632,12 +34747,8 @@ function repSend(){
 }
 
 /* ── HTTP HISTORY (tabla) ── */
-function renderHH(){
-  var T=$('prHHTable'); if(!T) return;
-  var all=hist.filter(passes); var list=all.slice(0,hhLim).reverse();
-  $('prHHN').textContent=list.length+' peticiones (cronológico)'+(all.length>list.length?' · mostrando las últimas '+list.length+' de '+all.length:'');
-  if(!list.length){ T.innerHTML='<tr><td class="pr-empty">Sin peticiones.</td></tr>'; return; }
-  T.innerHTML='<thead><tr><th>#</th><th>MÉTODO</th><th>HOST</th><th>RUTA</th><th>STATUS</th><th>TIPO</th><th>TAM.</th><th>MS</th><th>ORIGEN</th><th></th></tr></thead><tbody>'
+function hhHTML(list){
+  return '<thead><tr><th>#</th><th>MÉTODO</th><th>HOST</th><th>RUTA</th><th>STATUS</th><th>TIPO</th><th>TAM.</th><th>MS</th><th>ORIGEN</th><th></th></tr></thead><tbody>'
     + list.map(function(e){
       var u; try{ u=new URL(e.req.url); }catch(x){ u={host:'',pathname:e.req.url,search:''}; }
       var ct=ctype(e).split(';')[0]||'—';
@@ -34651,6 +34762,13 @@ function renderHH(){
         +'<td>'+(e.parent?'#'+e.parent:'—')+'</td>'
         +'<td><button type="button" class="pr-hh-btn" data-act="rep" data-id="'+e.id+'">⇢ REP</button></td></tr>';
     }).join('')+'</tbody>';
+}
+function renderHH(){
+  var T=$('prHHTable'); if(!T) return;
+  var all=hist.filter(passes); var list=all.slice(0,hhLim);
+  $('prHHN').textContent=list.length+' peticiones (cronológico)'+(all.length>list.length?' · mostrando las últimas '+list.length+' de '+all.length:'');
+  if(!list.length){ T.innerHTML='<tr><td class="pr-empty">Sin peticiones.</td></tr>'; return; }
+  T.innerHTML=hhHTML(list.slice().reverse());
 }
 function hhCsv(){
   var rows=[['id','method','url','status','ms','size','content_type','origen']];
@@ -35006,12 +35124,17 @@ function init(){
   $('prFw').addEventListener('click', function(){ if(inst && inst.idx<inst.stack.length-1){ inst.idx++; webGo(inst.stack[inst.idx],'GET','',null,true); } });
   $('prRl').addEventListener('click', function(){ if(inst && inst.stack.length) webGo(inst.stack[inst.idx],'GET','',null,true); });
   window.addEventListener('message', onMsg);
-  $('prWebLog').addEventListener('click', function(ev){
-    if(ev.target.closest('.pr-hdrs')) return;
-    var r=ev.target.closest('.pr-row'); if(!r) return;
+  document.querySelectorAll('#prP-web .pr-scope button').forEach(function(b){ b.addEventListener('click', function(){ webScope=b.getAttribute('data-scope'); renderWebLog(); }); });
+  $('prRenFresh').addEventListener('click', renderRender);
+  ['prRepUrl','prRepHdr','prRepBody'].forEach(function(id){ $(id).addEventListener('input', function(){ repWire(); }); });
+  $('prRepMethod').addEventListener('change', repWire);
+  $('prWebTable').addEventListener('click', function(ev){
+    var btn=ev.target.closest('button[data-act="rep"]');
+    if(btn){ ev.stopPropagation(); toRep(findE(+btn.getAttribute('data-id'))); return; }
+    var r=ev.target.closest('.hh-row'); if(!r) return;
     selId=+r.getAttribute('data-id'); render(); tab('req');
   });
-  ['prList','prWebLog'].forEach(function(id){
+  ['prList'].forEach(function(id){
     $(id).addEventListener('toggle', function(ev){ var t=ev.target; if(t && t.getAttribute && t.getAttribute('data-hid')) openH[t.getAttribute('data-hid')]=t.open; }, true);
   });
   document.querySelectorAll('#proxyrep .pr-tab').forEach(function(b){ b.addEventListener('click', function(){ tab(b.getAttribute('data-tab')); }); });

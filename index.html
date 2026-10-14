@@ -3713,367 +3713,6 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
   <div class="hero-scroll" id="hero-scroll">Scroll para explorar</div>
 </section>
 
-<section id="proxyrep">
-
-  <div class="wrap">
-
-    <div class="sec-num reveal-wrap"><div class="reveal-inner">19·B — Proxy &amp; Repeater</div></div>
-
-    <h2 class="sec-title h2-anim" data-l1="Proxy" data-l2="Repeater." aria-label="Proxy y Repeater."></h2>
-
-    <div class="pr-banner"><span class="dot"></span><span class="tag">VÍA WORKER · ONLINE</span><span class="prompt">tudelasec@proxy:~$</span> <span class="cur">intercept --mode repeater --atajos ALT+1…9</span></div>
-    <p class="pr-sub">Mini-navegador con historial HTTP completo: request y response en crudo, Repeater, Intruder, comparador, decoder, mapa del objetivo y análisis. Todo sale por el Worker (scanner-proxy). Solo ve lo que pedís desde aquí, nunca el tráfico de otras pestañas.</p>
-
-
-
-    <div class="pr-hud">
-
-      <div><small>PETICIONES</small><b id="hudReq">0</b></div>
-
-      <div><small>OK 2xx/3xx</small><b id="hudOk">0</b></div>
-
-      <div><small>ERRORES</small><b id="hudErr">0</b></div>
-
-      <div><small>HOSTS</small><b id="hudHosts">0</b></div>
-
-      <div><small>LATENCIA MEDIA</small><b id="hudLat">—</b></div>
-
-    </div>
-
-
-
-    <label class="pr-auth" id="prAuthWrap"><input type="checkbox" id="prAuth"><span>Confirmo <b>autorización expresa</b> para probar los objetivos que ingrese.</span></label>
-
-
-
-    <div class="pr-bar">
-
-      <select id="prMethod" aria-label="Método">
-
-        <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
-
-      </select>
-
-      <input id="prUrl" class="pr-url" placeholder="https://objetivo.tld/ruta" spellcheck="false" autocomplete="off">
-
-      <button type="button" id="prSend" class="pr-btn">▸ ENVIAR</button>
-
-    </div>
-
-    <details class="pr-top-h">
-
-      <summary>Headers, body, SCOPE y recursos</summary>
-
-      <input id="prScope" class="pr-url" style="width:100%;margin-top:6px" spellcheck="false" placeholder="Scope: example.cl, api.example.cl (vacío = solo el host de la URL)">
-
-      <textarea id="prTopHdr" rows="3" spellcheck="false" placeholder="Cookie: session=…&#10;Authorization: Bearer …"></textarea>
-
-      <textarea id="prTopBody" rows="3" spellcheck="false" placeholder="body (solo POST / PUT / PATCH)"></textarea>
-
-      <label class="pr-check"><input type="checkbox" id="prCrawl" checked> <span>Cargar recursos de la página (JS, CSS, imágenes y endpoints hallados en el JS) · máx. 40 · genera el HTTP HISTORY</span></label>
-
-    </details>
-
-    <div class="pr-status" id="prStatus">Listo. Ingresá una URL y enviá.</div>
-
-
-
-    <div class="pr-body">
-
-      <aside class="pr-hist">
-
-        <div class="pr-hh">
-
-          <span>HISTORIAL · <b id="prCount">0</b></span>
-
-          <span class="pr-hbtns">
-
-            <button type="button" id="prImport" title="Importar HAR (DevTools / Burp)">HAR↑</button>
-
-            <button type="button" id="prExport" title="Exportar historial a JSON">JSON↓</button>
-
-            <button type="button" id="prClear">limpiar</button>
-
-          </span>
-
-        </div>
-
-        <input type="file" id="prHarFile" accept=".har,application/json" hidden>
-
-        <div class="pr-filters">
-
-          <input id="prQ" placeholder="filtrar por URL o body…" spellcheck="false">
-
-          <select id="prFilt" aria-label="Filtro">
-
-            <option value="all">todos</option><option value="2xx">2xx</option><option value="3xx">3xx</option><option value="4xx">4xx</option><option value="5xx">5xx</option><option value="err">ERR</option><option value="nav">NAV</option><option value="sub">RECURSOS</option><option value="rep">REPEATER</option><option value="intr">INTRUDER</option><option value="har">HAR</option>
-
-          </select>
-
-        </div>
-
-        <div id="prList" class="pr-list"></div>
-
-      </aside>
-
-
-
-      <div class="pr-main">
-
-        <div class="pr-tabs">
-
-          <button type="button" class="pr-tab on" data-tab="req">REQUEST</button>
-
-          <button type="button" class="pr-tab" data-tab="res">RESPONSE</button>
-
-          <button type="button" class="pr-tab" data-tab="rep">REPEATER</button>
-
-          <button type="button" class="pr-tab" data-tab="intr">INTRUDER</button>
-
-          <button type="button" class="pr-tab" data-tab="hh">HTTP HISTORY</button>
-
-          <button type="button" class="pr-tab" data-tab="cmp">COMPARER</button>
-
-          <button type="button" class="pr-tab" data-tab="dec">DECODER</button>
-
-          <button type="button" class="pr-tab" data-tab="tgt">TARGET</button>
-
-          <button type="button" class="pr-tab" data-tab="an">ANÁLISIS</button>
-
-        </div>
-
-
-
-        <div class="pr-pane on" id="prP-req">
-
-          <div class="pr-acts">
-
-            <button type="button" class="pr-btn-s" id="prToRep">⇢ ENVIAR A REPEATER</button>
-
-            <button type="button" class="pr-btn-s" id="prToIntr">⇢ INTRUDER</button>
-
-            <button type="button" class="pr-btn-s" id="prCopyRaw">⧉ COPIAR RAW</button>
-
-            <button type="button" class="pr-btn-s" id="prCurl">⧉ COPIAR cURL</button>
-
-          </div>
-
-          <div class="pr-note">Request tal como se construyó. El Worker agrega por su cuenta User-Agent y Accept-Encoding, que no se ven aquí.</div>
-
-          <pre id="prReqRaw" class="pr-raw">Sin petición seleccionada.</pre>
-
-          <pre id="prCurlOut" class="pr-raw" hidden></pre>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-res">
-
-          <div class="pr-acts">
-
-            <input id="prFind" placeholder="buscar en la respuesta…" spellcheck="false">
-
-            <span id="prFindN" class="pr-findn"></span>
-
-            <button type="button" class="pr-btn-s" id="prCopyRes">⧉ COPIAR RESPUESTA</button>
-
-          </div>
-
-          <div id="prLinks" class="pr-links"></div>
-
-          <pre id="prResRaw" class="pr-raw">Sin respuesta seleccionada.</pre>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-rep">
-
-          <div class="pr-acts pr-rep-top">
-
-            <button type="button" class="pr-btn" id="prRepSend">⟳ ENVIAR</button>
-
-            <button type="button" class="pr-btn-s" id="prRepReset">⟲ RESET</button>
-
-            <button type="button" class="pr-btn-s" id="prRepFromSel">⇣ CARGAR SELECCIÓN</button>
-
-            <span id="prRepMsg" class="pr-findn"></span>
-
-          </div>
-
-          <div class="pr-rep-row">
-
-            <select id="prRepMethod" aria-label="Método del Repeater">
-
-              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
-
-            </select>
-
-            <input id="prRepUrl" class="pr-url" spellcheck="false" placeholder="https://…">
-
-          </div>
-
-          <label class="pr-lbl">Headers (Clave: valor, una por línea)</label>
-
-          <textarea id="prRepHdr" rows="5" spellcheck="false"></textarea>
-
-          <label class="pr-lbl">Body <span class="pr-hint">Ctrl+Enter reenvía</span></label>
-
-          <textarea id="prRepBody" rows="6" spellcheck="false"></textarea>
-
-          <div id="prRepOut"></div>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-intr">
-
-          <div class="pr-lbl">Base · marcá cada posición a fuzzear con §…§ (lo que va dentro es el valor original del baseline)</div>
-
-          <div class="pr-rep-row">
-
-            <select id="prIMethod" aria-label="Método del Intruder">
-
-              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
-
-            </select>
-
-            <input id="prIUrl" class="pr-url" spellcheck="false" placeholder="https://objetivo.tld/buscar?q=§test§">
-
-          </div>
-
-          <textarea id="prIHdr" rows="3" spellcheck="false" placeholder="Header: valor §x§"></textarea>
-
-          <textarea id="prIBody" rows="3" spellcheck="false" placeholder='{"campo":"§valor§"}'></textarea>
-
-          <div class="pr-lbl">Payloads de detección · uno por línea (máx. 60)</div>
-
-          <div class="pr-presets">
-
-            <button type="button" data-preset="reflect">REFLEJO</button>
-
-            <button type="button" data-preset="sqli">SQLi ERROR</button>
-
-            <button type="button" data-preset="ssti">SSTI</button>
-
-            <button type="button" data-preset="lfi">LFI</button>
-
-            <button type="button" data-preset="redir">REDIRECT</button>
-
-            <button type="button" data-preset="cmd">CMDi</button>
-
-          </div>
-
-          <textarea id="prIPay" rows="6" spellcheck="false"></textarea>
-
-          <div class="pr-rep-row pr-run">
-
-            <label class="pr-lbl" style="margin:0">Concurrencia
-
-              <select id="prIConc" aria-label="Concurrencia"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>
-
-            </label>
-
-            <button type="button" class="pr-btn" id="prIRun">▸ LANZAR</button>
-
-            <button type="button" class="pr-btn-s" id="prIStop">■ DETENER</button>
-
-            <span id="prIProg" class="pr-findn"></span>
-
-          </div>
-
-          <div id="prIOut"></div>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-hh">
-
-          <div class="pr-acts"><span class="pr-findn" id="prHHN"></span><button type="button" class="pr-btn-s" id="prHHCsv">⧉ EXPORTAR CSV</button></div>
-
-          <div class="pr-tablewrap"><table id="prHHTable"></table></div>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-cmp">
-
-          <div class="pr-rep-row">
-
-            <select id="prCmpA" class="pr-sel-wide" aria-label="Petición A"></select>
-
-            <select id="prCmpB" class="pr-sel-wide" aria-label="Petición B"></select>
-
-            <button type="button" class="pr-btn" id="prCmpGo">⇄ COMPARAR</button>
-
-          </div>
-
-          <div id="prCmpOut"></div>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-dec">
-
-          <div class="pr-rep-row">
-
-            <select id="prDecT" aria-label="Transformación">
-
-              <option value="url">URL</option><option value="b64">Base64</option><option value="html">HTML entities</option><option value="hex">Hex</option><option value="jwt">JWT (decodificar)</option>
-
-            </select>
-
-            <button type="button" class="pr-btn-s" id="prDecEnc">▸ CODIFICAR</button>
-
-            <button type="button" class="pr-btn" id="prDecDec">◂ DECODIFICAR</button>
-
-          </div>
-
-          <textarea id="prDecIn" rows="6" spellcheck="false" placeholder="pegá acá el texto a transformar"></textarea>
-
-          <pre id="prDecOut" class="pr-raw">(resultado)</pre>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-tgt">
-
-          <div class="pr-acts"><button type="button" class="pr-btn-s" id="prTgtRefresh">⟳ ACTUALIZAR MAPA</button><span class="pr-findn" id="prTgtN"></span></div>
-
-          <div id="prTree" class="pr-tree"></div>
-
-        </div>
-
-
-
-        <div class="pr-pane" id="prP-an">
-
-          <div class="pr-acts">
-
-            <button type="button" class="pr-btn-s" id="prAnSel">▸ ANALIZAR SELECCIÓN</button>
-
-            <button type="button" class="pr-btn" id="prAnAll">▸ ESCANEO PASIVO DEL HISTORIAL</button>
-
-          </div>
-
-          <div id="prAnOut"></div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
 <section id="sobre-mi">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">01 — Historia</div></div>
@@ -4207,6 +3846,391 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 <!-- ══ FIN SECCIÓN NIMBUS ══ -->
 
 <!-- ══ SECCIÓN: TAINT RADAR — Auditor estático Zero-Trust ══ -->
+<section id="proxyrep">
+
+  <div class="wrap">
+
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">19·B — Proxy &amp; Repeater</div></div>
+
+    <h2 class="sec-title h2-anim" data-l1="Proxy" data-l2="Repeater." aria-label="Proxy y Repeater."></h2>
+
+    <div class="pr-banner"><span class="dot"></span><span class="tag">VÍA WORKER · ONLINE</span><span class="prompt">tudelasec@proxy:~$</span> <span class="cur">intercept --mode repeater --atajos ALT+1…9</span></div>
+    <p class="pr-sub">Mini-navegador con historial HTTP completo: request y response en crudo, Repeater, Intruder, comparador, decoder, mapa del objetivo y análisis. Todo sale por el Worker (scanner-proxy). Solo ve lo que pedís desde aquí, nunca el tráfico de otras pestañas.</p>
+
+
+
+    <div class="pr-hud">
+
+      <div><small>PETICIONES</small><b id="hudReq">0</b></div>
+
+      <div><small>OK 2xx/3xx</small><b id="hudOk">0</b></div>
+
+      <div><small>ERRORES</small><b id="hudErr">0</b></div>
+
+      <div><small>HOSTS</small><b id="hudHosts">0</b></div>
+
+      <div><small>LATENCIA MEDIA</small><b id="hudLat">—</b></div>
+
+    </div>
+
+
+
+    <label class="pr-auth" id="prAuthWrap"><input type="checkbox" id="prAuth"><span>Confirmo <b>autorización expresa</b> para probar los objetivos que ingrese.</span></label>
+
+
+
+    <div class="pr-bar">
+
+      <select id="prMethod" aria-label="Método">
+
+        <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+
+      </select>
+
+      <input id="prUrl" class="pr-url" placeholder="https://objetivo.tld/ruta" spellcheck="false" autocomplete="off">
+
+      <button type="button" id="prSend" class="pr-btn">▸ ENVIAR</button>
+
+    </div>
+
+    <details class="pr-top-h">
+
+      <summary>Headers, body, SCOPE y recursos</summary>
+
+      <input id="prScope" class="pr-url" style="width:100%;margin-top:6px" spellcheck="false" placeholder="Scope: example.cl, api.example.cl (vacío = solo el host de la URL)">
+
+      <textarea id="prTopHdr" rows="3" spellcheck="false" placeholder="Cookie: session=…&#10;Authorization: Bearer …"></textarea>
+
+      <textarea id="prTopBody" rows="3" spellcheck="false" placeholder="body (solo POST / PUT / PATCH)"></textarea>
+
+      <label class="pr-check"><input type="checkbox" id="prCrawl" checked> <span>Cargar recursos de la página (JS, CSS, imágenes y endpoints hallados en el JS) · máx. 40 · genera el HTTP HISTORY</span></label>
+
+    </details>
+
+    <div class="pr-status" id="prStatus">Listo. Ingresá una URL y enviá.</div>
+
+
+
+    <div class="pr-body">
+
+      <aside class="pr-hist">
+
+        <div class="pr-hh">
+
+          <span>HISTORIAL · <b id="prCount">0</b></span>
+
+          <span class="pr-hbtns">
+
+            <button type="button" id="prImport" title="Importar HAR (DevTools / Burp)">HAR↑</button>
+
+            <button type="button" id="prExport" title="Exportar historial a JSON">JSON↓</button>
+
+            <button type="button" id="prClear">limpiar</button>
+
+          </span>
+
+        </div>
+
+        <input type="file" id="prHarFile" accept=".har,application/json" hidden>
+
+        <div class="pr-filters">
+
+          <input id="prQ" placeholder="filtrar por URL o body…" spellcheck="false">
+
+          <select id="prFilt" aria-label="Filtro">
+
+            <option value="all">todos</option><option value="2xx">2xx</option><option value="3xx">3xx</option><option value="4xx">4xx</option><option value="5xx">5xx</option><option value="err">ERR</option><option value="nav">NAV</option><option value="web">WEB</option><option value="sub">RECURSOS</option><option value="rep">REPEATER</option><option value="intr">INTRUDER</option><option value="har">HAR</option>
+
+          </select>
+
+        </div>
+
+        <div id="prList" class="pr-list"></div>
+
+      </aside>
+
+
+
+      <div class="pr-main">
+
+        <div class="pr-tabs">
+
+          <button type="button" class="pr-tab on" data-tab="req">REQUEST</button>
+
+          <button type="button" class="pr-tab" data-tab="web">MINI-NAVEGADOR</button>
+          <button type="button" class="pr-tab" data-tab="res">RESPONSE</button>
+
+          <button type="button" class="pr-tab" data-tab="rep">REPEATER</button>
+
+          <button type="button" class="pr-tab" data-tab="intr">INTRUDER</button>
+
+          <button type="button" class="pr-tab" data-tab="hh">HTTP HISTORY</button>
+
+          <button type="button" class="pr-tab" data-tab="cmp">COMPARER</button>
+
+          <button type="button" class="pr-tab" data-tab="dec">DECODER</button>
+
+          <button type="button" class="pr-tab" data-tab="tgt">TARGET</button>
+
+          <button type="button" class="pr-tab" data-tab="an">ANÁLISIS</button>
+
+        </div>
+
+
+
+        <div class="pr-pane on" id="prP-req">
+
+          <div class="pr-acts">
+
+            <button type="button" class="pr-btn-s" id="prToRep">⇢ ENVIAR A REPEATER</button>
+
+            <button type="button" class="pr-btn-s" id="prToIntr">⇢ INTRUDER</button>
+
+            <button type="button" class="pr-btn-s" id="prCopyRaw">⧉ COPIAR RAW</button>
+
+            <button type="button" class="pr-btn-s" id="prCurl">⧉ COPIAR cURL</button>
+
+          </div>
+
+          <div class="pr-note">Request tal como se construyó. El Worker agrega por su cuenta User-Agent y Accept-Encoding, que no se ven aquí.</div>
+
+          <div id="prReqHdrs"></div>
+          <pre id="prReqRaw" class="pr-raw">Sin petición seleccionada.</pre>
+
+          <pre id="prCurlOut" class="pr-raw" hidden></pre>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-res">
+
+          <div class="pr-acts">
+
+            <input id="prFind" placeholder="buscar en la respuesta…" spellcheck="false">
+
+            <span id="prFindN" class="pr-findn"></span>
+
+            <button type="button" class="pr-btn-s" id="prCopyRes">⧉ COPIAR RESPUESTA</button>
+
+          </div>
+
+          <div id="prLinks" class="pr-links"></div>
+
+          <pre id="prResRaw" class="pr-raw">Sin respuesta seleccionada.</pre>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-rep">
+
+          <div class="pr-acts pr-rep-top">
+
+            <button type="button" class="pr-btn" id="prRepSend">⟳ ENVIAR</button>
+
+            <button type="button" class="pr-btn-s" id="prRepReset">⟲ RESET</button>
+
+            <button type="button" class="pr-btn-s" id="prRepFromSel">⇣ CARGAR SELECCIÓN</button>
+
+            <span id="prRepMsg" class="pr-findn"></span>
+
+          </div>
+
+          <div class="pr-rep-row">
+
+            <select id="prRepMethod" aria-label="Método del Repeater">
+
+              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+
+            </select>
+
+            <input id="prRepUrl" class="pr-url" spellcheck="false" placeholder="https://…">
+
+          </div>
+
+          <label class="pr-lbl">Headers (Clave: valor, una por línea)</label>
+
+          <textarea id="prRepHdr" rows="5" spellcheck="false"></textarea>
+
+          <label class="pr-lbl">Body <span class="pr-hint">Ctrl+Enter reenvía</span></label>
+
+          <textarea id="prRepBody" rows="6" spellcheck="false"></textarea>
+
+          <div id="prRepOut"></div>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-intr">
+
+          <div class="pr-lbl">Base · marcá cada posición a fuzzear con §…§ (lo que va dentro es el valor original del baseline)</div>
+
+          <div class="pr-rep-row">
+
+            <select id="prIMethod" aria-label="Método del Intruder">
+
+              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+
+            </select>
+
+            <input id="prIUrl" class="pr-url" spellcheck="false" placeholder="https://objetivo.tld/buscar?q=§test§">
+
+          </div>
+
+          <textarea id="prIHdr" rows="3" spellcheck="false" placeholder="Header: valor §x§"></textarea>
+
+          <textarea id="prIBody" rows="3" spellcheck="false" placeholder='{"campo":"§valor§"}'></textarea>
+
+          <div class="pr-lbl">Payloads de detección · uno por línea (máx. 60)</div>
+
+          <div class="pr-presets">
+
+            <button type="button" data-preset="reflect">REFLEJO</button>
+
+            <button type="button" data-preset="sqli">SQLi ERROR</button>
+
+            <button type="button" data-preset="ssti">SSTI</button>
+
+            <button type="button" data-preset="lfi">LFI</button>
+
+            <button type="button" data-preset="redir">REDIRECT</button>
+
+            <button type="button" data-preset="cmd">CMDi</button>
+
+          </div>
+
+          <textarea id="prIPay" rows="6" spellcheck="false"></textarea>
+
+          <div class="pr-rep-row pr-run">
+
+            <label class="pr-lbl" style="margin:0">Concurrencia
+
+              <select id="prIConc" aria-label="Concurrencia"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>
+
+            </label>
+
+            <button type="button" class="pr-btn" id="prIRun">▸ LANZAR</button>
+
+            <button type="button" class="pr-btn-s" id="prIStop">■ DETENER</button>
+
+            <span id="prIProg" class="pr-findn"></span>
+
+          </div>
+
+          <div id="prIOut"></div>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-web">
+          <div class="pr-acts">
+            <button type="button" class="pr-btn" id="prInstStart">▶ LANZAR INSTANCIA</button>
+            <button type="button" class="pr-btn-s" id="prInstEnd" disabled>■ FINALIZAR INSTANCIA</button>
+            <span id="prInstState" class="pr-findn pr-inst-off">○ sin instancia</span>
+          </div>
+          <div class="pr-acts">
+            <button type="button" class="pr-btn-s" id="prBk" title="Atrás" disabled>◂</button>
+            <button type="button" class="pr-btn-s" id="prFw" title="Adelante" disabled>▸</button>
+            <button type="button" class="pr-btn-s" id="prRl" title="Recargar" disabled>⟳</button>
+            <input id="prWebUrl" class="pr-url" placeholder="https://objetivo.tld/" spellcheck="false" autocomplete="off" disabled>
+            <button type="button" class="pr-btn-s" id="prWebGo" disabled>IR</button>
+          </div>
+          <div class="pr-web-frame">
+            <iframe id="prFrame" sandbox="allow-scripts allow-forms" title="Mini navegador" hidden></iframe>
+            <div id="prFrameMsg" class="pr-empty">Lanzá una instancia para navegar.</div>
+          </div>
+          <div class="pr-note">Todo el tráfico sale por el Worker y queda en el HISTORIAL. Los recursos externos no cargan directo en el visor: el Worker los pide y aparecen abajo. Los fetch de la página se reenvían por el Worker; los XHR solo se registran (no devuelven datos a la página).</div>
+          <div class="pr-lbl">LLAMADAS DE LA INSTANCIA</div>
+          <div id="prWebLog" class="pr-list"></div>
+        </div>
+
+        <div class="pr-pane" id="prP-hh">
+
+          <div class="pr-acts"><span class="pr-findn" id="prHHN"></span><button type="button" class="pr-btn-s" id="prHHCsv">⧉ EXPORTAR CSV</button></div>
+
+          <div class="pr-tablewrap"><table id="prHHTable"></table></div>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-cmp">
+
+          <div class="pr-rep-row">
+
+            <select id="prCmpA" class="pr-sel-wide" aria-label="Petición A"></select>
+
+            <select id="prCmpB" class="pr-sel-wide" aria-label="Petición B"></select>
+
+            <button type="button" class="pr-btn" id="prCmpGo">⇄ COMPARAR</button>
+
+          </div>
+
+          <div id="prCmpOut"></div>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-dec">
+
+          <div class="pr-rep-row">
+
+            <select id="prDecT" aria-label="Transformación">
+
+              <option value="url">URL</option><option value="b64">Base64</option><option value="html">HTML entities</option><option value="hex">Hex</option><option value="jwt">JWT (decodificar)</option>
+
+            </select>
+
+            <button type="button" class="pr-btn-s" id="prDecEnc">▸ CODIFICAR</button>
+
+            <button type="button" class="pr-btn" id="prDecDec">◂ DECODIFICAR</button>
+
+          </div>
+
+          <textarea id="prDecIn" rows="6" spellcheck="false" placeholder="pegá acá el texto a transformar"></textarea>
+
+          <pre id="prDecOut" class="pr-raw">(resultado)</pre>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-tgt">
+
+          <div class="pr-acts"><button type="button" class="pr-btn-s" id="prTgtRefresh">⟳ ACTUALIZAR MAPA</button><span class="pr-findn" id="prTgtN"></span></div>
+
+          <div id="prTree" class="pr-tree"></div>
+
+        </div>
+
+
+
+        <div class="pr-pane" id="prP-an">
+
+          <div class="pr-acts">
+
+            <button type="button" class="pr-btn-s" id="prAnSel">▸ ANALIZAR SELECCIÓN</button>
+
+            <button type="button" class="pr-btn" id="prAnAll">▸ ESCANEO PASIVO DEL HISTORIAL</button>
+
+          </div>
+
+          <div id="prAnOut"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
 <section id="taint">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">33 — Kernel Static Audit</div></div>
@@ -4702,6 +4726,27 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
 #proxyrep .an-card.bad::after{content:"CRÍTICO";position:absolute;top:8px;right:10px;font-size:9px;letter-spacing:.2em;color:var(--acc);border:1px solid var(--acc);padding:1px 5px;border-radius:2px;}
 #proxyrep .an-card.warn::after{content:"AVISO";position:absolute;top:8px;right:10px;font-size:9px;letter-spacing:.2em;color:var(--amber);border:1px solid var(--amber);padding:1px 5px;border-radius:2px;}
 @media (prefers-reduced-motion:reduce){#proxyrep *{animation:none !important;}}
+/* ══ PROXY v5 — mini-navegador, cabeceras, blindaje ══ */
+#proxyrep .pr-web-frame{position:relative;border:1px solid rgba(255,26,46,.45);background:#050208;box-shadow:0 0 30px rgba(255,26,46,.12),inset 0 0 0 1px rgba(0,0,0,.6);margin-bottom:12px;}
+#proxyrep .pr-web-frame::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,255,163,.025) 0 1px,transparent 1px 3px);pointer-events:none;z-index:2;}
+#proxyrep #prFrame{display:block;width:100%;height:420px;border:0;background:#050208;}
+#proxyrep #prFrame[hidden],#proxyrep #prFrameMsg[hidden]{display:none;}
+#proxyrep #prFrameMsg{padding:44px 16px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.06em;}
+#proxyrep .pr-inst-on{color:var(--green);text-shadow:0 0 8px var(--green);}
+#proxyrep .pr-inst-off{color:var(--muted);}
+#proxyrep .pr-btn:disabled,#proxyrep .pr-btn-s:disabled{opacity:.35;cursor:not-allowed;}
+#proxyrep .pr-hdrs{margin-top:6px;border-left:2px solid rgba(0,255,163,.4);padding-left:8px;font-family:var(--mono);font-size:11px;}
+#proxyrep .pr-hdrs summary{cursor:pointer;color:var(--green);letter-spacing:.06em;list-style:none;}
+#proxyrep .pr-hdrs summary::-webkit-details-marker{display:none;}
+#proxyrep .pr-htab{width:100%;border-collapse:collapse;margin:6px 0;}
+#proxyrep .pr-htab th{text-align:left;color:var(--acc);font-weight:600;padding:3px 10px 3px 0;white-space:nowrap;vertical-align:top;}
+#proxyrep .pr-htab td{color:var(--text);padding:3px 0;word-break:break-all;}
+#proxyrep .pr-htab tr{border-bottom:1px dashed rgba(255,255,255,.06);}
+#proxyrep .pr-more{width:100%;margin:8px 0;}
+#proxyrep #prReqHdrs{margin-bottom:10px;}
+#proxyrep #prReqHdrs .pr-hdrs{border-left-color:var(--acc);}
+@media (prefers-reduced-motion:reduce){#proxyrep #prFrame{transition:none;}}
+
 
 /* ── v3 extras ── */
 #proxyrep .pr-raw{background:#020104;border:1px solid rgba(255,26,46,.2);border-radius:4px;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.55;color:#cfe8d7;white-space:pre-wrap;word-break:break-all;max-height:520px;overflow:auto;margin:10px 0 0;}
@@ -34136,6 +34181,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 var WORKER='https://scanner-proxy.matias-ramireztu.workers.dev';
 var CRAWL_MAX=40, CRAWL_CONC=4, RAW_MAX=2000000;
 var hist=[], selId=null, seq=0, repBase=null;
+var LIST_STEP=300, MAX_STORE=300000, BODY_KEEP=800, byId={}, inst=null, instSeq=0, openH={}, listLim=300, hhLim=1000, rqId=0;
 var intrRunning=false, intrStop=false, intrRows=[];
 var crawlStop=false;
 var $=function(id){ return document.getElementById(id); };
@@ -34145,7 +34191,7 @@ function parseHdr(t){ var h={}; String(t||'').split(/\r?\n/).forEach(function(l)
 function hdrText(h){ return Object.keys(h||{}).map(function(k){ return k+': '+h[k]; }).join('\n'); }
 function status(msg,err){ var s=$('prStatus'); if(!s) return; s.textContent=msg; s.className='pr-status'+(err?' err':''); }
 function hostOf(u){ try{ return new URL(u).hostname.toLowerCase(); }catch(e){ return ''; } }
-function findE(id){ for(var i=0;i<hist.length;i++) if(hist[i].id===id) return hist[i]; return null; }
+function findE(id){ var e=byId[id]; if(e && e.id===id) return e; for(var i=0;i<hist.length;i++) if(hist[i].id===id) return hist[i]; return null; }
 function ctype(e){ var h=e.res.headers||{}; for(var k in h){ if(k.toLowerCase()==='content-type') return String(h[k]); } return ''; }
 function lowerH(h){ var o={}; Object.keys(h||{}).forEach(function(k){ o[k.toLowerCase()]=h[k]; }); return o; }
 function fmtBody(b){ var t=String(b||''); try{ t=JSON.stringify(JSON.parse(t),null,2); }catch(e){} return t; }
@@ -34165,7 +34211,7 @@ function rawRes(e){
   var r=e.res;
   if(!r.status) return '✕ '+(r.error||'sin respuesta');
   var hs=Object.keys(r.headers||{}).map(function(k){ return k+': '+r.headers[k]; });
-  return 'HTTP/1.1 '+r.status+'\n'+hs.join('\n')+'\n\n'+clip(r.body);
+  return 'HTTP/1.1 '+r.status+'\n'+hs.join('\n')+'\n\n'+clip(r.body)+(r.trunc?'\n… [cuerpo recortado en memoria]':'');
 }
 function linksOf(body, base){
   var out=[], seen={}, re=/(?:href|src|action)\s*=\s*["']([^"'#][^"']*)["']/gi, m;
@@ -34221,8 +34267,13 @@ function send(req, src, parentId){
   .catch(function(e){ return add(req,src,{status:0,ms:Date.now()-t0,error:'Sin conexión con el Worker: '+(e&&e.message||e),headers:{},body:''},parentId); });
 }
 function add(req,src,res,parentId){
-  var e={id:++seq, ts:new Date().toLocaleTimeString(), src:src, req:req, res:res, size:String(res.body||'').length, parent:parentId||null};
-  hist.unshift(e); if(hist.length>600) hist.length=600;
+  var body=String(res.body==null?'':res.body);
+  res.body=body.length>MAX_STORE ? body.slice(0,MAX_STORE) : body;
+  res.trunc=body.length>MAX_STORE;
+  var e={id:++seq, ts:new Date().toLocaleTimeString(), src:src, req:req, res:res, size:body.length, parent:parentId||null, inst:inst?inst.id:null};
+  hist.unshift(e); byId[e.id]=e;
+  // sin tope de peticiones: las más viejas conservan cabeceras y metadatos; solo se recorta su cuerpo para ahorrar memoria
+  if(hist.length>BODY_KEEP){ var o=hist[BODY_KEEP]; if(o && o.res.body && o.res.body.length>2000){ o.res.body=o.res.body.slice(0,2000); o.res.trunc=true; } }
   if(src!=='sub') selId=e.id;
   render();
   return e;
@@ -34256,13 +34307,30 @@ function passes(e){
   if(f==='rep' && e.src!=='repeater') return false;
   if(f==='intr' && e.src!=='intr') return false;
   if(f==='har' && e.src!=='har') return false;
+  if(f==='web' && e.src.indexOf('web')!==0) return false;
   if(q && e.req.url.toLowerCase().indexOf(q)===-1 && String(e.res.body||'').toLowerCase().indexOf(q)===-1) return false;
   return true;
 }
-function render(){ hud(); renderList(); renderSel(); }
+function render(){ if(rqId) return; rqId=requestAnimationFrame(function(){ rqId=0; hud(); renderList(); renderSel(); renderWebLog(); }); }
 function srcTag(e){
-  var m={repeater:'REP',nav:'NAV',intr:'INTR',har:'HAR',sub:'RECURSO'};
+  var m={repeater:'REP',nav:'NAV',intr:'INTR',har:'HAR',sub:'RECURSO',web:'WEB','web-js':'JS'};
   return m[e.src] ? ' <i class="pr-src">'+m[e.src]+'</i>' : '';
+}
+/* ── cabeceras enviadas (por petición) ── */
+function hdrHTML(e, open){
+  var u=null; try{ u=new URL(e.req.url); }catch(x){}
+  var H=[['Host', u?u.host:'—']]; Object.keys(e.req.headers||{}).forEach(function(k){ H.push([k, e.req.headers[k]]); });
+  return '<details class="pr-hdrs"'+(open?' open':'')+' data-hid="'+e.id+'"><summary>▸ CABECERAS ENVIADAS ('+H.length+')</summary>'
+    +'<table class="pr-htab">'+H.map(function(p){ return '<tr><th>'+esc(p[0])+'</th><td>'+esc(p[1])+'</td></tr>'; }).join('')+'</table>'
+    +'<div class="pr-note">El Worker agrega por su cuenta User-Agent y Accept-Encoding; esas no se ven desde aquí.</div></details>';
+}
+function rowHTML(e){
+  return '<div class="pr-row'+(e.id===selId?' on':'')+'" data-id="'+e.id+'">'
+    +'<span class="pr-m" data-m="'+esc(e.req.method)+'">'+esc(e.req.method)+'</span>'
+    +'<span class="pr-u" title="'+esc(e.req.url)+'">'+esc(e.req.url)+'</span>'
+    +'<span class="pr-meta"><b class="'+stCls(e.res.status)+'">'+esc(e.res.status||'ERR')+'</b> · '+e.size+' car. · '+e.res.ms+' ms'+srcTag(e)+'</span>'
+    +hdrHTML(e,!!openH[e.id])
+    +'</div>';
 }
 function renderList(){
   var L=$('prList'); if(!L) return;
@@ -34270,13 +34338,9 @@ function renderList(){
   $('prCount').textContent=hist.length+(shown.length!==hist.length?' ('+shown.length+' vistas)':'');
   if(!hist.length){ L.innerHTML='<div class="pr-empty">Sin peticiones todavía. Ingresá una URL arriba, importá un HAR o usá Intruder.</div>'; return; }
   if(!shown.length){ L.innerHTML='<div class="pr-empty">Ningún resultado con ese filtro.</div>'; return; }
-  L.innerHTML=shown.map(function(e){
-    return '<div class="pr-row'+(e.id===selId?' on':'')+'" data-id="'+e.id+'">'
-      +'<span class="pr-m" data-m="'+esc(e.req.method)+'">'+esc(e.req.method)+'</span>'
-      +'<span class="pr-u" title="'+esc(e.req.url)+'">'+esc(e.req.url)+'</span>'
-      +'<span class="pr-meta"><b class="'+stCls(e.res.status)+'">'+esc(e.res.status||'ERR')+'</b> · '+e.size+' car. · '+e.res.ms+' ms'+srcTag(e)+'</span>'
-      +'</div>';
-  }).join('');
+  var vis=shown.slice(0,listLim), more=shown.length-vis.length;
+  L.innerHTML=vis.map(rowHTML).join('')
+    +(more>0 ? '<button type="button" class="pr-btn-s pr-more" id="prMore">▸ mostrar '+Math.min(LIST_STEP,more)+' más · '+more+' ocultas</button>' : '');
 }
 
 /* ── request / response ── */
@@ -34284,11 +34348,13 @@ function renderSel(){
   var e=findE(selId);
   if(!e){
     $('prReqRaw').textContent='Sin petición seleccionada. Enviá una URL o elegí una fila del historial.';
+    $('prReqHdrs').innerHTML='';
     $('prResRaw').textContent='Sin respuesta seleccionada.';
     $('prLinks').innerHTML='';
     return;
   }
   $('prReqRaw').textContent=rawReq(e.req);
+  $('prReqHdrs').innerHTML=hdrHTML(e,true);
   $('prResRaw').textContent=rawRes(e);
   var ls=linksOf(e.res.body, e.req.url);
   $('prLinks').innerHTML = ls.length ? '<div class="pr-lbl" style="width:100%">LINKS EN LA RESPUESTA ('+ls.length+') · click para navegar</div>'
@@ -34312,6 +34378,7 @@ function tab(t){
   if(t==='cmp') fillCmp();
   if(t==='tgt') renderTree();
   if(t==='an') renderAnalysis();
+  if(t==='web') renderWebLog();
 }
 
 /* ── mini-navegador + recursos ── */
@@ -34355,6 +34422,157 @@ function crawl(parent){
     status('✓ HTTP HISTORY: '+total+' recursos cargados desde '+mainHost+(total>=CRAWL_MAX?' (límite alcanzado)':'')+'.');
     render();
   });
+}
+
+/* ── MINI-NAVEGADOR · instancias (v5) ── */
+/* Código que se inyecta en la página del visor: intercepta links, formularios, fetch y XHR,
+   y los reenvía al padre, que los manda por el Worker (quedan en el HISTORIAL). */
+function hookJS(){
+  var P=window.parent, R={}, n=0;
+  function post(d){ d.src='prb'; P.postMessage(d,'*'); }
+  function abs(u){ return new URL(String(u),document.baseURI).href; }
+  window.addEventListener('message', function(ev){
+    var d=ev.data; if(!d || d.src!=='prb' || d.t!=='fetch-res') return;
+    var r=R[d.rid]; if(!r) return; delete R[d.rid];
+    if(!d.ok){ r.reject(new TypeError('Failed to fetch')); return; }
+    var st=+d.status||200, body=(st===204||st===205||st===304)?null:String(d.body||'');
+    try{ r.resolve(new Response(body,{status:st,headers:d.headers||{}})); }
+    catch(e){ r.resolve(new Response(body,{status:200})); }
+  });
+  window.fetch=function(input,init){
+    init=init||{};
+    var url, method='GET', hd={}, body='', rid;
+    try{
+      if(input && typeof input==='object' && 'url' in input){ url=abs(input.url); method=input.method||method; new Headers(input.headers||{}).forEach(function(v,k){ hd[k]=v; }); }
+      else url=abs(input);
+      if(init.method) method=init.method;
+      if(init.headers) new Headers(init.headers).forEach(function(v,k){ hd[k]=v; });
+    }catch(e){ return Promise.reject(e); }
+    if(typeof init.body==='string') body=init.body;
+    rid=++n;
+    return new Promise(function(res,rej){ R[rid]={resolve:res,reject:rej}; post({t:'fetch',rid:rid,url:url,method:String(method).toUpperCase(),headers:hd,body:body}); });
+  };
+  function XS(){ this.readyState=0; this.status=0; this.responseText=''; this.response=null; this.onreadystatechange=null; this.onload=null; this.onerror=null; this.onloadend=null; }
+  XS.prototype.open=function(m,u){ this._m=String(m).toUpperCase(); this._u=abs(u); this.readyState=1; post({t:'xhr',method:this._m,url:this._u}); };
+  XS.prototype.setRequestHeader=function(){};
+  XS.prototype.getAllResponseHeaders=function(){ return ''; };
+  XS.prototype.abort=function(){};
+  XS.prototype.send=function(){ var s=this; setTimeout(function(){ s.readyState=4; if(s.onreadystatechange) s.onreadystatechange(); if(s.onerror) s.onerror(); if(s.onloadend) s.onloadend(); },0); };
+  window.XMLHttpRequest=XS;
+  window.open=function(u){ try{ post({t:'nav',url:abs(u),method:'GET',body:''}); }catch(e){} return null; };
+  document.addEventListener('click', function(ev){
+    var a=ev.target && ev.target.closest && ev.target.closest('a[href]'); if(!a) return;
+    var h=a.getAttribute('href'); if(!h || h.charAt(0)==='#') return;
+    ev.preventDefault();
+    try{ post({t:'nav',url:abs(h),method:'GET',body:''}); }catch(e){}
+  }, true);
+  document.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    try{
+      var f=ev.target, m=String(f.getAttribute('method')||'GET').toUpperCase();
+      var u=new URL(f.getAttribute('action')||document.baseURI, document.baseURI);
+      var q=new URLSearchParams(); new FormData(f).forEach(function(v,k){ q.append(k, typeof v==='string'?v:''); });
+      if(m==='GET'){ u.search=q.toString(); post({t:'nav',url:u.href,method:'GET',body:''}); }
+      else post({t:'nav',url:u.href,method:m,body:q.toString(),ctype:'application/x-www-form-urlencoded'});
+    }catch(e){}
+  }, true);
+}
+var CSP_META="<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data:; form-action 'none'\">";
+function frameDoc(e){
+  var st=e.res.status, ct=ctype(e), body=String(e.res.body||''), base=e.req.url;
+  var box='background:#050208;color:#7CFFCB;font:13px ui-monospace,monospace;padding:20px';
+  if(!st) return '<!doctype html><body style="'+box+'">✕ '+esc(e.res.error||'sin respuesta')+'</body>';
+  if(/html/i.test(ct) || (!ct && /<html|<!doctype|<body/i.test(body))){
+    var hook='<base href="'+esc(base)+'">'+CSP_META+'<script>('+hookJS.toString()+')();<\/script>';
+    return /<head[^>]*>/i.test(body) ? body.replace(/<head[^>]*>/i, function(m){ return m+hook; }) : hook+body;
+  }
+  if(/^text\/|json|javascript|xml/i.test(ct)) return '<!doctype html>'+CSP_META+'<pre style="white-space:pre-wrap;word-break:break-all;margin:0;padding:12px;font:12px ui-monospace,monospace;color:#cfe;background:#050208">'+esc(body)+'</pre>';
+  return '<!doctype html><body style="'+box+'">[contenido no textual · '+esc(ct||'desconocido')+' · '+e.size+' car.]</body>';
+}
+function countInst(id){ var n=0; hist.forEach(function(e){ if(e.inst===id) n++; }); return n; }
+function updWebState(){
+  var on=!!inst;
+  $('prInstStart').disabled=on; $('prInstEnd').disabled=!on;
+  $('prWebUrl').disabled=!on; $('prWebGo').disabled=!on; $('prRl').disabled=!on;
+  $('prBk').disabled=!on || inst.idx<=0;
+  $('prFw').disabled=!on || inst.idx>=inst.stack.length-1;
+  var st=$('prInstState');
+  st.className='pr-findn '+(on?'pr-inst-on':'pr-inst-off');
+  st.textContent=on ? '● INSTANCIA #'+inst.id+' · '+countInst(inst.id)+' llamadas' : '○ sin instancia';
+}
+function renderWebLog(){
+  var L=$('prWebLog'); if(!L) return;
+  if(!inst){ L.innerHTML='<div class="pr-empty">Lanzá una instancia para ver cada llamada que dispare el navegador.</div>'; return; }
+  var rows=hist.filter(function(e){ return e.inst===inst.id; });
+  if(!rows.length){ L.innerHTML='<div class="pr-empty">Sin llamadas todavía.</div>'; return; }
+  var vis=rows.slice(0,listLim);
+  L.innerHTML=vis.map(rowHTML).join('')+(rows.length>vis.length?'<div class="pr-empty">… '+(rows.length-vis.length)+' más en HTTP HISTORY</div>':'');
+}
+function instStart(){
+  if(inst){ status('Ya hay una instancia activa (#'+inst.id+').'); return; }
+  inst={id:++instSeq, pageId:null, stack:[], idx:-1};
+  $('prFrame').srcdoc='<!doctype html><body style="background:#050208"></body>';
+  $('prFrame').hidden=true; $('prFrameMsg').hidden=false;
+  $('prFrameMsg').textContent='▶ Instancia #'+inst.id+' lista. Ingresá una URL y pulsá IR, o hacé click en los links de la página.';
+  updWebState(); renderWebLog();
+  status('▶ Instancia #'+inst.id+' lanzada.');
+  var u=$('prWebUrl').value.trim(); if(u) webGo(u,'GET','',null,false);
+}
+function instEnd(){
+  if(!inst) return;
+  var id=inst.id, n=countInst(id);
+  inst=null;
+  $('prFrame').hidden=true; $('prFrame').srcdoc='<!doctype html><body style="background:#050208"></body>';
+  $('prFrameMsg').hidden=false;
+  $('prFrameMsg').textContent='■ Instancia #'+id+' finalizada · '+n+' llamadas registradas en HTTP HISTORY.';
+  updWebState(); renderWebLog();
+  status('■ Instancia #'+id+' finalizada · '+n+' llamadas.');
+}
+function webGo(url,m,body,ctype,nopush){
+  if(!inst){ status('✕ Lanzá una instancia primero.', true); return; }
+  url=String(url||'').trim();
+  if(!canSend(url)) return;
+  m=(m||'GET').toUpperCase();
+  var hd=parseHdr($('prTopHdr').value); if(ctype) hd['Content-Type']=ctype;
+  var req={method:m, url:url, headers:hd, body:(m==='GET'||m==='HEAD')?'':String(body||'')};
+  if(!nopush){ inst.stack=inst.stack.slice(0,inst.idx+1); inst.stack.push(url); inst.idx=inst.stack.length-1; }
+  $('prWebUrl').value=url;
+  var fr=$('prFrame'), msg=$('prFrameMsg'), id=inst.id;
+  fr.hidden=true; msg.hidden=false; msg.textContent='⟳ Cargando '+url+' …';
+  updWebState();
+  status('⟳ Instancia #'+id+' · '+m+' '+url);
+  send(req,'web',inst.pageId).then(function(e){
+    if(!inst || inst.id!==id) return;
+    inst.pageId=e.id;
+    fr.srcdoc=frameDoc(e); fr.hidden=false; msg.hidden=true;
+    status('Listo: HTTP '+(e.res.status||'ERR')+' · '+e.res.ms+' ms · instancia #'+id);
+    if(e.res.status && /html/i.test(ctype(e)) && $('prCrawl').checked) crawl(e);
+    updWebState();
+  });
+}
+function reply(rid,ok,st,hd,body){
+  var fr=$('prFrame'); if(!fr || !fr.contentWindow) return;
+  fr.contentWindow.postMessage({src:'prb',t:'fetch-res',rid:rid,ok:!!ok,status:st||0,headers:hd||{},body:String(body||'')},'*');
+}
+function onMsg(ev){
+  var d=ev.data, fr=$('prFrame');
+  if(!inst || !d || d.src!=='prb' || !fr || ev.source!==fr.contentWindow) return;
+  if(d.t==='nav'){
+    var m=String(d.method||'GET').toUpperCase();
+    if(['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'].indexOf(m)<0) return;
+    webGo(String(d.url||''), m, String(d.body||''), d.ctype?String(d.ctype):null, false);
+  } else if(d.t==='fetch'){
+    var rid=d.rid, u=String(d.url||''), ph=(d.headers && typeof d.headers==='object')?d.headers:{};
+    if(!canSend(u)){ reply(rid,false); return; }
+    var th=parseHdr($('prTopHdr').value); Object.keys(ph).forEach(function(k){ th[k]=String(ph[k]); });
+    var mm=String(d.method||'GET').toUpperCase();
+    send({method:mm, url:u, headers:th, body:(mm==='GET'||mm==='HEAD')?'':String(d.body||'')}, 'web-js', inst.pageId)
+      .then(function(e){ reply(rid, !!e.res.status, e.res.status, e.res.headers, e.res.body); });
+  } else if(d.t==='xhr'){
+    var xu=String(d.url||'');
+    if(!canSend(xu)) return;
+    send({method:String(d.method||'GET').toUpperCase(), url:xu, headers:parseHdr($('prTopHdr').value), body:''}, 'web-js', inst.pageId);
+  }
 }
 
 /* ── cURL / copiar ── */
@@ -34416,8 +34634,8 @@ function repSend(){
 /* ── HTTP HISTORY (tabla) ── */
 function renderHH(){
   var T=$('prHHTable'); if(!T) return;
-  var list=hist.filter(passes).slice().reverse();
-  $('prHHN').textContent=list.length+' peticiones (cronológico)';
+  var all=hist.filter(passes); var list=all.slice(0,hhLim).reverse();
+  $('prHHN').textContent=list.length+' peticiones (cronológico)'+(all.length>list.length?' · mostrando las últimas '+list.length+' de '+all.length:'');
   if(!list.length){ T.innerHTML='<tr><td class="pr-empty">Sin peticiones.</td></tr>'; return; }
   T.innerHTML='<thead><tr><th>#</th><th>MÉTODO</th><th>HOST</th><th>RUTA</th><th>STATUS</th><th>TIPO</th><th>TAM.</th><th>MS</th><th>ORIGEN</th><th></th></tr></thead><tbody>'
     + list.map(function(e){
@@ -34692,7 +34910,8 @@ function harImport(txt){
       req:{method:rq.method||'GET', url:rq.url||'', headers:hdr, body:(rq.postData&&rq.postData.text)||''},
       res:{status:rs.status||0, ms:Math.round(en.time||0), error:null, headers:rh, body:body}, size:body.length });
   });
-  hist=added.reverse().concat(hist).slice(0,600);
+  added.forEach(function(e){ byId[e.id]=e; });
+  hist=added.reverse().concat(hist);
   selId=added[added.length-1].id; render();
   return added.length;
 }
@@ -34710,10 +34929,13 @@ function init(){
   if(!$('proxyrep')) return;
   $('prSend').addEventListener('click', function(){ navSend($('prUrl').value, $('prMethod').value); });
   $('prUrl').addEventListener('keydown', function(ev){ if(ev.key==='Enter') navSend($('prUrl').value, $('prMethod').value); });
-  $('prClear').addEventListener('click', function(){ crawlStop=true; hist=[]; selId=null; render(); status('Historial limpio.'); });
-  $('prQ').addEventListener('input', function(){ renderList(); });
-  $('prFilt').addEventListener('change', function(){ renderList(); });
+  $('prClear').addEventListener('click', function(){ crawlStop=true; if(inst) instEnd(); hist=[]; byId={}; openH={}; listLim=LIST_STEP; selId=null; render(); status('Historial limpio.'); });
+  var qT=0;
+  $('prQ').addEventListener('input', function(){ clearTimeout(qT); qT=setTimeout(function(){ listLim=LIST_STEP; renderList(); }, 150); });
+  $('prFilt').addEventListener('change', function(){ listLim=LIST_STEP; renderList(); });
   $('prList').addEventListener('click', function(ev){
+    if(ev.target.closest('.pr-hdrs')) return;
+    if(ev.target.closest('#prMore')){ listLim+=LIST_STEP; renderList(); return; }
     var row=ev.target.closest('.pr-row'); if(!row) return;
     selId=+row.getAttribute('data-id'); render();
   });
@@ -34776,6 +34998,22 @@ function init(){
     fr.readAsText(f);
   });
   $('prExport').addEventListener('click', exportJSON);
+  $('prInstStart').addEventListener('click', instStart);
+  $('prInstEnd').addEventListener('click', instEnd);
+  $('prWebGo').addEventListener('click', function(){ webGo($('prWebUrl').value,'GET','',null,false); });
+  $('prWebUrl').addEventListener('keydown', function(ev){ if(ev.key==='Enter') webGo($('prWebUrl').value,'GET','',null,false); });
+  $('prBk').addEventListener('click', function(){ if(inst && inst.idx>0){ inst.idx--; webGo(inst.stack[inst.idx],'GET','',null,true); } });
+  $('prFw').addEventListener('click', function(){ if(inst && inst.idx<inst.stack.length-1){ inst.idx++; webGo(inst.stack[inst.idx],'GET','',null,true); } });
+  $('prRl').addEventListener('click', function(){ if(inst && inst.stack.length) webGo(inst.stack[inst.idx],'GET','',null,true); });
+  window.addEventListener('message', onMsg);
+  $('prWebLog').addEventListener('click', function(ev){
+    if(ev.target.closest('.pr-hdrs')) return;
+    var r=ev.target.closest('.pr-row'); if(!r) return;
+    selId=+r.getAttribute('data-id'); render(); tab('req');
+  });
+  ['prList','prWebLog'].forEach(function(id){
+    $(id).addEventListener('toggle', function(ev){ var t=ev.target; if(t && t.getAttribute && t.getAttribute('data-hid')) openH[t.getAttribute('data-hid')]=t.open; }, true);
+  });
   document.querySelectorAll('#proxyrep .pr-tab').forEach(function(b){ b.addEventListener('click', function(){ tab(b.getAttribute('data-tab')); }); });
   render();
 }

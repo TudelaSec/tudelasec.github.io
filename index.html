@@ -28595,9 +28595,37 @@ function crbHash(s) {
 
 /* Coincide con el baseline (soft-404) si: mismo status Y (longitud muy
    parecida O mismo hash de los primeros 500 chars O mismo titulo). */
+async function crbCalibrateControls(target, paths) {
+  /* Sondas de control con el MISMO patron que la wordlist (".env" -> ".env-<rand>").
+     Un WAF suele bloquear por nombre de archivo sensible (403 identico para todo
+     ".env*") mientras que una ruta aleatoria recibe 404: el baseline solo no lo ve. */
+  const seen = {}, out = [];
+  for (const p of paths) {
+    if (out.length >= 3) break;
+    const seg = String(p).replace(/^\/+/, '').split('/')[0];
+    const first = seg.split('.').filter(Boolean)[0];
+    if (!first || seen[first]) continue;
+    seen[first] = 1;
+    const url = target.replace(/\/$/, '') + '/' + (seg.charAt(0) === '.' ? '.' : '') + first + '-' + Math.random().toString(36).slice(2, 10);
+    const r = await crbFetch(url, 9000);
+    if (r && r.status > 0) {
+      const b = r.body || '';
+      out.push({ status: r.status, len: b.length, hash: crbHash(b.slice(0, 500)) });
+    }
+    await crbSleep(150);
+  }
+  return out;
+}
+
 function crbMatchesBaseline(res, baseline) {
-  if (!baseline || baseline.status === 0) return false;
   if (!res) return false;
+  const body0 = res.body || '';
+  if (crb.controls && crb.controls.some(function (c) {
+    if (c.status !== res.status) return false;
+    if (c.hash === crbHash(body0.slice(0, 500))) return true;
+    return c.len > 0 && Math.abs(body0.length - c.len) / c.len < 0.05;
+  })) return true;
+  if (!baseline || baseline.status === 0) return false;
   const body = res.body || '';
   if (res.status !== baseline.status) return false;
   const lenDiff = Math.abs(body.length - baseline.len);
@@ -28693,7 +28721,7 @@ async function crbStart() {
   crb.concurrency = isNaN(cv) ? 4 : Math.max(1, Math.min(20, cv));
   crb.delayMs = isNaN(dv) ? 150 : Math.max(0, Math.min(3000, dv));
   var ctl = crbCtl(crb.concurrency, crb.delayMs);
-  crb.throttleCount = 0; crb.breaker = false;
+  crb.throttleCount = 0; crb.breaker = false; crb.controls = []; crb.blanketNote = '';
   crb.results = [];
   crb.doneCount = 0;
   crb.hits = { '2xx': 0, '3xx': 0, '403': 0 };
@@ -28707,6 +28735,7 @@ async function crbStart() {
   $c('crb-status-line').textContent = 'Calibrando baseline (soft-404)...';
 
   crb.baseline = await crbCalibrateBaseline(target);
+  crb.controls = await crbCalibrateControls(target, wordlist.paths);
   if (crb.cancelled) return crbFinish('cancelado durante calibracion');
 
   if (crb.baseline.confirmed) {
@@ -28834,9 +28863,35 @@ async function crbStart() {
 }
 
 function crbFinish(reason) {
+  /* Filtro final: si >=4 rutas distintas devuelven EXACTAMENTE el mismo status y
+     tamaño, es una pagina generica (WAF / catch-all), no hallazgos reales. Se
+     excluyen y se informan aparte; la tabla se vuelve a dibujar. */
+  const groups = {};
+  crb.results.forEach(function (e) { const k = e.status + ':' + e.size; (groups[k] = groups[k] || []).push(e); });
+  let blanket = 0, blanketInfo = '';
+  Object.keys(groups).forEach(function (k) {
+    if (groups[k].length >= 4) {
+      blanket += groups[k].length;
+      if (!blanketInfo) blanketInfo = groups[k][0].status + ' · ' + groups[k][0].size + ' B · ' + groups[k].length + ' rutas';
+      groups[k].forEach(function (e) { e.blanket = true; });
+    }
+  });
+  if (blanket) {
+    crb.results = crb.results.filter(function (e) { return !e.blanket; });
+    crbResetResultsTable();
+    crb.hits = { '2xx': 0, '3xx': 0, '403': 0 };
+    crb.results.forEach(function (e) {
+      crbAddResultRow(e);
+      if (e.status >= 200 && e.status < 300) crb.hits['2xx']++;
+      else if (e.status >= 300 && e.status < 400) crb.hits['3xx']++;
+      else if (e.status === 401 || e.status === 403) crb.hits['403']++;
+    });
+    crb.blanketNote = blanket + ' respuestas idénticas (' + blanketInfo + ') descartadas: bloqueo uniforme del WAF o página genérica, no un hallazgo.';
+  }
   crbUpdateProgress();
   $c('crb-status-line').textContent =
-    'Fuzzing ' + reason + ' — ' + crb.results.length + ' hallazgos validados de ' + crb.doneCount + ' rutas probadas.';
+    'Fuzzing ' + reason + ' — ' + crb.results.length + ' hallazgos validados de ' + crb.doneCount + ' rutas probadas.' +
+    (crb.blanketNote ? ' ⚠ ' + crb.blanketNote : '');
   crb.running = false;
   crb.paused = false;
   crbSetButtons('idle');
@@ -35408,7 +35463,7 @@ var TECHS=[
  {n:'LiteSpeed',c:'Servidor',col:'#1f7ae0',g:'LS',when:[{s:'h:server',r:/litespeed/i}]},
  {n:'Caddy',c:'Servidor',col:'#1f88c0',g:'Cd',when:[{s:'h:server',r:/caddy/i}]},
  {n:'OpenResty',c:'Servidor',col:'#3b8f3b',g:'OR',when:[{s:'h:server',r:/openresty/i}],ver:[{s:'h:server',r:/openresty\/(\d+(?:\.\d+)*)/i}]},
- {n:'PHP',c:'Lenguaje',col:'#777bb4',g:'PHP',lat:{kind:'static',ref:'8.4',label:'PHP'},when:[{s:'h:x-powered-by',r:/php/i}],ver:[{s:'h:x-powered-by',r:/php\/(\d+(?:\.\d+)*)/i}]},
+ {n:'PHP',c:'Lenguaje',col:'#777bb4',g:'PHP',lat:{kind:'static',ref:'8.4',label:'PHP'},when:[{s:'h:x-powered-by',r:/php/i},{s:'cookie',r:/PHPSESSID/}],ver:[{s:'h:x-powered-by',r:/php\/(\d+(?:\.\d+)*)/i}]},
  {n:'Phusion Passenger',c:'Servidor',col:'#8b1d2c',g:'Ps',when:[{s:'h:x-powered-by',r:/passenger/i}]},
  /* CDN, hosting y WAF */
  {n:'Cloudflare',c:'CDN / WAF',col:'#f38020',g:'CF',when:[{s:'h:server',r:/cloudflare/i},{s:'h:cf-ray',r:/.+/}]},
@@ -35446,7 +35501,18 @@ var TECHS=[
  {n:'Google Fonts',c:'Tipografía',col:'#4285f4',g:'Gf',when:[{s:'html',r:/fonts\.googleapis\.com/}]},
  {n:'Adobe Fonts',c:'Tipografía',col:'#ff0000',g:'Af',when:[{s:'html',r:/use\.typekit\.net/}]},
  {n:'OneTrust',c:'Consentimiento',col:'#2f73f1',g:'OT',when:[{s:'html',r:/cdn\.cookielaw\.org|onetrust/i}]},
- {n:'Cookiebot',c:'Consentimiento',col:'#1f7ae0',g:'CB',when:[{s:'html',r:/consent\.cookiebot\.com/}]}
+ {n:'Cookiebot',c:'Consentimiento',col:'#1f7ae0',g:'CB',when:[{s:'html',r:/consent\.cookiebot\.com/}]},
+ /* Paridad con Wappalyzer: librerías jQuery, publicidad, protocolo y RUM */
+ {n:'jQuery Migrate',c:'Librería JS',col:'#0769ad',g:'jM',lat:{kind:'npm',pkg:'jquery-migrate'},when:[{s:'asset',r:/jquery-migrate/i}],ver:[{s:'asset',r:/jquery-migrate[@\/.-]?(\d+(?:\.\d+)+)/i}]},
+ {n:'jQuery UI',c:'Librería JS',col:'#0769ad',g:'jUI',lat:{kind:'npm',pkg:'jquery-ui'},when:[{s:'asset',r:/jquery-ui/i}],ver:[{s:'asset',r:/jquery-ui[@\/.-]?(\d+(?:\.\d+)+)/i}]},
+ {n:'Google Ads',c:'Publicidad',col:'#fbbc04',g:'GAd',when:[{s:'html',r:/googleadservices\.com|googleads\.g\.doubleclick\.net|gtag\(['"]config['"],\s*['"]AW-/}]},
+ {n:'DoubleClick Floodlight',c:'Publicidad',col:'#4285f4',g:'DC',when:[{s:'html',r:/fls\.doubleclick\.net|ad\.doubleclick\.net/}]},
+ {n:'Google Analytics 4',c:'Analítica',col:'#e37400',g:'G4',when:[{s:'html',r:/gtag\(['"]config['"],\s*['"]G-[A-Z0-9]+/}]},
+ {n:'Cloudflare Browser Insights',c:'RUM',col:'#f38020',g:'CFI',when:[{s:'html',r:/static\.cloudflareinsights\.com|cloudflareinsights/i}]},
+ {n:'Connectif',c:'Marketing',col:'#e8316a',g:'Cn',when:[{s:'html',r:/connectif\.(cloud|io)|conn\.connectif/i}]},
+ {n:'Open Graph',c:'Metadatos',col:'#2c7be5',g:'OG',when:[{s:'html',r:/<meta[^>]+property=["']og:/i}]},
+ {n:'HTTP/3',c:'Protocolo',col:'#6a5acd',g:'H3',when:[{s:'h:alt-svc',r:/h3(-\d+)?=/i}]},
+ {n:'Priority Hints',c:'Rendimiento',col:'#00a86b',g:'PH',when:[{s:'html',r:/fetchpriority=/i}]}
 ];
 
 function srcText(ctx,s){
@@ -35545,7 +35611,7 @@ function probeFiles(base, https){
       switch(x.pr.key){
         case 'robots':
           if(ok && !html && /user-agent|disallow|allow:/i.test(b)){
-            var dis=b.split(/\r?\n/).filter(function(l){ return /^\s*disallow/i.test(l); }).map(function(l){ return l.split(':').slice(1).join(':').trim(); }).filter(Boolean);
+            var dis=b.split(/\r?\n/).filter(function(l){ return /^\s*disallow/i.test(l); }).map(function(l){ return l.split(':').slice(1).join(':').trim(); }).filter(Boolean).filter(function(v,i,a){ return a.indexOf(v)===i; });
             var sens=dis.filter(function(d){ return /admin|backup|private|secret|api|internal|staging|dev|test|config|\.git|db|tmp|old|panel/i.test(d); });
             out.push(F('ok','robots.txt presente', dis.length+' Disallow'+(sens.length?' · sensibles: '+sens.slice(0,8).join(', '):'')));
           } else out.push(F('info','robots.txt ausente','Sin robots.txt en la raíz.'));

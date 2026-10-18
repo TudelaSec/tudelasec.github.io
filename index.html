@@ -2064,6 +2064,8 @@ padding:10px 20px;border:1px solid var(--line);background:transparent;color:var(
 
 .mega-menu { position:fixed; inset:0; z-index:10000; background:rgba(4,1,4,.97); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .4s cubic-bezier(.77,0,.175,1); }
 .mega-menu.open { transform:translateX(0); }
+.mega-menu:not(.open){ visibility:hidden; pointer-events:none; transition:transform .4s cubic-bezier(.77,0,.175,1), visibility 0s linear .4s; }
+.mega-menu.open{ visibility:visible; transition:transform .4s cubic-bezier(.77,0,.175,1), visibility 0s; }
 .mega-header { display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid rgba(255,26,46,.12); }
 .mega-close { font-family:var(--mono); font-size:11px; padding:7px 16px; border:1px solid rgba(255,26,46,.3); border-radius:3px; background:transparent; color:rgba(240,238,248,.6); cursor:pointer; transition:all .2s; letter-spacing:.05em; }
 .mega-close:hover { border-color:var(--acc); color:var(--acc); }
@@ -3503,6 +3505,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
       <a href="#kraken" class="mega-link">🐙 Kraken Subdomains</a>
       <a href="#cerberus" class="mega-link">🐺 Cerberus Fuzzer</a>
+      <a href="#wraith" class="mega-link">👻 Wraith Stack</a>
       <a href="#medusa" class="mega-link">🐍 Medusa Triage</a>
       <a href="#recon-engine" class="mega-link">◈ Passive Recon Engine</a>
       <a href="#cve-search"   class="mega-link">🛡 CVE Search</a>
@@ -7654,8 +7657,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
 
     <div class="crb-controls-row">
       <span class="crb-tag" id="crb-category-count">— rutas</span>
-      <label class="crb-num-label">Concurrencia <input type="number" id="crb-concurrency" value="15" min="10" max="20"></label>
-      <label class="crb-num-label">Delay (ms) <input type="number" id="crb-delay" value="25" min="10" max="50"></label>
+      <label class="crb-num-label">Concurrencia <input type="number" id="crb-concurrency" value="4" min="1" max="20" title="Máximo de hilos. El auto-ajuste baja solo si el objetivo responde 530/429"></label>
+      <label class="crb-num-label">Delay (ms) <input type="number" id="crb-delay" value="150" min="0" max="3000" title="Pausa entre despachos (ms). Sube solo si el objetivo limita"></label>
       <button class="crb-ctrl-btn" id="crb-pause-btn" disabled>⏸ PAUSAR</button>
       <button class="crb-ctrl-btn" id="crb-resume-btn" style="display:none;">▶ REANUDAR</button>
       <button class="crb-ctrl-btn crb-ctrl-danger" id="crb-cancel-btn" disabled>✕ CANCELAR</button>
@@ -7681,6 +7684,91 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       <button class="rce-btn" id="crb-copy-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">📋</span> COPIAR</button>
       <button class="rce-btn" id="crb-export-json-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">💾</span> JSON</button>
       <button class="rce-btn" id="crb-export-csv-btn" style="padding:8px 16px;font-size:11px;"><span class="rce-btn-icon">💾</span> CSV</button>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ══ WRAITH STACK v2 ══ */
+#wraith .wr-sub{font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 16px;max-width:760px;}
+#wraith .wr-panel{position:relative;border:1px solid rgba(255,26,46,.45);background:#050208;padding:16px;box-shadow:0 0 30px rgba(255,26,46,.10),inset 0 0 40px rgba(0,0,0,.6);min-width:0;}
+#wraith .wr-panel::before,#wraith .wr-panel::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--acc);pointer-events:none;}
+#wraith .wr-panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
+#wraith .wr-panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0;}
+#wraith .wr-auth{display:flex;gap:10px;align-items:flex-start;font-family:var(--mono);font-size:12px;color:var(--muted);border:1px dashed rgba(255,26,46,.35);padding:10px;margin-bottom:12px;cursor:pointer;}
+#wraith .wr-auth.flash{animation:prFlash .6s steps(2) 2;}
+@keyframes prFlash{50%{border-color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,.5);}}
+#wraith .wr-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+#wraith .wr-url{flex:1 1 220px;min-width:0;font-family:var(--mono);font-size:13px;background:#020005;color:var(--text);border:1px solid rgba(255,26,46,.35);padding:10px 12px;}
+#wraith .wr-go{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#ff1a2e,#b30018);border:0;padding:11px 16px;cursor:pointer;position:relative;overflow:hidden;}
+#wraith .wr-go::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:50%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .45s;}
+#wraith .wr-go:hover::before{left:120%;}
+#wraith .wr-go:disabled{opacity:.4;cursor:wait;}
+#wraith .wr-opts{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px;}
+#wraith .wr-opts label{display:flex;gap:6px;align-items:center;cursor:pointer;}
+#wraith .wr-status{font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.04em;min-height:18px;overflow-wrap:anywhere;}
+#wraith .wr-status.err{color:var(--acc);}
+#wraith .wr-result{margin-top:14px;min-width:0;}
+#wraith .wr-top{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:6px;}
+#wraith .wr-gauge{text-align:center;flex:0 0 auto;}
+#wraith .wr-sum{flex:1 1 260px;min-width:0;}
+#wraith .wr-tgt{font-family:var(--mono);font-size:13px;color:#fff;overflow-wrap:anywhere;margin-bottom:8px;}
+#wraith .wr-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+#wraith .wr-chip{font-family:var(--mono);font-size:11px;border:1px solid rgba(255,26,46,.4);padding:3px 9px;color:var(--text);}
+#wraith .wr-chip b{color:var(--acc);}
+#wraith .wr-acts{display:flex;flex-wrap:wrap;gap:8px;}
+#wraith .wr-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--green);background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.4);padding:7px 11px;cursor:pointer;}
+#wraith .wr-btn:hover{box-shadow:0 0 12px rgba(0,255,163,.3);}
+#wraith .wr-h{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--acc);margin:18px 0 8px;text-shadow:0 0 8px rgba(255,26,46,.4);}
+#wraith .wr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;}
+#wraith .wr-card{min-width:0;border:1px solid rgba(255,255,255,.08);background:#08040b;padding:12px;display:flex;flex-direction:column;gap:8px;overflow-wrap:anywhere;animation:wrIn .35s ease-out both;}
+@keyframes wrIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+#wraith .wr-card.ok{border-color:rgba(0,255,163,.35);}
+#wraith .wr-card.warn{border-color:rgba(255,176,32,.5);}
+#wraith .wr-card.bad{border-color:rgba(255,26,46,.6);box-shadow:0 0 18px rgba(255,26,46,.12);}
+#wraith .wr-head{display:flex;align-items:center;gap:10px;min-width:0;}
+#wraith .wr-ico{flex:0 0 auto;min-width:38px;height:38px;padding:0 6px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 0 14px rgba(255,255,255,.12);}
+#wraith .wr-name{font-family:var(--mono);font-weight:700;font-size:13px;color:#fff;}
+#wraith .wr-cat{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+#wraith .wr-ver{font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.6;}
+#wraith .wr-ver b{color:var(--acc);}
+#wraith .wr-badge{align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:3px 8px;border:1px solid currentColor;}
+#wraith .wr-badge.ok{color:var(--green);}
+#wraith .wr-badge.warn{color:var(--amber);}
+#wraith .wr-badge.bad{color:var(--acc);}
+#wraith .wr-badge.unk{color:var(--muted);}
+#wraith .wr-ev{font-family:var(--mono);font-size:10.5px;color:var(--muted);overflow-wrap:anywhere;}
+#wraith .wr-vuln{font-family:var(--mono);font-size:11px;color:#ffb0b0;}
+#wraith .wr-vuln a{color:var(--acc);}
+#wraith .wr-list{display:flex;flex-direction:column;gap:6px;}
+#wraith .wr-row{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(255,255,255,.06);background:#08040b;padding:9px 10px;font-family:var(--mono);font-size:12px;color:var(--text);min-width:0;}
+#wraith .wr-row>div{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}
+#wraith .wr-dot{flex:0 0 8px;width:8px;height:8px;margin-top:5px;border-radius:50%;background:var(--muted);}
+#wraith .wr-row.ok .wr-dot{background:var(--green);box-shadow:0 0 6px var(--green);}
+#wraith .wr-row.warn .wr-dot{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+#wraith .wr-row.bad .wr-dot{background:var(--acc);box-shadow:0 0 8px var(--acc);}
+#wraith .wr-row.bad{border-color:rgba(255,26,46,.35);}
+#wraith .wr-row.info .wr-dot{background:#4fc3f7;}
+#wraith .wr-pen{flex:0 0 auto;color:var(--acc);font-size:11px;}
+@media (max-width:600px){#wraith .wr-panel{padding:12px;}#wraith .wr-go{width:100%;}#wraith .wr-top{justify-content:center;}}
+</style>
+
+<section id="wraith">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">38 — Tech Fingerprint &amp; Audit</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Wraith" data-l2="Stack." aria-label="Wraith Stack."></h2>
+    <p class="wr-sub">Fingerprint y auditoría de un sitio: tecnologías con versión y la última disponible, cabeceras de seguridad, cookies, archivos expuestos (.git, .env) y una nota de 0 a 100. Cada consulta sale por el Worker.</p>
+    <div class="wr-panel">
+      <label class="wr-auth" id="wrAuthWrap"><input type="checkbox" id="wrAuth"> <span>Confirmo <b>autorización</b> para analizar el objetivo que ingrese.</span></label>
+      <div class="wr-bar">
+        <input id="wrUrl" class="wr-url" placeholder="https://objetivo.tld o dominio.tld" spellcheck="false" autocomplete="off">
+        <button type="button" id="wrGo" class="wr-go">▸ INVOCAR WRAITH</button>
+      </div>
+      <div class="wr-opts">
+        <label><input type="checkbox" id="wrFiles" checked> Buscar archivos expuestos (robots, sitemap, security.txt, .git, .env)</label>
+      </div>
+      <div id="wrStatus" class="wr-status">Listo. Ingresá la URL y pulsá INVOCAR.</div>
+      <div id="wrResult" class="wr-result"></div>
     </div>
   </div>
 </section>
@@ -15830,6 +15918,7 @@ var listEl = document.getElementById('quicknav-list');
 if(!wrap || !toggle || !listEl) return;
 
 var NAV_ITEMS = [
+ {id:'wraith', icon:'\uD83D\uDC7B', label:'Wraith Stack'},
  {id:'sobre-mi',     icon:'\uD83D\uDC64', label:'Historia'},
  {id:'habilidades',  icon:'\uD83C\uDFAF', label:'Skills & Areas'},
  {id:'scanner',      icon:'\uD83D\uDC80', label:'Leviatan Scanner'},
@@ -28408,6 +28497,52 @@ function crbWaitIfPaused() {
 
 function crbSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+/* Respuestas que indican que el objetivo (o Cloudflare delante) está saturado o limitando */
+const CRB_THROTTLE = [429, 502, 503, 504, 520, 521, 522, 523, 524, 530];
+function crbTransient(res) { return !res || !res.status || CRB_THROTTLE.indexOf(res.status) >= 0; }
+
+/* Auto-ajuste: arranca suave, frena ante 530/429 y vuelve a subir cuando el objetivo responde bien */
+function crbCtl(userCc, userDelay) {
+  var c = { ceil: userCc, cc: Math.min(userCc, 3), base: userDelay, delay: userDelay, okStreak: 0, win: [] };
+  function push(v) { c.win.push(v); if (c.win.length > 30) c.win.shift(); }
+  c.penalize = function () {
+    c.okStreak = 0;
+    c.cc = Math.max(1, Math.floor(c.cc / 2));
+    c.delay = Math.min(4000, Math.max(c.delay * 2, 400));
+    push(1);
+  };
+  c.ok = function () {
+    push(0); c.okStreak++;
+    if (c.okStreak >= 15) {
+      c.okStreak = 0;
+      if (c.cc < c.ceil) c.cc++;
+      if (c.delay > c.base) c.delay = Math.max(c.base, Math.round(c.delay * 0.75));
+    }
+  };
+  c.breaker = function () {
+    return c.win.length >= 30 && c.delay >= 4000 && c.win.reduce(function (a, b) { return a + b; }, 0) >= 27;
+  };
+  return c;
+}
+
+/* Pool con concurrencia y delay dinámicos (lee ctl en cada despacho) */
+async function crbPool2(items, ctl, worker) {
+  var next = 0, active = 0;
+  while (!crb.cancelled && (next < items.length || active > 0)) {
+    await crbWaitIfPaused();
+    if (crb.cancelled) break;
+    if (next < items.length && active < ctl.cc) {
+      var p = items[next++];
+      active++;
+      worker(p).catch(function () {}).then(function () { active--; });
+      await crbSleep(ctl.delay);
+    } else {
+      await crbSleep(30);
+    }
+  }
+  while (active > 0 && !crb.cancelled) await crbSleep(30);
+}
+
 /* Fetch via proxy — el Worker devuelve {ok,status,body,headers} en JSON */
 async function crbFetch(url, timeoutMs) {
   try {
@@ -28554,8 +28689,11 @@ async function crbStart() {
   crb.cancelled = false;
   crb.target = target;
   crb.category = $c('crb-category').value;
-  crb.concurrency = Math.max(10, Math.min(20, parseInt($c('crb-concurrency').value, 10) || 15));
-  crb.delayMs = Math.max(10, Math.min(50, parseInt($c('crb-delay').value, 10) || 25));
+  var cv = parseInt($c('crb-concurrency').value, 10), dv = parseInt($c('crb-delay').value, 10);
+  crb.concurrency = isNaN(cv) ? 4 : Math.max(1, Math.min(20, cv));
+  crb.delayMs = isNaN(dv) ? 150 : Math.max(0, Math.min(3000, dv));
+  var ctl = crbCtl(crb.concurrency, crb.delayMs);
+  crb.throttleCount = 0; crb.breaker = false;
   crb.results = [];
   crb.doneCount = 0;
   crb.hits = { '2xx': 0, '3xx': 0, '403': 0 };
@@ -28604,11 +28742,24 @@ async function crbStart() {
     pendingBuffer = [];
   }
 
-  await crbPool(wordlist.paths, crb.concurrency, crb.delayMs, async (path) => {
-    const url = target + path;
+  const retryQ = [], lastSt = {};
+  const scanOne = async (path) => {
+    /* Bug real: sin barra la URL era https://sitio.cl.env (host inexistente -> 530 'origin DNS error') */
+    const url = target.replace(/\/$/, '') + '/' + String(path).replace(/^\/+/, '');
     const t0 = performance.now();
     const res = await crbFetch(url, 9000);
     const rtt = Math.round(performance.now() - t0);
+    if (crbTransient(res)) {
+      /* Limitado por el objetivo (530/429/503 o red): se frena, se reintenta con backoff */
+      lastSt[path] = res ? res.status : 0;
+      ctl.penalize();
+      retryQ.push(path);
+      crb.throttleCount++;
+      $c('crb-status-line').textContent = '⚙ Auto-ajuste: ' + ctl.cc + ' hilos · delay ' + ctl.delay + ' ms · limitaciones del objetivo: ' + crb.throttleCount;
+      if (ctl.breaker()) { crb.breaker = true; crb.cancelled = true; }
+      return;
+    }
+    ctl.ok();
     crb.doneCount++;
 
     if (res && res.status > 0) {
@@ -28649,7 +28800,27 @@ async function crbStart() {
       }
     }
     if (crb.doneCount % 5 === 0 || crb.doneCount === crb.totalCount) crbUpdateProgress();
-  });
+  };
+
+  await crbPool2(wordlist.paths, ctl, scanOne);
+
+  /* Reintentos con backoff: el objetivo se recupera y las rutas limitadas se validan */
+  for (var attempt = 1; attempt <= 3 && retryQ.length && !crb.cancelled; attempt++) {
+    const batch = retryQ.splice(0);
+    $c('crb-status-line').textContent = '↻ Reintento ' + attempt + '/3: ' + batch.length + ' rutas limitadas, con backoff…';
+    await crbSleep(attempt * 3000);
+    ctl.cc = 1; ctl.delay = Math.max(ctl.delay, 800); ctl.okStreak = 0;
+    await crbPool2(batch, ctl, scanOne);
+  }
+  /* Lo que siguió limitado se reporta con su status real, no se descarta en silencio */
+  if (retryQ.length && !crb.cancelled) {
+    retryQ.forEach(function (p) {
+      const entry = { status: lastSt[p] || 0, path: p, size: 0, rtt: 0, limited: true };
+      crb.results.push(entry);
+      crbAddResultRow(entry);
+      crb.doneCount++;
+    });
+  }
 
   /* Si la corrida termino (wordlist chica o cancelacion) antes de juntar las
      12 muestras necesarias para detectar el patron dinamico, no se pierden:
@@ -28657,6 +28828,7 @@ async function crbStart() {
      perder resultados reales por falta de muestra). */
   if (!dynamicResolved && pendingBuffer.length) flushBuffer(false);
 
+  if (crb.breaker) return crbFinish('detenido: el objetivo sigue limitando (530/429) aun con el backoff máximo');
   if (crb.cancelled) return crbFinish('cancelado por el usuario');
   crbFinish('completo');
 }
@@ -35153,6 +35325,349 @@ if(document.readyState!=='loading') init();
   var tabs=document.querySelectorAll('#proxyrep .pr-tab'); if(!tabs.length || !tabs[n-1]) return;
   ev.preventDefault(); tabs[n-1].click();
  });
+})();
+</script>
+<script>
+/* ══ WRAITH STACK v2 — lógica ══ */
+(function(){
+'use strict';
+var WORKER='https://scanner-proxy.matias-ramireztu.workers.dev/';
+var $=function(id){ return document.getElementById(id); };
+function esc(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setStatus(m,err){ var el=$('wrStatus'); el.textContent=m; el.className='wr-status'+(err?' err':''); }
+function F(lvl,t,d,w){ return {lvl:lvl,t:t,d:d,w:w||0}; }
+
+/* Envío vía Worker: una GET (también para robots, cabeceras de última versión, etc.) */
+function wrEnv(url){
+  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({url:url,method:'GET',headers:{},body:'',evade:false,cache_bust:true})})
+    .then(function(r){ return r.json(); }).catch(function(){ return null; });
+}
+
+/* Última versión: en vivo (WordPress, npm) o referencia estática fechada */
+var latestMemo={};
+function wrLatest(src){
+  if(!src) return Promise.resolve(null);
+  if(src.kind==='static') return Promise.resolve({v:src.ref, live:false, src:src});
+  var mk=src.kind+':'+(src.pkg||'');
+  if(latestMemo[mk]) return latestMemo[mk];
+  var p;
+  if(src.kind==='wp') p=wrEnv('https://api.wordpress.org/core/version-check/1.7/').then(function(e){ return String(JSON.parse(e.body).offers[0].current); });
+  else if(src.kind==='npm') p=wrEnv('https://registry.npmjs.org/'+src.pkg+'/latest').then(function(e){ return String(JSON.parse(e.body).version); });
+  else p=Promise.resolve(src.ref);
+  latestMemo[mk]=p.then(function(v){ return {v:v, live:src.kind!=='static', src:src}; })
+    .catch(function(){ return src.ref?{v:src.ref,live:false,src:src}:null; });
+  return latestMemo[mk];
+}
+function cmpV(a,b){ var A=String(a).split('.').map(Number), B=String(b).split('.').map(Number);
+  for(var i=0;i<Math.max(A.length,B.length);i++){ var x=A[i]||0, y=B[i]||0; if(x!==y) return x<y?-1:1; } return 0; }
+function majorOf(v){ return parseInt(String(v).split('.')[0],10); }
+function truncTo(v,ref){ return String(v).split('.').slice(0,String(ref).split('.').length).join('.'); }
+
+/* ── Firmas data-driven: cada regla {s: fuente, r: regex}. Cualquiera de when[] dispara la detección ── */
+var TECHS=[
+ /* CMS & sitios */
+ {n:'WordPress',c:'CMS',col:'#21759b',g:'W',lat:{kind:'wp'},when:[{s:'html',r:/wp-content\/|wp-includes\//i},{s:'gen',r:/wordpress/i}],ver:[{s:'gen',r:/WordPress\s+(\d+(?:\.\d+)*)/i},{s:'html',r:/wp-includes\/[^"'\s]*\?ver=(\d+(?:\.\d+)*)/i}]},
+ {n:'Drupal',c:'CMS',col:'#0678be',g:'D',lat:{kind:'static',ref:'11',label:'Drupal'},when:[{s:'gen',r:/drupal/i},{s:'h:x-generator',r:/drupal/i}],ver:[{s:'h:x-generator',r:/drupal\s*(\d+(?:\.\d+)*)/i},{s:'gen',r:/drupal\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'Joomla',c:'CMS',col:'#f44321',g:'J',lat:{kind:'static',ref:'5',label:'Joomla'},when:[{s:'gen',r:/joomla/i}],ver:[{s:'gen',r:/joomla!?\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'TYPO3',c:'CMS',col:'#ff7f00',g:'T3',when:[{s:'gen',r:/typo3/i}],ver:[{s:'gen',r:/typo3\s*(?:cms)?\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'Ghost',c:'CMS',col:'#15171a',g:'Gh',when:[{s:'gen',r:/^ghost/i}],ver:[{s:'gen',r:/ghost\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'PrestaShop',c:'E-commerce',col:'#df0067',g:'PS',when:[{s:'gen',r:/prestashop/i},{s:'html',r:/prestashop/i}],ver:[{s:'gen',r:/prestashop\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'Magento',c:'E-commerce',col:'#f26322',g:'M',when:[{s:'html',r:/mage\/cookies|Magento_|\/static\/version\d+\//i}]},
+ {n:'WooCommerce',c:'E-commerce',col:'#7f54b3',g:'Woo',when:[{s:'html',r:/woocommerce/i}]},
+ {n:'Shopify',c:'E-commerce',col:'#95bf47',g:'S',when:[{s:'html',r:/cdn\.shopify\.com/i},{s:'h:x-shopid',r:/.+/}]},
+ {n:'Wix',c:'Site builder',col:'#0c6efc',g:'Wx',when:[{s:'h:x-wix-request-id',r:/.+/},{s:'html',r:/wixstatic\.com/i}]},
+ {n:'Squarespace',c:'Site builder',col:'#333',g:'SQ',when:[{s:'gen',r:/squarespace/i},{s:'html',r:/squarespace\.com/i}]},
+ {n:'Webflow',c:'Site builder',col:'#4353ff',g:'Wf',when:[{s:'html',r:/data-wf-(site|page)|webflow\.com/i}]},
+ {n:'Hugo',c:'Generador estático',col:'#ff4088',g:'Hu',when:[{s:'gen',r:/^hugo/i}],ver:[{s:'gen',r:/hugo\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'Jekyll',c:'Generador estático',col:'#cc0000',g:'Jk',when:[{s:'gen',r:/jekyll/i}],ver:[{s:'gen',r:/jekyll\s*v?(\d+(?:\.\d+)*)/i}]},
+ {n:'Gatsby',c:'Generador estático',col:'#663399',g:'Gt',when:[{s:'gen',r:/gatsby/i},{s:'html',r:/___gatsby/}]},
+ /* Frameworks y librerías JS */
+ {n:'Next.js',c:'Framework',col:'#e5e5e5',g:'N▲',lat:{kind:'npm',pkg:'next'},when:[{s:'h:x-powered-by',r:/next\.js/i},{s:'html',r:/\/_next\/static\//}],ver:[{s:'h:x-powered-by',r:/next\.js\s*(\d+(?:\.\d+)*)/i}]},
+ {n:'Nuxt',c:'Framework',col:'#00dc82',g:'Nx',lat:{kind:'npm',pkg:'nuxt'},when:[{s:'html',r:/__NUXT__|\/_nuxt\//}]},
+ {n:'Angular',c:'Framework',col:'#dd0031',g:'A',lat:{kind:'npm',pkg:'@angular/core'},when:[{s:'html',r:/ng-version="\d/}],ver:[{s:'html',r:/ng-version="(\d+(?:\.\d+)*)"/}]},
+ {n:'React',c:'Librería JS',col:'#61dafb',g:'Re',lat:{kind:'npm',pkg:'react'},when:[{s:'asset',r:/react(?:-dom)?(?:\.production|\.development|\.min)?\.js|react-dom@/i},{s:'html',r:/data-reactroot|__REACT_DEVTOOLS/}],ver:[{s:'asset',r:/react(?:-dom)?@(\d+(?:\.\d+)*)/i}]},
+ {n:'Vue.js',c:'Framework',col:'#41b883',g:'V',lat:{kind:'npm',pkg:'vue'},when:[{s:'asset',r:/vue(?:\.runtime)?(?:\.global)?(?:\.min)?\.js|vue@/i}],ver:[{s:'asset',r:/vue@(\d+(?:\.\d+)*)/i},{s:'asset',r:/vue[.-](\d+(?:\.\d+)*)(?:\.min)?\.js/i}]},
+ {n:'Svelte',c:'Framework',col:'#ff3e00',g:'Sv',when:[{s:'html',r:/__svelte|svelte-[a-z0-9]{5,}/}]},
+ {n:'Astro',c:'Framework',col:'#ff5d01',g:'As',when:[{s:'html',r:/astro-island/}]},
+ {n:'Alpine.js',c:'Librería JS',col:'#8bc0d0',g:'Al',lat:{kind:'npm',pkg:'alpinejs'},when:[{s:'asset',r:/alpinejs|alpine(?:\.min)?\.js/i}],ver:[{s:'asset',r:/alpinejs@(\d+(?:\.\d+)*)/i}]},
+ {n:'jQuery',c:'Librería JS',col:'#0769ad',g:'jQ',lat:{kind:'npm',pkg:'jquery'},when:[{s:'asset',r:/jquery/i}],ver:[{s:'asset',r:/jquery[@\/.-]?(\d+(?:\.\d+)+)/i}]},
+ {n:'Bootstrap',c:'Librería CSS',col:'#7952b3',g:'B',lat:{kind:'npm',pkg:'bootstrap'},when:[{s:'asset',r:/bootstrap/i}],ver:[{s:'asset',r:/bootstrap[@\/.-]?(\d+(?:\.\d+)+)/i}]},
+ {n:'Tailwind CSS',c:'Librería CSS',col:'#06b6d4',g:'Tw',lat:{kind:'npm',pkg:'tailwindcss'},when:[{s:'asset',r:/tailwindcss/i},{s:'html',r:/cdn\.tailwindcss\.com/}],ver:[{s:'asset',r:/tailwindcss@(\d+(?:\.\d+)*)/i}]},
+ {n:'Font Awesome',c:'Iconos',col:'#339af0',g:'FA',lat:{kind:'npm',pkg:'@fortawesome/fontawesome-free'},when:[{s:'asset',r:/font-?awesome/i}],ver:[{s:'asset',r:/font-?awesome[@\/.-]?(\d+(?:\.\d+)+)/i}]},
+ {n:'Express',c:'Servidor',col:'#555',g:'Ex',lat:{kind:'npm',pkg:'express'},when:[{s:'h:x-powered-by',r:/express/i}]},
+ {n:'Laravel',c:'Framework',col:'#ff2d20',g:'L',lat:{kind:'static',ref:'12',label:'Laravel'},when:[{s:'cookie',r:/laravel_session/}]},
+ {n:'Django',c:'Framework',col:'#0c4b33',g:'Dj',when:[{s:'cookie',r:/csrftoken/},{s:'html',r:/csrfmiddlewaretoken/}]},
+ {n:'Ruby on Rails',c:'Framework',col:'#cc0000',g:'Rb',when:[{s:'html',r:/csrf-param[^>]*authenticity_token|name="csrf-param"/i}]},
+ {n:'ASP.NET',c:'Framework',col:'#512bd4',g:'.N',when:[{s:'h:x-aspnet-version',r:/.+/},{s:'h:x-powered-by',r:/asp\.net/i}],ver:[{s:'h:x-aspnet-version',r:/(\d+(?:\.\d+)*)/}]},
+ /* Servidores */
+ {n:'Nginx',c:'Servidor',col:'#009639',g:'N',lat:{kind:'static',ref:'1.28',label:'Nginx'},when:[{s:'h:server',r:/nginx/i}],ver:[{s:'h:server',r:/nginx\/(\d+(?:\.\d+)*)/i}]},
+ {n:'Apache HTTPD',c:'Servidor',col:'#d22128',g:'A',lat:{kind:'static',ref:'2.4',label:'Apache'},when:[{s:'h:server',r:/apache(?![-\s]coyote)/i}],ver:[{s:'h:server',r:/apache\/(\d+(?:\.\d+)*)/i}]},
+ {n:'Apache Tomcat',c:'Servidor',col:'#f8dc75',g:'Tc',when:[{s:'h:server',r:/coyote|tomcat/i}],ver:[{s:'h:server',r:/tomcat\/(\d+(?:\.\d+)*)/i}]},
+ {n:'Microsoft IIS',c:'Servidor',col:'#00a4ef',g:'IIS',lat:{kind:'static',ref:'10',label:'IIS'},when:[{s:'h:server',r:/microsoft-iis/i}],ver:[{s:'h:server',r:/iis\/(\d+(?:\.\d+)*)/i}]},
+ {n:'LiteSpeed',c:'Servidor',col:'#1f7ae0',g:'LS',when:[{s:'h:server',r:/litespeed/i}]},
+ {n:'Caddy',c:'Servidor',col:'#1f88c0',g:'Cd',when:[{s:'h:server',r:/caddy/i}]},
+ {n:'OpenResty',c:'Servidor',col:'#3b8f3b',g:'OR',when:[{s:'h:server',r:/openresty/i}],ver:[{s:'h:server',r:/openresty\/(\d+(?:\.\d+)*)/i}]},
+ {n:'PHP',c:'Lenguaje',col:'#777bb4',g:'PHP',lat:{kind:'static',ref:'8.4',label:'PHP'},when:[{s:'h:x-powered-by',r:/php/i}],ver:[{s:'h:x-powered-by',r:/php\/(\d+(?:\.\d+)*)/i}]},
+ {n:'Phusion Passenger',c:'Servidor',col:'#8b1d2c',g:'Ps',when:[{s:'h:x-powered-by',r:/passenger/i}]},
+ /* CDN, hosting y WAF */
+ {n:'Cloudflare',c:'CDN / WAF',col:'#f38020',g:'CF',when:[{s:'h:server',r:/cloudflare/i},{s:'h:cf-ray',r:/.+/}]},
+ {n:'Akamai',c:'CDN / WAF',col:'#0e9ad5',g:'Ak',when:[{s:'h:server',r:/akamai/i},{s:'h:x-akamai-transformed',r:/.+/}]},
+ {n:'Fastly',c:'CDN',col:'#ff282d',g:'Fs',when:[{s:'h:x-served-by',r:/cache-/i},{s:'h:via',r:/fastly/i}]},
+ {n:'Amazon CloudFront',c:'CDN',col:'#ff9900',g:'CFr',when:[{s:'h:via',r:/cloudfront/i},{s:'h:x-amz-cf-id',r:/.+/}]},
+ {n:'Amazon S3',c:'Hosting',col:'#e25444',g:'S3',when:[{s:'h:server',r:/amazons3/i}]},
+ {n:'Vercel',c:'Hosting',col:'#e5e5e5',g:'▲',when:[{s:'h:server',r:/vercel/i},{s:'h:x-vercel-id',r:/.+/}]},
+ {n:'Netlify',c:'Hosting',col:'#00c7b7',g:'Ne',when:[{s:'h:server',r:/netlify/i},{s:'h:x-nf-request-id',r:/.+/}]},
+ {n:'GitHub Pages',c:'Hosting',col:'#24292f',g:'GH',when:[{s:'h:server',r:/github\.com/i}]},
+ {n:'Google Front End',c:'CDN',col:'#4285f4',g:'GFE',when:[{s:'h:server',r:/^gws$|gfe|google frontend/i}]},
+ {n:'Varnish',c:'Cache',col:'#3d6fce',g:'Vr',when:[{s:'h:x-varnish',r:/.+/},{s:'h:via',r:/varnish/i}]},
+ {n:'Sucuri WAF',c:'CDN / WAF',col:'#3c94f0',g:'Su',when:[{s:'h:x-sucuri-id',r:/.+/},{s:'h:server',r:/sucuri/i}]},
+ {n:'Imperva / Incapsula',c:'CDN / WAF',col:'#e03c31',g:'Imp',when:[{s:'h:x-iinfo',r:/.+/},{s:'h:x-cdn',r:/incapsula/i}]},
+ /* Analítica, marketing, soporte, pagos y seguridad de terceros */
+ {n:'Google Tag Manager',c:'Analítica',col:'#4285f4',g:'GTM',when:[{s:'html',r:/googletagmanager\.com\/gtm\.js/}]},
+ {n:'Google Analytics',c:'Analítica',col:'#e37400',g:'GA',when:[{s:'html',r:/googletagmanager\.com\/gtag\/js|google-analytics\.com\/(analytics|ga)\.js/}]},
+ {n:'Facebook Pixel',c:'Analítica',col:'#1877f2',g:'fb',when:[{s:'html',r:/connect\.facebook\.net|fbq\(/}]},
+ {n:'Hotjar',c:'Analítica',col:'#fd3a5c',g:'HJ',when:[{s:'html',r:/static\.hotjar\.com/}]},
+ {n:'Microsoft Clarity',c:'Analítica',col:'#0078d4',g:'Cl',when:[{s:'html',r:/clarity\.ms/}]},
+ {n:'Matomo',c:'Analítica',col:'#3152a0',g:'Mt',when:[{s:'html',r:/matomo\.js|piwik\.js/}]},
+ {n:'Segment',c:'Analítica',col:'#52bd94',g:'Sg',when:[{s:'html',r:/cdn\.segment\.com/}]},
+ {n:'Mixpanel',c:'Analítica',col:'#7856ff',g:'Mx',when:[{s:'html',r:/cdn\.mxpnl\.com|mixpanel/i}]},
+ {n:'HubSpot',c:'Marketing',col:'#ff7a59',g:'HS',when:[{s:'html',r:/js\.hs-scripts\.com|js\.hsforms\.net|hubspot/i}]},
+ {n:'Intercom',c:'Soporte',col:'#1f8ded',g:'IC',when:[{s:'html',r:/widget\.intercom\.io|js\.intercomcdn\.com/}]},
+ {n:'Zendesk',c:'Soporte',col:'#03363d',g:'ZD',when:[{s:'html',r:/static\.zdassets\.com|zopim/i}]},
+ {n:'Crisp',c:'Soporte',col:'#1972f5',g:'Cr',when:[{s:'html',r:/client\.crisp\.chat/}]},
+ {n:'Stripe',c:'Pagos',col:'#635bff',g:'St',when:[{s:'html',r:/js\.stripe\.com/}]},
+ {n:'PayPal',c:'Pagos',col:'#003087',g:'PP',when:[{s:'html',r:/paypal\.com\/sdk\/js|paypalobjects/}]},
+ {n:'Mercado Pago',c:'Pagos',col:'#00b1ea',g:'MP',when:[{s:'html',r:/sdk\.mercadopago\.com/}]},
+ {n:'Google reCAPTCHA',c:'Seguridad',col:'#4285f4',g:'rc',when:[{s:'html',r:/google\.com\/recaptcha|gstatic\.com\/recaptcha/}]},
+ {n:'hCaptcha',c:'Seguridad',col:'#0074bf',g:'hC',when:[{s:'html',r:/hcaptcha\.com/}]},
+ {n:'Cloudflare Turnstile',c:'Seguridad',col:'#f38020',g:'Ts',when:[{s:'html',r:/challenges\.cloudflare\.com\/turnstile/}]},
+ {n:'Sentry',c:'Monitoreo',col:'#362d59',g:'Se',when:[{s:'html',r:/browser\.sentry-cdn\.com|js\.sentry-cdn\.com|Sentry\.init/}]},
+ {n:'Google Fonts',c:'Tipografía',col:'#4285f4',g:'Gf',when:[{s:'html',r:/fonts\.googleapis\.com/}]},
+ {n:'Adobe Fonts',c:'Tipografía',col:'#ff0000',g:'Af',when:[{s:'html',r:/use\.typekit\.net/}]},
+ {n:'OneTrust',c:'Consentimiento',col:'#2f73f1',g:'OT',when:[{s:'html',r:/cdn\.cookielaw\.org|onetrust/i}]},
+ {n:'Cookiebot',c:'Consentimiento',col:'#1f7ae0',g:'CB',when:[{s:'html',r:/consent\.cookiebot\.com/}]}
+];
+
+function srcText(ctx,s){
+  if(s==='html') return ctx.html; if(s==='gen') return ctx.gen; if(s==='asset') return ctx.assets; if(s==='cookie') return ctx.cookies;
+  if(s.indexOf('h:')===0) return ctx.h[s.slice(2)]||'';
+  return '';
+}
+var SRC_LABEL={html:'HTML',gen:'meta generator',asset:'script/CSS',cookie:'cookie'};
+function evidence(s){ return SRC_LABEL[s] || ('header '+s.slice(2)); }
+function detectTech(def, ctx){
+  var hit=null;
+  def.when.some(function(rule){ if(rule.r.test(srcText(ctx,rule.s))){ hit=rule; return true; } return false; });
+  if(!hit) return null;
+  var v=null;
+  (def.ver||[]).some(function(rule){ var m=rule.r.exec(srcText(ctx,rule.s)); if(m && m[1]){ v=m[1]; return true; } return false; });
+  return {v:v, ev:evidence(hit.s)};
+}
+function buildCtx(env){
+  var h={}; Object.keys(env.headers||{}).forEach(function(k){ h[k.toLowerCase()]=String(env.headers[k]); });
+  var html=String(env.body||'');
+  var gen=''; var m=/<meta[^>]+name=["']generator["'][^>]*content=["']([^"']+)["']/i.exec(html)||/<meta[^>]+content=["']([^"']+)["'][^>]*name=["']generator["']/i.exec(html);
+  if(m) gen=m[1];
+  var assets=[], re=/(?:src|href)=["']([^"']+)["']/gi, x; while((x=re.exec(html))!==null && assets.length<500) assets.push(x[1]);
+  var cookies=(h['set-cookie']||'').split(/,\s*(?=[^;,\s]+=)/).map(function(c){ return c.split('=')[0].trim(); }).join(' ');
+  return {h:h, html:html, gen:gen, assets:assets.join('\n'), cookies:cookies, setCookie:h['set-cookie']||''};
+}
+
+/* Veredicto de versión */
+function verdict(cur, lat){
+  if(!cur) return {lvl: lat?'unk':'unk', txt:'VERSIÓN NO DETECTADA', w:0};
+  if(!lat) return {lvl:'unk', txt:'SIN REFERENCIA DE ÚLTIMA VERSIÓN', w:0};
+  var curC = lat.live ? cur : truncTo(cur, lat.v);
+  if(cmpV(curC, lat.v)>=0) return {lvl:'ok', txt:'AL DÍA', w:0};
+  if(majorOf(cur)<majorOf(lat.v)) return {lvl:'bad', txt:'MUY DESACTUALIZADA', w:12};
+  return {lvl:'warn', txt:'DESACTUALIZADA', w:6};
+}
+
+/* ── Auditoría de cabeceras ── */
+function auditHeaders(ctx, https){
+  var h=ctx.h, out=[];
+  var hsts=h['strict-transport-security'];
+  if(https){
+    if(!hsts) out.push(F('bad','HSTS ausente','Sin Strict-Transport-Security: el navegador puede degradar a HTTP.',8));
+    else { var ma=/max-age=(\d+)/i.exec(hsts), age=ma?+ma[1]:0;
+      out.push(age>=15552000 ? F('ok','HSTS activo','max-age='+age+(/includeSubdomains/i.test(hsts)?' · includeSubDomains':''))
+                             : F('warn','HSTS débil','max-age='+age+' (recomendado ≥ 15552000)',3)); }
+  } else out.push(F('bad','Sitio sin HTTPS','El objetivo responde por HTTP: todo viaja sin cifrar.',10));
+  var csp=h['content-security-policy'];
+  if(!csp) out.push(F('bad','CSP ausente','Sin Content-Security-Policy: un XSS no tiene freno.',8));
+  else if(/unsafe-inline|unsafe-eval/i.test(csp)) out.push(F('warn','CSP con unsafe-inline/eval','Debilita la política frente a XSS.',4));
+  else out.push(F('ok','CSP presente','Sin unsafe-inline ni unsafe-eval.'));
+  var fa=csp && /frame-ancestors/i.test(csp);
+  if(!h['x-frame-options'] && !fa) out.push(F('warn','Clickjacking','Sin X-Frame-Options ni frame-ancestors.',4));
+  else out.push(F('ok','Anti-clickjacking', h['x-frame-options']?('X-Frame-Options: '+h['x-frame-options']):'frame-ancestors en CSP'));
+  if(!/nosniff/i.test(h['x-content-type-options']||'')) out.push(F('warn','nosniff ausente','Sin X-Content-Type-Options: nosniff.',3));
+  else out.push(F('ok','nosniff','X-Content-Type-Options presente.'));
+  if(!h['referrer-policy']) out.push(F('warn','Referrer-Policy ausente','Puede filtrar URLs internas a terceros.',2));
+  else out.push(F('ok','Referrer-Policy', h['referrer-policy']));
+  if(!h['permissions-policy']) out.push(F('info','Permissions-Policy ausente','Sin control de cámara, micrófono o geolocalización para iframes.'));
+  else out.push(F('ok','Permissions-Policy','presente'));
+  if(!h['cross-origin-opener-policy']) out.push(F('info','COOP ausente','Sin Cross-Origin-Opener-Policy (aislamiento de ventana).'));
+  if(h.server && /\d/.test(h.server)) out.push(F('warn','Versión del servidor expuesta','Server: '+h.server,3));
+  if(h['x-powered-by']) out.push(F('warn','X-Powered-By expuesto','X-Powered-By: '+h['x-powered-by'],3));
+  if(h['x-aspnet-version']) out.push(F('warn','X-AspNet-Version expuesto',h['x-aspnet-version'],3));
+  var acao=h['access-control-allow-origin']||'';
+  if(acao==='*' && /true/i.test(h['access-control-allow-credentials']||'')) out.push(F('bad','CORS permisivo con credenciales','ACAO: * + Allow-Credentials: true',10));
+  else if(acao==='*') out.push(F('info','CORS abierto (*)','Cualquier origen puede leer respuestas públicas.'));
+  return out;
+}
+
+/* ── Auditoría de cookies ── */
+function auditCookies(setCookie, https){
+  var out=[]; if(!setCookie) return out;
+  setCookie.split(/,\s*(?=[^;,\s]+=)/).forEach(function(c){
+    var name=c.split('=')[0].trim(), low=c.toLowerCase(), sess=/sess|sid|token|auth|jwt|login|remember/i.test(name);
+    if(https && low.indexOf('secure')<0) out.push(F('warn','Cookie sin Secure: '+name,'Se envía también por HTTP.',3));
+    if(low.indexOf('httponly')<0) out.push(sess ? F('bad','Cookie de sesión sin HttpOnly: '+name,'Accesible desde JavaScript: un XSS roba la sesión.',8)
+                                             : F('info','Cookie sin HttpOnly: '+name,'Accesible desde JavaScript.'));
+    if(low.indexOf('samesite')<0) out.push(F('warn','Cookie sin SameSite: '+name,'Riesgo de CSRF.',2));
+  });
+  if(!out.length) out.push(F('ok','Cookies','Sin cookies con problemas de atributos.'));
+  return out;
+}
+
+/* ── Archivos expuestos y de descubrimiento (una GET por ruta) ── */
+var PROBES=[
+  {p:'/robots.txt', key:'robots'}, {p:'/sitemap.xml', key:'sitemap'},
+  {p:'/.well-known/security.txt', key:'sectxt'}, {p:'/.git/HEAD', key:'git'}, {p:'/.env', key:'env'}
+];
+function probeFiles(base, https){
+  return Promise.all(PROBES.map(function(pr){ return wrEnv(base+pr.p).then(function(e){ return {pr:pr, e:e}; }); }))
+  .then(function(res){
+    var out=[];
+    res.forEach(function(x){
+      var e=x.e||{}, b=String(e.body||''), ok=e.status===200, html=/<html|<!doctype/i.test(b);
+      switch(x.pr.key){
+        case 'robots':
+          if(ok && !html && /user-agent|disallow|allow:/i.test(b)){
+            var dis=b.split(/\r?\n/).filter(function(l){ return /^\s*disallow/i.test(l); }).map(function(l){ return l.split(':').slice(1).join(':').trim(); }).filter(Boolean);
+            var sens=dis.filter(function(d){ return /admin|backup|private|secret|api|internal|staging|dev|test|config|\.git|db|tmp|old|panel/i.test(d); });
+            out.push(F('ok','robots.txt presente', dis.length+' Disallow'+(sens.length?' · sensibles: '+sens.slice(0,8).join(', '):'')));
+          } else out.push(F('info','robots.txt ausente','Sin robots.txt en la raíz.'));
+          break;
+        case 'sitemap':
+          out.push(ok && /<urlset|<sitemapindex/i.test(b) ? F('ok','sitemap.xml presente','Mapa del sitio público.') : F('info','sitemap.xml ausente',''));
+          break;
+        case 'sectxt':
+          out.push(ok && /contact:/i.test(b) ? F('ok','security.txt presente','Canal de reporte de vulnerabilidades.') : F('warn','Sin security.txt','No hay canal oficial para reportar vulnerabilidades (RFC 9116).',2));
+          break;
+        case 'git':
+          if(ok && !html && /ref:\s*refs\//i.test(b)) out.push(F('bad','Repositorio .git expuesto','/.git/HEAD responde con una referencia de git: se puede descargar el código fuente.',25));
+          else if(ok && html) out.push(F('info','/.git/HEAD devuelve HTML','Probablemente un soft-404: no es exposición.'));
+          break;
+        case 'env':
+          if(ok && !html && /^[A-Z_][A-Z0-9_]{2,}=/m.test(b)) out.push(F('bad','Archivo .env expuesto','Variables de entorno accesibles públicamente (posibles credenciales).',25));
+          else if(ok && html) out.push(F('info','/.env devuelve HTML','Probablemente un soft-404: no es exposición.'));
+          break;
+      }
+    });
+    return out;
+  });
+}
+
+function grade(s){ return s>=90?'A':s>=75?'B':s>=60?'C':s>=40?'D':'F'; }
+var GCOL={A:'#00ffa3',B:'#9bff6b',C:'#ffb020',D:'#ff7a33',F:'#ff1a2e'};
+
+function techCard(n, res, lat, v){
+  var vulnQ = res.v ? 'https://nvd.nist.gov/vuln/search/results?query='+encodeURIComponent(n.n+' '+res.v) : '';
+  var verLine = res.v
+    ? 'Sitio: <b>'+esc(res.v)+'</b>'+(lat?' · Última: <b>'+esc(lat.v)+'</b>'+(lat.live?'':' <span class="wr-ev">(ref. estática, verificar)</span>'):'')
+    : 'Versión no visible'+(lat?' · Última conocida: <b>'+esc(lat.v)+'</b>':'');
+  var vuln=(v.lvl==='warn'||v.lvl==='bad')
+    ? '<div class="wr-vuln">⚠ Versión '+esc(res.v)+' propensa a vulnerabilidades. <a href="'+vulnQ+'" target="_blank" rel="noopener">CVEs en NVD ↗</a></div>' : '';
+  return '<div class="wr-card '+v.lvl+'">'
+    +'<div class="wr-head"><span class="wr-ico" style="background:'+n.col+'">'+esc(n.g)+'</span>'
+    +'<div style="min-width:0"><div class="wr-name">'+esc(n.n)+'</div><div class="wr-cat">'+esc(n.c)+'</div></div></div>'
+    +'<div class="wr-ver">'+verLine+'</div>'
+    +'<span class="wr-badge '+v.lvl+'">'+v.txt+'</span>'+vuln
+    +'<div class="wr-ev">detectado por: '+esc(res.ev)+'</div></div>';
+}
+function findRows(list){
+  if(!list.length) return '<div class="wr-ev">Sin hallazgos en esta categoría.</div>';
+  return list.map(function(x){ return '<div class="wr-row '+x.lvl+'"><span class="wr-dot"></span><div><b>'+esc(x.t)+'</b><div class="wr-ev">'+esc(x.d)+'</div></div>'+(x.w?'<span class="wr-pen">−'+x.w+'</span>':'')+'</div>'; }).join('');
+}
+
+var LAST=null;
+function run(){
+  if(!$('wrAuth').checked){ setStatus('✕ Marcá la autorización para analizar el objetivo.', true);
+    var w=$('wrAuthWrap'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); return; }
+  var raw=String($('wrUrl').value||'').trim(); if(!raw){ setStatus('✕ Ingresá una URL o dominio.', true); return; }
+  var url=(/^https?:\/\//i.test(raw)?raw:'https://'+raw).replace(/\/+$/,'');
+  var https=/^https:/i.test(url), btn=$('wrGo');
+  btn.disabled=true; $('wrResult').innerHTML=''; setStatus('⟳ Analizando '+url+' vía Worker…');
+  wrEnv(url+'/').then(function(env){
+    if(!env || !env.status){ throw new Error('sin respuesta del objetivo ('+((env&&env.error)||'Worker sin datos')+')'); }
+    var ctx=buildCtx(env);
+    var found=DEFS_FOUND(ctx);
+    setStatus('✓ HTTP '+env.status+' · '+found.length+' tecnologías. Consultando versiones y auditando…');
+    var techP=Promise.all(found.map(function(x){ return wrLatest(x.n.lat).then(function(lat){ x.lat=lat; x.v=verdict(x.res.v, lat); return x; }); }));
+    var filesP=$('wrFiles').checked ? probeFiles(url, https) : Promise.resolve([]);
+    return Promise.all([techP, filesP]).then(function(r){
+      var techs=r[0], files=r[1], hdrs=auditHeaders(ctx, https), cks=auditCookies(ctx.setCookie, https);
+      var order={bad:0,warn:1,unk:2,ok:3};
+      techs.sort(function(a,b){ return order[a.v.lvl]-order[b.v.lvl]; });
+      var techFind=techs.map(function(x){ return {lvl:x.v.lvl, t:x.n.n+' '+(x.res.v||''), d:x.v.txt+(x.lat?' · última '+x.lat.v:''), w:x.v.w}; });
+      var all=techFind.concat(hdrs, cks, files);
+      var s=100; all.forEach(function(x){ s-=x.w||0; }); s=Math.max(0,s);
+      var g=grade(s);
+      LAST={target:url, date:new Date().toISOString(), score:s, grade:g,
+        technologies:techs.map(function(x){ return {name:x.n.n, category:x.n.c, version:x.res.v, latest:x.lat?x.lat.v:null, verdict:x.v.txt, evidence:x.res.ev}; }),
+        headers:hdrs, cookies:cks, files:files};
+      render(techs, hdrs, cks, files, s, g, url, env.status);
+      setStatus('✓ Análisis completo · '+url+' · nota '+g+' ('+s+'/100)');
+    });
+  }).catch(function(e){ setStatus('✕ Error: '+esc(e&&e.message||e), true); })
+    .then(function(){ btn.disabled=false; });
+}
+function DEFS_FOUND(ctx){
+  var out=[];
+  TECHS.forEach(function(n){ var r=null; try{ r=detectTech(n,ctx); }catch(e){} if(r) out.push({n:n,res:r}); });
+  return out;
+}
+
+function render(techs, hdrs, cks, files, s, g, url, status){
+  var C=2*Math.PI*44;
+  var gauge='<div class="wr-gauge"><svg viewBox="0 0 110 110" width="120" height="120" aria-hidden="true">'
+    +'<circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>'
+    +'<circle cx="55" cy="55" r="44" fill="none" stroke="'+GCOL[g]+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+C.toFixed(2)+'" stroke-dashoffset="'+(C*(1-s/100)).toFixed(2)+'" transform="rotate(-90 55 55)" style="filter:drop-shadow(0 0 6px '+GCOL[g]+')"/>'
+    +'<text x="55" y="62" text-anchor="middle" font-size="30" font-weight="700" fill="'+GCOL[g]+'" font-family="monospace">'+g+'</text></svg>'
+    +'<div class="wr-ev">'+s+' / 100</div></div>';
+  var cnt={bad:0,warn:0,ok:0,unk:0,info:0};
+  techs.forEach(function(x){ cnt[x.v.lvl]++; });
+  var issues=hdrs.concat(cks,files).filter(function(x){ return x.lvl==='bad'||x.lvl==='warn'; }).length;
+  $('wrResult').innerHTML =
+    '<div class="wr-top">'+gauge+'<div class="wr-sum"><div class="wr-tgt">'+esc(url)+'</div>'
+    +'<div class="wr-summary"><span class="wr-chip">HTTP <b>'+status+'</b></span><span class="wr-chip">Tecnologías <b>'+techs.length+'</b></span>'
+    +'<span class="wr-chip">Desactualizadas <b>'+(cnt.bad+cnt.warn)+'</b></span><span class="wr-chip">Hallazgos <b>'+issues+'</b></span></div>'
+    +'<div class="wr-acts"><button type="button" class="wr-btn" id="wrJson">⬇ EXPORTAR JSON</button><button type="button" class="wr-btn" id="wrCopy">⧉ COPIAR RESUMEN</button></div></div></div>'
+    +'<h4 class="wr-h">TECNOLOGÍAS</h4><div class="wr-grid">'+(techs.length?techs.map(function(x){ return techCard(x.n,x.res,x.lat,x.v); }).join(''):'<div class="wr-ev">No se detectaron firmas conocidas en la respuesta principal.</div>')+'</div>'
+    +'<h4 class="wr-h">CABECERAS DE SEGURIDAD</h4><div class="wr-list">'+findRows(hdrs)+'</div>'
+    +'<h4 class="wr-h">COOKIES</h4><div class="wr-list">'+findRows(cks)+'</div>'
+    +'<h4 class="wr-h">ARCHIVOS Y EXPOSICIÓN</h4><div class="wr-list">'+(files.length?findRows(files):'<div class="wr-ev">'+($('wrFiles').checked?'Sin archivos expuestos detectados.':'Búsqueda de archivos desactivada.')+'</div>')+'</div>';
+  $('wrJson').addEventListener('click', function(){
+    var blob=new Blob([JSON.stringify(LAST,null,2)],{type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='wraith-'+Date.now()+'.json';
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+  });
+  $('wrCopy').addEventListener('click', function(){
+    var t='WRAITH STACK · '+LAST.target+' · nota '+LAST.grade+' ('+LAST.score+'/100)\n'
+      +LAST.technologies.map(function(x){ return '- '+x.name+(x.version?' '+x.version:'')+(x.latest?' (última '+x.latest+')':'')+': '+x.verdict; }).join('\n');
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ setStatus('Resumen copiado.'); }, function(){ setStatus('No se pudo copiar.', true); });
+  });
+}
+
+function init(){
+  if(!$('wraith')) return;
+  $('wrGo').addEventListener('click', run);
+  $('wrUrl').addEventListener('keydown', function(ev){ if(ev.key==='Enter') run(); });
+}
+document.addEventListener('DOMContentLoaded', init);
+if(document.readyState!=='loading') init();
 })();
 </script>
 </body>

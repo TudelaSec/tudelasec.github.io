@@ -1759,6 +1759,8 @@ section .wrap { position: relative; z-index: 1; }
 .hdr-risk.med  { background:rgba(255,204,2,.1); color:#ffcc02; border:1px solid rgba(255,204,2,.2); }
 .hdr-risk.low  { background:rgba(61,220,132,.1); color:#3ddc84; border:1px solid rgba(61,220,132,.2); }
 .hdr-body { padding:10px 14px; }
+.hdrs-more { display:block; margin:18px auto 0; font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:#ff4d6a; background:rgba(255,26,46,.06); border:1px solid rgba(255,26,46,.35); padding:10px 22px; cursor:pointer; border-radius:3px; transition:box-shadow .2s,border-color .2s; }
+.hdrs-more:hover { border-color:#ff1a2e; box-shadow:0 0 16px rgba(255,26,46,.3); }
 .hdr-desc { font-family:var(--mono); font-size:11px; color:rgba(240,238,248,.6); line-height:1.6; margin-bottom:8px; }
 .hdr-example { font-family:var(--mono); font-size:10.5px; color:#4fc3f7; background:rgba(79,195,247,.04); border:1px solid rgba(79,195,247,.08); border-radius:2px; padding:5px 9px; word-break:break-all; }
 .hdr-note { font-family:var(--mono); font-size:10px; color:#ffcc02; margin-top:6px; padding:4px 8px; background:rgba(255,204,2,.04); border-left:2px solid rgba(255,204,2,.3); }
@@ -3821,6 +3823,90 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
     </div>
   </div>
 </section>
+<style>
+/* ══ WRAITH STACK v2 ══ */
+#wraith .wr-sub{font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 16px;max-width:760px;}
+#wraith .wr-panel{position:relative;border:1px solid rgba(255,26,46,.45);background:#050208;padding:16px;box-shadow:0 0 30px rgba(255,26,46,.10),inset 0 0 40px rgba(0,0,0,.6);min-width:0;}
+#wraith .wr-panel::before,#wraith .wr-panel::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--acc);pointer-events:none;}
+#wraith .wr-panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
+#wraith .wr-panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0;}
+#wraith .wr-auth{display:flex;gap:10px;align-items:flex-start;font-family:var(--mono);font-size:12px;color:var(--muted);border:1px dashed rgba(255,26,46,.35);padding:10px;margin-bottom:12px;cursor:pointer;}
+#wraith .wr-auth.flash{animation:prFlash .6s steps(2) 2;}
+@keyframes prFlash{50%{border-color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,.5);}}
+#wraith .wr-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+#wraith .wr-url{flex:1 1 220px;min-width:0;font-family:var(--mono);font-size:13px;background:#020005;color:var(--text);border:1px solid rgba(255,26,46,.35);padding:10px 12px;}
+#wraith .wr-go{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#ff1a2e,#b30018);border:0;padding:11px 16px;cursor:pointer;position:relative;overflow:hidden;}
+#wraith .wr-go::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:50%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .45s;}
+#wraith .wr-go:hover::before{left:120%;}
+#wraith .wr-go:disabled{opacity:.4;cursor:wait;}
+#wraith .wr-opts{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px;}
+#wraith .wr-opts label{display:flex;gap:6px;align-items:center;cursor:pointer;}
+#wraith .wr-status{font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.04em;min-height:18px;overflow-wrap:anywhere;}
+#wraith .wr-status.err{color:var(--acc);}
+#wraith .wr-result{margin-top:14px;min-width:0;}
+#wraith .wr-top{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:6px;}
+#wraith .wr-gauge{text-align:center;flex:0 0 auto;}
+#wraith .wr-sum{flex:1 1 260px;min-width:0;}
+#wraith .wr-tgt{font-family:var(--mono);font-size:13px;color:#fff;overflow-wrap:anywhere;margin-bottom:8px;}
+#wraith .wr-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+#wraith .wr-chip{font-family:var(--mono);font-size:11px;border:1px solid rgba(255,26,46,.4);padding:3px 9px;color:var(--text);}
+#wraith .wr-chip b{color:var(--acc);}
+#wraith .wr-acts{display:flex;flex-wrap:wrap;gap:8px;}
+#wraith .wr-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--green);background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.4);padding:7px 11px;cursor:pointer;}
+#wraith .wr-btn:hover{box-shadow:0 0 12px rgba(0,255,163,.3);}
+#wraith .wr-h{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--acc);margin:18px 0 8px;text-shadow:0 0 8px rgba(255,26,46,.4);}
+#wraith .wr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;}
+#wraith .wr-card{min-width:0;border:1px solid rgba(255,255,255,.08);background:#08040b;padding:12px;display:flex;flex-direction:column;gap:8px;overflow-wrap:anywhere;animation:wrIn .35s ease-out both;}
+@keyframes wrIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+#wraith .wr-card.ok{border-color:rgba(0,255,163,.35);}
+#wraith .wr-card.warn{border-color:rgba(255,176,32,.5);}
+#wraith .wr-card.bad{border-color:rgba(255,26,46,.6);box-shadow:0 0 18px rgba(255,26,46,.12);}
+#wraith .wr-head{display:flex;align-items:center;gap:10px;min-width:0;}
+#wraith .wr-ico{flex:0 0 auto;min-width:38px;height:38px;padding:0 6px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 0 14px rgba(255,255,255,.12);}
+#wraith .wr-name{font-family:var(--mono);font-weight:700;font-size:13px;color:#fff;}
+#wraith .wr-cat{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+#wraith .wr-ver{font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.6;}
+#wraith .wr-ver b{color:var(--acc);}
+#wraith .wr-badge{align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:3px 8px;border:1px solid currentColor;}
+#wraith .wr-badge.ok{color:var(--green);}
+#wraith .wr-badge.warn{color:var(--amber);}
+#wraith .wr-badge.bad{color:var(--acc);}
+#wraith .wr-badge.unk{color:var(--muted);}
+#wraith .wr-ev{font-family:var(--mono);font-size:10.5px;color:var(--muted);overflow-wrap:anywhere;}
+#wraith .wr-vuln{font-family:var(--mono);font-size:11px;color:#ffb0b0;}
+#wraith .wr-vuln a{color:var(--acc);}
+#wraith .wr-list{display:flex;flex-direction:column;gap:6px;}
+#wraith .wr-row{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(255,255,255,.06);background:#08040b;padding:9px 10px;font-family:var(--mono);font-size:12px;color:var(--text);min-width:0;}
+#wraith .wr-row>div{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}
+#wraith .wr-dot{flex:0 0 8px;width:8px;height:8px;margin-top:5px;border-radius:50%;background:var(--muted);}
+#wraith .wr-row.ok .wr-dot{background:var(--green);box-shadow:0 0 6px var(--green);}
+#wraith .wr-row.warn .wr-dot{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+#wraith .wr-row.bad .wr-dot{background:var(--acc);box-shadow:0 0 8px var(--acc);}
+#wraith .wr-row.bad{border-color:rgba(255,26,46,.35);}
+#wraith .wr-row.info .wr-dot{background:#4fc3f7;}
+#wraith .wr-pen{flex:0 0 auto;color:var(--acc);font-size:11px;}
+@media (max-width:600px){#wraith .wr-panel{padding:12px;}#wraith .wr-go{width:100%;}#wraith .wr-top{justify-content:center;}}
+</style>
+
+<section id="wraith">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">38 — Tech Fingerprint &amp; Audit</div></div>
+    <h2 class="sec-title h2-anim" data-l1="Wraith" data-l2="Stack." aria-label="Wraith Stack."></h2>
+    <p class="wr-sub">Fingerprint y auditoría de un sitio: tecnologías con versión y la última disponible, cabeceras de seguridad, cookies, archivos expuestos (.git, .env) y una nota de 0 a 100. Cada consulta sale por el Worker.</p>
+    <div class="wr-panel">
+      <label class="wr-auth" id="wrAuthWrap"><input type="checkbox" id="wrAuth"> <span>Confirmo <b>autorización</b> para analizar el objetivo que ingrese.</span></label>
+      <div class="wr-bar">
+        <input id="wrUrl" class="wr-url" placeholder="https://objetivo.tld o dominio.tld" spellcheck="false" autocomplete="off">
+        <button type="button" id="wrGo" class="wr-go">▸ INVOCAR WRAITH</button>
+      </div>
+      <div class="wr-opts">
+        <label><input type="checkbox" id="wrFiles" checked> Buscar archivos expuestos (robots, sitemap, security.txt, .git, .env)</label>
+      </div>
+      <div id="wrStatus" class="wr-status">Listo. Ingresá la URL y pulsá INVOCAR.</div>
+      <div id="wrResult" class="wr-result"></div>
+    </div>
+  </div>
+</section>
 
 <!-- ══ SECCIÓN: NIMBUS — Cloud Reaper (tras #waflab) ══ -->
 <section id="nimbus">
@@ -3836,7 +3922,7 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
           <button id="nbRun">🌩 DESATAR NIMBUS</button>
         </div>
         <div class="nb-progress"><i id="nbFill"></i></div>
-        <div class="nb-log" id="nbLog"><span class="t">// ingresa el dominio del target y presiona DESATAR NIMBUS — 11 oleadas cloud reales: fingerprint multi-provider (30) + cosecha de llaves → S3 (regiones+ACL+perms) / Azure / GCP/Firebase enum → Shopify attack surface → metadata SSRF (39 endpoints x params reflejados) → K8s/Docker/Registry → CNAME takeover via DoH (38 servicios) → multi-cloud enum (DO/OCI/Alibaba/Wasabi/Linode/Scaleway/IBM) → cloud creds leak hunt (.env/serviceAccount/tfstate/dumps) → reporte JSON + PDF. Todo HTTP real via el Worker proxy, cero simulación.</span></div>
+        <div class="nb-log" id="nbLog"><span class="t">// ingresa el dominio del target y presiona DESATAR NIMBUS — 15 oleadas cloud reales: fingerprint multi-provider (30) + cosecha de llaves → S3 (regiones+ACL+perms) / Azure / GCP/Firebase enum → Shopify attack surface → metadata SSRF (39 endpoints x params reflejados) → K8s/Docker/Registry → CNAME takeover via DoH (38 servicios) → multi-cloud enum (DO/OCI/Alibaba/Wasabi/Linode/Scaleway/IBM) → cloud creds leak hunt (.env/serviceAccount/tfstate/dumps) → reporte JSON + PDF. Todo HTTP real via el Worker proxy, cero simulación.</span></div>
         <div class="nb-summary" id="nbSummary"></div>
         <div class="nb-tablewrap"><table class="nb-table">
           <thead><tr><th>OLEADA</th><th>FASE</th><th>PROBE</th><th>STATUS</th><th>VEREDICTO</th></tr></thead>
@@ -7547,6 +7633,8 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
         <option value="2" selected>Profundidad 2</option>
         <option value="3">Profundidad 3</option>
         <option value="4">Profundidad 4 (agresivo)</option>
+        <option value="5">Profundidad 5 (brutal)</option>
+        <option value="6">Profundidad 6 (máximo)</option>
       </select>
       <button class="rce-btn" id="crw-btn">
         <span class="rce-btn-icon">🕷</span>
@@ -7568,7 +7656,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">23 — Aggressive Recon</div></div>
     <h2 class="sec-title h2-anim" data-l1="Kraken" data-l2="Subdomains." aria-label="Kraken Subdomains."></h2>
-    <p style="margin-bottom:28px;color:rgba(240,238,248,.6);max-width:720px;">Motor agresivo multi-fuente: <strong style="color:var(--acc)">5 fuentes OSINT</strong> (crt.sh, HackerTarget, OTX, Wayback, Anubis) + fuerza bruta activa con DNS-over-HTTPS round-robin + probing HTTP + detección de CNAME takeover con verificación real de body.</p>
+    <p style="margin-bottom:28px;color:rgba(240,238,248,.6);max-width:720px;">Motor agresivo multi-fuente: <strong style="color:var(--acc)">16 fuentes OSINT</strong> (crt.sh, HackerTarget, OTX, Wayback, Anubis, CertSpotter, urlscan, RapidDNS y más) + fuerza bruta activa con DNS-over-HTTPS round-robin + probing HTTP + detección de CNAME takeover con verificación real de body.</p>
 <div class="kr-head">
   <div class="kr-title">KRA<span class="acc">KEN</span></div>
   <div class="kr-sub">Motor Agresivo de Descubrimiento de Subdominios // <b>Multi-Fuente + Bruteforce Activo + Takeover Detection</b></div>
@@ -7596,6 +7684,7 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
     <button class="kr-toggle active" id="tg-brute" title="Bruteforce activo con wordlist integrada — genera tráfico DNS, no toca el servidor web">🔨 BRUTEFORCE ACTIVO</button>
     <button class="kr-toggle active" id="tg-http" title="Probing HTTP httpx-style de TODOS los subdominios vía proxy Worker — muestra el código de estado de cada uno">🌐 PROBING HTTP (códigos de estado)</button>
     <button class="kr-toggle active" id="tg-cname" title="Detecta CNAMEs colgantes apuntando a servicios tomables (S3, CloudFront, GitHub Pages...)">☠ CNAME TAKEOVER</button>
+    <button class="kr-toggle active" id="tg-endp" title="Sobre cada host vivo prueba rutas de API, docs, paneles, health y configuración expuestas">🧭 ENDPOINTS (API · docs · paneles · leaks)</button>
     <span class="hint">Solo para targets con autorización explícita</span>
   </div>
   <div class="controls" style="border-bottom:none;padding-bottom:0;">
@@ -7688,90 +7777,6 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
   </div>
 </section>
 
-<style>
-/* ══ WRAITH STACK v2 ══ */
-#wraith .wr-sub{font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 16px;max-width:760px;}
-#wraith .wr-panel{position:relative;border:1px solid rgba(255,26,46,.45);background:#050208;padding:16px;box-shadow:0 0 30px rgba(255,26,46,.10),inset 0 0 40px rgba(0,0,0,.6);min-width:0;}
-#wraith .wr-panel::before,#wraith .wr-panel::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--acc);pointer-events:none;}
-#wraith .wr-panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
-#wraith .wr-panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0;}
-#wraith .wr-auth{display:flex;gap:10px;align-items:flex-start;font-family:var(--mono);font-size:12px;color:var(--muted);border:1px dashed rgba(255,26,46,.35);padding:10px;margin-bottom:12px;cursor:pointer;}
-#wraith .wr-auth.flash{animation:prFlash .6s steps(2) 2;}
-@keyframes prFlash{50%{border-color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,.5);}}
-#wraith .wr-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
-#wraith .wr-url{flex:1 1 220px;min-width:0;font-family:var(--mono);font-size:13px;background:#020005;color:var(--text);border:1px solid rgba(255,26,46,.35);padding:10px 12px;}
-#wraith .wr-go{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,#ff1a2e,#b30018);border:0;padding:11px 16px;cursor:pointer;position:relative;overflow:hidden;}
-#wraith .wr-go::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:50%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .45s;}
-#wraith .wr-go:hover::before{left:120%;}
-#wraith .wr-go:disabled{opacity:.4;cursor:wait;}
-#wraith .wr-opts{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px;}
-#wraith .wr-opts label{display:flex;gap:6px;align-items:center;cursor:pointer;}
-#wraith .wr-status{font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.04em;min-height:18px;overflow-wrap:anywhere;}
-#wraith .wr-status.err{color:var(--acc);}
-#wraith .wr-result{margin-top:14px;min-width:0;}
-#wraith .wr-top{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:6px;}
-#wraith .wr-gauge{text-align:center;flex:0 0 auto;}
-#wraith .wr-sum{flex:1 1 260px;min-width:0;}
-#wraith .wr-tgt{font-family:var(--mono);font-size:13px;color:#fff;overflow-wrap:anywhere;margin-bottom:8px;}
-#wraith .wr-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
-#wraith .wr-chip{font-family:var(--mono);font-size:11px;border:1px solid rgba(255,26,46,.4);padding:3px 9px;color:var(--text);}
-#wraith .wr-chip b{color:var(--acc);}
-#wraith .wr-acts{display:flex;flex-wrap:wrap;gap:8px;}
-#wraith .wr-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--green);background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.4);padding:7px 11px;cursor:pointer;}
-#wraith .wr-btn:hover{box-shadow:0 0 12px rgba(0,255,163,.3);}
-#wraith .wr-h{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--acc);margin:18px 0 8px;text-shadow:0 0 8px rgba(255,26,46,.4);}
-#wraith .wr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;}
-#wraith .wr-card{min-width:0;border:1px solid rgba(255,255,255,.08);background:#08040b;padding:12px;display:flex;flex-direction:column;gap:8px;overflow-wrap:anywhere;animation:wrIn .35s ease-out both;}
-@keyframes wrIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-#wraith .wr-card.ok{border-color:rgba(0,255,163,.35);}
-#wraith .wr-card.warn{border-color:rgba(255,176,32,.5);}
-#wraith .wr-card.bad{border-color:rgba(255,26,46,.6);box-shadow:0 0 18px rgba(255,26,46,.12);}
-#wraith .wr-head{display:flex;align-items:center;gap:10px;min-width:0;}
-#wraith .wr-ico{flex:0 0 auto;min-width:38px;height:38px;padding:0 6px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 0 14px rgba(255,255,255,.12);}
-#wraith .wr-name{font-family:var(--mono);font-weight:700;font-size:13px;color:#fff;}
-#wraith .wr-cat{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
-#wraith .wr-ver{font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.6;}
-#wraith .wr-ver b{color:var(--acc);}
-#wraith .wr-badge{align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:3px 8px;border:1px solid currentColor;}
-#wraith .wr-badge.ok{color:var(--green);}
-#wraith .wr-badge.warn{color:var(--amber);}
-#wraith .wr-badge.bad{color:var(--acc);}
-#wraith .wr-badge.unk{color:var(--muted);}
-#wraith .wr-ev{font-family:var(--mono);font-size:10.5px;color:var(--muted);overflow-wrap:anywhere;}
-#wraith .wr-vuln{font-family:var(--mono);font-size:11px;color:#ffb0b0;}
-#wraith .wr-vuln a{color:var(--acc);}
-#wraith .wr-list{display:flex;flex-direction:column;gap:6px;}
-#wraith .wr-row{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(255,255,255,.06);background:#08040b;padding:9px 10px;font-family:var(--mono);font-size:12px;color:var(--text);min-width:0;}
-#wraith .wr-row>div{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}
-#wraith .wr-dot{flex:0 0 8px;width:8px;height:8px;margin-top:5px;border-radius:50%;background:var(--muted);}
-#wraith .wr-row.ok .wr-dot{background:var(--green);box-shadow:0 0 6px var(--green);}
-#wraith .wr-row.warn .wr-dot{background:var(--amber);box-shadow:0 0 6px var(--amber);}
-#wraith .wr-row.bad .wr-dot{background:var(--acc);box-shadow:0 0 8px var(--acc);}
-#wraith .wr-row.bad{border-color:rgba(255,26,46,.35);}
-#wraith .wr-row.info .wr-dot{background:#4fc3f7;}
-#wraith .wr-pen{flex:0 0 auto;color:var(--acc);font-size:11px;}
-@media (max-width:600px){#wraith .wr-panel{padding:12px;}#wraith .wr-go{width:100%;}#wraith .wr-top{justify-content:center;}}
-</style>
-
-<section id="wraith">
-  <div class="wrap">
-    <div class="sec-num reveal-wrap"><div class="reveal-inner">38 — Tech Fingerprint &amp; Audit</div></div>
-    <h2 class="sec-title h2-anim" data-l1="Wraith" data-l2="Stack." aria-label="Wraith Stack."></h2>
-    <p class="wr-sub">Fingerprint y auditoría de un sitio: tecnologías con versión y la última disponible, cabeceras de seguridad, cookies, archivos expuestos (.git, .env) y una nota de 0 a 100. Cada consulta sale por el Worker.</p>
-    <div class="wr-panel">
-      <label class="wr-auth" id="wrAuthWrap"><input type="checkbox" id="wrAuth"> <span>Confirmo <b>autorización</b> para analizar el objetivo que ingrese.</span></label>
-      <div class="wr-bar">
-        <input id="wrUrl" class="wr-url" placeholder="https://objetivo.tld o dominio.tld" spellcheck="false" autocomplete="off">
-        <button type="button" id="wrGo" class="wr-go">▸ INVOCAR WRAITH</button>
-      </div>
-      <div class="wr-opts">
-        <label><input type="checkbox" id="wrFiles" checked> Buscar archivos expuestos (robots, sitemap, security.txt, .git, .env)</label>
-      </div>
-      <div id="wrStatus" class="wr-status">Listo. Ingresá la URL y pulsá INVOCAR.</div>
-      <div id="wrResult" class="wr-result"></div>
-    </div>
-  </div>
-</section>
 <!-- ══ MEDUSA — Static Malware Triage ══ -->
 <section id="medusa">
   <div class="wrap">
@@ -7946,8 +7951,14 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
       <div class="target-hint" id="ad-hint"><i class="fa-solid fa-circle-dot"></i> Rellená los campos para autocompletar comandos AD</div>
     </div></div>
 
+    <div class="cs-term" id="cs-term">
+      <span class="cs-dot" style="background:#ff5f56"></span><span class="cs-dot" style="background:#ffbd2e"></span><span class="cs-dot" style="background:#27c93f"></span>
+      <span style="margin-left:6px;">root@dreamlabs:~# cat cheatsheet.txt</span>
+      <span class="cs-count" id="cs-count"></span>
+      <div class="cs-out" style="margin-top:6px;">&gt; <span id="cs-out-tool">nmap</span> · comandos listos para copiar<span class="cs-caret"></span></div>
+    </div>
     <div class="cs-tabs" id="cs-tabs"></div>
-    <input type="text" class="cs-filter" id="cs-filter" placeholder="Filtrar comandos...">
+    <input type="text" class="cs-filter" id="cs-filter" placeholder="> buscar comando, herramienta o flag...">
     <div class="cs-grid" id="cs-grid"></div>
   </div>
 </section>
@@ -8483,28 +8494,28 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
           <path d="M 700 280 L 820 270 L 850 310 L 845 360 L 800 385 L 740 380 L 700 355 L 690 320 Z" fill="rgba(255,26,46,0.08)" stroke="rgba(255,26,46,0.25)" stroke-width="1.5"/>
 
           <!-- === THREAT MARKERS === -->
-          <g id="tm-usa">
+          <g id="tm-usa" class="tm-g" data-info="Estados Unidos · 8 hallazgos publicados · referencia de la kill chain">
             <circle class="tm-ping" cx="200" cy="128" r="6" fill="#ff1a2e"/>
             <circle class="tm-ring" cx="200" cy="128" r="6" fill="none" stroke="#ff1a2e" stroke-width="1.5"/>
             <text x="215" y="125" fill="#ff1a2e" font-size="9" font-family="monospace">USA · 8 findings</text>
             <text x="215" y="135" fill="rgba(255,26,46,0.5)" font-size="8" font-family="monospace">$13,000+ USD</text>
           </g>
 
-          <g id="tm-aus">
+          <g id="tm-aus" class="tm-g" data-info="Australia · Optus · P1 Crítico · Authentication bypass por header">
             <circle class="tm-ping" cx="760" cy="330" r="6" fill="#ff1a2e" style="animation-delay:0.6s"/>
             <circle class="tm-ring" cx="760" cy="330" r="6" fill="none" stroke="#ff1a2e" stroke-width="1.5" style="animation-delay:0.6s"/>
             <text x="775" y="327" fill="#ff1a2e" font-size="9" font-family="monospace">AUS · Optus</text>
             <text x="775" y="337" fill="rgba(255,26,46,0.5)" font-size="8" font-family="monospace">$3,500 USD</text>
           </g>
 
-          <g id="tm-can">
+          <g id="tm-can" class="tm-g" data-info="Canadá · lululemon · P2 · referencia pública">
             <circle class="tm-ping" cx="180" cy="75" r="5" fill="#ffb020" style="animation-delay:1.2s"/>
             <circle class="tm-ring" cx="180" cy="75" r="5" fill="none" stroke="#ffb020" stroke-width="1.5" style="animation-delay:1.2s"/>
             <text x="192" y="72" fill="#ffb020" font-size="9" font-family="monospace">CAN · lululemon</text>
             <text x="192" y="81" fill="rgba(255,176,32,0.5)" font-size="8" font-family="monospace">$1,500 USD</text>
           </g>
 
-          <g id="tm-eu">
+          <g id="tm-eu" class="tm-g" data-info="Europa · Just Eat · P3 · referencia pública">
             <circle class="tm-ping" cx="450" cy="68" r="5" fill="#60a5fa" style="animation-delay:1.8s"/>
             <circle class="tm-ring" cx="450" cy="68" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5" style="animation-delay:1.8s"/>
             <text x="463" y="65" fill="#60a5fa" font-size="9" font-family="monospace">EU · Just Eat</text>
@@ -8512,9 +8523,10 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
           </g>
 
           <!-- Total counter overlay -->
-          <text x="450" y="430" fill="rgba(255,26,46,0.3)" font-size="11" font-family="monospace" text-anchor="middle">$16,800 USD · 11 reportes · 4 continentes</text>
+          <text id="wr-map-total" x="450" y="430" fill="rgba(255,26,46,0.3)" font-size="11" font-family="monospace" text-anchor="middle">$16,800 USD · 11 reportes · 4 continentes</text>
         </svg>
 
+        <div id="wr-tip" class="wr-tip">Tocá un marcador del mapa para ver el detalle.</div>
         <div class="threat-legend">
           <div class="tl-item"><span class="tl-dot crit"></span>P1 Critical ($3,500+ USD)</div>
           <div class="tl-item"><span class="tl-dot high"></span>P2 High ($1,000-$2,000 USD)</div>
@@ -8529,6 +8541,34 @@ table.nxa-table td{padding:6px 10px;border-bottom:1px solid #141a24;vertical-ali
           </div>
         </div>
       </div>
+    </div></div>
+
+    <!-- REGISTRO DE HALLAZGOS (alimenta totales, mapa y grafo) -->
+    <div style="margin-top:60px;" class="reveal-wrap"><div class="reveal-inner">
+      <div class="sec-num" style="margin-bottom:14px;">Registro de hallazgos · tu tablero</div>
+      <form id="wr-form" class="wr-form" autocomplete="off">
+        <input id="wr-asset" class="wr-in" placeholder="activo · api.objetivo.cl" required>
+        <input id="wr-title" class="wr-in wr-in-wide" placeholder="título · IDOR en /api/users/{id}" required>
+        <select id="wr-sev" class="wr-in">
+          <option value="p1">P1 · Crítico</option><option value="p2">P2 · Alto</option>
+          <option value="p3">P3 · Medio</option><option value="p4">P4 · Bajo</option>
+        </select>
+        <select id="wr-phase" class="wr-in">
+          <option>Recon</option><option>Enum</option><option>Discovery</option>
+          <option>Exploit</option><option>Impacto</option><option>Reporte</option>
+        </select>
+        <input id="wr-bounty" class="wr-in" type="number" min="0" placeholder="USD">
+        <button class="wr-btn" type="submit">+ REGISTRAR</button>
+      </form>
+      <div class="wr-stats">
+        <div><b id="wr-n">0</b><span>hallazgos</span></div>
+        <div><b id="wr-assets">0</b><span>activos</span></div>
+        <div><b id="wr-usd">$0</b><span>USD potencial</span></div>
+        <div><b id="wr-p1">0</b><span>P1 abiertos</span></div>
+        <button id="wr-export" class="wr-btn" type="button">⬇ EXPORTAR .MD</button>
+        <button id="wr-clear" class="wr-btn wr-btn-danger" type="button">LIMPIAR</button>
+      </div>
+      <div id="wr-list" class="wr-list"><div class="wr-empty">Sin hallazgos todavía. Registrá uno arriba y se refleja en el grafo y en los totales del mapa.</div></div>
     </div></div>
 
     <!-- KILL CHAIN -->
@@ -13094,6 +13134,19 @@ const csData = {
  { name:"Con header auth",           cmd:"ffuf -w words.txt -u https://{target}/FUZZ -H 'Authorization: Bearer TOKEN'", desc:"Fuzzing autenticado" },
  { name:"Rate limit",                cmd:"ffuf -w words.txt -u https://{target}/FUZZ -rate 50",     desc:"Limita requests por segundo" },
  ],
+ dirsearch:[
+ { name:"Agresivo · 100 hilos + SecLists",   cmd:"dirsearch -u https://{target} -e php,asp,aspx,jsp,html,js,json,txt,bak,zip,sql -t 100 -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt --random-agents", desc:"Fuerza bruta de directorios y archivos con 100 hilos y user-agents rotados" },
+ { name:"Recursivo profundo (R=5)",          cmd:"dirsearch -u https://{target} -e php,html,js,json,txt -r -R 5 -t 80 --random-agents", desc:"Entra en cada directorio encontrado hasta 5 niveles de profundidad" },
+ { name:"Backups y respaldos",               cmd:"dirsearch -u https://{target} -f -e bak,old,orig,save,swp,zip,tar.gz,rar,sql,7z -t 100", desc:"Busca copias de seguridad y archivos temporales de cualquier nombre (-f fuerza las extensiones)" },
+ { name:"Archivos sensibles y leaks",        cmd:"dirsearch -u https://{target} -e env,git,DS_Store,yml,yaml,config,ini,log,conf,properties -t 80", desc:"Ruta .env, .git, configs y logs filtrados" },
+ { name:"Sólo respuestas útiles",            cmd:"dirsearch -u https://{target} -e php,html -i 200,204,301,302,307,401,403 -t 80", desc:"Filtra ruido: sólo muestra códigos que indican que el recurso existe" },
+ { name:"Sin soft-404 (por tamaño)",         cmd:"dirsearch -u https://{target} -e php,html --exclude-sizes 0B,1KB --exclude-text \"Not Found\" -t 80", desc:"Descarta respuestas de error genéricas que engañan al escaneo" },
+ { name:"API · métodos POST + JSON",         cmd:"dirsearch -u https://{target}/api -m POST -e json,xml -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt -t 60", desc:"Descubre endpoints de API que aceptan POST" },
+ { name:"Con sesión (cookie + bearer)",      cmd:"dirsearch -u https://{target} -H \"Cookie: session=TU_COOKIE\" -H \"Authorization: Bearer TU_TOKEN\" -e php,json -t 60", desc:"Escanea detrás de login: rutas autenticadas que el anónimo no ve" },
+ { name:"A través de Burp (proxy)",          cmd:"dirsearch -u https://{target} -e php,html -t 40 --proxy http://127.0.0.1:8080", desc:"Envía todo por Burp para revisar cada request en Proxy/HTTP history" },
+ { name:"Recursivo + salida JSON",           cmd:"dirsearch -u https://{target} -e php,html,js -r -R 3 -t 80 -o dirsearch_{target}.json --format json", desc:"Guarda los hallazgos en JSON para procesarlos con jq o tu pipeline" },
+ { name:"Máxima agresividad (todo)",         cmd:"dirsearch -u https://{target} -e php,asp,aspx,jsp,html,js,json,txt,bak,zip,sql,env,git,old,xml -t 150 -r -R 4 --random-agents --timeout 8", desc:"Modo ruidoso: 150 hilos, 4 niveles y todas las extensiones. Sólo con autorización y en lab" },
+ ],
  sqlmap:[
  { name:"B\u00E1sico GET",                cmd:"sqlmap -u 'https://{target}/page?id=1'",                  desc:"Detecci\u00F3n autom\u00E1tica en par\u00E1metro GET" },
  { name:"POST data",                 cmd:"sqlmap -u 'https://{target}/login' --data='user=test&pass=test'", desc:"Inyecci\u00F3n en formularios POST" },
@@ -13421,7 +13474,7 @@ const csData = {
 };
 
 const toolLabels = {
- nmap:'Nmap', ffuf:'Ffuf', sqlmap:'Sqlmap',
+ nmap:'Nmap', ffuf:'Ffuf', dirsearch:'Dirsearch', sqlmap:'Sqlmap',
  subfinder:'Subfinder', nuclei:'Nuclei', httpx:'Httpx', katana:'Katana',
  amass:'Amass', assetfinder:'AssetFinder', chaos:'Chaos',
  puredns:'PureDNS', massdns:'MassDNS',
@@ -13443,7 +13496,7 @@ function buildTabs(){
  const tabsEl = document.getElementById('cs-tabs');
  if(!tabsEl) return;
  tabsEl.innerHTML = Object.keys(csData).map(t=>
- `<button class="cs-tab${t===activeTool?' active':''}" data-tool="${t}">${toolLabels[t]}</button>`
+ `<button class="cs-tab${t===activeTool?' active':''}" data-tool="${t}">${toolLabels[t]}<span class="cs-n">${(csData[t]||[]).length}</span></button>`
  ).join('');
  tabsEl.querySelectorAll('.cs-tab').forEach(btn=>{
  btn.addEventListener('click',()=>{
@@ -13459,6 +13512,8 @@ function renderCmds(){
  const cmds = (csData[activeTool]||[]).filter(c=>
  !filterText || c.name.toLowerCase().includes(filterText) || c.cmd.toLowerCase().includes(filterText) || c.desc.toLowerCase().includes(filterText)
  );
+ var ot=document.getElementById('cs-out-tool'); if(ot) ot.textContent=toolLabels[activeTool]||activeTool;
+ var cc=document.getElementById('cs-count'); if(cc) cc.textContent=cmds.length+' / '+(csData[activeTool]||[]).length+' comandos';
  if(!cmds.length){ grid.innerHTML='<p style="color:var(--muted);font-family:var(--mono);font-size:13px;">Sin resultados para "'+filterText+'"</p>'; return; }
  grid.innerHTML = cmds.map((c,i)=>`
  <div class="cmd-card">
@@ -13478,6 +13533,7 @@ function renderCmds(){
  navigator.clipboard.writeText(el.textContent).then(()=>{
   btn.innerHTML='<i class="fa-solid fa-check"></i>';
   btn.classList.add('copied');
+  var card=btn.closest('.cmd-card'); if(card){ card.classList.add('hit'); setTimeout(function(){ card.classList.remove('hit'); },700); }
   setTimeout(()=>{ btn.innerHTML='<i class="fa-solid fa-copy"></i>'; btn.classList.remove('copied'); }, 1800);
  });
  });
@@ -16295,14 +16351,18 @@ function renderTabs(){
  });
  tabs.onchange = function(){
  activeCat = tabs.value;
+ hdrShowN = HDR_STEP;
  renderCards();
  };
 }
 
+var HDR_STEP = 6, hdrShowN = HDR_STEP;
 function renderCards(){
  var filtered = activeCat === 'all' ? HEADERS : HEADERS.filter(function(h){ return h.cat === activeCat; });
  grid.innerHTML = '';
- filtered.forEach(function(h, i){
+ var total = filtered.length;
+ var visible = filtered.slice(0, hdrShowN);
+ visible.forEach(function(h, i){
  var card = document.createElement('div');
  card.className = 'hdr-card';
  card.style.animationDelay = (i * 0.03) + 's';
@@ -16326,6 +16386,25 @@ function renderCards(){
  card.innerHTML = top + body;
  grid.appendChild(card);
  });
+ var old = document.getElementById('hdrs-more');
+ if(old) old.parentNode.removeChild(old);
+ if(total > HDR_STEP){
+ var more = document.createElement('button');
+ more.id = 'hdrs-more';
+ more.type = 'button';
+ more.className = 'hdrs-more';
+ var remaining = total - visible.length;
+ more.innerHTML = remaining > 0
+ ? '\u25BC VER M\u00C1S \u00B7 ' + remaining + ' restantes'
+ : '\u25B2 VER MENOS';
+ more.onclick = function(){
+ hdrShowN = remaining > 0 ? hdrShowN + HDR_STEP : HDR_STEP;
+ renderCards();
+ var g = document.getElementById('hdrs-grid');
+ if(remaining <= 0 && g) g.scrollIntoView({behavior:'smooth', block:'start'});
+ };
+ grid.parentNode.insertBefore(more, grid.nextSibling);
+ }
 }
 
 renderTabs();
@@ -26963,6 +27042,12 @@ function crwExtractFromJS(jsCode, baseUrl){
     guard++;
     found.add(m[1]);
   }
+  /* Plantillas: `/api/v2/users/${id}` -> el prefijo /api/v2/users/ es un endpoint real */
+  var tplRe = /[`"'](\/(?:api|v[0-9]+|rest|graphql|wp-json|internal|admin)[a-zA-Z0-9_\-\/]*)\$\{/g;
+  while((m = tplRe.exec(slice)) !== null){ try{ found.add(new URL(m[1], baseUrl).href); }catch(e){} }
+  /* WebSockets declarados en el bundle (wss:// y ws://) */
+  var wsRe = /["'`](wss?:\/\/[^"'`\s]{4,200})["'`]/g;
+  while((m = wsRe.exec(slice)) !== null){ found.add(m[1]); }
   /* XTREME: rutas RELATIVAS sin slash inicial ('api/v2/users') — los bundles
      modernos usan rutas relativas; se resuelven contra baseUrl con slash */
   var relRe = /["'`](?:api|v[0-9]|graphql|rest|auth|admin|public|static|assets|uploads|cdn|media|files|wp-json|wp-content)\/[a-zA-Z0-9_\-\/\.]{1,120}["'`]/g;
@@ -27024,7 +27109,7 @@ async function crwCheckSourceMap(jsUrl, jsCode){
    SOLO a partir de patrones /api/.../ realmente encontrados en este target puntual.
    Si se descubrio /api/v1/users, se prueban /api/v1/{admin,config,debug,...} — mucho
    mas dirigido que fuzzear a ciegas, porque nace de lo que el target YA demostro tener. */
-var CRW_MUTATION_SUFFIXES = ['admin','config','settings','debug','health','status','docs','swagger','schema','test','internal','backup','users','me','stats','metrics','logs','console','dashboard','private','v1','v2','v3','export','import','upload','download','session','token','key','secret','env','all','list','search','query','graphql','openapi.json','swagger.json',
+var CRW_MUTATION_SUFFIXES = ['v0','v4','v5','beta','dev','internal','refresh','logout','reset','callback','actuator','actuator/env','actuator/health','debug/vars','server-status','phpinfo.php','info','swagger-ui.html','v2/api-docs','api-docs','.well-known/openid-configuration','.well-known/jwks.json','admin','config','settings','debug','health','status','docs','swagger','schema','test','internal','backup','users','me','stats','metrics','logs','console','dashboard','private','v1','v2','v3','export','import','upload','download','session','token','key','secret','env','all','list','search','query','graphql','openapi.json','swagger.json',
   'api','api/v1','api/v2','healthz','ready','ping','version','build','commit',
   'login','signin','register','reset','oauth','jwt','callback','webhook',
   'uploads','files','media','images','static','assets',
@@ -27055,6 +27140,14 @@ function crwGenerateMutations(discoveredUrls, origin){
   basePaths.forEach(function(base){
     CRW_MUTATION_SUFFIXES.forEach(function(suf){ mutations.push(origin+base+'/'+suf); });
   });
+  /* Version walking: si ves /api/v2/users, prueba /api/v0|v1|v3|v4|v5|beta|dev|internal
+     sobre la MISMA ruta: las versiones viejas suelen olvidar el control de acceso. */
+  discoveredUrls.forEach(function(u){
+    if(!/\/v[0-9]+\/|\/beta\/|\/dev\//i.test(u)) return;
+    ['v0','v1','v3','v4','v5','beta','dev','internal'].forEach(function(ver){
+      mutations.push(u.replace(/\/(v[0-9]+|beta|dev)\//i, '/'+ver+'/'));
+    });
+  });
   /* IDOR numerico: por cada patron .../123 encontrado, probar 1..15 y un rango
      alrededor del ID real visto (real-5 .. real+5), que suele ser mas revelador
      que arrancar siempre desde 1 en sistemas con IDs viejos/nuevos mezclados. */
@@ -27078,7 +27171,7 @@ function crwGenerateMutations(discoveredUrls, origin){
     backupSeen[u] = true;
     backupSuffixes.forEach(function(suf){ mutations.push(u + suf); });
   });
-  return Array.from(new Set(mutations)).slice(0,900);
+  return Array.from(new Set(mutations)).slice(0,2200);
 }
 
 /* Parametros de query unicos vistos en toda la corrida — insumo directo para fuzzing
@@ -27107,8 +27200,8 @@ async function runCrawler(startUrl, maxDepth){
   var forms = [];
   var external = {};
   var allInlineJS = [];
-  var maxPages = 800;
-  var concurrency = 24;
+  var maxPages = 2500;
+  var concurrency = 36;
 
   /* Fase 0: semillas pasivas (robots.txt + sitemap.xml) antes de gastar presupuesto
      de crawling activo — mismo orden de prioridad que el OSINT: lo pasivo primero. */
@@ -27728,6 +27821,7 @@ function krFormatRow(host, entry) {
   if (entry.ip) parts.push('→ ' + entry.ip);
   if (entry.cname) parts.push('CNAME→' + entry.cname);
   if (entry.takeover) parts.push('☠ TAKEOVER: ' + entry.takeover);
+  if (entry.endpoints && entry.endpoints.length) parts.push('EP: ' + entry.endpoints.join(' '));
   parts.push('(' + entry.source + ')');
   return parts.join(' ');
 }
@@ -27769,6 +27863,7 @@ async function krStart() {
   const doBrute = $('tg-brute').classList.contains('active');
   const doHttp  = $('tg-http').classList.contains('active');
   const doCname = $('tg-cname').classList.contains('active');
+  const doEndp  = $('tg-endp') ? $('tg-endp').classList.contains('active') : false;
 
   /* Bug real: krRunning se ponia en true arriba pero nada garantizaba volver a
      false si algo tiraba una excepcion no capturada a mitad de las 5 fases
@@ -27978,6 +28073,36 @@ async function krStart() {
     });
     krLine('Permutacion AltDNS completa: ' + permNew + ' subdominios nuevos cazados', permNew > 0 ? 'ok' : 'dim');
   }
+  /* FASE 2.9 (v5): PERMUTACION POR TOKENS DE ENTORNO — cruza cada etiqueta ya
+     confirmada con prod/qa/uat/stg/old/internal... y cubre hosts de staging y
+     backoffice que casi nunca aparecen en fuentes pasivas. */
+  {
+    const KR_ENV_TOKENS = ['prod','qa','uat','stg','preprod','old','bak','new','internal','int','corp','sso','vpn','v1','v2','v3','beta','sandbox','ci','git','jenkins','grafana','kibana','backoffice','cdn','static','assets','smtp','mx'];
+    const krEnvBase = Array.from(new Set(Array.from(krResults.keys())
+      .map(h => h.slice(0, h.length - (target.length + 1)))
+      .filter(p => p && p.length < 20 && p.indexOf('*') === -1))).slice(0, 25);
+    const krEnvSet = new Set();
+    krEnvBase.forEach(b => KR_ENV_TOKENS.forEach(t => { krEnvSet.add(b + '-' + t + '.' + target); krEnvSet.add(t + '-' + b + '.' + target); }));
+    const krEnvList = Array.from(krEnvSet).filter(c => !krResults.has(c)).slice(0, 600);
+    if (krEnvList.length) {
+      krLine('', null);
+      krLine('═══ FASE 2.9: TOKENS DE ENTORNO (' + krEnvList.length + ' candidatos) ═══', 'section');
+      let envNew = 0;
+      await krPool(krEnvList, 24, async (cand) => {
+        const res = await dohResolve(cand, 'A');
+        if (res && res.Answer && res.Answer.length) {
+          const ips = res.Answer.filter(a => a.type === 1).map(a => a.data).sort().join(',');
+          if (ips && ips !== wildcardIPs && !krResults.has(cand)) {
+            krResults.set(cand, { source: 'env', ip: ips.replace(/,/g, ', '), alive: true });
+            envNew++;
+            krLine('[ENV] ' + cand + ' → ' + ips.replace(/,/g, ', '), 'ok');
+            krUpdateStats();
+          }
+        }
+      });
+      krLine('Tokens de entorno completo: ' + envNew + ' subdominios nuevos', envNew > 0 ? 'ok' : 'dim');
+    }
+  }
   /* FASE 2.7 (v3.5): BRUTE DE SEGUNDO NIVEL — los subdominios anidados
      (dev.api.target.com) casi JAMAS aparecen en fuentes pasivas ni en
      wordlists de 1 nivel: se derivan de los hosts YA confirmados. */
@@ -28097,6 +28222,41 @@ async function krStart() {
     });
     krLine('HTTP probing completo: ' + httpOk + ' con respuesta 2XX/3XX de ' + targets.length + ' probados', 'ok');
     krUpdateStats();
+  }
+  /* FASE 4.8 (v5): ENDPOINTS — sobre cada host vivo prueba rutas de API, docs,
+     health, paneles y archivos de configuracion. Un status distinto de 404/5xx
+     se registra: confirma que la ruta responde, no que sea vulnerable. */
+  if (doEndp) {
+    const KR_ENDPOINTS = ['/api','/api/v1','/api/v2','/graphql','/swagger.json','/openapi.json','/api-docs','/v2/api-docs','/actuator','/actuator/health','/actuator/env','/.well-known/security.txt','/robots.txt','/sitemap.xml','/admin','/login','/wp-json/','/.env','/server-status','/phpinfo.php','/metrics','/health','/status','/debug','/console'];
+    const hostsAlive = Array.from(krResults.keys()).filter(h => { const e = krResults.get(h); return e.httpStatus >= 200 && e.httpStatus < 400; });
+    const epPairs = [];
+    hostsAlive.forEach(h => KR_ENDPOINTS.forEach(p => epPairs.push([h, p])));
+    krLine('', null);
+    krLine('═══ FASE 4.8: ENDPOINTS (' + KR_ENDPOINTS.length + ' rutas × ' + hostsAlive.length + ' hosts vivos) ═══', 'section');
+    let epHits = 0, epDone = 0;
+    /* Línea base por host: una ruta inexistente. Si el host responde igual a todo
+       (soft-404 / catch-all), esas respuestas NO son endpoints reales. */
+    const epBase = {};
+    await krPool(hostsAlive, 24, async (host) => {
+      const bl = await krProxyFetch('https://' + host + '/kraken-nx-' + Math.random().toString(36).slice(2, 10), { timeout: 7000 });
+      epBase[host] = bl && typeof bl.status === 'number' ? { status: bl.status, len: (bl.body || '').length } : null;
+    });
+    await krPool(epPairs, 24, async (pair) => {
+      const host = pair[0], path = pair[1];
+      const res = await krProxyFetch('https://' + host + path, { timeout: 7000 });
+      epDone++;
+      if (epDone % 40 === 0) krProgress(90 + (epDone / Math.max(epPairs.length, 1)) * 4);
+      const bl = epBase[host];
+      const isSoft = !!(bl && res && res.status === bl.status && Math.abs((res.body || '').length - bl.len) <= Math.max(20, bl.len * 0.05));
+      if (res && typeof res.status === 'number' && res.status > 0 && res.status !== 404 && res.status < 500 && !isSoft) {
+        const entry = krResults.get(host);
+        entry.endpoints = entry.endpoints || [];
+        entry.endpoints.push(path + ' [' + res.status + ']');
+        epHits++;
+        krLine('[EP] ' + host + path + ' → ' + res.status, res.status < 300 ? 'ok' : 'warn');
+      }
+    });
+    krLine('Endpoints completo: ' + epHits + ' respuestas (≠404) en ' + hostsAlive.length + ' hosts vivos', epHits ? 'ok' : 'dim');
   }
   /* FASE 4.5 (v4): CONTENT MINING — los hosts vivos guardaron hasta 4KB de
      HTML en FASE 4: ahi viven los links a admin., login., api. y demas hosts
@@ -31057,7 +31217,7 @@ document.getElementById("runAttack").onclick = async ()=>{
 <script>
 /* ═════════════════════════════════════════════════════════════════
    NIMBUS — CLOUD REAPER ENGINE v3.0 REAPER XTREME (prefijo nb-, scope aislado)
-   11 oleadas: recon multi-provider (30) + cosecha de llaves → S3 (regiones+ACL+perms) → Azure →
+   15 oleadas: recon multi-provider (30) + cosecha de llaves → S3 (regiones+ACL+perms) → Azure →
    GCP/Firebase → Shopify → Metadata SSRF (39 endpoints + 30 params reflejados) →
    K8s/Docker/Registry → CNAME takeover via DoH (38 servicios) →
    MULTI-CLOUD ENUM (DO/OCI/Alibaba/Wasabi/Linode/Scaleway/IBM) →
@@ -31206,7 +31366,7 @@ function nbHarvestKeys(body){
 
 /* ═══ OLEADA 1: CLOUD RECON multi-provider ═══ */
 function nbWaveRecon(origin){
-  nbLog('═══ OLEADA 1/11: CLOUD RECON — fingerprint de superficie cloud (30 providers) + cosecha de llaves ═══', 'section');
+  nbLog('═══ OLEADA 1/15: CLOUD RECON — fingerprint de superficie cloud (30 providers) + cosecha de llaves ═══', 'section');
   nbTotal += 1;
   return nbP(origin + '/').then(function(res){
     nbDone++; nbProg();
@@ -31252,7 +31412,7 @@ function nbBucketCandidates(dom){
 /* ═══ OLEADA 2: S3 ENUM + regiones + ACL ═══ */
 var NB_S3_REGIONS = ['us-east-1','us-west-2','eu-west-1','sa-east-1','eu-central-1','ap-southeast-2','us-east-2','us-west-1','ca-central-1','eu-west-2','eu-west-3','eu-north-1','ap-south-1','ap-northeast-1','ap-southeast-1','me-south-1','af-south-1','ap-northeast-2'];
 function nbWaveS3(dom){
-  nbLog('═══ OLEADA 2/11: AWS S3 ENUM — buckets + regiones + ACL + website endpoints ═══', 'section');
+  nbLog('═══ OLEADA 2/15: AWS S3 ENUM — buckets + regiones + ACL + website endpoints ═══', 'section');
   var cands = nbBucketCandidates(dom);
   var extra = nbCloudAssets.filter(function(a){ return /s3[.-]|amazonaws/i.test(a); });
   extra.forEach(function(a){
@@ -31363,7 +31523,7 @@ function nbWaveS3(dom){
 
 /* ═══ OLEADA 3: AZURE (blob/queue/table + apps) ═══ */
 function nbWaveAzure(dom){
-  nbLog('═══ OLEADA 3/11: AZURE ENUM — blob/queue/table + App Services ═══', 'section');
+  nbLog('═══ OLEADA 3/15: AZURE ENUM — blob/queue/table + App Services ═══', 'section');
   var cands = nbBucketCandidates(dom).slice(0, 70);
   nbTotal += cands.length;
   return nbPool(cands, 12, function(c){
@@ -31401,7 +31561,7 @@ function nbWaveAzure(dom){
 
 /* ═══ OLEADA 4: GCP / FIREBASE ═══ */
 function nbWaveGCP(dom){
-  nbLog('═══ OLEADA 4/11: GCP + FIREBASE — storage, RTDB, hosting, AppEngine ═══', 'section');
+  nbLog('═══ OLEADA 4/15: GCP + FIREBASE — storage, RTDB, hosting, AppEngine ═══', 'section');
   var cands = nbBucketCandidates(dom).slice(0, 70);
   var jobs = [];
   cands.forEach(function(b){
@@ -31448,7 +31608,7 @@ function nbWaveGCP(dom){
 
 /* ═══ OLEADA 5: SHOPIFY ═══ */
 function nbWaveShopify(origin){
-  nbLog('═══ OLEADA 5/11: SHOPIFY — attack surface de e-commerce ═══', 'section');
+  nbLog('═══ OLEADA 5/15: SHOPIFY — attack surface de e-commerce ═══', 'section');
   var paths = [
     ['/products.json?limit=250&page=1', 'products.json p1'],
     ['/products.json?limit=250&page=2', 'products.json p2'],
@@ -31495,7 +31655,7 @@ function nbWaveShopify(origin){
 
 /* ═══ OLEADA 6: METADATA SSRF (directo + reflejado) ═══ */
 function nbWaveMetadata(origin){
-  nbLog('═══ OLEADA 6/11: METADATA SSRF — IMDS AWS/GCP/Azure/Alibaba/DO/OCI/Hetzner/Tencent/Packet/K8s (39 endpoints) + 30 params reflejados via target ═══', 'section');
+  nbLog('═══ OLEADA 6/15: METADATA SSRF — IMDS AWS/GCP/Azure/Alibaba/DO/OCI/Hetzner/Tencent/Packet/K8s (39 endpoints) + 30 params reflejados via target ═══', 'section');
   var MET_PAT = {
     cred:/AccessKeyId|SecretAccessKey|Token"/i, ami:/ami-id|instance-id|reservation-id/i,
     gcp:/project|instance|machineType/i, gtoken:/ya29\.|access_token/i,
@@ -31577,7 +31737,7 @@ function nbWaveMetadata(origin){
 
 /* ═══ OLEADA 7: K8S / DOCKER / REGISTRY ═══ */
 function nbWaveK8s(origin){
-  nbLog('═══ OLEADA 7/11: K8S / DOCKER / REGISTRY — control plane + daemon ═══', 'section');
+  nbLog('═══ OLEADA 7/15: K8S / DOCKER / REGISTRY — control plane + daemon ═══', 'section');
   var paths = [
     '/api/v1/nodes', '/api/v1/pods', '/api/v1/secrets', '/api/v1/configmaps',
     '/api/v1/namespaces', '/api/v1/serviceaccounts', '/api/v1/persistentvolumes',
@@ -31660,7 +31820,7 @@ var NB_TK_SVC = [
   [/\.herokudns\.com$/i, /no such app|404/i]
 ];
 function nbWaveCname(dom){
-  nbLog('═══ OLEADA 8/11: CLOUD CNAME TAKEOVER — DoH + fingerprints de 38 servicios ═══', 'section');
+  nbLog('═══ OLEADA 8/15: CLOUD CNAME TAKEOVER — DoH + fingerprints de 38 servicios ═══', 'section');
   var words = ['www','cdn','static','assets','img','images','media','files','storage','backup','old','api','app','dev','staging','test','shop','portal','vault','docs','download','s3','aws','cloud','beta','demo','img2','media2','cdn2','assets2','www2','origin','new','static2','cdn3','img3','web2','app2','api2','shop2','files2','backup2','staging2','dev2','assets-old'];
   var jobs = [];
   words.forEach(function(w){ jobs.push(w + '.' + dom); });
@@ -31697,7 +31857,7 @@ function nbWaveCname(dom){
 
 /* ═══ OLEADA 9: MULTI-CLOUD ENUM — 7 providers extra (REAPER) ═══ */
 function nbWaveMultiCloud(dom){
-  nbLog('═══ OLEADA 9/11: MULTI-CLOUD ENUM — DO Spaces + OCI (sa-santiago-1) + Alibaba OSS + Wasabi + Linode + Scaleway + IBM COS ═══', 'section');
+  nbLog('═══ OLEADA 9/15: MULTI-CLOUD ENUM — DO Spaces + OCI (sa-santiago-1) + Alibaba OSS + Wasabi + Linode + Scaleway + IBM COS ═══', 'section');
   var cands = nbBucketCandidates(dom).slice(0, 45);
   var jobs = [];
   cands.forEach(function(c){
@@ -31733,7 +31893,7 @@ function nbWaveMultiCloud(dom){
 
 /* ═══ OLEADA 10: CLOUD CREDS LEAK HUNT — archivos de credenciales en el target ═══ */
 function nbWaveCredsHunt(origin){
-  nbLog('═══ OLEADA 10/11: CLOUD CREDS LEAK HUNT — .env / serviceAccount / tfstate / dumps en el target ═══', 'section');
+  nbLog('═══ OLEADA 10/15: CLOUD CREDS LEAK HUNT — .env / serviceAccount / tfstate / dumps en el target ═══', 'section');
   var paths = [
     ['/.env', 'dotenv'], ['/.env.production', 'dotenv'], ['/.env.local', 'dotenv'], ['/.env.backup', 'dotenv'], ['/.env.dev', 'dotenv'], ['/.env.staging', 'dotenv'],
     ['/config.json', 'config'], ['/config.yml', 'config'], ['/config.yaml', 'config'], ['/settings.json', 'config'], ['/appsettings.json', 'config'],
@@ -31797,8 +31957,109 @@ function nbWaveCredsHunt(origin){
 }
 
 /* ═══ OLEADA 11: TAKEOVER + REPORTE ═══ */
+
+/* ══ NIMBUS · oleadas 12-14 (vectores nuevos) ══ */
+function nbWaveDevLeaks(origin){
+  nbLog('═══ OLEADA 12/15: DEV TOOLING LEAKS — credenciales de npm/pip/git/s3cmd/CI expuestas ═══', 'section');
+  var paths = [
+    ['/.npmrc','npm'], ['/.pypirc','pypi'], ['/.netrc','netrc'], ['/.git-credentials','gitcred'],
+    ['/.s3cfg','s3cfg'], ['/.boto','s3cfg'], ['/.dockercfg','docker'], ['/.htpasswd','htpasswd'],
+    ['/.gitlab-ci.yml','ci'], ['/.circleci/config.yml','ci'], ['/.travis.yml','ci'], ['/Jenkinsfile','ci'],
+    ['/.drone.yml','ci'], ['/bitbucket-pipelines.yml','ci'], ['/.github/workflows/deploy.yml','ci'],
+    ['/.vscode/sftp.json','ide'], ['/.idea/workspace.xml','ide'], ['/.ssh/id_rsa','key'], ['/id_rsa','key'],
+    ['/wp-config.php.bak','wpbak'], ['/wp-config.php~','wpbak'], ['/.DS_Store','ds']
+  ];
+  nbTotal += paths.length;
+  return nbPool(paths, 10, function(p){
+    return nbP(origin + p[0]).then(function(res){
+      nbDone++; nbProg();
+      if(!res || res.status !== 200 || !res.body) return;
+      var body = res.body.slice(0, 4000);
+      if(body.length < 4 || /<html[^>]*>\s*<head/i.test(body.slice(0, 300))) return;
+      if(p[1]==='npm' && /_authToken\s*=/i.test(body)){ nbHit('NPM TOKEN LEAKED', p[0]+' — _authToken en .npmrc'); nbRow('12','DevLeaks',p[0],200,'CRIT — token npm'); }
+      else if(p[1]==='pypi' && /password\s*=/i.test(body)){ nbHit('PYPI CREDS LEAKED', p[0]); nbRow('12','DevLeaks',p[0],200,'CRIT — credenciales PyPI'); }
+      else if(p[1]==='netrc' && /password\s+\S+/i.test(body)){ nbHit('NETRC CREDS LEAKED', p[0]); nbRow('12','DevLeaks',p[0],200,'CRIT — .netrc con password'); }
+      else if(p[1]==='gitcred' && /https?:\/\/[^:\s]+:[^@\s]+@/i.test(body)){ nbHit('GIT CREDS LEAKED', p[0]); nbRow('12','DevLeaks',p[0],200,'CRIT — git-credentials'); }
+      else if(p[1]==='s3cfg' && /(access_key|secret_key|aws_access_key)/i.test(body)){ nbHit('S3 CREDS LEAKED', p[0]); nbRow('12','DevLeaks',p[0],200,'CRIT — s3cfg/boto'); }
+      else if(p[1]==='docker' && /"auth"\s*:/i.test(body)){ nbHit('DOCKER AUTH LEAKED', p[0]); nbRow('12','DevLeaks',p[0],200,'CRIT — dockercfg con auth'); }
+      else if(p[1]==='key' && /BEGIN [A-Z ]*PRIVATE KEY/i.test(body)){ nbHit('SSH PRIVATE KEY LEAKED', p[0]); nbRow('12','DevLeaks',p[0],200,'CRIT — clave privada'); }
+      else if(p[1]==='ci' && /(AKIA[0-9A-Z]{16}|password|secret|token)\s*[:=]/i.test(body)){ nbHit('CI SECRETS EXPUESTOS', p[0]+' — secretos en pipeline'); nbRow('12','DevLeaks',p[0],200,'EXPUESTO — pipeline con secretos'); }
+      else if(p[1]==='ds' && body.indexOf('Bud1')===0){ nbHit('DS_STORE EXPUESTO', p[0]+' — árbol de archivos filtrado'); nbRow('12','DevLeaks',p[0],200,'EXPUESTO — .DS_Store'); }
+      else if(p[1]!=='ds'){ nbRow('12','DevLeaks',p[0],200,'EXPUESTO — revisar contenido'); }
+    });
+  }).then(function(){
+    nbLog('Dev tooling leaks completo: ' + paths.length + ' archivos probados', 'dim');
+  });
+}
+
+function nbWaveBaaS(origin, dom){
+  nbLog('═══ OLEADA 13/15: BaaS — Firebase RTDB/Firestore config + Supabase REST expuesta ═══', 'section');
+  nbTotal += 4;
+  var initP = nbP(origin + '/__/firebase/init.json').then(function(res){
+    nbDone++; nbProg();
+    if(!res || res.status !== 200 || !res.body) return null;
+    try{ return JSON.parse(res.body); }catch(e){ return null; }
+  });
+  var htmlP = nbP(origin + '/').then(function(res){ nbDone++; nbProg(); return res && res.body ? String(res.body) : ''; });
+  return Promise.all([initP, htmlP]).then(function(r){
+    var init = r[0], html = r[1];
+    var projectId = init && init.projectId ? init.projectId : null;
+    if(!projectId){ var m = /"projectId"\s*:\s*"([a-z0-9-]{4,40})"/i.exec(html); if(m) projectId = m[1]; }
+    var jobs = [];
+    if(projectId){
+      jobs.push(nbP('https://' + projectId + '-default-rtdb.firebaseio.com/.json').then(function(res){
+        nbDone++; nbProg();
+        if(res && res.status === 200 && res.body && res.body.trim() !== 'null'){ nbHit('FIREBASE RTDB PÚBLICA', projectId+' — lectura sin auth'); nbRow('13','BaaS','RTDB '+projectId,200,'CRIT — RTDB pública'); }
+        else nbRow('13','BaaS','RTDB '+projectId,res?res.status:0,'no pública');
+      }));
+    }
+    var sb = /https:\/\/([a-z0-9]{20})\.supabase\.co/i.exec(html);
+    if(sb){
+      jobs.push(nbP('https://' + sb[1] + '.supabase.co/rest/v1/').then(function(res){
+        nbDone++; nbProg();
+        if(res && res.status === 200){ nbHit('SUPABASE REST EXPUESTA', sb[1]+'.supabase.co — revisá RLS en las tablas'); nbRow('13','BaaS','supabase '+sb[1],200,'EXPUESTO — REST responde (revisar RLS)'); }
+        else nbRow('13','BaaS','supabase '+sb[1],res?res.status:0,'protegida');
+      }));
+    }
+    var mb = [['/.well-known/assetlinks.json','app-links'],['/.well-known/apple-app-site-association','app-links'],['/manifest.json','pwa']];
+    nbTotal += mb.length;
+    return Promise.all(jobs.concat(mb.map(function(p){
+      return nbP(origin + p[0]).then(function(res){
+        nbDone++; nbProg();
+        if(res && res.status === 200 && res.body && res.body.length > 10){ nbRow('13','BaaS',p[0],200,'info — expone IDs de app/PWA'); }
+      });
+    })));
+  }).then(function(){ nbLog('BaaS completo: Firebase + Supabase + app-links', 'dim'); });
+}
+
+function nbWaveCiConsoles(origin){
+  nbLog('═══ OLEADA 14/15: CONSOLAS CI/CD + OBSERVABILIDAD — Jenkins, Argo, Grafana, Consul, ES, Adminer ═══', 'section');
+  var paths = [
+    ['/jenkins/login','crit'], ['/gitlab/users/sign_in','med'], ['/argocd/','med'], ['/harbor/','med'], ['/sonar/','med'],
+    ['/rancher/','med'], ['/grafana/login','med'], ['/kibana/app/kibana','med'], ['/prometheus/','med'],
+    ['/consul/v1/agent/members','crit'], ['/v1/agent/self','crit'], ['/etcd/v2/keys','crit'], ['/nomad/v1/jobs','crit'],
+    ['/v2/_catalog','crit'], ['/solr/admin/info/system','crit'], ['/elasticsearch/_cat/indices','crit'], ['/_cluster/health','crit'],
+    ['/phpmyadmin/','med'], ['/adminer.php','med'], ['/pma/','med'], ['/actuator/heapdump','crit'], ['/server-status','med'], ['/nginx_status','med']
+  ];
+  nbTotal += paths.length;
+  return nbPool(paths, 10, function(p){
+    return nbP(origin + p[0]).then(function(res){
+      nbDone++; nbProg();
+      if(!res || !res.status) return;
+      var body = String(res.body || '').slice(0, 2000);
+      var soft = /<title>[^<]*(404|not found)/i.test(body);
+      if(res.status === 200 && !soft && body.length > 4){
+        if(p[1]==='crit'){ nbHit('CONSOLA CRÍTICA EXPUESTA', p[0] + ' — responde sin autenticación'); nbRow('14','CI/Obs',p[0],200,'CRIT — consola sin auth'); }
+        else nbRow('14','CI/Obs',p[0],200,'EXPUESTO — login visible, revisar auth');
+      } else if(res.status === 401 || res.status === 403){
+        nbRow('14','CI/Obs',p[0],res.status,'presente — protegida (' + res.status + ')');
+      }
+    });
+  }).then(function(){ nbLog('CI/CD + observabilidad completo: ' + paths.length + ' consolas probadas', 'dim'); });
+}
+
 function nbWaveReport(dom, origin){
-  nbLog('═══ OLEADA 11/11: TAKEOVER FINAL + REPORTE ═══', 'section');
+  nbLog('═══ OLEADA 15/15: TAKEOVER FINAL + REPORTE ═══', 'section');
   var tk = 0;
   nbDeadBuckets.forEach(function(b){
     nbHit('TAKEOVER CANDIDATE', b + ' — bucket 404 referenciado en assets del target: registrable por atacante');
@@ -31808,7 +32069,7 @@ function nbWaveReport(dom, origin){
   var report = {
     tool:'NIMBUS Cloud Reaper v3.0 REAPER XTREME', target: dom, origin: origin,
     date: new Date().toISOString(),
-    waves: 11,
+    waves: 15,
     cloud_assets: nbCloudAssets,
     takeover_candidates: nbDeadBuckets,
     cname_takeovers: nbCnameTakeovers,
@@ -31904,6 +32165,9 @@ function nbRun(){
     .then(function(){ return nbWaveCname(dom); })
     .then(function(){ return nbWaveMultiCloud(dom); })
     .then(function(){ return nbWaveCredsHunt(origin); })
+    .then(function(){ return nbWaveDevLeaks(origin); })
+    .then(function(){ return nbWaveBaaS(origin, dom); })
+    .then(function(){ return nbWaveCiConsoles(origin); })
     .then(function(){ return nbWaveReport(dom, origin); })
     .catch(function(e){ nbLog('[x] Error en oleada: ' + (e && e.message || e), 'warn'); })
     .then(function(){
@@ -32118,7 +32382,31 @@ var TR_RULES = [
   ['CRIT','TLS sin verificar','verificación de certificado desactivada', /rejectUnauthorized\s*:\s*false|verify\s*=\s*False|NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['"]?0|CURLOPT_SSL_VERIFYPEER\s*,\s*(0|false)|InsecureSkipVerify\s*:\s*true|ssl\._create_unverified/i, 'NUNCA desactivar la verificación TLS; usar la CA correcta', 'Permite ataques MITM — crítico y muy común', 'alta'],
   ['MED','IV Estático','IV/nonce hardcodeado', /\b(iv|nonce)\s*[:=]\s*(['"][0-9A-Fa-f]{8,}['"]|Buffer\.(from|alloc)\s*\(\s*['"]|bytes\s*\(\s*['"])/i, 'IV aleatorio por mensaje (crypto.randomBytes); nunca fijo', 'IV fijo rompe la seguridad de CBC/GCM', 'media'],
   ['MED','KDF Débil','bcrypt cost < 10 / PBKDF2 pocas iteraciones', /bcrypt[^;]*\b([1-9])\s*\)|pbkdf2[^;]*,\s*([1-9]\d{0,3}|[1-5]\d{4})\s*,/i, 'bcrypt cost >= 12; PBKDF2 >= 600000 iteraciones (OWASP 2023)', '', 'baja'],
-  ['MED','Token Predecible','Date.now()/time() como semilla de token', /\b(token|otp|reset|nonce|session|csrf)\w*\s*=\s*[^;]*\b(Date\.now\s*\(\s*\)|new\s+Date\s*\(|time\s*\(\s*\)|microtime\s*\(|rand\s*\()/i, 'Usar CSPRNG (crypto.randomBytes / getRandomValues) para tokens', 'Token predecible → password-reset/CSRF forjables', 'baja']
+  ['MED','Token Predecible','Date.now()/time() como semilla de token', /\b(token|otp|reset|nonce|session|csrf)\w*\s*=\s*[^;]*\b(Date\.now\s*\(\s*\)|new\s+Date\s*\(|time\s*\(\s*\)|microtime\s*\(|rand\s*\()/i, 'Usar CSPRNG (crypto.randomBytes / getRandomValues) para tokens', 'Token predecible → password-reset/CSRF forjables', 'baja'],
+
+  /* ═══ v5.0 — MOTOR AMPLIADO: frameworks, lenguajes y secretos modernos ═══ */
+  ['CRIT','Log4Shell / JNDI','lookup JNDI en input', /\$\{\s*(jndi|\$\{[^}]*\})\s*:/i, 'Quitar log4j<2.17 y bloquear lookups (formatMsgNoLookups); validar input antes de loguear', 'Log4Shell: RCE con un solo string en logs', 'alta'],
+  ['CRIT','Spring4Shell','binding de classLoader', /class\.module\.classLoader|class\[.module.\]\[.classLoader/i, 'Spring >= 5.3.18 / 5.2.20; denegar binding de class.*', 'Spring4Shell (CVE-2022-22965)', 'alta'],
+  ['CRIT','Ruby · inyección HTML','html_safe / raw() sobre input', /\.html_safe\b|\braw\s*\(\s*params|render\s+inline:\s*params/i, 'No marcar input como html_safe; usar sanitize() con allow-list', 'Rails/ERB: el output marcado queda sin escapar', 'alta'],
+  ['CRIT','Ruby · mass assignment','params.permit! (todo permitido)', /params\.permit!|\.permit_all\b|attr_accessible\s+:all/i, 'Listar campos con permit(:campo1, :campo2)', 'Permite escribir cualquier atributo del modelo', 'alta'],
+  ['CRIT','.NET · command exec','Process.Start con input', /Process\.Start\s*\(\s*[^)]*(Request\.|req\.|\+\s*\w+)/i, 'Evitar shell; argumentos fijos y validados', 'Ejecución de comandos desde input del usuario', 'alta'],
+  ['CRIT','.NET · SQL concat','SqlCommand con concatenación', /new\s+SqlCommand\s*\(\s*[^)]*\+\s*\w/i, 'SqlParameter con parámetros tipados', 'SQLi clásico en .NET', 'alta'],
+  ['HIGH','.NET · XSS','Html.Raw / @Html.Raw con input', /Html\.Raw\s*\(\s*[^)]*(Model|ViewBag|Request|input)/i, 'Quitar Html.Raw sobre datos del usuario; codificar por defecto', 'XSS en Razor', 'media'],
+  ['CRIT','.NET · deserialización','BinaryFormatter / NetDataContract', /BinaryFormatter|SoapFormatter|NetDataContractSerializer|LosFormatter/i, 'BinaryFormatter está obsoleto: usar System.Text.Json con tipos fijos', 'Deserialización de gadgets → RCE', 'media'],
+  ['CRIT','Go · command exec','exec.Command con shell o input', /exec\.Command\s*\(\s*"(sh|bash|cmd)"|exec\.Command\s*\([^)]*\+\s*\w/i, 'exec.Command con argumentos separados, sin shell', 'Inyección de comandos en Go', 'alta'],
+  ['CRIT','Go · SQL Sprintf','fmt.Sprintf dentro de query', /(Query|Exec|QueryRow)\s*\(\s*fmt\.Sprintf/i, 'db.Query("... WHERE id = $1", id)', 'SQLi por formateo de string', 'alta'],
+  ['HIGH','Go · XSS','template.HTML con input', /template\.HTML\s*\(|template\.JS\s*\(|template\.URL\s*\(/i, 'Dejar que html/template escape; nunca castear input a template.HTML', 'Bypass del escape automático', 'media'],
+  ['HIGH','Node · dynamic require','require() con ruta de input', /require\s*\(\s*(req\.|params\.|query\.|body\.|input|userInput)/i, 'Allow-list de módulos; nunca require con datos del usuario', 'Carga de módulos arbitrarios', 'media'],
+  ['HIGH','Node · vm (sandbox falso)','vm.runIn* con input', /vm\.(runIn\w*Context|runInNewContext|runInThisContext|Script)\s*\(\s*[^)]*(req\.|input|body\.|params\.)/i, 'vm NO es sandbox de seguridad: usar isolated-vm o proceso aparte', 'Escape de la sandbox de vm', 'media'],
+  ['HIGH','Node · Buffer inseguro','new Buffer(n) / allocUnsafe', /new\s+Buffer\s*\(\s*(req\.|params\.|body\.|query\.|\w+\s*\))|Buffer\.allocUnsafe\s*\(\s*(req\.|body\.)/i, 'Buffer.alloc / Buffer.from con tipo explícito', 'Fuga de memoria del proceso', 'baja'],
+  ['HIGH','Node · CORS abierto','CORS con origen reflejado + credenciales', /Access-Control-Allow-Origin['"]?\s*[:,]\s*(req\.headers\.origin|req\.get\(['"]origin['"]\))[^;]*Allow-Credentials|cors\(\s*\{[^}]*origin\s*:\s*true[^}]*credentials\s*:\s*true/i, 'Allow-list explícita de orígenes; nunca reflejar Origin con credenciales', 'Cualquier sitio lee respuestas autenticadas', 'media'],
+  ['HIGH','JWT · decode sin verify','jwt.decode usado como auth', /jwt\.decode\s*\(|jose\.decodeJwt\s*\(/i, 'Usar jwt.verify(token, key, {algorithms:[...]}) siempre', 'Token sin firma validada = autenticación falsa', 'alta'],
+  ['HIGH','Cookie sin HttpOnly','cookie de sesión sin HttpOnly', /(session|sid|token|auth)[\w-]*['"]?\s*[,:]\s*[^)]*httpOnly\s*:\s*false|cookie\s*\(\s*[\x22\x27](session|token|auth)[^)]*\)\s*;?\s*$/im, 'httpOnly: true, secure: true, sameSite: "lax"', 'XSS puede robar la sesión', 'media'],
+  ['MED','postMessage sin origen','postMessage con targetOrigin "*"', /postMessage\s*\(\s*[^,]+,\s*['"]\*['"]\s*\)/i, 'Fijar targetOrigin al dominio esperado', 'Datos sensibles llegan a cualquier ventana', 'alta'],
+  ['MED','Crypto obsoleta','createCipher sin IV / md5 para passwords', /createCipher\s*\(|crypto\.createCipher\(|hashlib\.md5\s*\(\s*(password|passwd|pwd)|md5\s*\(\s*\$?(password|passwd|pwd)/i, 'createCipheriv con IV aleatorio; bcrypt/argon2 para passwords', 'Cifrado sin IV y hashing rápido de contraseñas', 'media'],
+  ['HIGH','Deserialización Python/PHP','pickle.loads / yaml.load inseguro', /pickle\.loads?\s*\(|yaml\.load\s*\((?![^)]*Loader\s*=\s*(yaml\.)?SafeLoader)|unserialize\s*\(\s*\$_(GET|POST|REQUEST|COOKIE)/i, 'yaml.safe_load / json; nunca pickle con datos externos', 'Deserialización de objetos → RCE', 'media'],
+  ['CRIT','Secreto · GitHub token','ghp_/gho_/github_pat_', /\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}\b|\bgithub_pat_[A-Za-z0-9_]{70,}\b/, 'Revocar en GitHub y mover a secret manager', 'Token de repositorio/CI', 'alta'],
+  ['CRIT','Secreto · Stripe/Google','sk_live / AIza / xox', /\bsk_live_[0-9a-zA-Z]{20,}\b|\bAIza[0-9A-Za-z_\-]{35}\b|\bxox[abprs]-[0-9A-Za-z\-]{10,}\b/, 'Rotar la clave y restringir por dominio/IP', 'Credencial de servicio de terceros', 'alta'],
 ];
 /* ── SANITIZADORES DÉBILES (RECHAZADOS por política) ── */
 var TR_WEAK = [
@@ -32303,7 +32591,7 @@ function trAnalyze(code){
         if (isComment && kindC.indexOf('comentario') === -1) continue;
         if (R[3].test(RL)){
           if (perRule[rr] === undefined) perRule[rr] = 0;
-          if (perRule[rr] >= 8) continue;
+          if (perRule[rr] >= 25) continue;
           perRule[rr]++;
           findings.push({ id:'TR-'+String(++fid).padLeft3(), sev:R[0], kind:R[1], sink:R[2], conf:(R[6]||'alta'), origin:'análisis estático multi-lenguaje', ln:rln, col:(RL.search(R[3])+1)||1, ctx:'patrón de código', patch:R[4], note:R[5]||'', trace:['[PATRÓN] '+R[1]+' — '+R[2]+' (línea '+rln+')','[EVIDENCIA] '+String(RL).trim().slice(0,150)] });
         }
@@ -33582,6 +33870,16 @@ function msAnalyzePolicy(p){
   if(spf){ spfQual = /\+all/.test(spf) ? "+all" : /\?all/.test(spf) ? "?all" : /~all/.test(spf) ? "~all" : /-all/.test(spf) ? "-all" : "sin-all"; }
   return { vectors:V, risk:risk, verdict:verdict, dmarcPolicy:dPol, spfQual:spfQual };
 }
+function msColorize(txt){
+  return String(txt).split("\n").map(function(line){
+    var e = esc(line);
+    e = e.replace(/(spf=fail[^;]*|dkim=none|dmarc=fail[^;]*)/g, '<span class="hdr-bad">$1</span>');
+    e = e.replace(/(spf=pass|dkim=pass[^;]*)/g, '<span class="hdr-ok">$1</span>');
+    e = e.replace(/(softfail|p=none)/g, '<span class="hdr-warn">$1</span>');
+    e = e.replace(/^(Return-Path|Authentication-Results|From|Reply-To|To|Subject|Message-ID|X-TudelaSec-Verdict):/, '<span class="hdr-k">$1:</span>');
+    return e;
+  }).join("\n");
+}
 function msRow(v){
   var cls = v.sev==="CRIT" ? "v-crit" : v.sev==="HIGH" ? "v-high" : v.sev==="MED" ? "v-med" : v.sev==="GREEN" ? "v-low" : "";
   var badge = v.sev==="GREEN" ? '<span class="v byp">'+esc(v.sev)+'</span>' : '<span class="v blk">'+esc(v.sev)+'</span>';
@@ -33667,6 +33965,34 @@ async function msRun(){
     msLog("t","── fase 6: análisis de vectores + veredicto…");
     var pol = msAnalyzePolicy({ spf:spf, dmarc:dmarc, dkim:dkimFound, selectorsChecked:MS_SELECTORS.length, mxCount:mxs.length, fromDomain:dom, envDomain:envDom, replyDomain:rtoDom, displayName:name, subject:subj, crlfStripped:crlfStripped, mtaStsMode:mtaMode, tlsRpt:tlsRpt, bimi:bimi });
     pol.vectors.forEach(msRow);
+    /* v5 — auditoría profunda (defensiva): DNSSEC, CAA, límite de lookups SPF,
+       fuerza de la clave DKIM y cobertura real de DMARC (pct / sp) */
+    var extra = [];
+    var dsTx = await msDoh(dom, "DS");
+    var dnssec = !!(dsTx && dsTx.length);
+    extra.push({vector:"DNSSEC", evidence: dnssec ? "registro DS publicado" : "sin DS en el padre", impact: dnssec ? "respuestas DNS firmadas" : "envenenamiento de DNS sin detección", sev: dnssec ? "GREEN" : "MED"});
+    var caaTx = await msDoh(dom, "CAA");
+    var hasCaa = !!(caaTx && caaTx.length);
+    extra.push({vector:"CAA", evidence: hasCaa ? caaTx.length+" registro(s) CAA" : "sin CAA", impact: hasCaa ? "limita qué CA puede emitir certificados" : "cualquier CA puede emitir certificados para el dominio", sev: hasCaa ? "GREEN" : "MED"});
+    if(spf){
+      var lookups = (spf.match(/\b(include:|a:|a\b|mx\b|ptr\b|exists:|redirect=)/gi) || []).length;
+      extra.push({vector:"SPF · límite de lookups", evidence: "~"+lookups+" mecanismos que consultan DNS", impact: lookups > 10 ? "PERMERROR: SPF se evalúa como inválido (RFC 7208)" : "dentro del límite de 10", sev: lookups > 10 ? "CRIT" : "GREEN"});
+    }
+    if(dkimFound.length){
+      var kTxt = await msDoh(dkimFound[0]+"._domainkey."+dom, "TXT");
+      var pkm = /p=([A-Za-z0-9+\/=]+)/.exec(kTxt.join(""));
+      if(pkm){
+        var bitsEst = Math.round(((pkm[1].length*3/4) - 38) * 8 / 256) * 256;
+        extra.push({vector:"DKIM · fuerza de clave", evidence: "clave ≈ "+bitsEst+" bits (selector "+dkimFound[0]+")", impact: bitsEst < 2048 ? "RSA < 2048: falsificable con recursos modestos" : "RSA ≥ 2048 recomendado", sev: bitsEst < 2048 ? "HIGH" : "GREEN"});
+      }
+    }
+    if(dmarc){
+      var pctM = /\bpct=(\d+)/i.exec(dmarc);
+      if(pctM && parseInt(pctM[1],10) < 100) extra.push({vector:"DMARC · pct", evidence: "pct="+pctM[1], impact: "solo "+pctM[1]+"% de los mensajes sujetos a la política", sev:"HIGH"});
+      var spM = /\bsp=([a-z]+)/i.exec(dmarc);
+      if(spM && spM[1].toLowerCase()==="none" && (pol.dmarcPolicy==="reject" || pol.dmarcPolicy==="quarantine")) extra.push({vector:"DMARC · subdominios", evidence: "sp=none con p="+pol.dmarcPolicy, impact: "subdominios sin protección aunque el dominio principal esté blindado", sev:"HIGH"});
+    }
+    extra.forEach(msRow);
     var rCls = pol.risk >= 55 ? "c" : pol.risk >= 30 ? "h" : "s";
     summ.innerHTML = '<div class="ms-stat '+rCls+'"><b>'+pol.risk+'/100</b><span>RIESGO DE SPOOF</span></div>'+
       '<div class="ms-stat"><b>'+esc((pol.dmarcPolicy||"sin-DMARC").toUpperCase())+'</b><span>DMARC p=</span></div>'+
@@ -33697,6 +34023,7 @@ async function msRun(){
         "Subject: "+(subj || "(vacío — el asunto también es vector de phish)")+"\r\n"+
         "Message-ID: <SIMULACION-NO-REAL@mailreaper.tudelasec>\r\n"+
         "X-TudelaSec-Verdict: "+pol.verdict+" · riesgo "+pol.risk+"/100";
+      prev.innerHTML = msColorize(prev.textContent);
     }
     msFill(100);
     msLog(pol.risk>=55 ? "hit" : (pol.risk>=30 ? "warn" : "ok"), "  ── VEREDICTO: "+esc(pol.verdict)+" · riesgo "+pol.risk+"/100 ──");
@@ -34374,7 +34701,7 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 var HELP_DATA={
  'osint':{name:'OSINT Lookup',what:'Motor de inteligencia de fuentes abiertas: cruza un objetivo (dominio, IP, email, usuario, teléfono, hash, empresa o RUT) contra múltiples fuentes públicas y junta todo en un solo panel.',how:['Elegí el tipo de objetivo en las pestañas (Dominio, IP, Email, Username…).','Pegá el target y tocá EXEC.','Los resultados se van apilando, uno debajo del otro, por cada búsqueda.'],note:'Solo para targets autorizados o recon pasivo — no toca los sistemas del objetivo.'},
  'waflab':{name:'WAF Lab Xtreme',what:'Motor de bypass de WAF con 62 payloads en 8 oleadas: recon → encoding adaptativo → tamper engine estilo sqlmap → caracteres exóticos → inyección alternativa (headers/HPP/path) → verb abuse → padding overflow, y confirma cada bypass ganador 8×8 para cero falsos positivos.',how:['Pegá la URL de tu Cloudflare Worker (proxy) + el target con el parámetro a probar.','Tocá EMPEZAR ATAQUE: las 8 oleadas corren solas.','Mirá la tabla: solo lo marcado BYPASS CONFIRMADO pasó las 8 rondas de verificación.'],note:'HTTP real vía tu Worker — usalo solo sobre targets con autorización explícita.'},
- 'nimbus':{name:'Nimbus Cloud Reaper',what:'Reconocimiento de superficie cloud en 11 oleadas: fingerprint multi-proveedor (AWS/Azure/GCP/Firebase/Shopify…), S3 con regiones+ACL, metadata SSRF (39 endpoints), K8s/Docker/Registry, CNAME takeover por DoH y caza de credenciales filtradas.',how:['Ingresá el dominio o URL del target.','Tocá DESATAR NIMBUS: las 11 oleadas cloud corren en orden.','Al final tenés un reporte JSON/PDF con todo lo encontrado.'],note:'Todo HTTP real vía el Worker proxy — solo sobre infraestructura autorizada.'},
+ 'nimbus':{name:'Nimbus Cloud Reaper',what:'Reconocimiento de superficie cloud en 15 oleadas: fingerprint multi-proveedor (AWS/Azure/GCP/Firebase/Shopify…), S3 con regiones+ACL, metadata SSRF (39 endpoints), K8s/Docker/Registry, CNAME takeover por DoH y caza de credenciales filtradas.',how:['Ingresá el dominio o URL del target.','Tocá DESATAR NIMBUS: las 11 oleadas cloud corren en orden.','Al final tenés un reporte JSON/PDF con todo lo encontrado.'],note:'Todo HTTP real vía el Worker proxy — solo sobre infraestructura autorizada.'},
  'taint':{name:'Taint Radar Zero-Trust',what:'Auditoría estática de código kernel/paranoide: rastrea el flujo de datos desde 31 fuentes (location, storage, postMessage, fetch…) hasta 36 sumideros peligrosos, con análisis interprocedural de ida y retorno, DOM clobbering, mXSS y prototype pollution.',how:['Pegá tu código JS en el cuadro (o tocá CARGAR MUESTRA VULNERABLE).','Tocá AUDITAR (ZERO TRUST).','La tabla muestra cada flujo origen→sumidero, severidad, línea y el parche estructural.'],note:'Política: todo dato externo es TAINTED hasta demostrar lo contrario.'},
  'breach':{name:'Breach Radar',what:'Chequea si un correo apareció en filtraciones (XposedOrNot + LeakCheck) con timeline de exposición y plan de endurecimiento, más un modo contraseña que la compara contra ~850M claves filtradas, dumps NTLM y top mundial — con k-anonymity: tu clave nunca sale del navegador.',how:['Pegá un correo y tocá CAZAR FILTRACIONES (o un dominio para su postura MX/SPF/DMARC).','Para una clave: usá HUSHAR CONTRASEÑA — solo 5 chars del hash salen de tu equipo.','Revisá las brechas, el riesgo y el plan de acción.'],note:'k-anonymity: la contraseña jamás viaja completa.'},
  'dns-auditor':{name:'Email Spoofing & DNS Auditor',what:'Auditoría pasiva de la postura DNS y de autenticación de correo de un dominio: SPF, DMARC, DKIM, DNSSEC, MTA-STS, TLS-RPT, BIMI, CAA, salud de NS y barrido de subdomain takeover — todo por DNS-over-HTTPS.',how:['Escribí el dominio objetivo (o un correo: audita su dominio).','Tocá AUDITAR DOMINIO.','Mirá el Security Score y si el dominio permite email spoofing. Podés exportar PDF.'],note:'Auditoría 100% pasiva — no envía ningún correo ni toca el servidor.'},
@@ -35734,6 +36061,192 @@ function init(){
 }
 document.addEventListener('DOMContentLoaded', init);
 if(document.readyState!=='loading') init();
+})();
+</script>
+
+<style>
+/* ══ CHEATSHEET · terminal v3 ══ */
+#cheatsheet .cs-term{font-family:var(--mono);font-size:12px;color:#39ff88;background:#020504;border:1px solid #17321f;border-radius:6px;padding:12px 14px;margin:0 0 18px;position:relative;overflow:hidden;box-shadow:0 0 24px rgba(57,255,136,.08),inset 0 0 30px rgba(0,0,0,.6);}
+#cheatsheet .cs-term::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(57,255,136,.04) 0 1px,transparent 1px 3px);pointer-events:none;}
+#cheatsheet .cs-term .cs-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;}
+#cheatsheet .cs-term .cs-caret{display:inline-block;width:8px;height:14px;background:#39ff88;vertical-align:-2px;margin-left:4px;animation:csBlink 1s steps(2) infinite;}
+@keyframes csBlink{50%{opacity:0;}}
+#cheatsheet .cs-term .cs-out{color:#7cffb0;opacity:.85;}
+#cheatsheet .cs-count{font-size:11px;color:#3d6b4c;letter-spacing:.1em;margin-left:auto;}
+#cheatsheet .cs-tab .cs-n{font-size:9px;opacity:.6;margin-left:6px;}
+#cheatsheet .cs-filter{font-family:var(--mono);width:100%;background:#020504;border:1px solid #17321f;color:#39ff88;padding:10px 12px;border-radius:4px;margin-bottom:16px;}
+#cheatsheet .cs-filter:focus{outline:none;border-color:#39ff88;box-shadow:0 0 14px rgba(57,255,136,.25);}
+#cheatsheet .cs-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+@media (min-width:900px){#cheatsheet .cs-grid{grid-template-columns:1fr 1fr;}}
+#cheatsheet .cmd-card{transition:transform .15s,box-shadow .2s,border-color .2s;}
+#cheatsheet .cmd-card:hover{transform:translateY(-2px);}
+#cheatsheet .cmd-card .cmd-name::before{content:"> ";color:#2b8a57;}
+#cheatsheet .cmd-code code::before{content:"$ ";color:#2b8a57;}
+#cheatsheet .cmd-code{display:flex;align-items:center;gap:8px;}
+#cheatsheet .cmd-code code{flex:1;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap;}
+#cheatsheet .copy-btn{flex:0 0 auto;}
+#cheatsheet .copy-btn.copied{color:#fff;background:#39ff88;}
+#cheatsheet .cmd-card.hit{border-color:#39ff88;box-shadow:0 0 22px rgba(57,255,136,.35);}
+@media (max-width:600px){#cheatsheet .cs-term{font-size:11px;}}
+/* ══ WAR ROOM · funcional ══ */
+.tm-g{cursor:pointer;}
+.wr-tip{font-family:var(--mono);font-size:12px;color:#ffb0b0;border:1px dashed rgba(255,26,46,.35);padding:8px 12px;margin-top:12px;min-height:20px;}
+.wr-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px;}
+.wr-in{font-family:var(--mono);font-size:12px;background:#050002;color:var(--text);border:1px solid rgba(255,26,46,.3);padding:9px 10px;min-width:0;border-radius:2px;}
+.wr-in:focus{outline:none;border-color:#ff1a2e;box-shadow:0 0 12px rgba(255,26,46,.25);}
+.wr-in-wide{grid-column:span 2;}
+.wr-btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#3ddc84;background:rgba(61,220,132,.07);border:1px solid rgba(61,220,132,.4);padding:9px 14px;cursor:pointer;border-radius:2px;}
+.wr-btn:hover{box-shadow:0 0 12px rgba(61,220,132,.3);}
+.wr-btn-danger{color:#ff4d6a;background:rgba(255,26,46,.06);border-color:rgba(255,26,46,.35);}
+.wr-stats{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:16px;}
+.wr-stats>div{display:flex;flex-direction:column;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.wr-stats b{font-size:22px;color:#ff4d6a;text-shadow:0 0 10px rgba(255,26,46,.4);}
+.wr-list{display:flex;flex-direction:column;gap:6px;}
+.wr-row{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:10px;align-items:center;font-family:var(--mono);font-size:12px;border:1px solid rgba(255,255,255,.07);background:#08040b;padding:9px 12px;border-left:3px solid var(--muted);min-width:0;}
+.wr-row.p1{border-left-color:#ff1a2e;} .wr-row.p2{border-left-color:#ffb020;} .wr-row.p3{border-left-color:#60a5fa;} .wr-row.p4{border-left-color:#3ddc84;}
+.wr-row .wr-sev{font-weight:700;color:#fff;} .wr-row .wr-ttl{overflow-wrap:anywhere;color:var(--text);}
+.wr-row .wr-meta{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.wr-row .wr-x{background:none;border:1px solid rgba(255,255,255,.12);color:var(--muted);cursor:pointer;padding:2px 8px;font-family:var(--mono);}
+.wr-row .wr-x:hover{color:#ff4d6a;border-color:#ff4d6a;}
+.wr-empty{font-family:var(--mono);font-size:12px;color:rgba(240,238,248,.4);padding:14px;border:1px dashed rgba(255,255,255,.12);}
+.kc-step{cursor:pointer;}
+.kc-step.on .kc-step-icon{border-color:#ff1a2e;box-shadow:0 0 16px rgba(255,26,46,.5);color:#ff1a2e;}
+@media (max-width:640px){.wr-row{grid-template-columns:1fr auto;}.wr-row .wr-meta{grid-column:1/-1;}.wr-in-wide{grid-column:auto;}}
+</style>
+<style>
+/* ══ MAIL · cabeceras coloreadas + auditoría ══ */
+#mailsec .ms-pre{background:#020504;border:1px solid #17321f;border-left:3px solid #39ff88;color:#b6ffd0;padding:14px 16px;border-radius:4px;font-size:12px;line-height:1.7;overflow:auto;box-shadow:inset 0 0 22px rgba(0,0,0,.6);}
+#mailsec .ms-pre .hdr-k{color:#7fb6ff;font-weight:700;}
+#mailsec .ms-pre .hdr-ok{color:#39ff88;font-weight:700;}
+#mailsec .ms-pre .hdr-bad{color:#ff4d6a;font-weight:700;text-shadow:0 0 8px rgba(255,77,106,.4);}
+#mailsec .ms-pre .hdr-warn{color:#ffb020;font-weight:700;}
+</style>
+<script>
+/* ══ WAR ROOM · lógica funcional ══ */
+(function(){
+ 'use strict';
+ var KEY='ts_warroom_v1', SEV={p1:'P1 · CRÍTICO',p2:'P2 · ALTO',p3:'P3 · MEDIO',p4:'P4 · BAJO'}, RANK={p1:4,p2:3,p3:2,p4:1};
+ var items=[];
+ try{ items=JSON.parse(localStorage.getItem(KEY)||'[]')||[]; }catch(e){ items=[]; }
+ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(items)); }catch(e){} }
+ function $(id){ return document.getElementById(id); }
+ function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+ function usd(n){ return '$'+Number(n||0).toLocaleString('en-US'); }
+
+ /* ── Kill chain: pestañas + pasos ── */
+ var tabs=document.querySelectorAll('#kc-tabs .kc-tab');
+ tabs.forEach(function(t){ t.addEventListener('click', function(){
+   tabs.forEach(function(x){ x.classList.toggle('active', x===t); });
+   document.querySelectorAll('#kc-panels .kc-panel').forEach(function(p){ p.classList.toggle('active', p.id==='kc-'+t.dataset.kc); });
+ }); });
+ var steps=document.querySelectorAll('.kc-chain .kc-step');
+ steps.forEach(function(st, i){ st.addEventListener('click', function(){
+   steps.forEach(function(x){ x.classList.remove('on'); }); st.classList.add('on');
+   var rows=document.querySelectorAll('#kc-panels .kc-panel.active .kc-step-row');
+   rows.forEach(function(r,j){ r.style.opacity = (j===i)?'1':'.35'; });
+   if(rows[i]) rows[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+ }); });
+
+ /* ── Mapa: marcadores con detalle ── */
+ document.querySelectorAll('.tm-g').forEach(function(g){ g.addEventListener('click', function(){
+   var tip=$('wr-tip'); if(tip) tip.textContent = g.getAttribute('data-info') || '';
+ }); });
+
+ /* ── Grafo de superficie desde el registro ── */
+ var NS='http://www.w3.org/2000/svg';
+ function drawGraph(){
+   var box=$('attack-graph'), empty=$('attack-graph-empty'); if(!box) return;
+   var assets={};
+   items.forEach(function(it){ var a=assets[it.asset]||{name:it.asset,max:'p4',n:0};
+     a.n++; if(RANK[it.sev]>RANK[a.max]) a.max=it.sev; assets[it.asset]=a; });
+   var names=Object.keys(assets);
+   if(!names.length){ if(empty) empty.style.display='flex'; Array.prototype.forEach.call(box.querySelectorAll('svg'),function(s){s.remove();}); return; }
+   if(empty) empty.style.display='none';
+   Array.prototype.forEach.call(box.querySelectorAll('svg'),function(s){s.remove();});
+   var W=box.clientWidth||800, H=box.clientHeight||480, cx=W/2, cy=H/2;
+   var R=Math.min(W,H)*0.36;
+   var svg=document.createElementNS(NS,'svg'); svg.setAttribute('width',W); svg.setAttribute('height',H);
+   svg.setAttribute('viewBox','0 0 '+W+' '+H);
+   var col={p1:'#ff1a2e',p2:'#ffb020',p3:'#60a5fa',p4:'#3ddc84'};
+   names.forEach(function(n,i){
+     var ang=(i/names.length)*Math.PI*2-Math.PI/2, x=cx+R*Math.cos(ang), y=cy+R*Math.sin(ang);
+     var a=assets[n];
+     var ln=document.createElementNS(NS,'line');
+     ln.setAttribute('x1',cx); ln.setAttribute('y1',cy); ln.setAttribute('x2',x); ln.setAttribute('y2',y);
+     ln.setAttribute('stroke', col[a.max]); ln.setAttribute('stroke-opacity','.45'); ln.setAttribute('stroke-width','1.2');
+     if(a.max==='p1') ln.setAttribute('stroke-dasharray','4 4');
+     svg.appendChild(ln);
+     var g=document.createElementNS(NS,'g');
+     var c=document.createElementNS(NS,'circle');
+     c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r', 8+a.n*2); c.setAttribute('fill','#1a0206');
+     c.setAttribute('stroke', col[a.max]); c.setAttribute('stroke-width','2');
+     g.appendChild(c);
+     var t=document.createElementNS(NS,'text');
+     t.setAttribute('x',x); t.setAttribute('y',y+ (ang>0?26:-18)); t.setAttribute('text-anchor','middle');
+     t.setAttribute('fill','#f0eef8'); t.setAttribute('font-family','monospace'); t.setAttribute('font-size','11');
+     t.textContent = (n.length>26? n.slice(0,25)+'…' : n) + ' · ' + a.n;
+     g.appendChild(t);
+     svg.appendChild(g);
+   });
+   var root=document.createElementNS(NS,'circle');
+   root.setAttribute('cx',cx); root.setAttribute('cy',cy); root.setAttribute('r','22'); root.setAttribute('fill','#ff1a2e');
+   root.setAttribute('style','filter:drop-shadow(0 0 12px #ff1a2e)');
+   svg.appendChild(root);
+   var rt=document.createElementNS(NS,'text'); rt.setAttribute('x',cx); rt.setAttribute('y',cy+4);
+   rt.setAttribute('text-anchor','middle'); rt.setAttribute('fill','#fff'); rt.setAttribute('font-family','monospace'); rt.setAttribute('font-size','10'); rt.setAttribute('font-weight','700');
+   rt.textContent='OBJETIVO'; svg.appendChild(rt);
+   box.insertBefore(svg, box.firstChild);
+ }
+
+ /* ── Totales y lista ── */
+ function render(){
+   var list=$('wr-list'); if(!list) return;
+   var usdSum=0, p1=0, assets={};
+   items.forEach(function(it){ usdSum+=Number(it.bounty)||0; if(it.sev==='p1') p1++; assets[it.asset]=1; });
+   if($('wr-n')) $('wr-n').textContent=items.length;
+   if($('wr-assets')) $('wr-assets').textContent=Object.keys(assets).length;
+   if($('wr-usd')) $('wr-usd').textContent=usd(usdSum);
+   if($('wr-p1')) $('wr-p1').textContent=p1;
+   if($('wr-map-total')) $('wr-map-total').textContent = usd(usdSum)+' USD · '+items.length+' hallazgos registrados · '+Object.keys(assets).length+' activos';
+   if(!items.length){ list.innerHTML='<div class="wr-empty">Sin hallazgos todavía. Registrá uno arriba y se refleja en el grafo y en los totales del mapa.</div>'; }
+   else {
+     list.innerHTML = items.map(function(it,i){
+       return '<div class="wr-row '+it.sev+'">'
+         +'<span class="wr-sev">'+SEV[it.sev]+'</span>'
+         +'<span class="wr-ttl">'+esc(it.title)+'<div class="wr-meta">'+esc(it.asset)+' · '+esc(it.phase)+'</div></span>'
+         +'<span class="wr-meta">'+usd(it.bounty)+'</span>'
+         +'<span class="wr-meta">'+esc(new Date(it.ts).toLocaleDateString('es-CL'))+'</span>'
+         +'<button class="wr-x" data-i="'+i+'" aria-label="Borrar">✕</button></div>';
+     }).join('');
+   }
+   drawGraph();
+ }
+
+ var form=$('wr-form');
+ if(form) form.addEventListener('submit', function(e){
+   e.preventDefault();
+   var asset=($('wr-asset').value||'').trim(), title=($('wr-title').value||'').trim();
+   if(!asset||!title) return;
+   items.unshift({asset:asset, title:title, sev:$('wr-sev').value, phase:$('wr-phase').value, bounty:Number($('wr-bounty').value)||0, ts:Date.now()});
+   save(); form.reset(); render();
+ });
+ var list=$('wr-list');
+ if(list) list.addEventListener('click', function(e){
+   var b=e.target.closest('.wr-x'); if(!b) return;
+   items.splice(Number(b.getAttribute('data-i')),1); save(); render();
+ });
+ var clr=$('wr-clear');
+ if(clr) clr.addEventListener('click', function(){ if(items.length && confirm('¿Borrar todo el registro?')){ items=[]; save(); render(); } });
+ var exp=$('wr-export');
+ if(exp) exp.addEventListener('click', function(){
+   var md='# War Room · Reporte\n\n'+items.length+' hallazgos · '+usd(items.reduce(function(a,b){return a+(Number(b.bounty)||0);},0))+' USD potencial\n\n'
+     +'| Severidad | Activo | Título | Fase | USD |\n|---|---|---|---|---|\n'
+     +items.map(function(it){ return '| '+SEV[it.sev]+' | '+it.asset+' | '+it.title.replace(/\|/g,'\\|')+' | '+it.phase+' | '+(Number(it.bounty)||0)+' |'; }).join('\n')+'\n';
+   var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));
+   a.download='warroom-'+new Date().toISOString().slice(0,10)+'.md'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+ });
+ window.addEventListener('resize', function(){ drawGraph(); });
+ render();
 })();
 </script>
 </body>

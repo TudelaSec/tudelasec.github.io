@@ -3180,21 +3180,21 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after{ animatio
   *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
 }
 /* ── Cheatsheet: estilo hacker (terminal verde/rojo) ── */
-#cheatsheet .cs-tabs{gap:6px;border-bottom:1px dashed #1f3a2a;}
-#cheatsheet .cs-tab{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:6px 11px;border:1px solid #1f3a2a;background:#06100b;color:#7cffb0;border-radius:4px;cursor:pointer;transition:all .15s;}
-#cheatsheet .cs-tab:hover{border-color:#39ff88;color:#39ff88;}
-#cheatsheet .cs-tab.active{background:#0f2a1a;border-color:#39ff88;color:#39ff88;box-shadow:0 0 14px rgba(57,255,136,.35);}
-#cheatsheet .cs-filter{font-family:var(--mono);background:#020504;border:1px solid #1f3a2a;color:#39ff88;}
-#cheatsheet .cs-filter::placeholder{color:#3d6b4c;}
-#cheatsheet .cmd-card{position:relative;overflow:hidden;background:#06100b;border:1px solid #17321f;border-left:3px solid #39ff88;border-radius:6px;padding:12px 14px;}
-#cheatsheet .cmd-card::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(57,255,136,.035) 0 1px,transparent 1px 3px);pointer-events:none;}
-#cheatsheet .cmd-card:hover{border-color:#39ff88;box-shadow:0 0 18px rgba(57,255,136,.18);}
-#cheatsheet .cmd-name{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:#39ff88;}
+#cheatsheet .cs-tabs{gap:6px;border-bottom:1px dashed #4a1018;}
+#cheatsheet .cs-tab{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:6px 11px;border:1px solid #4a1018;background:#12050a;color:#ff8a96;border-radius:4px;cursor:pointer;transition:all .15s;}
+#cheatsheet .cs-tab:hover{border-color:#ff1a2e;color:#ff1a2e;}
+#cheatsheet .cs-tab.active{background:#2a0710;border-color:#ff1a2e;color:#ff1a2e;box-shadow:0 0 14px rgba(255,26,46,.35);}
+#cheatsheet .cs-filter{font-family:var(--mono);background:#080203;border:1px solid #4a1018;color:#ff1a2e;}
+#cheatsheet .cs-filter::placeholder{color:#8a4a52;}
+#cheatsheet .cmd-card{position:relative;overflow:hidden;background:#12050a;border:1px solid #3a0a12;border-left:3px solid #ff1a2e;border-radius:6px;padding:12px 14px;}
+#cheatsheet .cmd-card::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,26,46,.035) 0 1px,transparent 1px 3px);pointer-events:none;}
+#cheatsheet .cmd-card:hover{border-color:#ff1a2e;box-shadow:0 0 18px rgba(255,26,46,.18);}
+#cheatsheet .cmd-name{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:#ff1a2e;}
 #cheatsheet .cmd-name::before{content:"> ";color:#ff3b5c;}
-#cheatsheet .cmd-desc{color:#7fa890;font-size:12.5px;}
-#cheatsheet .cmd-code{background:#020504;border:1px dashed #1f3a2a;border-radius:4px;}
-#cheatsheet .cmd-code code{color:#b6ffd0;}
-#cheatsheet .copy-btn{color:#39ff88;}
+#cheatsheet .cmd-desc{color:#c98a92;font-size:12.5px;}
+#cheatsheet .cmd-code{background:#080203;border:1px dashed #4a1018;border-radius:4px;}
+#cheatsheet .cmd-code code{color:#ffc2c8;}
+#cheatsheet .copy-btn{color:#ff1a2e;}
 /* ══ NAV HACKER v2 — círculo + menú completo ══ */
 .quicknav-toggle{background:radial-gradient(circle at 50% 40%,#1a0610,#05020a 70%);box-shadow:0 0 0 1px rgba(255,26,46,.25),0 0 22px rgba(255,26,46,.18);overflow:visible;}
 .quicknav-toggle::after{content:"";position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,26,46,.55),transparent 28%);animation:qnSweep 2.8s linear infinite;pointer-events:none;z-index:0;}
@@ -36066,28 +36066,45 @@ if(document.readyState!=='loading') init();
 
 <style>
 /* ══ CHEATSHEET · terminal v3 ══ */
-#cheatsheet .cs-term{font-family:var(--mono);font-size:12px;color:#39ff88;background:#020504;border:1px solid #17321f;border-radius:6px;padding:12px 14px;margin:0 0 18px;position:relative;overflow:hidden;box-shadow:0 0 24px rgba(57,255,136,.08),inset 0 0 30px rgba(0,0,0,.6);}
-#cheatsheet .cs-term::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(57,255,136,.04) 0 1px,transparent 1px 3px);pointer-events:none;}
+#cheatsheet .cs-term{font-family:var(--mono);font-size:12px;color:#ff1a2e;background:#080203;border:1px solid #3a0a12;border-radius:6px;padding:12px 14px;margin:0 0 18px;position:relative;overflow:hidden;box-shadow:0 0 24px rgba(255,26,46,.08),inset 0 0 30px rgba(0,0,0,.6);}
+#cheatsheet .cs-term::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,26,46,.04) 0 1px,transparent 1px 3px);pointer-events:none;}
 #cheatsheet .cs-term .cs-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;}
-#cheatsheet .cs-term .cs-caret{display:inline-block;width:8px;height:14px;background:#39ff88;vertical-align:-2px;margin-left:4px;animation:csBlink 1s steps(2) infinite;}
+#cheatsheet .cs-term .cs-caret{display:inline-block;width:8px;height:14px;background:#ff1a2e;vertical-align:-2px;margin-left:4px;animation:csBlink 1s steps(2) infinite;}
 @keyframes csBlink{50%{opacity:0;}}
-#cheatsheet .cs-term .cs-out{color:#7cffb0;opacity:.85;}
-#cheatsheet .cs-count{font-size:11px;color:#3d6b4c;letter-spacing:.1em;margin-left:auto;}
+#cheatsheet .cs-term .cs-out{color:#ff8a96;opacity:.85;}
+#cheatsheet .cs-count{font-size:11px;color:#8a4a52;letter-spacing:.1em;margin-left:auto;}
 #cheatsheet .cs-tab .cs-n{font-size:9px;opacity:.6;margin-left:6px;}
-#cheatsheet .cs-filter{font-family:var(--mono);width:100%;background:#020504;border:1px solid #17321f;color:#39ff88;padding:10px 12px;border-radius:4px;margin-bottom:16px;}
-#cheatsheet .cs-filter:focus{outline:none;border-color:#39ff88;box-shadow:0 0 14px rgba(57,255,136,.25);}
+#cheatsheet .cs-filter{font-family:var(--mono);width:100%;background:#080203;border:1px solid #3a0a12;color:#ff1a2e;padding:10px 12px;border-radius:4px;margin-bottom:16px;}
+#cheatsheet .cs-filter:focus{outline:none;border-color:#ff1a2e;box-shadow:0 0 14px rgba(255,26,46,.25);}
 #cheatsheet .cs-grid{display:grid;grid-template-columns:1fr;gap:10px;}
 @media (min-width:900px){#cheatsheet .cs-grid{grid-template-columns:1fr 1fr;}}
 #cheatsheet .cmd-card{transition:transform .15s,box-shadow .2s,border-color .2s;}
 #cheatsheet .cmd-card:hover{transform:translateY(-2px);}
-#cheatsheet .cmd-card .cmd-name::before{content:"> ";color:#2b8a57;}
-#cheatsheet .cmd-code code::before{content:"$ ";color:#2b8a57;}
+#cheatsheet .cmd-card .cmd-name::before{content:"> ";color:#a3122a;}
+#cheatsheet .cmd-code code::before{content:"$ ";color:#a3122a;}
 #cheatsheet .cmd-code{display:flex;align-items:center;gap:8px;}
 #cheatsheet .cmd-code code{flex:1;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap;}
 #cheatsheet .copy-btn{flex:0 0 auto;}
-#cheatsheet .copy-btn.copied{color:#fff;background:#39ff88;}
-#cheatsheet .cmd-card.hit{border-color:#39ff88;box-shadow:0 0 22px rgba(57,255,136,.35);}
+#cheatsheet .copy-btn.copied{color:#fff;background:#ff1a2e;}
+#cheatsheet .cmd-card.hit{border-color:#ff1a2e;box-shadow:0 0 22px rgba(255,26,46,.45);}
 @media (max-width:600px){#cheatsheet .cs-term{font-size:11px;}}
+
+/* ══ CHEATSHEET · animaciones rojas ══ */
+#cheatsheet .cs-term::before{content:"";position:absolute;left:0;right:0;top:-40%;height:40%;background:linear-gradient(180deg,transparent,rgba(255,26,46,.18),transparent);pointer-events:none;animation:csScan 3.6s linear infinite;z-index:1;}
+@keyframes csScan{0%{top:-40%}100%{top:110%}}
+#cheatsheet .cs-term{animation:csFlick 6s infinite;}
+@keyframes csFlick{0%,100%{box-shadow:0 0 24px rgba(255,26,46,.10),inset 0 0 30px rgba(255,26,46,.05)}45%{box-shadow:0 0 34px rgba(255,26,46,.22),inset 0 0 36px rgba(255,26,46,.09)}47%{box-shadow:0 0 12px rgba(255,26,46,.06),inset 0 0 18px rgba(255,26,46,.02)}}
+#cheatsheet .cmd-card{animation:csIn .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 35ms);}
+@keyframes csIn{from{opacity:0;transform:translateY(12px) scale(.98);}to{opacity:1;transform:none;}}
+#cheatsheet .cmd-card{animation:csIn .5s cubic-bezier(.2,.7,.2,1) both,csEdge 2.4s ease-in-out infinite;}
+@keyframes csEdge{0%,100%{border-left-color:#ff1a2e;}50%{border-left-color:#5a0812;}}
+#cheatsheet .cmd-card:hover .cmd-name{animation:csGlitch .5s steps(2) infinite;}
+@keyframes csGlitch{0%{text-shadow:2px 0 #ff1a2e,-2px 0 #00e5ff;transform:translateX(0)}50%{text-shadow:-2px 0 #ff1a2e,2px 0 #00e5ff;transform:translateX(1px)}100%{text-shadow:none;transform:none}}
+#cheatsheet .cs-tab.active{animation:csTabPulse 1.8s ease-in-out infinite;}
+@keyframes csTabPulse{0%,100%{box-shadow:0 0 8px rgba(255,26,46,.25)}50%{box-shadow:0 0 20px rgba(255,26,46,.6)}}
+#cheatsheet .cs-count{animation:csBlinkTxt 2s steps(2) infinite;}
+@keyframes csBlinkTxt{50%{opacity:.45}}
+#cheatsheet .copy-btn:hover{background:#ff1a2e;color:#fff;box-shadow:0 0 14px rgba(255,26,46,.6);}
 /* ══ WAR ROOM · funcional ══ */
 .tm-g{cursor:pointer;}
 .wr-tip{font-family:var(--mono);font-size:12px;color:#ffb0b0;border:1px dashed rgba(255,26,46,.35);padding:8px 12px;margin-top:12px;min-height:20px;}

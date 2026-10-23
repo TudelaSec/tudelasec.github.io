@@ -3224,7 +3224,7 @@ a{color:inherit;text-decoration:none;}
    (82 loops dejan de quemar CPU/GPU mientras mirás otra cosa).
    will-change → orbes y barra de progreso viven en su propia capa GPU (cero repaint
    del fondo en cada frame). */
-section[id]{ content-visibility:auto; contain-intrinsic-size:1px 1100px; }
+section[id]{ content-visibility:visible; }
 section#inicio{ content-visibility:visible; contain-intrinsic-size:none; }
 /* Auto-pausa inteligente: congela bucles infinitos SOLO cuando la sección está fuera del viewport (+250px de margen) o pestaña oculta */
 section[id]:not(.in-view), section[id]:not(.in-view) *, section[id]:not(.in-view)::before, section[id]:not(.in-view)::after, section[id]:not(.in-view) *::before, section[id]:not(.in-view) *::after{ animation-play-state:paused !important; }
@@ -3499,6 +3499,74 @@ html.ctf-gate-active section[id] *,
 html.ctf-gate-active .bg-orb,
 html.ctf-gate-active .hero-bg-anim * {
   animation-play-state: paused !important;
+}
+
+
+/* ══ SEAMLESS CONTINUOUS CYBER BACKGROUND & 120FPS GPU COMPOSITING ══ */
+section[aria-label="CTF Root Gateway"] {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+}
+.hero-bg-anim,
+#hero-canvas {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+.hero-grid {
+  inset: -60px !important;
+  will-change: transform;
+}
+.bg-orb {
+  mix-blend-mode: normal !important;
+  animation: none !important;
+}
+.bg-orb-1 { background: radial-gradient(circle, rgba(255,26,46,.15) 0%, rgba(255,26,46,.04) 45%, transparent 72%) !important; }
+.bg-orb-2 { background: radial-gradient(circle, rgba(123,79,255,.11) 0%, rgba(123,79,255,.03) 45%, transparent 72%) !important; }
+.bg-orb-3 { background: radial-gradient(circle, rgba(255,26,46,.10) 0%, rgba(255,26,46,.025) 45%, transparent 72%) !important; }
+
+/* Suavizado inferior del Dragón Hero para transición continua sin cortes */
+#inicio .hero-dragon-wrap {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+}
+
+/* Eliminar cortes de color sólido entre secciones (transiciones atmosféricas continuas) */
+section {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+main, section, footer {
+  position: relative;
+  z-index: 1;
+}
+#osint,
+#conocimiento {
+  background-color: transparent !important;
+}
+#nexusactive {
+  background: linear-gradient(180deg, transparent 0%, rgba(7,9,15,0.58) 12%, rgba(7,9,15,0.58) 88%, transparent 100%) !important;
+}
+#gasr {
+  background: radial-gradient(1100px 520px at 50% 25%, rgba(31,3,9,0.65) 0%, transparent 72%) !important;
+}
+#gasr::after {
+  background: none !important;
+}
+.sec-dragon-ambient {
+  filter: none !important;
+  opacity: 0.14 !important;
+  will-change: transform;
+}
+.stat-item, .exp-item {
+  background: rgba(8, 3, 5, 0.72) !important;
 }
 
 </style>
@@ -15475,7 +15543,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#016f68626e6d6072757465646d60383641666c60686d2f626e6c" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#66080f05090a0715121302030a075f5126010b070f0a4805090b" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -16123,7 +16191,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#26484f45494a4755525342434a471f1166414b474f4a0845494b" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="a3cdcac0cccfc2d0d7d6c7c6cfc29a94e3c4cec2cacf8dc0ccce">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#402e29232f2c2133343524252c21797700272d21292c6e232f2d" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="701e19131f1c1103040514151c11494730171d11191c5e131f1d">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">
@@ -16483,9 +16551,9 @@ document.addEventListener('visibilitychange', function(){
   window.addEventListener('ts:theme', function(){ rgb = accentRGB(); });
 
   function resize(){
-    DPR = Math.min(window.devicePixelRatio || 1, 1.75);
-    W = heroSec.clientWidth || window.innerWidth;
-    H = heroSec.clientHeight || window.innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 1.35);
+    W = window.innerWidth || heroSec.clientWidth;
+    H = window.innerHeight || heroSec.clientHeight;
     canvas.width = Math.max(1, Math.floor(W * DPR));
     canvas.height = Math.max(1, Math.floor(H * DPR));
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -16496,16 +16564,22 @@ document.addEventListener('visibilitychange', function(){
   for(var i = 0; i < N; i++){
     pts.push({
       x: Math.random() * W, y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.48, vy: (Math.random() - 0.5) * 0.48,
-      r: Math.random() * 1.7 + 0.7
+      vx: (Math.random() - 0.5) * 0.46, vy: (Math.random() - 0.5) * 0.46,
+      r: Math.random() * 1.6 + 0.7
     });
   }
 
   function frame(){
     if(!running){ rafId = 0; return; }
-    if(document.hidden){ rafId = 0; running = false; return; }
+    if(document.hidden || document.documentElement.classList.contains('ctf-gate-active')){
+      rafId = requestAnimationFrame(frame);
+      return;
+    }
     ctx.clearRect(0, 0, W, H);
 
+    // 1 single batched path for all particles!
+    ctx.fillStyle = 'rgba(' + rgb + ',0.66)';
+    ctx.beginPath();
     for(var i = 0; i < N; i++){
       var p = pts[i];
       p.x += p.vx; p.y += p.vy;
@@ -16516,27 +16590,38 @@ document.addEventListener('visibilitychange', function(){
         var inv = 0.55 / Math.sqrt(d2);
         p.x += dmx * inv; p.y += dmy * inv;
       }
-      ctx.fillStyle = 'rgba(' + rgb + ',0.68)';
-      ctx.beginPath();
+      ctx.moveTo(p.x + p.r, p.y);
       ctx.arc(p.x, p.y, p.r, 0, 6.2832);
-      ctx.fill();
     }
+    ctx.fill();
 
+    // 3 batched opacity passes instead of 350 individual strokes per frame!
     ctx.lineWidth = 0.75;
-    var ld2 = LINK_D * LINK_D;
+    var ld2 = LINK_D * LINK_D, cutNear = ld2 * 0.34, cutMid = ld2 * 0.68;
+    var pNear = [], pMid = [], pFar = [];
     for(var a = 0; a < N; a++){
       var pa = pts[a];
       for(var b = a + 1; b < N; b++){
         var pb = pts[b];
         var dx = pa.x - pb.x, dy = pa.y - pb.y, dist2 = dx*dx + dy*dy;
         if(dist2 < ld2){
-          ctx.strokeStyle = 'rgba(' + rgb + ',' + ((1 - dist2 / ld2) * 0.22).toFixed(3) + ')';
-          ctx.beginPath();
-          ctx.moveTo(pa.x, pa.y);
-          ctx.lineTo(pb.x, pb.y);
-          ctx.stroke();
+          if(dist2 < cutNear){ pNear.push(pa.x, pa.y, pb.x, pb.y); }
+          else if(dist2 < cutMid){ pMid.push(pa.x, pa.y, pb.x, pb.y); }
+          else { pFar.push(pa.x, pa.y, pb.x, pb.y); }
         }
       }
+    }
+    var buckets = [[pNear, '0.19'], [pMid, '0.11'], [pFar, '0.05']];
+    for(var bi = 0; bi < 3; bi++){
+      var arr = buckets[bi][0];
+      if(!arr.length) continue;
+      ctx.strokeStyle = 'rgba(' + rgb + ',' + buckets[bi][1] + ')';
+      ctx.beginPath();
+      for(var k = 0; k < arr.length; k += 4){
+        ctx.moveTo(arr[k], arr[k+1]);
+        ctx.lineTo(arr[k+2], arr[k+3]);
+      }
+      ctx.stroke();
     }
 
     for(var w = waves.length - 1; w >= 0; w--){
@@ -16556,14 +16641,12 @@ document.addEventListener('visibilitychange', function(){
   function start(){ if(!running && !document.hidden){ running = true; rafId = requestAnimationFrame(frame); } }
   function stop(){ running = false; if(rafId){ cancelAnimationFrame(rafId); rafId = 0; } }
 
-  heroSec.addEventListener('mousemove', function(e){
-    var r = heroSec.getBoundingClientRect();
-    mx = e.clientX - r.left; my = e.clientY - r.top;
+  window.addEventListener('mousemove', function(e){
+    mx = e.clientX; my = e.clientY;
   }, { passive: true });
-  heroSec.addEventListener('mouseleave', function(){ mx = -9999; my = -9999; }, { passive: true });
+  window.addEventListener('mouseleave', function(){ mx = -9999; my = -9999; }, { passive: true });
   heroSec.addEventListener('click', function(e){
-    var r = heroSec.getBoundingClientRect();
-    waves.push({ x: e.clientX - r.left, y: e.clientY - r.top, r: 8, a: 0.65 });
+    waves.push({ x: e.clientX, y: e.clientY, r: 8, a: 0.65 });
     start();
   }, { passive: true });
 
@@ -20743,9 +20826,9 @@ const scrollBar = document.getElementById('scroll-bar');
   var p = Math.min(1, Math.max(0, sy / sbMax));
   if(scrollBar) scrollBar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
   if(sideBar) sideBar.style.transform = 'scaleY(' + p.toFixed(4) + ')';
-  if(orb1) orb1.style.transform = 'translate3d(0,' + (sy * 0.12).toFixed(1) + 'px,0)';
-  if(orb2) orb2.style.transform = 'translate3d(0,' + (sy * -0.08).toFixed(1) + 'px,0)';
-  if(orb3) orb3.style.transform = 'translate3d(' + (sy * 0.03).toFixed(1) + 'px,' + (sy * 0.06).toFixed(1) + 'px,0)';
+  if(orb1) orb1.style.transform = 'translate3d(' + (Math.cos(sy * 0.0009) * 45).toFixed(1) + 'px,' + (Math.sin(sy * 0.0013) * 95).toFixed(1) + 'px,0)';
+  if(orb2) orb2.style.transform = 'translate3d(' + (Math.sin(sy * 0.0008) * 55).toFixed(1) + 'px,' + (Math.cos(sy * 0.0011) * -85).toFixed(1) + 'px,0)';
+  if(orb3) orb3.style.transform = 'translate3d(' + (Math.sin(sy * 0.0015) * 65).toFixed(1) + 'px,' + (Math.cos(sy * 0.0014) * 70).toFixed(1) + 'px,0)';
  }
  sbMeasure(); sbPaint();
  window.addEventListener('resize', sbMeasure, { passive: true });
@@ -42850,5 +42933,5 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
   renderScopes();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ee4b374a25e9a1',t:'MTc5MjczMjgzOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ee62a2aca50552',t:'MTc5MjczMzc5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

@@ -1566,8 +1566,9 @@ footer{padding:72px 48px;border-top:1px solid var(--line);display:flex;align-ite
 .hero-name .glitch-wrap::after { color:#7b4fff; clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%); }
 .hero-name .glitch-wrap.glitch::before{ animation:gBefore 0.35s steps(2); }
 .hero-name .glitch-wrap.glitch::after { animation:gAfter  0.35s steps(2); }
-@keyframes gBefore{ 0%{opacity:.8;transform:translateX(-3px)} 50%{opacity:.4;transform:translateX(3px)} 100%{opacity:0;transform:translateX(0)} }
-@keyframes gAfter { 0%{opacity:.7;transform:translateX(3px)}  50%{opacity:.3;transform:translateX(-3px)} 100%{opacity:0;transform:translateX(0)} }
+/* El destello conserva el color/glitch, pero no desplaza el texto fuera de su eje centrado. */
+@keyframes gBefore{ 0%{opacity:.8;transform:translateX(0)} 50%{opacity:.4;transform:translateX(0)} 100%{opacity:0;transform:translateX(0)} }
+@keyframes gAfter { 0%{opacity:.7;transform:translateX(0)}  50%{opacity:.3;transform:translateX(0)} 100%{opacity:0;transform:translateX(0)} }
 
 /* ════════════ THREAT LEVEL WIDGET ════════════ */
 .threat-widget{
@@ -2556,9 +2557,9 @@ section .wrap { position: relative; z-index: 1; }
 /* Glitch en el cursor del hero */
 @keyframes heroGlitch {
   0%,90%,100% { clip-path:none; transform:none; }
-  91% { clip-path:inset(20% 0 30% 0); transform:translateX(-4px); }
-  93% { clip-path:inset(60% 0 10% 0); transform:translateX(4px); }
-  95% { clip-path:inset(40% 0 50% 0); transform:translateX(-2px); }
+  91% { clip-path:inset(20% 0 30% 0); transform:none; }
+  93% { clip-path:inset(60% 0 10% 0); transform:none; }
+  95% { clip-path:inset(40% 0 50% 0); transform:none; }
 }
 #hero-h1 { animation: heroGlitch 8s ease-in-out infinite; }
 
@@ -4400,19 +4401,20 @@ section#inicio .platform-cards { margin-top: 20px !important; }
 /* Glitch cyberpunk legible al 100% (sin recortar líneas del nombre) */
 @keyframes heroGlitch {
   0%, 91%, 100% {
-    transform: translate3d(0, 0, 0) skewX(0deg);
+    transform: translate3d(0, 0, 0);
     text-shadow: 0 0 40px rgba(255,26,46,0.12);
   }
   92% {
-    transform: translate3d(-3px, 0, 0) skewX(-1.6deg);
+    /* Destello RGB simétrico: mantiene el eje del nombre fijo y centrado. */
+    transform: translate3d(0, 0, 0);
     text-shadow: 3px 0 0 rgba(255,26,46,0.85), -3px 0 0 rgba(0,212,255,0.75);
   }
   94% {
-    transform: translate3d(3px, 0, 0) skewX(1.6deg);
+    transform: translate3d(0, 0, 0);
     text-shadow: -3px 0 0 rgba(255,26,46,0.85), 3px 0 0 rgba(0,255,163,0.7);
   }
   96% {
-    transform: translate3d(-1.5px, 0, 0) skewX(-0.6deg);
+    transform: translate3d(0, 0, 0);
     text-shadow: 2px 0 0 rgba(255,26,46,0.6), -2px 0 0 rgba(0,212,255,0.5);
   }
 }
@@ -16869,7 +16871,7 @@ else mmtWire();
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#046a6d676b6865777071606168653d33446369656d682a676b69" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#a0cec9c3cfccc1d3d4d5c4c5ccc19997e0c7cdc1c9cc8ec3cfcd" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -17517,7 +17519,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#640a0d070b0805171011000108055d53240309050d084a070b09" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="87e9eee4e8ebe6f4f3f2e3e2ebe6beb0c7e0eae6eeeba9e4e8ea">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#76181f15191a1705020312131a174f4136111b171f1a5815191b" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="f997909a9695988a8d8c9d9c9598c0ceb99e94989095d79a9694">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">
@@ -46016,5 +46018,5 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
   window.getGfxTier = window.TudelaGfx.getTier;
 })();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f59f5b4aba0552',t:'MTc5MjgwOTY4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

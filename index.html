@@ -862,8 +862,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:h
 a{color:inherit;text-decoration:none;}
 
 /* CURSOR — 100% GPU compositor (translate3d, cero layout reflows) */
-.c-dot{position:fixed;top:0;left:0;width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--acc);border-radius:50%;pointer-events:none;z-index:10050;transform:translate3d(-100px,-100px,0);will-change:transform;box-shadow:0 0 10px var(--acc),0 0 20px rgba(255,26,46,0.4);transition:opacity 0.15s;}
-.c-ring{position:fixed;top:0;left:0;width:36px;height:36px;margin:-18px 0 0 -18px;border:1px solid rgba(255,26,46,0.5);border-radius:50%;pointer-events:none;z-index:10049;transform:translate3d(-100px,-100px,0);will-change:transform;transition:border-color 0.25s,opacity 0.2s;}
+/* Cursor personalizado por encima de overlays/modales de todos los módulos; pointer-events:none preserva los clics. */
+.c-dot{position:fixed;top:0;left:0;width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--acc);border-radius:50%;pointer-events:none;z-index:2147483647;transform:translate3d(-100px,-100px,0);will-change:transform;box-shadow:0 0 10px var(--acc),0 0 20px rgba(255,26,46,0.4);transition:opacity 0.15s;}
+.c-ring{position:fixed;top:0;left:0;width:36px;height:36px;margin:-18px 0 0 -18px;border:1px solid rgba(255,26,46,0.5);border-radius:50%;pointer-events:none;z-index:2147483646;transform:translate3d(-100px,-100px,0);will-change:transform;transition:border-color 0.25s,opacity 0.2s;}
 .c-dot.hover{opacity:0;}
 .c-ring.hover{border-color:var(--acc);box-shadow:0 0 14px rgba(255,26,46,0.35);}
 body.has-cursor{cursor:none;}
@@ -4361,10 +4362,28 @@ section#inicio.hero {
   overflow-x: clip !important;
   overflow-y: visible !important;
   justify-content: center !important;
-  align-items: flex-start;
+  align-items: center;
 }
 section#inicio h1.hero-name {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
   font-size: clamp(44px, min(7.6vw, 10.6svh), 102px);
+}
+section#inicio h1.hero-name .line { width: 100%; text-align: center; }
+/* Centrado real respecto al ancho del viewport, no solo al ancho del texto. */
+section#inicio .hero-content {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 clamp(20px, 4vw, 56px);
+  text-align: center;
+}
+section#inicio .hero-tag,
+section#inicio .hero-ctas,
+section#inicio .platform-cards {
+  justify-content: center;
 }
 section#inicio .hero-tag { margin-bottom: 14px; }
 section#inicio .hero-sub { margin-top: 18px; }
@@ -16850,7 +16869,7 @@ else mmtWire();
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#76181f15191a1705020312131a174f4136111b171f1a5815191b" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#046a6d676b6865777071606168653d33446369656d682a676b69" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -17498,7 +17517,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#8ce2e5efe3e0edfff8f9e8e9e0edb5bbccebe1ede5e0a2efe3e1" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="056b6c666a6964767170616069643c32456268646c692b666a68">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#640a0d070b0805171011000108055d53240309050d084a070b09" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="87e9eee4e8ebe6f4f3f2e3e2ebe6beb0c7e0eae6eeeba9e4e8ea">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">

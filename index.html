@@ -45,16 +45,25 @@
     try { Object.defineProperty(window, 'localStorage', { get: function(){ return memStore; }, configurable: true }); } catch(_){}
     try { Object.defineProperty(window, 'sessionStorage', { get: function(){ return memStore; }, configurable: true }); } catch(_){}
   }
-  /* Animaciones habilitadas para TODOS los navegadores/OS (incluso cuando Windows/macOS/Android reporta prefers-reduced-motion: reduce) */
-  if(window.matchMedia){
-    var _origMM = window.matchMedia.bind(window);
-    window.matchMedia = function(q){
-      if(q && /prefers-reduced-motion\s*:\s*reduce/i.test(String(q))){
-        return { matches: false, media: String(q), onchange: null, addListener: function(){}, removeListener: function(){}, addEventListener: function(){}, removeEventListener: function(){}, dispatchEvent: function(){ return false; } };
-      }
-      return _origMM(q);
-    };
-  }
+  /* ── 0. PRE-PAINT GRAPHICS TIER & GATE STATE DETECTOR ── */
+  (function initEarlyGfxAndGate(){
+    /* Cada carga completa arranca en ULTRA, aunque exista una elección anterior guardada. */
+    window.__TS_SAVED_GFX = null;
+    window.__TS_BOOT_GFX = 'ultra';
+
+    var skipParam = false;
+    var gateSessionOk = false;
+    try {
+      skipParam = new URLSearchParams(window.location.search).get('skip') === '1';
+    } catch(e){}
+    try {
+      gateSessionOk = sessionStorage.getItem('tudelasec_gate') === 'ok' || localStorage.getItem('ts_ctf_solved') === '1';
+    } catch(e){}
+    window.__TS_GATE_SKIP_BOOT = !!(skipParam || gateSessionOk);
+    if (skipParam) {
+      try { sessionStorage.setItem('tudelasec_gate', 'ok'); } catch(e){}
+    }
+  })();
 
   /* ── 1. UNIVERSAL NETWORK SUPERVISOR + ABORTCONTROLLER + EDGE MICRO-BATCHER ── */
   var DEFAULT_WORKER = "https:\u002f\u002fscanner-proxy.matias-ramireztu.workers.dev";
@@ -311,7 +320,7 @@
   document.addEventListener("click", syncAuthorizedScopes, true);
   document.addEventListener("keydown", function(e) { if (e.key === "Enter") syncAuthorizedScopes(); }, true);
 
-  /* ── 3. EXECUTIVE SECURITY REPORT GENERATOR (window.tsReportPDF) ── */
+  /* ── 3. EXECUTIVE SECURITY REPORT GENERATOR + NATIVE BINARY %PDF-1.4 COMPILER (window.tsReportPDF / window.tsDownloadPDF) ── */
   function safePdfCell(c) {
     if (c && typeof c === "object" && c.html) {
       return String(c.text || "")
@@ -325,7 +334,368 @@
       .replace(/"/g, "&quot;");
   }
 
-  var pdfState = { sections: [], lastTs: 0 };
+  function plainPdfText(c) {
+    var s = (c && typeof c === "object") ? String(c.text || "") : String(c == null ? "" : c);
+    return s
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<\/?(?:div|p|li|tr|h[1-6])[^>]*>/gi, " ")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  /* Map Unicode to CP1252 / WinAnsiEncoding bytes (0x20..0xFF) so ALL Spanish accents render natively in %PDF-1.4 */
+  var CP1252_MAP = {
+    0x20AC:0x80, 0x201A:0x82, 0x0192:0x83, 0x201E:0x84, 0x2026:0x85, 0x2020:0x86, 0x2021:0x87,
+    0x02C6:0x88, 0x2030:0x89, 0x0160:0x8A, 0x2039:0x8B, 0x0152:0x8C, 0x017D:0x8E, 0x2018:0x91,
+    0x2019:0x92, 0x201C:0x93, 0x201D:0x94, 0x2022:0x95, 0x2013:0x96, 0x2014:0x97, 0x02DC:0x98,
+    0x2122:0x99, 0x0161:0x9A, 0x203A:0x9B, 0x0153:0x9C, 0x017E:0x9E, 0x0178:0x9F
+  };
+  function normalizeForWinAnsi(str) {
+    return String(str == null ? "" : str)
+      .replace(/\u2139\uFE0F?|\u24D8/g, "[i] ")
+      .replace(/✅|✔|✓/g, "[OK] ")
+      .replace(/⛔|❌|✗|✘/g, "[X] ")
+      .replace(/⚠\uFE0F?|⚡/g, "[!] ")
+      .replace(/☠\uFE0F?|💀/g, "[CRIT] ")
+      .replace(/🛡\uFE0F?|🔒|🔐/g, "[SEC] ")
+      .replace(/→|➔|➜|▸|▶/g, "-> ")
+      .replace(/←/g, "<- ")
+      .replace(/↔|⇄/g, "<-> ")
+      .replace(/[═─━]+/g, "--")
+      .replace(/[\u{1F000}-\u{1FFFF}]/gu, "")
+      .replace(/[\u2500-\u27BF]/g, "-");
+  }
+  function encodePdfString(str) {
+    var s = normalizeForWinAnsi(str);
+    var out = "(";
+    for (var i = 0; i < s.length; i++) {
+      var code = s.charCodeAt(i);
+      var b = 0x3F;
+      if (code >= 0x20 && code <= 0x7E) b = code;
+      else if (code >= 0xA0 && code <= 0xFF) b = code;
+      else if (CP1252_MAP[code]) b = CP1252_MAP[code];
+      else if (code === 9) b = 0x20;
+      else if (code < 0x20) continue;
+      if (b === 0x28) out += "\\(";
+      else if (b === 0x29) out += "\\)";
+      else if (b === 0x5C) out += "\\\\";
+      else if (b >= 0x20 && b <= 0x7E) out += String.fromCharCode(b);
+      else {
+        var oct = b.toString(8);
+        while (oct.length < 3) oct = "0" + oct;
+        out += "\\" + oct;
+      }
+    }
+    return out + ")";
+  }
+  function hexToRgb01(hex) {
+    var m = String(hex || "").match(/^#?([0-9a-f]{6})$/i);
+    if (!m) return [0.90, 0.11, 0.20];
+    var n = parseInt(m[1], 16);
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+  }
+  function wrapPdfLines(text, maxChars) {
+    var clean = normalizeForWinAnsi(String(text == null ? "" : text)).replace(/\r/g, "");
+    var paras = clean.split("\n");
+    var lines = [];
+    for (var p = 0; p < paras.length; p++) {
+      var words = paras[p].trim().split(/\s+/);
+      if (!words[0]) { lines.push(""); continue; }
+      var cur = "";
+      for (var w = 0; w < words.length; w++) {
+        var wd = words[w];
+        while (wd.length > maxChars) {
+          if (cur) { lines.push(cur); cur = ""; }
+          lines.push(wd.slice(0, maxChars));
+          wd = wd.slice(maxChars);
+        }
+        if (!cur) cur = wd;
+        else if (cur.length + 1 + wd.length <= maxChars) cur += " " + wd;
+        else { lines.push(cur); cur = wd; }
+      }
+      if (cur) lines.push(cur);
+    }
+    return lines.length ? lines : [""];
+  }
+
+  function compileBinaryPDF(rawSections) {
+    var PW = 595.28, PH = 841.89, ML = 36, MR = 36, CW = PW - ML - MR;
+    var pages = [];
+    var curOps = null;
+    var y = 0;
+    var nowStr = new Date().toLocaleString("es-CL", { hour12: false });
+    var secCount = rawSections.length;
+    var mainTitle = (rawSections[0] && rawSections[0].title) ? plainPdfText(rawSections[0].title) : "Reporte Ejecutivo de Ciberseguridad";
+
+    function fmtNum(v) { return Number(v).toFixed(2).replace(/\.00$/, ""); }
+    function setFill(r, g, b) { curOps.push(fmtNum(r) + " " + fmtNum(g) + " " + fmtNum(b) + " rg"); }
+    function setStroke(r, g, b) { curOps.push(fmtNum(r) + " " + fmtNum(g) + " " + fmtNum(b) + " RG"); }
+    function rectFill(rx, ry, rw, rh) { curOps.push(fmtNum(rx) + " " + fmtNum(ry) + " " + fmtNum(rw) + " " + fmtNum(rh) + " re f"); }
+    function rectStroke(rx, ry, rw, rh, lw) { curOps.push(fmtNum(lw || 0.6) + " w " + fmtNum(rx) + " " + fmtNum(ry) + " " + fmtNum(rw) + " " + fmtNum(rh) + " re S"); }
+    function rectFillStroke(rx, ry, rw, rh, lw) { curOps.push(fmtNum(lw || 0.6) + " w " + fmtNum(rx) + " " + fmtNum(ry) + " " + fmtNum(rw) + " " + fmtNum(rh) + " re B"); }
+    function drawText(txt, tx, ty, fontKey, size, rgb) {
+      if (rgb) setFill(rgb[0], rgb[1], rgb[2]);
+      curOps.push("BT /" + fontKey + " " + fmtNum(size) + " Tf " + fmtNum(tx) + " " + fmtNum(ty) + " Td " + encodePdfString(txt) + " Tj ET");
+    }
+
+    function newPage(isFirst) {
+      curOps = [];
+      pages.push(curOps);
+      /* Top obsidian cyber banner + TudelaSec crimson accent bar */
+      setFill(0.055, 0.016, 0.031);
+      rectFill(0, PH - 68, PW, 68);
+      setFill(1.0, 0.102, 0.180);
+      rectFill(0, PH - 71, PW, 3);
+      drawText("TUDELASEC RED OPS // SUITE DE AUDITORÍA OFENSIVA & PENTESTING", ML, PH - 26, "F2", 8.5, [1.0, 0.36, 0.44]);
+      drawText(isFirst ? mainTitle.slice(0, 74) : ("Continuación · " + mainTitle.slice(0, 62)), ML, PH - 44, "F2", 13, [1, 1, 1]);
+      drawText("Generado: " + nowStr + "  ·  Secciones: " + secCount + "  ·  Uso Autorizado", ML, PH - 58, "F1", 7.8, [0.74, 0.68, 0.73]);
+      y = PH - 90;
+    }
+
+    function ensureSpace(needH) {
+      if (!curOps || y - needH < 52) newPage(false);
+    }
+
+    newPage(true);
+
+    for (var si = 0; si < rawSections.length; si++) {
+      var sec = rawSections[si];
+      if (si > 0) {
+        ensureSpace(120);
+        y -= 8;
+        setStroke(0.90, 0.86, 0.89);
+        curOps.push("0.8 w " + fmtNum(ML) + " " + fmtNum(y) + " m " + fmtNum(PW - MR) + " " + fmtNum(y) + " l S");
+        y -= 16;
+      }
+
+      /* Section Header Box */
+      ensureSpace(64);
+      setFill(0.985, 0.975, 0.980);
+      setStroke(0.92, 0.16, 0.24);
+      rectFillStroke(ML, y - 48, CW, 48, 0.7);
+      drawText((plainPdfText(sec.engine) || "TUDELASEC RED OPS").toUpperCase(), ML + 10, y - 14, "F2", 7.8, [0.85, 0.08, 0.18]);
+      drawText(plainPdfText(sec.title || "Reporte de Motor").slice(0, 72), ML + 10, y - 29, "F2", 11.5, [0.09, 0.04, 0.07]);
+      var subLine = plainPdfText(sec.subtitle || "");
+      if (sec.target) subLine = "Target: " + plainPdfText(sec.target) + (subLine ? "  |  " + subLine : "");
+      drawText(subLine.slice(0, 96), ML + 10, y - 41, "F1", 8.2, [0.35, 0.28, 0.33]);
+      y -= 58;
+
+      /* Verdict Banner */
+      if (sec.verdict) {
+        var vLines = wrapPdfLines(plainPdfText(sec.verdict), 88);
+        var vH = Math.max(24, vLines.length * 11 + 10);
+        ensureSpace(vH + 8);
+        var vCol = hexToRgb01(sec.verdictColor || "#ff1a2e");
+        /* Keep text legible on light tint */
+        setFill(0.97, 0.96, 0.97);
+        rectFill(ML, y - vH, CW, vH);
+        setFill(vCol[0] * 0.85, vCol[1] * 0.75, vCol[2] * 0.75);
+        rectFill(ML, y - vH, 4, vH);
+        for (var vi = 0; vi < vLines.length; vi++) {
+          drawText(vLines[vi], ML + 11, y - 13 - (vi * 11), "F2", 8.6, [0.11, 0.06, 0.09]);
+        }
+        y -= (vH + 10);
+      }
+
+      /* KPI Stat Cards */
+      var stats = Array.isArray(sec.stats) ? sec.stats.slice(0, 6) : [];
+      if (stats.length) {
+        ensureSpace(44);
+        var gap = 6;
+        var cardW = (CW - gap * (stats.length - 1)) / stats.length;
+        for (var ki = 0; ki < stats.length; ki++) {
+          var kx = ML + ki * (cardW + gap);
+          setFill(0.08, 0.03, 0.05);
+          setStroke(0.85, 0.16, 0.24);
+          rectFillStroke(kx, y - 36, cardW, 36, 0.5);
+          var maxLbl = Math.max(8, Math.floor(cardW / 4.4));
+          var maxVal = Math.max(6, Math.floor(cardW / 6.2));
+          drawText(plainPdfText(stats[ki].label || "").toUpperCase().slice(0, maxLbl), kx + 6, y - 12, "F2", 6.8, [0.78, 0.70, 0.76]);
+          drawText(plainPdfText(stats[ki].value || "0").slice(0, maxVal), kx + 6, y - 28, "F2", 11.2, [1.0, 0.96, 0.98]);
+        }
+        y -= 46;
+      }
+
+      /* Multi-Column Table with Automatic Word Wrap & Page Breaks */
+      var cols = Array.isArray(sec.columns) && sec.columns.length ? sec.columns : ["Categoría", "Estado", "Detalle Técnico"];
+      var rows = Array.isArray(sec.rows) ? sec.rows : [];
+      if (rows.length) {
+        var nCols = cols.length;
+        var weights = [];
+        for (var ci = 0; ci < nCols; ci++) {
+          if (nCols === 2) weights.push(ci === 0 ? 0.30 : 0.70);
+          else if (nCols === 3) weights.push(ci === 0 ? 0.24 : (ci === 1 ? 0.18 : 0.58));
+          else if (nCols === 4) weights.push(ci === 0 ? 0.18 : (ci === 1 ? 0.15 : (ci === 2 ? 0.25 : 0.42)));
+          else weights.push(ci === nCols - 1 ? 2.0 : 1.0);
+        }
+        var wSum = weights.reduce(function(a, b) { return a + b; }, 0);
+        var colW = weights.map(function(w) { return (w / wSum) * CW; });
+
+        var drawTableHeader = function() {
+          ensureSpace(24);
+          setFill(0.10, 0.03, 0.06);
+          rectFill(ML, y - 18, CW, 18);
+          var cx = ML;
+          for (var hc = 0; hc < nCols; hc++) {
+            var chMax = Math.max(6, Math.floor((colW[hc] - 8) / 4.3));
+            drawText(plainPdfText(cols[hc]).toUpperCase().slice(0, chMax), cx + 4, y - 12, "F2", 7.3, [1.0, 0.45, 0.52]);
+            cx += colW[hc];
+          }
+          y -= 18;
+        };
+
+        drawTableHeader();
+        var maxRowsPdf = Math.min(rows.length, 280);
+        for (var ri = 0; ri < maxRowsPdf; ri++) {
+          var row = rows[ri] || [];
+          var wrappedCols = [];
+          var maxLines = 1;
+          for (var rc = 0; rc < nCols; rc++) {
+            var cMax = Math.max(8, Math.floor((colW[rc] - 14) / 4.4));
+            var wl = wrapPdfLines(plainPdfText(row[rc]), cMax).slice(0, 8);
+            wrappedCols.push(wl);
+            if (wl.length > maxLines) maxLines = wl.length;
+          }
+          var rowH = maxLines * 9.5 + 6;
+          if (y - rowH < 52) {
+            newPage(false);
+            drawTableHeader();
+          }
+          if (ri % 2 === 1) {
+            setFill(0.975, 0.968, 0.974);
+            rectFill(ML, y - rowH, CW, rowH);
+          }
+          setStroke(0.89, 0.86, 0.88);
+          curOps.push("0.4 w " + fmtNum(ML) + " " + fmtNum(y - rowH) + " m " + fmtNum(PW - MR) + " " + fmtNum(y - rowH) + " l S");
+
+          var rxPos = ML;
+          for (var dc = 0; dc < nCols; dc++) {
+            var cellLines = wrappedCols[dc];
+            var joinedUpper = cellLines.join(" ").toUpperCase();
+            var txtRgb = [0.14, 0.11, 0.14];
+            var fKey = dc === 0 ? "F2" : "F1";
+            if (/\b(CRIT|CRÍTICO|CRITICAL|VULN|EXPUESTO|P1|ALTO|HIGH)\b/.test(joinedUpper) && dc <= 1) {
+              txtRgb = [0.80, 0.07, 0.16]; fKey = "F2";
+            } else if (/\b(MED|MEDIO|WARN|ADVERTENCIA|P2|3XX|403)\b/.test(joinedUpper) && dc <= 1) {
+              txtRgb = [0.76, 0.44, 0.04]; fKey = "F2";
+            } else if (/\b(OK|PASS|SEGURO|ACTIVO|200|COMPLETADO)\b/.test(joinedUpper) && dc <= 1) {
+              txtRgb = [0.07, 0.50, 0.25]; fKey = "F2";
+            }
+            for (var li = 0; li < cellLines.length; li++) {
+              drawText(cellLines[li], rxPos + 4, y - 10 - (li * 9.5), fKey, 7.6, txtRgb);
+            }
+            rxPos += colW[dc];
+          }
+          y -= rowH;
+        }
+        y -= 10;
+      }
+
+      /* Recommendations Block */
+      if (Array.isArray(sec.recommendations) && sec.recommendations.length) {
+        ensureSpace(34);
+        drawText("RECOMENDACIONES DE MITIGACIÓN & HARDENING", ML, y - 10, "F2", 8.2, [0.80, 0.08, 0.18]);
+        y -= 16;
+        for (var rmi = 0; rmi < sec.recommendations.length; rmi++) {
+          var recLines = wrapPdfLines("• " + plainPdfText(sec.recommendations[rmi]), 94);
+          ensureSpace(recLines.length * 9.5 + 4);
+          for (var rml = 0; rml < recLines.length; rml++) {
+            drawText(recLines[rml], ML + 6, y - 9 - (rml * 9.5), "F1", 7.8, [0.18, 0.15, 0.18]);
+          }
+          y -= (recLines.length * 9.5 + 3);
+        }
+        y -= 6;
+      }
+
+      /* Technical Evidence / Console Log Appendix */
+      if (sec.evidence) {
+        var evRawLines = String(sec.evidence).split("\n").filter(function(x) { return x.trim().length > 0; }).slice(0, 120);
+        if (evRawLines.length) {
+          ensureSpace(34);
+          drawText("EVIDENCIA TÉCNICA & REGISTRO DE EJECUCIÓN", ML, y - 10, "F2", 8.2, [0.22, 0.16, 0.22]);
+          y -= 16;
+          for (var ei = 0; ei < evRawLines.length; ei++) {
+            var evWrapped = wrapPdfLines(evRawLines[ei], 96);
+            ensureSpace(evWrapped.length * 8.6 + 4);
+            setFill(0.955, 0.950, 0.958);
+            rectFill(ML, y - (evWrapped.length * 8.6 + 2), CW, evWrapped.length * 8.6 + 2);
+            for (var el = 0; el < evWrapped.length; el++) {
+              drawText(evWrapped[el], ML + 5, y - 8 - (el * 8.6), "F3", 7.0, [0.15, 0.13, 0.17]);
+            }
+            y -= (evWrapped.length * 8.6 + 2);
+          }
+          y -= 8;
+        }
+      }
+
+      if (sec.footer) {
+        var fLines = wrapPdfLines(plainPdfText(sec.footer), 96);
+        ensureSpace(fLines.length * 9 + 6);
+        for (var fli = 0; fli < fLines.length; fli++) {
+          drawText(fLines[fli], ML, y - 9 - (fli * 9), "F1", 7.3, [0.42, 0.36, 0.40]);
+        }
+        y -= (fLines.length * 9 + 6);
+      }
+    }
+
+    /* Stamp Page Footers across all pages */
+    var totalPages = pages.length;
+    for (var pi = 0; pi < totalPages; pi++) {
+      curOps = pages[pi];
+      setStroke(0.86, 0.82, 0.85);
+      curOps.push("0.5 w " + fmtNum(ML) + " 38 m " + fmtNum(PW - MR) + " 38 l S");
+      drawText("TudelaSec Red Ops Suite v5  ·  Auditoría Técnica de Seguridad Ofensiva  ·  Confidencial", ML, 25, "F1", 7.3, [0.45, 0.40, 0.44]);
+      drawText("Página " + (pi + 1) + " de " + totalPages, PW - MR - 62, 25, "F2", 7.5, [0.80, 0.08, 0.18]);
+    }
+
+    /* Assemble exact byte-offset %PDF-1.4 file */
+    /* Objects: 1=Catalog, 2=Pages, 3=Font F1(Helvetica), 4=Font F2(Helvetica-Bold), 5=Font F3(Courier), then for each page i: PageObj + StreamObj */
+    var objs = [];
+    objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+    objs[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+    objs[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+    objs[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>";
+
+    var kids = [];
+    var nextId = 6;
+    for (var pIdx = 0; pIdx < totalPages; pIdx++) {
+      var pageObjId = nextId++;
+      var contentObjId = nextId++;
+      kids.push(pageObjId + " 0 R");
+      var streamStr = pages[pIdx].join("\n");
+      objs[pageObjId] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents " + contentObjId + " 0 R >>";
+      objs[contentObjId] = "<< /Length " + streamStr.length + " >>\nstream\n" + streamStr + "\nendstream";
+    }
+    objs[2] = "<< /Type /Pages /Kids [ " + kids.join(" ") + " ] /Count " + totalPages + " >>";
+
+    var parts = ["%PDF-1.4\n%\xE2\xE3\xCF\xD3\n"];
+    var offsets = [0];
+    var cursor = parts[0].length;
+    for (var oid = 1; oid < nextId; oid++) {
+      offsets[oid] = cursor;
+      var chunk = oid + " 0 obj\n" + objs[oid] + "\nendobj\n";
+      parts.push(chunk);
+      cursor += chunk.length;
+    }
+    var xrefPos = cursor;
+    var xref = "xref\n0 " + nextId + "\n0000000000 65535 f \n";
+    for (var xid = 1; xid < nextId; xid++) {
+      var offStr = String(offsets[xid]);
+      while (offStr.length < 10) offStr = "0" + offStr;
+      xref += offStr + " 00000 n \n";
+    }
+    xref += "trailer\n<< /Size " + nextId + " /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF";
+    parts.push(xref);
+
+    var fullStr = parts.join("");
+    var bytes = new Uint8Array(fullStr.length);
+    for (var bi = 0; bi < fullStr.length; bi++) bytes[bi] = fullStr.charCodeAt(bi) & 0xFF;
+    return bytes;
+  }
+
+  var pdfState = { sections: [], rawSections: [], lastTs: 0 };
   function buildSectionHtml(opts) {
     var statsHtml = (opts.stats || []).map(function(s) {
       return '<div style="padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#13070b">' +
@@ -340,6 +710,18 @@
         return '<td style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.07);font-size:11.5px;vertical-align:top;color:#e9e4ec">' + safePdfCell(cell) + '</td>';
       }).join("") + '</tr>';
     }).join("");
+    var recHtml = Array.isArray(opts.recommendations) && opts.recommendations.length
+      ? '<div style="margin-top:14px;padding:12px 14px;border:1px solid rgba(0,255,163,.22);border-radius:7px;background:rgba(0,255,163,.04)">' +
+        '<div style="font-size:10.5px;font-weight:700;color:#00ffa3;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">🛡 Recomendaciones de Mitigación &amp; Hardening</div>' +
+        '<ul style="margin:0;padding-left:18px;color:#dfd9e3;font-size:11.5px;line-height:1.6">' +
+        opts.recommendations.map(function(r) { return '<li>' + safePdfCell(r) + '</li>'; }).join("") +
+        '</ul></div>'
+      : '';
+    var evHtml = opts.evidence
+      ? '<details open style="margin-top:14px;border:1px solid rgba(255,255,255,.12);border-radius:7px;background:#070204;padding:10px 12px">' +
+        '<summary style="cursor:pointer;font-size:10.5px;font-weight:700;color:#ff9aa4;letter-spacing:.08em;text-transform:uppercase">📋 Evidencia Técnica &amp; Log Completo de Ejecución</summary>' +
+        '<pre style="margin:8px 0 0;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:10.5px;line-height:1.45;color:#cfc6d4">' + safePdfCell(opts.evidence) + '</pre></details>'
+      : '';
     return '<section style="margin-bottom:26px;padding:18px;border:1px solid rgba(255,26,46,.25);border-radius:10px;background:#0d0407">' +
       '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">' +
       '<div><div style="font-size:10px;letter-spacing:.14em;color:#ff1a2e;text-transform:uppercase">' + safePdfCell(opts.engine || "TUDELASEC RED OPS") + '</div>' +
@@ -350,41 +732,89 @@
       (opts.verdict ? '<div style="margin:12px 0;padding:10px 12px;border-left:3px solid ' + safePdfCell(opts.verdictColor || '#ff1a2e') + ';background:rgba(255,26,46,.08);font-size:12px;font-weight:700;color:#fff">' + safePdfCell(opts.verdict) + '</div>' : '') +
       (statsHtml ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0">' + statsHtml + '</div>' : '') +
       (headHtml || rowsHtml ? '<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse"><thead><tr>' + headHtml + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' : '') +
+      recHtml + evHtml +
       (opts.footer ? '<div style="margin-top:10px;font-size:10.5px;color:#8a7a87">' + safePdfCell(opts.footer) + '</div>' : '') +
       '</section>';
   }
 
+  window.tsBuildBinaryPDFBytes = function(customSections) {
+    var list = Array.isArray(customSections) && customSections.length ? customSections : pdfState.rawSections;
+    if (!list.length) return null;
+    return compileBinaryPDF(list);
+  };
+
+  window.tsDownloadPDF = function(customFilename) {
+    var bytes = window.tsBuildBinaryPDFBytes();
+    if (!bytes) return false;
+    var first = pdfState.rawSections[0] || {};
+    var slug = String(first.engine || first.title || "reporte")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "reporte";
+    var tgt = String(first.target || "")
+      .toLowerCase().replace(/^https?:\/\//, "").replace(/[^a-z0-9.-]+/g, "-").replace(/^-|-$/g, "").slice(0, 28);
+    var fname = customFilename || ("TudelaSec-" + slug + (tgt ? "-" + tgt : "") + ".pdf");
+    var blob = new Blob([bytes], { type: "application\u002fpdf" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+    return true;
+  };
+
   window.tsReportPDF = function(opts) {
     if (!opts || typeof opts !== "object") return false;
     var now = Date.now();
-    if (now - pdfState.lastTs > 2200) {
+    if (opts._reset || (!opts._append && (now - pdfState.lastTs > 2200))) {
       pdfState.sections = [];
+      pdfState.rawSections = [];
     }
     pdfState.lastTs = now;
+    pdfState.rawSections.push(opts);
     pdfState.sections.push(buildSectionHtml(opts));
+
+    if (!document.getElementById("ts-pdf-print-css")) {
+      var st = document.createElement("style");
+      st.id = "ts-pdf-print-css";
+      st.textContent = "@media print { @page { size: A4; margin: 10mm; } body.ts-printing > *:not(#ts-pdf-modal) { display: none !important; } body.ts-printing { background: #080205 !important; overflow: visible !important; } body.ts-printing #ts-pdf-modal { position: static !important; inset: auto !important; overflow: visible !important; height: auto !important; padding: 0 !important; background: #080205 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } body.ts-printing #ts-pdf-toolbar { display: none !important; } body.ts-printing #ts-pdf-body { max-width: 100% !important; overflow: visible !important; height: auto !important; border: none !important; } }";
+      document.head.appendChild(st);
+    }
 
     var modal = document.getElementById("ts-pdf-modal");
     if (!modal) {
       modal = document.createElement("div");
       modal.id = "ts-pdf-modal";
-      modal.style.cssText = "position:fixed;inset:0;z-index:100090;background:rgba(5,1,4,.88);backdrop-filter:blur(8px);display:flex;flex-direction:column;padding:20px;overflow:hidden;font-family:'JetBrains Mono',monospace";
+      modal.style.cssText = "position:fixed;inset:0;z-index:100090;background:rgba(5,1,4,.90);backdrop-filter:blur(9px);display:flex;flex-direction:column;padding:18px;overflow:hidden;font-family:'JetBrains Mono',monospace";
       modal.innerHTML =
-        '<div style="max-width:1100px;width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:#140509;border:1px solid rgba(255,26,46,.45);border-radius:10px 10px 0 0">' +
-          '<div style="color:#fff;font-size:12.5px;font-weight:700">📄 TUDELASEC RED OPS — REPORTE EJECUTIVO DE AUDITORÍA</div>' +
-          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-            '<button type="button" id="ts-pdf-dl" style="cursor:pointer;padding:6px 12px;border-radius:5px;border:1px solid #00ffa3;background:rgba(0,255,163,.12);color:#00ffa3;font-family:inherit;font-size:11px;font-weight:700">⬇ DESCARGAR HTML</button>' +
-            '<button type="button" id="ts-pdf-print" style="cursor:pointer;padding:6px 12px;border-radius:5px;border:1px solid #ff1a2e;background:#ff1a2e;color:#fff;font-family:inherit;font-size:11px;font-weight:700">🖨 IMPRIMIR / PDF</button>' +
-            '<button type="button" id="ts-pdf-close" style="cursor:pointer;padding:6px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-family:inherit;font-size:11px">✕ CERRAR</button>' +
+        '<div id="ts-pdf-toolbar" style="max-width:1140px;width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:#140509;border:1px solid rgba(255,26,46,.45);border-radius:10px 10px 0 0">' +
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+            '<span style="color:#fff;font-size:12.5px;font-weight:700">📄 TUDELASEC RED OPS — REPORTE EJECUTIVO PDF</span>' +
+            '<span id="ts-pdf-sec-badge" style="padding:2px 8px;border-radius:99px;font-size:10px;background:rgba(255,26,46,.18);border:1px solid rgba(255,26,46,.4);color:#ff8f9a">1 sección</span>' +
+          '</div>' +
+          '<div style="display:flex;gap:7px;flex-wrap:wrap">' +
+            '<button type="button" id="ts-pdf-dl-bin" style="cursor:pointer;padding:6px 13px;border-radius:5px;border:1px solid #ff1a2e;background:linear-gradient(135deg,#ff1a2e,#b8091b);color:#fff;font-family:inherit;font-size:11px;font-weight:700;box-shadow:0 0 14px rgba(255,26,46,.35)">⬇ DESCARGAR PDF (.PDF)</button>' +
+            '<button type="button" id="ts-pdf-all-engines" style="cursor:pointer;padding:6px 11px;border-radius:5px;border:1px solid #7b4fff;background:rgba(123,79,255,.16);color:#c8b6ff;font-family:inherit;font-size:10.5px;font-weight:700" title="Consolidar resultados de todos los motores en un solo Dossier PDF">📚 CONSOLIDAR TODO</button>' +
+            '<button type="button" id="ts-pdf-dl" style="cursor:pointer;padding:6px 11px;border-radius:5px;border:1px solid #00ffa3;background:rgba(0,255,163,.12);color:#00ffa3;font-family:inherit;font-size:10.5px;font-weight:700">⬇ HTML</button>' +
+            '<button type="button" id="ts-pdf-print" style="cursor:pointer;padding:6px 11px;border-radius:5px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font-family:inherit;font-size:10.5px;font-weight:700">🖨 IMPRIMIR</button>' +
+            '<button type="button" id="ts-pdf-close" style="cursor:pointer;padding:6px 11px;border-radius:5px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;font-family:inherit;font-size:11px">✕ CERRAR</button>' +
           '</div>' +
         '</div>' +
-        '<div id="ts-pdf-body" style="max-width:1100px;width:100%;margin:0 auto;flex:1;overflow-y:auto;padding:20px;background:#080205;border:1px solid rgba(255,26,46,.3);border-top:none;border-radius:0 0 10px 10px"></div>';
+        '<div id="ts-pdf-body" style="max-width:1140px;width:100%;margin:0 auto;flex:1;overflow-y:auto;padding:20px;background:#080205;border:1px solid rgba(255,26,46,.3);border-top:none;border-radius:0 0 10px 10px"></div>';
       document.body.appendChild(modal);
-      document.getElementById("ts-pdf-close").addEventListener("click", function() { modal.style.display = "none"; });
-      document.getElementById("ts-pdf-print").addEventListener("click", function() { try { window.print(); } catch(_){} });
+      document.getElementById("ts-pdf-close").addEventListener("click", function() { modal.style.display = "none"; document.body.classList.remove("ts-printing"); });
+      modal.addEventListener("click", function(ev) { if (ev.target === modal) { modal.style.display = "none"; document.body.classList.remove("ts-printing"); } });
+      document.addEventListener("keydown", function(ev) { if (ev.key === "Escape" && modal.style.display !== "none") { modal.style.display = "none"; document.body.classList.remove("ts-printing"); } });
+      document.getElementById("ts-pdf-dl-bin").addEventListener("click", function() { window.tsDownloadPDF(); });
+      document.getElementById("ts-pdf-all-engines").addEventListener("click", function() { if (typeof window.tsExportGlobalDossierPDF === "function") window.tsExportGlobalDossierPDF(); });
+      document.getElementById("ts-pdf-print").addEventListener("click", function() {
+        document.body.classList.add("ts-printing");
+        try { window.print(); } catch(_){}
+        setTimeout(function() { document.body.classList.remove("ts-printing"); }, 900);
+      });
       document.getElementById("ts-pdf-dl").addEventListener("click", function() {
-        var docHtml = "<!DOCTYPE html><html lang='es'><head><meta charset='utf-8'><title>TudelaSec Report</title></head>" +
-          "<body style='margin:0;padding:24px;background:#080205;color:#f0eef8;font-family:monospace'>" +
-          document.getElementById("ts-pdf-body").innerHTML + "</body></html>";
+        var docHtml = "\u003c!DOCTYPE html>\u003chtml lang='es'>\u003chead><meta charset='utf-8'><title>TudelaSec Report</title>\u003c/head>" +
+          "\u003cbody style='margin:0;padding:24px;background:#080205;color:#f0eef8;font-family:monospace'>" +
+          document.getElementById("ts-pdf-body").innerHTML + "\u003c/body>\u003c/html>";
         var blob = new Blob([docHtml], { type: "text\u002fhtml;charset=utf-8" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
@@ -394,8 +824,11 @@
         setTimeout(function() { URL.revokeObjectURL(a.href); a.remove(); }, 600);
       });
     }
+    var badge = document.getElementById("ts-pdf-sec-badge");
+    if (badge) badge.textContent = pdfState.sections.length + (pdfState.sections.length === 1 ? " sección" : " secciones");
     document.getElementById("ts-pdf-body").innerHTML = pdfState.sections.join("");
     modal.style.display = "flex";
+    if (opts.autoDownloadPdf) window.tsDownloadPDF(opts.filename);
     return true;
   };
 })();
@@ -3455,7 +3888,16 @@ a{color:inherit;text-decoration:none;}
 #mailsec .mp-send button:disabled{ opacity:.45; cursor:not-allowed; }
 @media (max-width:900px){ #mailsec .mp-warn{ font-size:9px; } #mailsec .mp-send .ms-actions{ flex-direction:column; } #mailsec .mp-send button{ width:100%; } }
 /* ══ CTF GATE v2.2 (sesión #33) — login CYBERPUNK a dos columnas · scope #ctfGate + prefijo ctf- ══ */
-#ctfGate{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 28%,#1a0309 0%,#0a0206 55%,#040103 100%);overflow:hidden;}
+#ctfGateRoot,section[aria-label="CTF Root Gateway"]{padding:0 !important;margin:0 !important;position:static !important;z-index:auto !important;isolation:auto !important;overflow:visible !important;contain:none !important;}
+#ctfGate{position:fixed !important;inset:0 !important;z-index:200000 !important;display:none;align-items:center;justify-content:center;background-color:#080305 !important;background-image:radial-gradient(ellipse at 50% 28%,rgba(26,3,9,0.995) 0%,rgba(8,3,5,0.998) 55%,rgba(8,3,5,1) 100%) !important;opacity:1;overflow:hidden;isolation:isolate;}
+#ctfGate.gate-closed,body.gate-dismissed #ctfGate{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;z-index:-1 !important;animation:none !important;transition:none !important;}
+html.ctf-gate-active,body.gate-open{overflow:hidden !important;overflow:clip !important;overscroll-behavior:none !important;}
+body.gate-open > *:not(#ctfGate):not(#ctfGateRoot):not([aria-label="CTF Root Gateway"]):not(script):not(style){pointer-events:none !important;user-select:none !important;}
+body.gate-open #ctfGate{pointer-events:auto !important;}
+#main-nav .nav-links{gap:14px !important;flex-wrap:nowrap !important;}
+#main-nav .nav-links a{white-space:nowrap !important;font-size:10.5px !important;letter-spacing:0.12em !important;}
+@media (max-width:1280px){#main-nav .nav-links{gap:10px !important;}#main-nav .nav-links a{font-size:9.5px !important;letter-spacing:0.08em !important;}}
+#toast-container,.toast-stack{bottom:78px !important;}
 #ctfGate::before{content:"";position:absolute;inset:calc(-40px - 44px) -40px -40px;background-image:linear-gradient(rgba(255,26,46,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,46,.06) 1px,transparent 1px);background-size:44px 44px;animation:ctfGrid 6s linear infinite;pointer-events:none;mask-image:radial-gradient(ellipse at 50% 32%,#000 35%,transparent 78%);-webkit-mask-image:radial-gradient(ellipse at 50% 32%,#000 35%,transparent 78%);} /* #37 PERF: desplazado por transform (sin repaint de pantalla completa) */
 #ctfGate::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);pointer-events:none;opacity:.55;}
 #ctfGate.ctf-on{display:flex;animation:ctfIn .5s cubic-bezier(.16,1,.3,1) both;}
@@ -3465,10 +3907,10 @@ a{color:inherit;text-decoration:none;}
 @keyframes ctfGrid{from{transform:translateY(0)}to{transform:translateY(44px)}}
 @keyframes ctfFlicker{0%,100%{text-shadow:0 0 7px #ff1a2e,0 0 22px rgba(255,26,46,.6),0 0 48px rgba(255,26,46,.3)}42%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.4)}44%{text-shadow:0 0 9px #ff3344,0 0 30px rgba(255,26,46,.75),0 0 64px rgba(255,26,46,.45)}46%{text-shadow:0 0 5px #ff1a2e,0 0 14px rgba(255,26,46,.4)}}
 @keyframes ctfPulse{0%,100%{box-shadow:0 0 16px rgba(255,26,46,.5),0 0 42px rgba(255,26,46,.2)}50%{box-shadow:0 0 28px rgba(255,26,46,.8),0 0 72px rgba(255,26,46,.36)}}
-@keyframes ctfScan{0%{transform:translateY(-10%);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(1100%);opacity:0}}
+@keyframes ctfScan{0%{top:0;opacity:0}8%{opacity:1}92%{opacity:1}100%{top:calc(100% - 60px);opacity:0}}
 .ctf-shake{animation:ctfShake .4s cubic-bezier(.36,.07,.19,.97) both;}
 @keyframes ctfShake{10%,90%{transform:translate3d(-2px,0,0)}20%,80%{transform:translate3d(4px,0,0)}30%,50%,70%{transform:translate3d(-6px,0,0)}40%,60%{transform:translate3d(6px,0,0)}}
-#ctfGate .ctf-box{position:relative;width:100%;max-width:900px;max-height:94vh;overflow-y:auto;background:linear-gradient(162deg,rgba(26,10,14,.97),rgba(9,4,7,.98));border:1px solid rgba(255,26,46,.3);border-radius:12px;padding:30px 32px 22px;box-shadow:0 0 0 1px rgba(255,26,46,.1),0 0 54px rgba(255,26,46,.14),0 24px 80px rgba(0,0,0,.96),inset 0 1px 0 rgba(255,255,255,.04);box-sizing:border-box;}
+#ctfGate .ctf-box{position:relative;width:100%;max-width:900px;max-height:94vh;overflow-y:auto;background-color:#080305;background-image:linear-gradient(162deg,rgba(26,10,14,.99),rgba(8,3,5,.995));border:1px solid rgba(255,26,46,.3);border-radius:12px;padding:30px 32px 22px;box-shadow:0 0 0 1px rgba(255,26,46,.1),0 0 54px rgba(255,26,46,.14),0 24px 80px rgba(0,0,0,.96),inset 0 1px 0 rgba(255,255,255,.04);box-sizing:border-box;}
 #ctfGate .ctf-box::before{content:"";position:absolute;top:-1px;left:-1px;width:30px;height:30px;border-top:2px solid var(--acc,#ff1a2e);border-left:2px solid var(--acc,#ff1a2e);border-radius:12px 0 0 0;pointer-events:none;box-shadow:-3px -3px 14px rgba(255,26,46,.4);}
 #ctfGate .ctf-box::after{content:"";position:absolute;bottom:-1px;right:-1px;width:30px;height:30px;border-bottom:2px solid var(--acc,#ff1a2e);border-right:2px solid var(--acc,#ff1a2e);border-radius:0 0 12px 0;pointer-events:none;box-shadow:3px 3px 14px rgba(255,26,46,.4);}
 #ctfGate .ctf-scanline{position:absolute;left:0;right:0;top:0;height:60px;background:linear-gradient(180deg,transparent,rgba(255,26,46,.11) 50%,transparent);pointer-events:none;animation:ctfScan 5s linear infinite;z-index:0;}
@@ -3558,17 +4000,180 @@ a{color:inherit;text-decoration:none;}
 #ctfGate .ctf-tk-btn:hover{box-shadow:0 0 38px rgba(39,201,63,.72);transform:translateY(-1px);}
 @media (max-width:720px){#ctfGate .ctf-main{flex-direction:column;gap:16px}#ctfGate .ctf-box{padding:22px 15px 16px}#ctfGate .ctf-title{font-size:19px;letter-spacing:1.5px}#ctfGate .ctf-body{height:170px;font-size:10px}#ctfGate .ctf-tk-granted{font-size:23px}}
 @media (max-width:860px){#ctfGate::before{opacity:.42;}#ctfGate .ctf-box{box-shadow:0 12px 44px rgba(0,0,0,.6);}#ctfGate .ctf-field:focus{box-shadow:0 0 8px rgba(255,26,46,.25);}#ctfGate .ctf-console{contain:content;}#ctfGate .ctf-body{height:150px;}}
-/* ══════════ SESIÓN #36 — PERF TURBO: la página VUELA sin cambiar NI un pixel ══════════
-   content-visibility:auto → el navegador SALTA el layout+paint de las 34 secciones
-   fuera de pantalla: el ~90% del DOM invisible deja de renderizarse en cada frame.
-   contain-intrinsic-size:auto → el navegador recuerda la altura REAL de cada sección
-   una vez renderizada (scrollbar estable, cero saltos al navegar por anclas).
-   html.tab-hidden → pestaña en segundo plano: las animaciones infinite se CONGELAN
-   (82 loops dejan de quemar CPU/GPU mientras mirás otra cosa).
-   will-change → orbes y barra de progreso viven en su propia capa GPU (cero repaint
-   del fondo en cada frame). */
-section[id]{ content-visibility:visible; }
-section#inicio{ content-visibility:visible; contain-intrinsic-size:none; }
+/* ══ NAVEGACIÓN Y LAYOUT DETERMINISTA ══
+   Las secciones permanecen en el flujo normal: su altura total no cambia al desplazarse
+   y todos los enlaces de ancla llegan a la posición correcta. */
+section,
+section[id],
+section#inicio{
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SISTEMA DE CALIDAD GRÁFICA TIPO VIDEOJUEGO (⚙️ GRÁFICOS: ULTRA | MEDIO | BAJO)
+   Persistencia: localStorage['tudela_gfx_tier'] · Selector: body[data-gfx="ultra|medium|low"]
+   ══════════════════════════════════════════════════════════════════════════ */
+.gfx-switcher{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 8px;
+  border-radius:4px;
+  background:rgba(10,4,8,0.94);
+  border:1px solid rgba(255,26,46,0.34);
+  font-family:var(--mono, 'JetBrains Mono', monospace);
+  font-size:10px;
+  letter-spacing:0.06em;
+  color:rgba(242,232,236,0.8);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.gfx-switcher .gfx-label{
+  color:rgba(242,232,236,0.75);
+  font-weight:700;
+  margin-right:2px;
+  user-select:none;
+}
+.gfx-switcher .gfx-sep{
+  color:rgba(255,26,46,0.35);
+  font-size:9px;
+  user-select:none;
+}
+.gfx-switcher .gfx-btn{
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:3px;
+  color:rgba(242,232,236,0.58);
+  font-family:var(--mono, 'JetBrains Mono', monospace);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0.07em;
+  padding:2px 6px;
+  cursor:pointer;
+  line-height:1.25;
+  transition:background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.gfx-switcher .gfx-btn:hover{
+  color:#ffffff;
+  background:rgba(255,26,46,0.14);
+}
+.gfx-switcher .gfx-btn.is-active[data-gfx-set="ultra"]{
+  color:#ffffff;
+  background:rgba(255,26,46,0.26);
+  border-color:#ff1a2e;
+  box-shadow:0 0 10px rgba(255,26,46,0.35);
+}
+.gfx-switcher .gfx-btn.is-active[data-gfx-set="medium"]{
+  color:#ffd479;
+  background:rgba(255,176,32,0.2);
+  border-color:#ffb020;
+}
+.gfx-switcher .gfx-btn.is-active[data-gfx-set="low"]{
+  color:#00ffa3;
+  background:rgba(0,255,163,0.16);
+  border-color:#00ffa3;
+}
+@media (max-width: 1380px){
+  .gfx-switcher .gfx-label{ display:none; }
+  .gfx-switcher{ padding:3px 6px; gap:2px; }
+  .gfx-switcher .gfx-btn{ padding:2px 5px; font-size:9.5px; }
+}
+@media (max-width: 520px){
+  .gfx-switcher .gfx-sep{ display:none; }
+  .gfx-switcher .gfx-btn{ padding:2px 4px; font-size:9px; }
+}
+
+/* ── MODO MEDIO (data-gfx="medium" — Equilibrado: 0 canvas loops, 0 scanlines/glitch infinitos, 0 blur pesado, UI suave intacta) ── */
+body[data-gfx="medium"] #hero-canvas,
+body[data-gfx="medium"] #ctfMatrixCv,
+body[data-gfx="medium"] .ctf-scanline,
+body[data-gfx="medium"] .hero-scan,
+body[data-gfx="medium"] #cdot,
+body[data-gfx="medium"] #cring{
+  display:none !important;
+}
+body[data-gfx="medium"],
+body[data-gfx="medium"].has-cursor{
+  cursor:auto !important;
+}
+body[data-gfx="medium"] #ctfGate::before,
+body[data-gfx="medium"] #ctfGate .ctf-title,
+body[data-gfx="medium"] #ctfGate .ctf-btn,
+body[data-gfx="medium"] #hero-h1,
+body[data-gfx="medium"] .bg-orb,
+body[data-gfx="medium"] .bg-orb-1,
+body[data-gfx="medium"] .bg-orb-2,
+body[data-gfx="medium"] .bg-orb-3,
+body[data-gfx="medium"] .scanline,
+body[data-gfx="medium"] .glitch{
+  animation:none !important;
+}
+body[data-gfx="medium"] *,
+body[data-gfx="medium"] *::before,
+body[data-gfx="medium"] *::after{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+body[data-gfx="medium"] #main-nav.scrolled{
+  background:rgba(8,3,5,0.97) !important;
+}
+body[data-gfx="medium"] #mega-menu{
+  background:rgba(8,3,5,0.985) !important;
+}
+
+/* ── MODO BAJO / SALA (data-gfx="low" — PC Básico / Reducir Movimiento: 0 animaciones, 0 transiciones, 0 blur, visibilidad instantánea) ── */
+body[data-gfx="low"],
+body[data-gfx="low"] *,
+body[data-gfx="low"] *::before,
+body[data-gfx="low"] *::after{
+  animation:none !important;
+  transition:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  scroll-behavior:auto !important;
+}
+body[data-gfx="low"] #hero-canvas,
+body[data-gfx="low"] #ctfMatrixCv,
+body[data-gfx="low"] .ctf-scanline,
+body[data-gfx="low"] .hero-scan,
+body[data-gfx="low"] #cdot,
+body[data-gfx="low"] #cring{
+  display:none !important;
+}
+body[data-gfx="low"],
+body[data-gfx="low"].has-cursor{
+  cursor:auto !important;
+}
+body[data-gfx="low"] #main-nav,
+body[data-gfx="low"] #main-nav.scrolled{
+  background:#080305 !important;
+}
+body[data-gfx="low"] #mega-menu{
+  background:#080305 !important;
+}
+body[data-gfx="low"] .reveal,
+body[data-gfx="low"] .fr-reveal,
+body[data-gfx="low"] .reveal-wrap,
+body[data-gfx="low"] .reveal-inner,
+body[data-gfx="low"] .gsap-ready .reveal-inner,
+body[data-gfx="low"] h2.sec-title .reveal-inner,
+body[data-gfx="low"] h2.h2-anim,
+body[data-gfx="low"] #hero-tag,
+body[data-gfx="low"] #hero-h1 .line span,
+body[data-gfx="low"] #hero-sub,
+body[data-gfx="low"] #hero-ctas,
+body[data-gfx="low"] #hero-scroll,
+body[data-gfx="low"] #hero-bounty,
+body[data-gfx="low"] .stat-big{
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:none !important;
+  clip-path:none !important;
+  filter:none !important;
+}
 /* Auto-pausa inteligente: congela bucles infinitos SOLO cuando la sección está fuera del viewport (+250px de margen) o pestaña oculta */
 section[id]:not(.in-view), section[id]:not(.in-view) *, section[id]:not(.in-view)::before, section[id]:not(.in-view)::after, section[id]:not(.in-view) *::before, section[id]:not(.in-view) *::after{ animation-play-state:paused !important; }
 #preloader.done, #preloader.done *, #ctfGate[style*="display: none"] *, #ctfGate[style*="display:none"] *{ animation-play-state:paused !important; }
@@ -3938,7 +4543,14 @@ main, section, footer {
 
 <noscript><style>#preloader,#ctfGate{display:none !important}</style></noscript>
 </head>
-<body>
+<body data-gfx="ultra">
+<script>
+/* Sincronización instantánea antes del primer frame pintado (0ms FOUC) */
+(function(){
+  var tier = window.__TS_BOOT_GFX || 'ultra';
+  document.body.setAttribute('data-gfx', tier);
+})();
+</script>
 <!-- ══ CTF GATE v2.2 (sesión #33) — TudelaSec ROOT GATEWAY: login CYBERPUNK a dos columnas.
      Sim 100% cliente: nada se envía, no hay backend, los "hacks" son detección de patrones
      documentados (SQLi · XSS · LFI · RCE · credenciales por defecto). Prefijo ctf-, scope #ctfGate.
@@ -3946,7 +4558,7 @@ main, section, footer {
      (grid neón, scanlines, flicker, glow), responsive móvil (columnas apiladas), consola con
      boot sequence visible desde el arranque, ortografía revisada. ══ -->
 <!-- [OSINT LEAK] credenciales de dev olvidadas en el código fuente → usuarios: admin | tudela · password (ambos): tudela · (dejado a propósito: parte del reto del gateway) -->
-<section aria-label="CTF Root Gateway">
+<div id="ctfGateRoot" role="region" aria-label="CTF Root Gateway">
 <div id="ctfGate">
   <div id="ctfMatrix" class="ctf-matrix" aria-hidden="true">
     <canvas id="ctfMatrixCv"></canvas>
@@ -4019,8 +4631,20 @@ main, section, footer {
     <button type="button" id="ctfSkip" class="ctf-skip">¿Solo venís a ver el portfolio? [ ENTRAR DIRECTO ]</button>
   </div>
 </div>
-
-</section>
+<script>
+/* Pre-paint Gate Guard: si existe sessionStorage['tudelasec_gate']==='ok' o ?skip=1, sella #ctfGate en 0ms */
+(function(){
+  var g = document.getElementById('ctfGate');
+  if (!g) return;
+  if (window.__TS_GATE_SKIP_BOOT) {
+    g.classList.add('gate-closed');
+    g.setAttribute('aria-hidden', 'true');
+    document.body.classList.add('gate-dismissed');
+    document.body.style.overflow = '';
+  }
+})();
+</script>
+</div>
 <div id="scroll-bar"></div>
 <div class="hero-bg-anim" id="hero-bg-anim"><div class="hero-grid"></div><div class="hero-scan"></div></div>
 <div class="side-progress" id="side-progress"></div>
@@ -4166,7 +4790,15 @@ main, section, footer {
     <a href="#hallazgos">Hallazgos</a>
     <a href="#contacto">Contacto</a>
   </div>
-  <div style="display:flex;align-items:center;gap:12px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="gfx-switcher" id="gfx-switcher" role="group" aria-label="Calidad gráfica">
+      <span class="gfx-label">⚙️ GRÁFICOS:</span>
+      <button type="button" class="gfx-btn" data-gfx-set="ultra" aria-pressed="false" title="PC Potente — Todas las animaciones, Matrix canvas, blur y GSAP">ULTRA</button>
+      <span class="gfx-sep">|</span>
+      <button type="button" class="gfx-btn" data-gfx-set="medium" aria-pressed="false" title="Equilibrado — Sin loops de canvas ni blur pesado, mantiene transiciones suaves de UI">MEDIO</button>
+      <span class="gfx-sep">|</span>
+      <button type="button" class="gfx-btn" data-gfx-set="low" aria-pressed="false" title="Modo Sala / PC Básico — 0 animaciones ni blur, contadores instantáneos">BAJO</button>
+    </div>
     <div class="nav-status"><span class="ndot"></span>Disponible</div>
     <button class="mega-burger" id="mega-burger" title="Ver todas las secciones" aria-expanded="false" aria-controls="mega-menu">
       <span></span><span></span><span></span>
@@ -7307,10 +7939,28 @@ document.getElementById("runSiren").onclick = async function(){
 #basilisk .bs-card .bs-card-m b{color:#00ffa3}
 #basilisk .bs-card.bs-card-prob{border-left-color:#ffb020}
 #basilisk .bs-card.bs-card-prob .bs-card-t{color:#ffb020}
-    </style>
+    
+/* BASILISK: descripción larga en acordeón accesible y legible en rojo neón */
+#basilisk .bs-head{align-items:flex-start;flex-wrap:wrap;gap:10px;background:rgba(255,26,46,.055);border-bottom-color:rgba(255,26,46,.24)}
+#basilisk .bs-overview{flex:1 1 280px;min-width:0;color:#ff9aa6}
+#basilisk .bs-overview>summary{list-style:none;display:flex;align-items:center;gap:9px;width:fit-content;max-width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid rgba(255,65,86,.58);border-left:3px solid #ff1a2e;border-radius:4px;background:linear-gradient(100deg,rgba(255,26,46,.17),rgba(20,4,9,.88));color:#ff6677;font:700 10px/1.55 monospace;letter-spacing:.07em;text-transform:uppercase;text-shadow:0 0 10px rgba(255,26,46,.28);cursor:pointer;transition:background .18s ease,border-color .18s ease,box-shadow .18s ease}
+#basilisk .bs-overview>summary::-webkit-details-marker{display:none}
+#basilisk .bs-overview>summary::marker{content:""}
+#basilisk .bs-overview>summary::before{content:"▸";color:#ff1a2e;font-size:13px;line-height:1;transition:transform .18s ease}
+#basilisk .bs-overview[open]>summary::before{content:"▾"}
+#basilisk .bs-overview>summary:hover{color:#fff;border-color:#ff5365;background:rgba(255,26,46,.2);box-shadow:0 0 16px rgba(255,26,46,.16)}
+#basilisk .bs-overview>summary:focus-visible{outline:2px solid #ff5365;outline-offset:3px}
+#basilisk .bs-overview-content{margin-top:10px;padding:12px 14px;border:1px solid rgba(255,65,86,.32);border-left:3px solid #ff1a2e;border-radius:4px;background:linear-gradient(145deg,rgba(255,26,46,.075),rgba(8,3,5,.74));color:#ff9aa6;font-family:monospace;font-size:11px;line-height:1.75;letter-spacing:.01em;text-shadow:0 0 8px rgba(255,26,46,.12);overflow-wrap:anywhere}
+#basilisk .bs-overview-content p{margin:0;color:inherit}
+/* Las descripciones de estos motores acompañan el tema cyberpunk rojo (no gris azulado). */
+#sphinx .mod-desc,#chimera .mod-desc,#mammoth .mod-desc{color:#ff9aa6 !important;text-shadow:0 0 8px rgba(255,26,46,.14)}
+</style>
 
     <div class="bs-box">
-      <div class="bs-head"><span class="bs-t">🐍 BASILISK SQLi ENGINE v5.2 AMMIT OMEGA — pasás el URL (param opcional, vacío/auto = modo AUTO) y BASILISK caza SQLi por TODAS las clases de vector: params de la URL (extractor) · params cosechados (harvest de forms GET/POST + links) · ENDPOINT ARSENAL ×96 rutas típicas SQLi-prone (/login · /search.php?q= · /product.php?id= · /news.php?id= · /viewtopic.php · /admin · /api/users · /propiedad · /paciente · /tracking — GET limpio, solo las vivas) · DICCIONARIO ×300 SQLi-prone (id · cat · page · user · search · sort …) · VECTOR HEADERS ×7 (X-Forwarded-For · X-Real-IP · X-Client-IP · Referer · User-Agent · Cookie · Forwarded — apps que loguean o consultan por headers) · RECON-ROBOTS (robots.txt + sitemap.xml del objetivo — rutas REALES que el propio sitio declara) · PATH-VICTIMS (segmentos numéricos de la URL REST /producto/1 — inyección por PATH, la clase que casi ningún scanner barre) → P0.7 · P0.8 → P1 VECTOR SWEEP con SONDA MARCADA ('BSQnnn — quote único con marcador: ERROR = mensaje de error de la DB en el cuerpo → FINGERPRINT DBMS ×5 (MySQL · PostgreSQL · MSSQL · Oracle · SQLite), REFLEJA = marcador reflejado) → P2 ERROR CONFIRM 3/3 verbatim + P3.0 CONTEXT-FINGERPRINT (la sonda decide: quoted vs numeric — ordena la batería solo) + P3 BATERÍA BOOLEANA ×24 sintaxis (single/double-quote · parens ×2 · numeric · OR ×2 · LIKE · RLIKE · BETWEEN · NOT · XOR ×2 · LT ×2 · GT · IF · INSTR · CASE · HAVING) con DIFERENCIAL 1=1 vs 1=2 confirmación 3/3 → P4 TIME-BASED HONESTO: latencia base = MEDIANA de 5 GET limpios · umbral baseline+4000ms · batería ×16 por DBMS (SLEEP ×3 · IF-SLEEP · GET_LOCK · BENCHMARK ×2 · pg_sleep ×2 · pg-CASE · WAITFOR ×2 · IF-WAITFOR · dbms_pipe · Oracle CONNECT-BY · SQLite heavy-query) confirmación 3/3 → P4.5 TAMPER FORGE ×24 (enc-once/enc-twice/unicode · case-mixed · tab/nl-space · comment-split · inline-comment · NUL ×2 · hash · enc-eq · plus-space · url-full · backslash-quote · comment-space · vt-space · tab/nl-inner · case-full · double-url · utf16-all · crlf-space) → P4.6 JSON-API PROBE (POST {"id":"'BSQ"} JSON body a /api · wp-json · graphql — la clase que casi ningún scanner prueba) → P5 EXPLOIT MODE NO DESTRUCTIVO: VERSION-ECHO + DATABASE-ECHO + USER-ECHO (updatexml/extractvalue/FLOOR MySQL · cast-int PostgreSQL · CONVERT MSSQL — version()/database()/user() VERBATIM) + HOSTNAME/DATADIR/OS/PORT-ECHO (recon de infra y SO) + TBLC/SCHEMAC/JUICY-ECHO (COUNT de tablas del schema, de esquemas y de tablas CALIENTES user/admin/pass — superficie de ataque) + PRIV-PROBE nivel DBA/SUPER (COUNT legible de mysql.user/pg_roles/sys.sql_logins — CERO filas) + LECTURA BOOLEANA carácter a carácter (version() cap 12 + database() cap 16 + user() cap 24 + tabcount cap 4) + SLEEP ESCALONADO (3s vs 7s — control fino del delay). HONESTIDAD BRUTAL: cero UNION, cero dump de tablas, cero stacked destructivos (stacked SOLO delay read-only pg_sleep/WAITFOR), cero INTO OUTFILE — solo se lee METADATA: version() + database() + user() + hostname + datadir + SO + puerto + COUNTs (privilegios · tablas · esquemas · tablas calientes); PROBABLE ≠ CONFIRMADO jamás</span><span class="bs-dots"><i class="r"></i><i class="y"></i><i class="g"></i></span></div>
+      <div class="bs-head"><details class="bs-overview">
+          <summary>🐍 ABRIR DOSSIER DE AMMIT · ARSENAL, FASES Y LÍMITES</summary>
+          <div class="bs-overview-content"><p>🐍 BASILISK SQLi ENGINE v5.2 AMMIT OMEGA — pasás el URL (param opcional, vacío/auto = modo AUTO) y BASILISK caza SQLi por TODAS las clases de vector: params de la URL (extractor) · params cosechados (harvest de forms GET/POST + links) · ENDPOINT ARSENAL ×96 rutas típicas SQLi-prone (/login · /search.php?q= · /product.php?id= · /news.php?id= · /viewtopic.php · /admin · /api/users · /propiedad · /paciente · /tracking — GET limpio, solo las vivas) · DICCIONARIO ×300 SQLi-prone (id · cat · page · user · search · sort …) · VECTOR HEADERS ×7 (X-Forwarded-For · X-Real-IP · X-Client-IP · Referer · User-Agent · Cookie · Forwarded — apps que loguean o consultan por headers) · RECON-ROBOTS (robots.txt + sitemap.xml del objetivo — rutas REALES que el propio sitio declara) · PATH-VICTIMS (segmentos numéricos de la URL REST /producto/1 — inyección por PATH, la clase que casi ningún scanner barre) → P0.7 · P0.8 → P1 VECTOR SWEEP con SONDA MARCADA ('BSQnnn — quote único con marcador: ERROR = mensaje de error de la DB en el cuerpo → FINGERPRINT DBMS ×5 (MySQL · PostgreSQL · MSSQL · Oracle · SQLite), REFLEJA = marcador reflejado) → P2 ERROR CONFIRM 3/3 verbatim + P3.0 CONTEXT-FINGERPRINT (la sonda decide: quoted vs numeric — ordena la batería solo) + P3 BATERÍA BOOLEANA ×24 sintaxis (single/double-quote · parens ×2 · numeric · OR ×2 · LIKE · RLIKE · BETWEEN · NOT · XOR ×2 · LT ×2 · GT · IF · INSTR · CASE · HAVING) con DIFERENCIAL 1=1 vs 1=2 confirmación 3/3 → P4 TIME-BASED HONESTO: latencia base = MEDIANA de 5 GET limpios · umbral baseline+4000ms · batería ×16 por DBMS (SLEEP ×3 · IF-SLEEP · GET_LOCK · BENCHMARK ×2 · pg_sleep ×2 · pg-CASE · WAITFOR ×2 · IF-WAITFOR · dbms_pipe · Oracle CONNECT-BY · SQLite heavy-query) confirmación 3/3 → P4.5 TAMPER FORGE ×24 (enc-once/enc-twice/unicode · case-mixed · tab/nl-space · comment-split · inline-comment · NUL ×2 · hash · enc-eq · plus-space · url-full · backslash-quote · comment-space · vt-space · tab/nl-inner · case-full · double-url · utf16-all · crlf-space) → P4.6 JSON-API PROBE (POST {"id":"'BSQ"} JSON body a /api · wp-json · graphql — la clase que casi ningún scanner prueba) → P5 EXPLOIT MODE NO DESTRUCTIVO: VERSION-ECHO + DATABASE-ECHO + USER-ECHO (updatexml/extractvalue/FLOOR MySQL · cast-int PostgreSQL · CONVERT MSSQL — version()/database()/user() VERBATIM) + HOSTNAME/DATADIR/OS/PORT-ECHO (recon de infra y SO) + TBLC/SCHEMAC/JUICY-ECHO (COUNT de tablas del schema, de esquemas y de tablas CALIENTES user/admin/pass — superficie de ataque) + PRIV-PROBE nivel DBA/SUPER (COUNT legible de mysql.user/pg_roles/sys.sql_logins — CERO filas) + LECTURA BOOLEANA carácter a carácter (version() cap 12 + database() cap 16 + user() cap 24 + tabcount cap 4) + SLEEP ESCALONADO (3s vs 7s — control fino del delay). HONESTIDAD BRUTAL: cero UNION, cero dump de tablas, cero stacked destructivos (stacked SOLO delay read-only pg_sleep/WAITFOR), cero INTO OUTFILE — solo se lee METADATA: version() + database() + user() + hostname + datadir + SO + puerto + COUNTs (privilegios · tablas · esquemas · tablas calientes); PROBABLE ≠ CONFIRMADO jamás</p></div>
+        </details><span class="bs-dots"><i class="r"></i><i class="y"></i><i class="g"></i></span></div>
       <div class="bs-body">
         <div class="bs-row">
           <!-- PROXY INTEGRADO: el worker vive adentro del script (BS_WORKER) y NO se muestra en la UI — override solo por consola: localStorage.setItem("tudelasec_worker","https://otro-worker.tudelasec.workers.dev") -->
@@ -8845,7 +9495,15 @@ document.getElementById("runBasilisk").onclick = async function(){
 
           <input id="prQ" placeholder="filtrar por URL o body…" spellcheck="false">
 
-          <select id="prFilt" aria-label="Filtro">
+          <select id="prMethodFilt" aria-label="Filtrar por método HTTP" title="Método HTTP">
+            <option value="all">MÉTODO: TODOS</option>
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="OPTIONS">OPTIONS</option>
+            <option value="HEAD">HEAD</option>
+          </select>
+
+          <select id="prFilt" aria-label="Filtro de estado y origen">
 
             <option value="all">todos</option><option value="2xx">2xx</option><option value="3xx">3xx</option><option value="4xx">4xx</option><option value="5xx">5xx</option><option value="err">ERR</option><option value="nav">NAV</option><option value="web">WEB</option><option value="sub">RECURSOS</option><option value="rep">REPEATER</option><option value="intr">INTRUDER</option><option value="har">HAR</option>
 
@@ -9072,6 +9730,17 @@ document.getElementById("runBasilisk").onclick = async function(){
           <div class="pr-acts"><span class="pr-findn" id="prHHN"></span><button type="button" class="pr-btn-s" id="prHHCsv">⧉ EXPORTAR CSV</button></div>
 
           <div class="pr-tablewrap"><table id="prHHTable"></table></div>
+          <div class="pr-acts"><button type="button" class="pr-btn-s" id="prHHMore" hidden>▸ MOSTRAR MÁS</button></div>
+          <div class="pr-hh-detail" id="prHHDetail" role="region" aria-live="polite" aria-label="Detalle de petición seleccionada">
+            <div class="pr-hh-detail-top">
+              <span id="prHHDetailLabel">Seleccioná una fila del historial para ver sus datos RAW.</span>
+              <button type="button" class="pr-btn-s" id="prHHToRep" disabled>⇢ EDITAR / ABRIR EN REPEATER</button>
+            </div>
+            <div class="pr-hh-detail-grid">
+              <div><h4>RAW REQUEST</h4><pre class="pr-raw" id="prHHReqRaw">Sin petición seleccionada.</pre></div>
+              <div><h4>RAW RESPONSE</h4><pre class="pr-raw" id="prHHResRaw">Sin respuesta seleccionada.</pre></div>
+            </div>
+          </div>
 
         </div>
 
@@ -9706,6 +10375,25 @@ document.getElementById("runBasilisk").onclick = async function(){
 #proxyrep .pr-hh-btn:hover{color:#fff;border-color:var(--acc);}
 #proxyrep tr.sel td{background:rgba(255,26,46,.12);}
 
+
+/* HTTP History estilo Burp: columnas auditables, orden temporal y preview RAW adyacente */
+#proxyrep #prHHTable{min-width:1180px;table-layout:auto}
+#proxyrep #prHHTable th,#proxyrep #prHHTable td{white-space:nowrap}
+#proxyrep #prHHTable td:nth-child(5){max-width:420px;overflow:hidden;text-overflow:ellipsis}
+#proxyrep #prHHTable td:nth-child(8){max-width:240px;overflow:hidden;text-overflow:ellipsis}
+#proxyrep #prHHTable .hh-row{cursor:pointer}
+#proxyrep #prHHTable .hh-row:hover td{background:rgba(255,26,46,.07)}
+#proxyrep #prHHTable .hh-row.sel td{background:rgba(255,26,46,.14)}
+#proxyrep #prHHTable .hh-ts{font-variant-numeric:tabular-nums;color:#ff9aa6}
+#proxyrep #prMethodFilt{flex:0 1 150px;min-width:130px}
+#proxyrep #prHHMore[hidden]{display:none !important}
+#proxyrep .pr-hh-detail{margin-top:14px;border:1px solid rgba(255,26,46,.35);border-radius:5px;background:rgba(5,3,5,.72);box-shadow:inset 0 0 24px rgba(255,26,46,.04)}
+#proxyrep .pr-hh-detail-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid rgba(255,26,46,.22);font:11px/1.5 var(--mono);color:#ff9aa6}
+#proxyrep .pr-hh-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
+#proxyrep .pr-hh-detail-grid>div{min-width:0}
+#proxyrep .pr-hh-detail-grid h4{margin:0 0 7px}
+#proxyrep .pr-hh-detail-grid .pr-raw{min-height:180px;max-height:460px;white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere}
+@media(max-width:820px){#proxyrep .pr-hh-detail-grid{grid-template-columns:1fr}#proxyrep #prHHTable{min-width:1120px}}
 </style>
 <script>
 /* ════════════════════════════════════════════════════════════════════════
@@ -14396,12 +15084,13 @@ function mmtFetch(url, method, body, headers){
 }
 
 var MMT_BATCH_SIZE = 25;
-var MMT_BATCH_CONC = 5;
+var MMT_BATCH_CONC = 3;
 function mmtBatchChunk(reqSpecs){
   if(aborted || !reqSpecs.length) return Promise.resolve(reqSpecs.map(function(s){ return { status: 0, body: '', headers: {}, finalUrl: s.url }; }));
+  var tBatch0 = Date.now();
   var ctrl = new AbortController();
   mmtCtrls.add(ctrl);
-  var tid = setTimeout(function(){ try { ctrl.abort(); } catch(_){} }, 14000);
+  var tid = setTimeout(function(){ try { ctrl.abort(); } catch(_){} }, 6500);
   var bodyPayload = JSON.stringify({
     targets: reqSpecs.map(function(s){
       return { url: s.url, method: s.method || 'GET', headers: s.headers || {}, body: s.body || null };
@@ -14420,8 +15109,12 @@ function mmtBatchChunk(reqSpecs){
       }
       return j.results.map(function(entry, idx){ return normProxyItem(entry, reqSpecs[idx].url); });
     })
-    .catch(function(){
-      if(aborted) return reqSpecs.map(function(s){ return { status: 0, body: '', headers: {}, finalUrl: s.url }; });
+    .catch(function(err){
+      /* Si el batch se abortó por timeout (tar-pit / WAF del origen > 6.5s) o por STOP del usuario,
+         NO reenviar las mismas 25 URLs tar-piteadas otra vez; solo hacer fallback individual si un worker custom no soporta /batch (< 2.5s) */
+      if(aborted || (Date.now() - tBatch0) >= 2500 || (err && err.name === 'AbortError')){
+        return reqSpecs.map(function(s){ return { status: 0, body: '', headers: {}, finalUrl: s.url }; });
+      }
       return Promise.all(reqSpecs.map(function(s){ return mmtFetch(s.url, s.method, s.body, s.headers); }));
     })
     .finally(function(){ clearTimeout(tid); mmtCtrls.delete(ctrl); });
@@ -16157,7 +16850,7 @@ else mmtWire();
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#88e6e1ebe7e4e9fbfcfdecede4e9b1bfc8efe5e9e1e4a6ebe7e5" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#76181f15191a1705020312131a174f4136111b171f1a5815191b" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -16805,7 +17498,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#4a24232925262b393e3f2e2f262b737d0a2d272b232664292527" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="c0aea9a3afaca1b3b4b5a4a5aca1f9f780a7ada1a9aceea3afad">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#8ce2e5efe3e0edfff8f9e8e9e0edb5bbccebe1ede5e0a2efe3e1" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="056b6c666a6964767170616069643c32456268646c692b666a68">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">
@@ -17071,14 +17764,22 @@ window.addEventListener('unhandledrejection', function(e) {
  }
 })();
 
-const reduce = false; /* Animaciones activas para 100% de navegadores y sistemas operativos */
+const reduce = (document.body.getAttribute('data-gfx') === 'low');
 /* ══ PRELOADER ══ */
 (function(){
  const fill = document.getElementById('pl-fill');
  const pctEl = document.getElementById('pl-pct');
  const pl = document.getElementById('preloader');
  const letters = document.querySelectorAll('.pl-wordmark span');
- if(!pl){ setTimeout(heroReveal, 120); return; }
+ if(!pl){ setTimeout(heroReveal, 60); return; }
+ if(document.body.getAttribute('data-gfx') === 'low'){
+  if(fill) fill.style.width = '100%';
+  if(pctEl) pctEl.textContent = '100%';
+  pl.classList.add('exit', 'done');
+  pl.style.display = 'none';
+  setTimeout(heroReveal, 0);
+  return;
+ }
 
  if(typeof gsap !== 'undefined'){
  letters.forEach((l,i) => {
@@ -17252,14 +17953,22 @@ document.addEventListener('visibilitychange', function(){
     rafId = requestAnimationFrame(frame);
   }
 
-  function start(){ if(!running && !document.hidden){ running = true; rafId = requestAnimationFrame(frame); } }
+  function isCanvasAllowed(){ return document.body.getAttribute('data-gfx') === 'ultra'; }
+  function start(){ if(!running && !document.hidden && isCanvasAllowed()){ running = true; rafId = requestAnimationFrame(frame); } }
   function stop(){ running = false; if(rafId){ cancelAnimationFrame(rafId); rafId = 0; } }
+  window.__tsHeroCanvasCtl = {
+    start: function(){ if(inView && !document.hidden && isCanvasAllowed()) start(); },
+    stop: stop,
+    isRunning: function(){ return !!running; }
+  };
 
   window.addEventListener('mousemove', function(e){
+    if(!isCanvasAllowed()) return;
     mx = e.clientX; my = e.clientY;
   }, { passive: true });
   window.addEventListener('mouseleave', function(){ mx = -9999; my = -9999; }, { passive: true });
   heroSec.addEventListener('click', function(e){
+    if(!isCanvasAllowed()) return;
     waves.push({ x: e.clientX, y: e.clientY, r: 8, a: 0.65 });
     start();
   }, { passive: true });
@@ -17268,12 +17977,12 @@ document.addEventListener('visibilitychange', function(){
   if(typeof IntersectionObserver !== 'undefined'){
     new IntersectionObserver(function(es){
       inView = es[0].isIntersecting;
-      if(inView) start(); else stop();
+      if(inView && isCanvasAllowed()) start(); else stop();
     }, { threshold: 0.02 }).observe(heroSec);
-  } else { start(); }
+  } else if(isCanvasAllowed()) { start(); }
 
   document.addEventListener('visibilitychange', function(){
-    if(document.hidden) stop(); else if(inView) start();
+    if(document.hidden) stop(); else if(inView && isCanvasAllowed()) start();
   });
 })();
 /* \u2550\u2550 SCROLL REVEALS \u2014 IntersectionObserver puro \u2550\u2550 */
@@ -17342,9 +18051,25 @@ document.addEventListener('visibilitychange', function(){
  });
  }, { threshold: 0.2 });
 
- document.querySelectorAll('.stat-big[data-target]').forEach(function(el){
- statIo.observe(el);
- });
+ window.__tsRenderStatBigImmediate = function(){
+  document.querySelectorAll('.stat-big[data-target]').forEach(function(el){
+   var target = +el.dataset.target;
+   var pre = el.dataset.prefix || '';
+   var suf = el.dataset.suffix || '';
+   var fmt = el.dataset.format || '';
+   el.style.opacity = '1';
+   el.style.transform = 'none';
+   el.textContent = pre + (fmt === 'k' ? (target / 1000).toFixed(1) + 'K' : target) + suf;
+   try { statIo.unobserve(el); } catch(e){}
+  });
+ };
+ if(document.body.getAttribute('data-gfx') === 'low'){
+  window.__tsRenderStatBigImmediate();
+ } else {
+  document.querySelectorAll('.stat-big[data-target]').forEach(function(el){
+   statIo.observe(el);
+  });
+ }
 
  /* GSAP solo para hero \u2014 si est\u00E1 disponible */
  if(typeof gsap !== 'undefined'){
@@ -17404,7 +18129,13 @@ if(!('ontouchstart' in window)){
   }
  }
 
+ window.__tsCursorCtl = {
+  stop: function(){
+   if(cursorRaf){ cancelAnimationFrame(cursorRaf); cursorRaf = 0; }
+  }
+ };
  document.addEventListener('mousemove', function(e){
+  if(document.body.getAttribute('data-gfx') !== 'ultra') return;
   mx = e.clientX; my = e.clientY;
   if(dot) dot.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)';
   if(!cursorRaf) cursorRaf = requestAnimationFrame(tickCursor);
@@ -21487,6 +22218,10 @@ function scrambleStr(orig, revealCount){
 }
 function scrambleEl(el) {
  if(!el || el.dataset.scrambled) return;
+ if(document.body.getAttribute('data-gfx') === 'low'){
+  el.dataset.scrambled = '1';
+  return;
+ }
  el.dataset.scrambled = '1';
  var l1 = el.getAttribute('data-l1'), l2 = el.getAttribute('data-l2');
  if(l1 !== null || l2 !== null){
@@ -22272,18 +23007,30 @@ const toolsDB = [
  }
 })();
 
-/* \u2550\u2550 BOUNTY COUNTER ANIMATION \u2550\u2550 */
+/* ══ BOUNTY COUNTER ANIMATION (con renderizado instantáneo en data-gfx="low") ══ */
 (function(){
  const el = document.getElementById('bc-amount');
- if(!el || typeof gsap === 'undefined') return;
- setTimeout(function(){
- gsap.to({v:0},{v:16800, duration:3, ease:'power2.out', delay:0.5,
- onUpdate:function(){
-  const v = Math.round(this.targets()[0].v);
-  el.textContent = 'US$' + v.toLocaleString('en-US').split(',').join('.');
- },
- onComplete:function(){ el.textContent = 'US$16.800'; }
- });
+ if(!el) return;
+ if(document.body.getAttribute('data-gfx') === 'low' || typeof gsap === 'undefined'){
+  el.textContent = 'US$16.800';
+  return;
+ }
+ window.__tsBountyTimer = setTimeout(function(){
+  if(document.body.getAttribute('data-gfx') === 'low'){
+   el.textContent = 'US$16.800';
+   return;
+  }
+  window.__tsBountyTween = gsap.to({v:0},{v:16800, duration:3, ease:'power2.out', delay:0.5,
+   onUpdate:function(){
+    if(document.body.getAttribute('data-gfx') === 'low'){
+     el.textContent = 'US$16.800';
+     return;
+    }
+    const v = Math.round(this.targets()[0].v);
+    el.textContent = 'US$' + v.toLocaleString('en-US').split(',').join('.');
+   },
+   onComplete:function(){ el.textContent = 'US$16.800'; }
+  });
  }, 4500);
 })();
 
@@ -37863,18 +38610,47 @@ function ctfTopVector(p){
 }
 globalThis.CTF_CHECKS = { isSqli: ctfIsSqli, creds: ctfCreds, topVector: ctfTopVector, setFast: function(){ FAST = true; }, flag: function(){ return CTF_FLAG; }, key: CTF_KEY };
 
-/* ═══ ESTADO ═══ */
-function solved(){ try { return localStorage.getItem(CTF_KEY) === '1'; } catch(e){ return false; } }
-function markSolved(){ try { localStorage.setItem(CTF_KEY, '1'); } catch(e){} }
+/* ═══ ESTADO (sessionStorage 'tudelasec_gate' + ?skip=1 + bloqueo estricto de scroll) ═══ */
+var GATE_SESSION_KEY = 'tudelasec_gate';
+function hasUrlSkip(){
+  try { return new URLSearchParams(window.location.search).get('skip') === '1'; } catch(e){ return false; }
+}
+function solved(){
+  if (window.__TS_GATE_SOLVED_MEM) return true;
+  if (hasUrlSkip()) {
+    markSolved();
+    return true;
+  }
+  try {
+    if (sessionStorage.getItem(GATE_SESSION_KEY) === 'ok') return true;
+  } catch(e){}
+  try {
+    if (localStorage.getItem(CTF_KEY) === '1') return true;
+  } catch(e){}
+  return false;
+}
+function markSolved(){
+  window.__TS_GATE_SOLVED_MEM = true;
+  try { sessionStorage.setItem(GATE_SESSION_KEY, 'ok'); } catch(e){}
+  try { localStorage.setItem(CTF_KEY, '1'); } catch(e){}
+}
 function lockScroll(){
   var de = document.documentElement, b = document.body;
-  if(de && de.style) de.style.overflow = 'hidden';
-  if(b && b.style) b.style.overflow = 'hidden';
+  if(de){ de.classList.add('ctf-gate-active'); if(de.style) de.style.overflow = 'hidden'; }
+  if(b){
+    b.classList.remove('gate-dismissed');
+    b.classList.add('gate-open');
+    if(b.style) b.style.overflow = 'hidden';
+  }
 }
 function unlockScroll(){
   var de = document.documentElement, b = document.body;
   if(de){ de.classList.remove('ctf-gate-active'); if(de.style) de.style.overflow = ''; }
-  if(b && b.style) b.style.overflow = '';
+  if(b){
+    b.classList.remove('gate-open');
+    b.classList.add('gate-dismissed');
+    if(b.style) b.style.overflow = '';
+  }
 }
 
 /* ═══ MOTOR DE CONSOLA (typeLine letra a letra — instantáneo si reduced-motion o FAST) ═══ */
@@ -38177,11 +38953,44 @@ async function ctfExec(raw){
   await ctfType('bash: '+cmd+': command not found  (escribí  help )', 'ctf-a');
 }
 
-/* ═══ WIRING ═══ */
+/* ═══ WIRING (Cierre determinista con .gate-closed — sin depender de GSAP ni transitionend) ═══ */
+function closeCtfGate(immediate){
+  var gate = $('ctfGate');
+  markSolved();
+  stopMatrixRain();
+  var mx = $('ctfMatrix'); if(mx) mx.classList.remove('on');
+  unlockScroll();
+  var forceNow = !!immediate || FAST || (document.body && document.body.getAttribute('data-gfx') === 'low');
+  function hardSeal(){
+    if(gate){
+      gate.classList.remove('ctf-on', 'ctf-exit');
+      gate.classList.add('gate-closed');
+      gate.style.setProperty('display', 'none', 'important');
+      gate.setAttribute('aria-hidden', 'true');
+    }
+    unlockScroll();
+  }
+  if(forceNow){
+    hardSeal();
+    return;
+  }
+  if(gate){
+    gate.style.pointerEvents = 'none';
+    gate.classList.add('ctf-exit');
+  }
+  /* Fallback estricto por setTimeout garantizado en 280ms */
+  setTimeout(hardSeal, 280);
+}
+window.closeCtfGate = closeCtfGate;
+
 function ctfOpen(){
   var gate = $('ctfGate'); if(!gate) return;
+  if(solved()){ closeCtfGate(true); return; }
+  gate.classList.remove('gate-closed', 'ctf-exit');
+  gate.style.removeProperty('display');
+  gate.style.removeProperty('pointer-events');
+  gate.setAttribute('aria-hidden', 'false');
   lockScroll();
-  document.documentElement.classList.add('ctf-gate-active');
   gate.classList.add('ctf-on');
   var u = $('ctfUser');
   if(u && u.focus) setTimeout(function(){ try { u.focus(); } catch(e){} }, 250);
@@ -38189,9 +38998,7 @@ function ctfOpen(){
   try { renderScore(); } catch(e){}
 }
 function ctfHideNow(){
-  var gate = $('ctfGate'); if(gate) gate.style.display = 'none';
-  document.documentElement.classList.remove('ctf-gate-active');
-  unlockScroll();
+  closeCtfGate(true);
 }
 function wireForm(){
   var f = $('ctfForm'); if(!f) return;
@@ -38218,7 +39025,11 @@ function wireTop(){
 }
 function wireSkip(){
   var sk = $('ctfSkip'); if(!sk) return;
-  sk.addEventListener('click', function(){ markSolved(); ctfHideNow(); if(window.tsReplayHero) window.tsReplayHero(); });
+  sk.addEventListener('click', function(ev){
+    if(ev && ev.preventDefault) ev.preventDefault();
+    closeCtfGate(true);
+    try { if(window.tsReplayHero) window.tsReplayHero(); } catch(e){}
+  });
 }
 /* ═══ PISTA OSINT: la cred filtrada autocompleta el form ═══ */
 function wireLeak(){
@@ -38245,7 +39056,7 @@ function startMatrixRain(){
   function size(){ cv.width = window.innerWidth; cv.height = window.innerHeight; }
   size(); mtxResize = size;
   try { window.addEventListener('resize', size); } catch(e){}
-  if(REDUCED){ ctx.fillStyle = '#020103'; ctx.fillRect(0,0,cv.width,cv.height); return; }
+  if(REDUCED || (document.body && document.body.getAttribute('data-gfx') !== 'ultra')){ ctx.fillStyle = '#020103'; ctx.fillRect(0,0,cv.width,cv.height); return; }
   var chars = "アカサタナハマヤラワabcdef0123456789TUDELASEC{}#$\u003c\u003e\u002f\\".split('');
   var fs = 14, cols = Math.max(1, Math.floor(cv.width / fs)), drops = [];
   for(var i = 0; i < cols; i++) drops[i] = Math.random() * -60;
@@ -38268,11 +39079,15 @@ function stopMatrixRain(){
   if(mtxRAF){ try { cancelAnimationFrame(mtxRAF); } catch(e){} mtxRAF = 0; }
   if(mtxResize){ try { window.removeEventListener('resize', mtxResize); } catch(e){} mtxResize = null; }
 }
+window.__tsMatrixCtl = {
+  start: startMatrixRain,
+  stop: stopMatrixRain,
+  isRunning: function(){ return !!mtxRAF; }
+};
 function ctfMatrixWin(user, method){
   var mx = $('ctfMatrix');
   if(!mx){
-    var g = $('ctfGate');
-    if(g){ g.classList.add('ctf-exit'); setTimeout(function(){ g.style.display='none'; unlockScroll(); }, 600); } else { unlockScroll(); }
+    closeCtfGate(false);
     return;
   }
   try {
@@ -38289,18 +39104,19 @@ function ctfMatrixWin(user, method){
 }
 function wireEnter(){
   var b = $('ctfEnter'); if(!b) return;
-  b.addEventListener('click', function(){
-    stopMatrixRain();
-    var mx = $('ctfMatrix'); if(mx) mx.classList.remove('on');
-    var g = $('ctfGate');
-    if(g){ g.classList.add('ctf-exit'); if(window.tsReplayHero) window.tsReplayHero(); setTimeout(function(){ g.style.display = 'none'; unlockScroll(); }, FAST ? 0 : 600); }
-    else { unlockScroll(); }
+  b.addEventListener('click', function(ev){
+    if(ev && ev.preventDefault) ev.preventDefault();
+    closeCtfGate(false);
+    try { if(window.tsReplayHero) window.tsReplayHero(); } catch(e){}
   });
 }
 function ctfInit(){
   wireForm(); wireTop(); wireSkip(); wireLeak(); wireEnter(); ctfBreadcrumb();
-  if(solved()){ ctfHideNow(); return; }
-  setTimeout(ctfOpen, 450);
+  if(solved()){ closeCtfGate(true); return; }
+  setTimeout(function(){
+    if(solved()){ closeCtfGate(true); return; }
+    ctfOpen();
+  }, 350);
 }
 if(typeof document !== 'undefined' && document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', ctfInit);
@@ -41857,7 +42673,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 'use strict';
 var WORKER="https:\u002f\u002fscanner-proxy.matias-ramireztu.workers.dev";
 var CRAWL_MAX=40, CRAWL_CONC=4, RAW_MAX=2000000;
-var hist=[], selId=null, seq=0, repBase=null;
+var hist=[], selId=null, seq=0, repBase=null, latestAutoSelId=0, selectionLocked=false;
 var LIST_STEP=300, MAX_STORE=300000, BODY_KEEP=800, byId={}, inst=null, instSeq=0, openH={}, listLim=300, hhLim=1000, rqId=0;
 var intrRunning=false, intrStop=false, intrRows=[];
 var crawlStop=false;
@@ -41887,6 +42703,35 @@ function ctype(e){ var h=e.res.headers||{}; for(var k in h){ if(k.toLowerCase()=
 function lowerH(h){ var o={}; Object.keys(h||{}).forEach(function(k){ o[k.toLowerCase()]=h[k]; }); return o; }
 function fmtBody(b){ var t=String(b||''); try{ t=JSON.stringify(JSON.parse(t),null,2); }catch(e){} return t; }
 function clip(t){ t=String(t==null?'':t); return t.length>RAW_MAX ? t.slice(0,RAW_MAX)+'\n… [truncado: '+t.length+' car.]' : t; }
+function byteLength(s){
+  s=String(s==null?'':s);
+  try{ return new TextEncoder().encode(s).length; }catch(e){}
+  try{ return unescape(encodeURIComponent(s)).length; }catch(e){ return s.length; }
+}
+function formatClock(epoch){
+  var d=new Date(Number(epoch)); if(!isFinite(d.getTime())) d=new Date();
+  function pad(n,w){ var s=String(n); while(s.length<w) s='0'+s; return s; }
+  return pad(d.getHours(),2)+':'+pad(d.getMinutes(),2)+':'+pad(d.getSeconds(),2)+'.'+pad(d.getMilliseconds(),3);
+}
+function newTicket(epoch){
+  var at=Number(epoch); if(!isFinite(at)) at=Date.now();
+  return {id:++seq, at:at, ts:formatClock(at)};
+}
+function chronological(){
+  return hist.slice().sort(function(a,b){
+    var ta=Number(a.at), tb=Number(b.at);
+    if(!isFinite(ta)) ta=0; if(!isFinite(tb)) tb=0;
+    return (ta-tb) || (a.id-b.id);
+  });
+}
+function sequenceMap(list){
+  var map=Object.create(null); (list||chronological()).forEach(function(e,i){ map[e.id]=i+1; }); return map;
+}
+function sequenceFor(id){
+  var ordered=chronological();
+  for(var i=0;i<ordered.length;i++) if(ordered[i].id===id) return i+1;
+  return id;
+}
 
 /* ── texto crudo (request y response) ── */
 function rawReq(req){
@@ -41978,27 +42823,34 @@ function canSend(url){
 
 /* ── envío vía Worker ── */
 function send(req, src, parentId){
-  var t0=Date.now();
+  /* Se numera y fecha al iniciar el envío, no al volver la respuesta: mantiene el orden real con concurrencia. */
+  if(src!=='sub') selectionLocked=false;
+  var ticket=newTicket(), t0=ticket.at;
   var payload=(req.method==='GET'||req.method==='HEAD')?'':String(req.body||'');
   return fetch(WORKER+"\u002f",{method:'POST',headers:{'Content-Type':"application\u002fjson",'Accept':"application\u002fjson"},
     body:JSON.stringify({url:req.url,method:req.method,headers:req.headers||{},body:payload,evade:false,cache_bust:true})})
   .then(function(r){ return r.text().then(function(tx){
     var ms=Date.now()-t0, w;
-    try{ w=JSON.parse(tx); }catch(e){ return add(req,src,{status:0,ms:ms,error:'Respuesta no válida del Worker',headers:{},body:tx.slice(0,2000)},parentId); }
-    if(!w.status) return add(req,src,{status:0,ms:ms,error:(w.blocked?'Bloqueado: ':'Error del Worker: ')+String(w.error||'sin respuesta'),headers:{},body:''},parentId);
-    return add(req,src,{status:w.status,ms:(w.timing_ms!=null?Math.round(w.timing_ms):ms),error:null,headers:w.headers||{},body:String(w.body||'')},parentId);
+    try{ w=JSON.parse(tx); }catch(e){ return add(req,src,{status:0,ms:ms,error:'Respuesta no válida del Worker',headers:{},body:tx.slice(0,2000)},parentId,ticket); }
+    if(!w.status) return add(req,src,{status:0,ms:ms,error:(w.blocked?'Bloqueado: ':'Error del Worker: ')+String(w.error||'sin respuesta'),headers:{},body:''},parentId,ticket);
+    return add(req,src,{status:w.status,ms:(w.timing_ms!=null?Math.round(w.timing_ms):ms),error:null,headers:w.headers||{},body:String(w.body||'')},parentId,ticket);
   }); })
-  .catch(function(e){ return add(req,src,{status:0,ms:Date.now()-t0,error:'Sin conexión con el Worker: '+(e&&e.message||e),headers:{},body:''},parentId); });
+  .catch(function(e){ return add(req,src,{status:0,ms:Date.now()-t0,error:'Sin conexión con el Worker: '+(e&&e.message||e),headers:{},body:''},parentId,ticket); });
 }
-function add(req,src,res,parentId){
+function add(req,src,res,parentId,ticket){
+  ticket=ticket||newTicket();
   var body=String(res.body==null?'':res.body);
+  var bytes=byteLength(body), responseHeaders=lowerH(res.headers||{}), declaredLength=String(responseHeaders['content-length']||'');
+  if(/^\d+$/.test(declaredLength)) bytes=parseInt(declaredLength,10);
   res.body=body.length>MAX_STORE ? body.slice(0,MAX_STORE) : body;
-  res.trunc=body.length>MAX_STORE;
-  var e={id:++seq, ts:new Date().toLocaleTimeString(), src:src, req:req, res:res, size:body.length, parent:parentId||null, inst:inst?inst.id:null};
-  hist.unshift(e); byId[e.id]=e;
+  res.trunc=!!res.trunc || body.length>MAX_STORE;
+  var e={id:ticket.id, ts:ticket.ts, at:ticket.at, src:src, req:req, res:res, size:body.length, lengthBytes:bytes, parent:parentId||null, inst:inst?inst.id:null};
+  /* El array interno queda de reciente a antiguo por compatibilidad con los módulos existentes. */
+  var pos=0; while(pos<hist.length && hist[pos].id>e.id) pos++;
+  hist.splice(pos,0,e); byId[e.id]=e;
   //   sin tope de peticiones: las más viejas conservan cabeceras y metadatos; solo se recorta su cuerpo para ahorrar memoria
   if(hist.length>BODY_KEEP){ var o=hist[BODY_KEEP]; if(o && o.res.body && o.res.body.length>2000){ o.res.body=o.res.body.slice(0,2000); o.res.trunc=true; } }
-  if(src!=='sub') selId=e.id;
+  if(src!=='sub' && !selectionLocked && e.id>=latestAutoSelId){ selId=e.id; latestAutoSelId=e.id; }
   render();
   return e;
 }
@@ -42021,6 +42873,9 @@ function hud(){
 /* ── filtros ── */
 function passes(e){
   var f=$('prFilt').value, q=String($('prQ').value||'').toLowerCase(), st=e.res.status;
+  var methodFilter=String(($('prMethodFilt')||{}).value||'all').toUpperCase();
+  var method=String(e.req.method||'GET').toUpperCase();
+  if(methodFilter!=='ALL' && method!==methodFilter) return false;
   if(f==='2xx' && !(st>=200&&st<300)) return false;
   if(f==='3xx' && !(st>=300&&st<400)) return false;
   if(f==='4xx' && !(st>=400&&st<500)) return false;
@@ -42035,7 +42890,7 @@ function passes(e){
   if(q && e.req.url.toLowerCase().indexOf(q)===-1 && String(e.res.body||'').toLowerCase().indexOf(q)===-1) return false;
   return true;
 }
-function render(){ if(rqId) return; rqId=requestAnimationFrame(function(){ rqId=0; hud(); renderList(); renderSel(); renderWebLog(); }); }
+function render(){ if(rqId) return; rqId=requestAnimationFrame(function(){ rqId=0; hud(); renderList(); renderSel(); renderWebLog(); var hh=$('prP-hh'); if(hh && hh.classList.contains('on')) renderHH(); }); }
 function srcTag(e){
   var m={repeater:'REP',nav:'NAV',intr:'INTR',har:'HAR',sub:'RECURSO',web:'WEB','web-js':'JS'};
   return m[e.src] ? " \u003ci class=\"pr-src\"\u003e"+m[e.src]+"\u003c\u002fi\u003e" : '';
@@ -42048,23 +42903,25 @@ function hdrHTML(e, open){
     +"\u003ctable class=\"pr-htab\"\u003e"+H.map(function(p){ return "\u003ctr\u003e\u003cth\u003e"+esc(p[0])+"\u003c\u002fth\u003e\u003ctd\u003e"+esc(p[1])+"\u003c\u002ftd\u003e\u003c\u002ftr\u003e"; }).join('')+"\u003c\u002ftable\u003e"
     +"\u003cdiv class=\"pr-note\"\u003eEl Worker agrega por su cuenta User-Agent y Accept-Encoding; esas no se ven desde aquí.\u003c\u002fdiv\u003e\u003c\u002fdetails\u003e";
 }
-function rowHTML(e){
-  return "\u003cdiv class=\"pr-row"+(e.id===selId?' on':'')+'" data-id="'+e.id+"\"\u003e"
-    +"\u003cspan class=\"pr-m\" data-m=\""+esc(e.req.method)+"\"\u003e"+esc(e.req.method)+"\u003c\u002fspan\u003e"
+function rowHTML(e, displayNo){
+  return "\u003cdiv class=\"pr-row"+(e.id===selId?' on':'')+'\" data-id=\"'+e.id+"\" tabindex=\"0\" aria-label=\"Petición #"+(displayNo||e.id)+" · "+esc(e.req.method)+" "+esc(e.req.url)+"\"\u003e"
+    +"\u003cspan class=\"pr-m\" data-m=\""+esc(String(e.req.method||'GET').toUpperCase())+"\"\u003e"+esc(String(e.req.method||'GET').toUpperCase())+"\u003c\u002fspan\u003e"
     +"\u003cspan class=\"pr-u\" title=\""+esc(e.req.url)+"\"\u003e"+esc(e.req.url)+"\u003c\u002fspan\u003e"
-    +"\u003cspan class=\"pr-meta\"\u003e\u003cb class=\""+stCls(e.res.status)+"\"\u003e"+esc(e.res.status||'ERR')+"\u003c\u002fb\u003e · "+e.size+' car. · '+e.res.ms+' ms'+srcTag(e)+"\u003c\u002fspan\u003e"
+    +"\u003cspan class=\"pr-meta\"\u003e#"+(displayNo||e.id)+" · "+esc(e.ts||'—')+" · "+"\u003cb class=\""+stCls(e.res.status)+"\"\u003e"+esc(e.res.status||'ERR')+"\u003c\u002fb\u003e · "+(e.lengthBytes==null?e.size:e.lengthBytes)+' B · '+(e.res.ms||0)+' ms'+srcTag(e)+"\u003c\u002fspan\u003e"
     +hdrHTML(e,!!openH[e.id])
     +"\u003c\u002fdiv\u003e";
 }
 function renderList(){
   var L=$('prList'); if(!L) return;
-  var shown=hist.filter(passes);
+  var oldScrollTop=L.scrollTop;
+  var ordered=chronological(), numbers=sequenceMap(ordered), shown=ordered.filter(passes);
   $('prCount').textContent=hist.length+(shown.length!==hist.length?' ('+shown.length+' vistas)':'');
   if(!hist.length){ L.innerHTML="\u003cdiv class=\"pr-empty\"\u003eSin peticiones todavía. Ingresá una URL arriba, importá un HAR o usá Intruder.\u003c\u002fdiv\u003e"; return; }
   if(!shown.length){ L.innerHTML="\u003cdiv class=\"pr-empty\"\u003eNingún resultado con ese filtro.\u003c\u002fdiv\u003e"; return; }
   var vis=shown.slice(0,listLim), more=shown.length-vis.length;
-  L.innerHTML=vis.map(rowHTML).join('')
+  L.innerHTML=vis.map(function(e){ return rowHTML(e,numbers[e.id]); }).join('')
     +(more>0 ? "\u003cbutton type=\"button\" class=\"pr-btn-s pr-more\" id=\"prMore\"\u003e▸ mostrar "+Math.min(LIST_STEP,more)+' más · '+more+" ocultas\u003c\u002fbutton\u003e" : '');
+  L.scrollTop=oldScrollTop;
 }
 
 /* ── request / response ── */
@@ -42357,14 +43214,16 @@ function setRep(method,url,hdr,body){
   $('prRepHdr').value=hdr||''; $('prRepBody').value=body||'';
   if(typeof repWire==='function') repWire();
 }
-function toRep(e){
+function toRep(e, openTab){
   if(!e){ status('✕ Seleccioná una petición primero (historial o HTTP HISTORY).', true); return; }
+  selId=e.id; selectionLocked=true;
   setRep(e.req.method, e.req.url, hdrText(e.req.headers), e.req.body||'');
   repBase=e.id;
-  $('prRepMsg').textContent='Cargada desde #'+e.id;
-  $('prRepOut').innerHTML="\u003cdiv class=\"pr-empty\"\u003eEditá y pulsá ENVIAR. La respuesta se compara con la original #"+e.id+".\u003c\u002fdiv\u003e";
-  status('⇢ Enviado a Repeater: '+e.req.method+' '+e.req.url);
-  tab('rep');
+  $('prRepMsg').textContent='Cargada desde #'+sequenceFor(e.id);
+  $('prRepOut').innerHTML="\u003cdiv class=\"pr-empty\"\u003eEditá y pulsá ENVIAR. La respuesta se compara con la original #"+sequenceFor(e.id)+".\u003c\u002fdiv\u003e";
+  status((openTab===false?'✓ Seleccionada y lista para editar: ':'⇢ Enviado a Repeater: ')+e.req.method+' '+e.req.url);
+  if(openTab!==false) tab('rep');
+  render();
 }
 function repReset(){
   setRep('GET','','','');
@@ -42401,32 +43260,57 @@ function repSend(){
 }
 
 /* ── HTTP HISTORY (tabla) ── */
-function hhHTML(list){
-  return "\u003cthead\u003e\u003ctr\u003e\u003cth\u003e#\u003c\u002fth\u003e\u003cth\u003eMÉTODO\u003c\u002fth\u003e\u003cth\u003eHOST\u003c\u002fth\u003e\u003cth\u003eRUTA\u003c\u002fth\u003e\u003cth\u003eSTATUS\u003c\u002fth\u003e\u003cth\u003eTIPO\u003c\u002fth\u003e\u003cth\u003eTAM.\u003c\u002fth\u003e\u003cth\u003eMS\u003c\u002fth\u003e\u003cth\u003eORIGEN\u003c\u002fth\u003e\u003cth\u003e\u003c\u002fth\u003e\u003c\u002ftr\u003e\u003c\u002fthead\u003e\u003ctbody\u003e"
+function hhHTML(list, numbers){
+  return "\u003cthead\u003e\u003ctr\u003e\u003cth\u003e#\u003c\u002fth\u003e\u003cth\u003eTIMESTAMP\u003c\u002fth\u003e\u003cth\u003eMÉTODO\u003c\u002fth\u003e\u003cth\u003eHOST\u003c\u002fth\u003e\u003cth\u003eURL / PATH\u003c\u002fth\u003e\u003cth\u003eCÓDIGO HTTP\u003c\u002fth\u003e\u003cth\u003eLENGTH (BYTES)\u003c\u002fth\u003e\u003cth\u003eTIPO MIME\u003c\u002fth\u003e\u003cth\u003eMS\u003c\u002fth\u003e\u003cth\u003eORIGEN\u003c\u002fth\u003e\u003cth\u003eACCIÓN\u003c\u002fth\u003e\u003c\u002ftr\u003e\u003c\u002fthead\u003e\u003ctbody\u003e"
     + list.map(function(e){
       var u; try{ u=new URL(e.req.url); }catch(x){ u={host:'',pathname:e.req.url,search:''}; }
-      var ct=ctype(e).split(';')[0]||'—';
-      return "\u003ctr class=\"hh-row"+(e.id===selId?' sel':'')+'" data-id="'+e.id+"\"\u003e"
-        +"\u003ctd\u003e"+e.id+"\u003c\u002ftd\u003e"
-        +"\u003ctd\u003e\u003cspan class=\"pr-m\" data-m=\""+esc(e.req.method)+"\"\u003e"+esc(e.req.method)+"\u003c\u002fspan\u003e\u003c\u002ftd\u003e"
+      var ct=ctype(e).split(';')[0]||'—', number=numbers[e.id]||e.id;
+      var path=(u.pathname||"\u002f")+(u.search||'');
+      var parentLabel=e.parent ? ' ← #'+(numbers[e.parent]||e.parent) : '';
+      var stampTitle=''; try{ stampTitle=e.at?new Date(e.at).toISOString():e.ts; }catch(x){ stampTitle=e.ts||''; }
+      return "\u003ctr class=\"hh-row"+(e.id===selId?' sel':'')+'\" data-id=\"'+e.id+"\" tabindex=\"0\" aria-label=\"Petición #"+number+" · "+esc(e.req.method)+" "+esc(path)+"\"\u003e"
+        +"\u003ctd\u003e"+number+"\u003c\u002ftd\u003e"
+        +"\u003ctd class=\"hh-ts\" title=\""+esc(stampTitle)+"\"\u003e"+esc(e.ts||'—')+"\u003c\u002ftd\u003e"
+        +"\u003ctd\u003e\u003cspan class=\"pr-m\" data-m=\""+esc(String(e.req.method||'GET').toUpperCase())+"\"\u003e"+esc(String(e.req.method||'GET').toUpperCase())+"\u003c\u002fspan\u003e\u003c\u002ftd\u003e"
         +"\u003ctd\u003e"+esc(u.host)+"\u003c\u002ftd\u003e"
-        +"\u003ctd title=\""+esc(e.req.url)+"\"\u003e"+esc((u.pathname||"\u002f")+(u.search||''))+"\u003c\u002ftd\u003e"
+        +"\u003ctd title=\""+esc(e.req.url)+"\"\u003e"+esc(path)+"\u003c\u002ftd\u003e"
         +"\u003ctd\u003e\u003cb class=\""+stCls(e.res.status)+"\"\u003e"+esc(e.res.status||'ERR')+"\u003c\u002fb\u003e\u003c\u002ftd\u003e"
-        +"\u003ctd\u003e"+esc(ct)+"\u003c\u002ftd\u003e\u003ctd\u003e"+e.size+"\u003c\u002ftd\u003e\u003ctd\u003e"+e.res.ms+"\u003c\u002ftd\u003e"
-        +"\u003ctd\u003e"+(e.parent?'#'+e.parent:'—')+"\u003c\u002ftd\u003e"
+        +"\u003ctd\u003e"+(e.lengthBytes==null?e.size:e.lengthBytes)+"\u003c\u002ftd\u003e"
+        +"\u003ctd title=\""+esc(ct)+"\"\u003e"+esc(ct)+"\u003c\u002ftd\u003e"
+        +"\u003ctd\u003e"+(e.res.ms||0)+"\u003c\u002ftd\u003e"
+        +"\u003ctd\u003e"+esc(e.src||'—')+esc(parentLabel)+"\u003c\u002ftd\u003e"
         +"\u003ctd\u003e\u003cbutton type=\"button\" class=\"pr-hh-btn\" data-act=\"rep\" data-id=\""+e.id+"\"\u003e⇢ REP\u003c\u002fbutton\u003e\u003c\u002ftd\u003e\u003c\u002ftr\u003e";
     }).join('')+"\u003c\u002ftbody\u003e";
 }
 function renderHH(){
   var T=$('prHHTable'); if(!T) return;
-  var all=hist.filter(passes); var list=all.slice(0,hhLim);
-  $('prHHN').textContent=list.length+' peticiones (cronológico)'+(all.length>list.length?' · mostrando las últimas '+list.length+' de '+all.length:'');
-  if(!list.length){ T.innerHTML="\u003ctr\u003e\u003ctd class=\"pr-empty\"\u003eSin peticiones.\u003c\u002ftd\u003e\u003c\u002ftr\u003e"; return; }
-  T.innerHTML=hhHTML(list.slice().reverse());
+  var wrap=T.closest('.pr-tablewrap'), oldScrollTop=wrap?wrap.scrollTop:0, oldScrollLeft=wrap?wrap.scrollLeft:0;
+  var ordered=chronological(), numbers=sequenceMap(ordered), all=ordered.filter(passes), list=all.slice(0,hhLim);
+  $('prHHN').textContent=list.length+' de '+all.length+' peticiones · orden cronológico'+(all.length>list.length?' · hay más registros':'');
+  if(!list.length) T.innerHTML="\u003ctr\u003e\u003ctd class=\"pr-empty\" colspan=\"11\"\u003eSin peticiones con estos filtros.\u003c\u002ftd\u003e\u003c\u002ftr\u003e";
+  else T.innerHTML=hhHTML(list,numbers);
+  var more=$('prHHMore');
+  if(more){ more.hidden=all.length<=list.length; more.textContent='▸ MOSTRAR SIGUIENTES '+Math.min(LIST_STEP,all.length-list.length)+' · '+(all.length-list.length)+' RESTANTES'; }
+  renderHHDetail(findE(selId),numbers);
+  if(wrap){ wrap.scrollTop=oldScrollTop; wrap.scrollLeft=oldScrollLeft; }
+}
+function renderHHDetail(e,numbers){
+  var label=$('prHHDetailLabel'), req=$('prHHReqRaw'), res=$('prHHResRaw'), btn=$('prHHToRep');
+  if(!label||!req||!res||!btn) return;
+  if(!e){ label.textContent='Seleccioná una fila del historial para ver sus datos RAW.'; req.textContent='Sin petición seleccionada.'; res.textContent='Sin respuesta seleccionada.'; btn.disabled=true; return; }
+  var number=(numbers&&numbers[e.id])||sequenceFor(e.id);
+  label.textContent='#'+number+' · '+(e.ts||'—')+' · '+e.req.method+' '+e.req.url+' · HTTP '+(e.res.status||'ERR');
+  req.textContent=rawReq(e.req);
+  res.textContent=rawRes(e);
+  btn.disabled=false;
 }
 function hhCsv(){
-  var rows=[['id','method','url','status','ms','size','content_type','origen']];
-  hist.slice().reverse().forEach(function(e){ rows.push([e.id,e.req.method,e.req.url,e.res.status,e.res.ms,e.size,ctype(e),e.src]); });
+  var ordered=chronological(), numbers=sequenceMap(ordered);
+  var rows=[['#','timestamp','method','host','path','url','status','length_bytes','mime_type','duration_ms','source','parent']];
+  ordered.forEach(function(e){
+    var u; try{u=new URL(e.req.url);}catch(x){u={host:'',pathname:e.req.url,search:''};}
+    rows.push([numbers[e.id],e.ts,String(e.req.method||'GET').toUpperCase(),u.host,(u.pathname||'\u002f')+(u.search||''),e.req.url,e.res.status,e.lengthBytes==null?e.size:e.lengthBytes,ctype(e).split(';')[0],e.res.ms,e.src,e.parent?(numbers[e.parent]||e.parent):'']);
+  });
   var csv=rows.map(function(r){ return r.map(function(c){ return '"'+String(c==null?'':c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
   var blob=new Blob([csv],{type:"text\u002fcsv"}); var a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download='http-history-'+Date.now()+'.csv'; document.body.appendChild(a); a.click();
@@ -42671,45 +43555,62 @@ function runIntr(){
 function harImport(txt){
   var j=JSON.parse(txt), ents=(j.log&&j.log.entries)||[];
   if(!ents.length) throw new Error('El HAR no tiene entradas');
+  var baseNow=Date.now();
+  var sorted=ents.slice(0,500).map(function(en,index){
+    var parsed=Date.parse(en.startedDateTime||'');
+    return {entry:en, at:isFinite(parsed)?parsed:baseNow+index, index:index};
+  }).sort(function(a,b){ return (a.at-b.at)||(a.index-b.index); });
   var added=[];
-  ents.slice(0,500).forEach(function(en){
-    var rq=en.request||{}, rs=en.response||{}, hdr={}, rh={};
+  sorted.forEach(function(item){
+    var en=item.entry, rq=en.request||{}, rs=en.response||{}, hdr={}, rh={};
     (rq.headers||[]).forEach(function(h){ if(h.name && h.name[0]!==':') hdr[h.name]=h.value; });
     (rs.headers||[]).forEach(function(h){ if(h.name) rh[h.name.toLowerCase()]=h.value; });
-    var body=(rs.content&&rs.content.text)||'';
-    if(rs.content && rs.content.encoding==='base64'){ try{ body=atob(body); }catch(e){} }
-    added.push({ id:++seq, ts:String(en.startedDateTime||'').slice(11,19), src:'har', parent:null,
-      req:{method:rq.method||'GET', url:rq.url||'', headers:hdr, body:(rq.postData&&rq.postData.text)||''},
-      res:{status:rs.status||0, ms:Math.round(en.time||0), error:null, headers:rh, body:body}, size:body.length });
+    var content=rs.content||{}, body=content.text||'', wasBase64=content.encoding==='base64';
+    if(wasBase64){ try{ body=atob(body); }catch(e){} }
+    body=String(body);
+    var ticket=newTicket(item.at), sizeBytes=Number(content.size);
+    if(!isFinite(sizeBytes)||sizeBytes<0) sizeBytes=wasBase64?body.length:byteLength(body);
+    added.push({id:ticket.id,ts:ticket.ts,at:ticket.at,src:'har',parent:null,
+      req:{method:String(rq.method||'GET').toUpperCase(),url:rq.url||'',headers:hdr,body:(rq.postData&&rq.postData.text)||''},
+      res:{status:rs.status||0,ms:Math.round(en.time||0),error:null,headers:rh,body:body},size:body.length,lengthBytes:sizeBytes});
   });
   added.forEach(function(e){ byId[e.id]=e; });
-  hist=added.reverse().concat(hist);
-  selId=added[added.length-1].id; render();
+  hist=added.slice().reverse().concat(hist);
+  if(added.length){ selId=added[added.length-1].id; latestAutoSelId=selId; selectionLocked=false; }
+  render();
   return added.length;
 }
 function exportJSON(){
-  var blob=new Blob([JSON.stringify(hist.map(function(e){ return {id:e.id,ts:e.ts,src:e.src,parent:e.parent,request:e.req,response:e.res}; }),null,2)],{type:"application\u002fjson"});
+  var ordered=chronological();
+  var blob=new Blob([JSON.stringify(ordered.map(function(e){ return {id:e.id,ts:e.ts,at:e.at,lengthBytes:e.lengthBytes,src:e.src,parent:e.parent,request:e.req,response:e.res}; }),null,2)],{type:"application\u002fjson"});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='proxyrep-'+Date.now()+'.json';
   document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
-  status('Exportadas '+hist.length+' peticiones a JSON.');
+  status('Exportadas '+ordered.length+' peticiones a JSON en orden cronológico.');
 }
 
 /* ── eventos ── */
 var inited=false;
 function init(){
-  if(inited) return; inited=true;
-  if(!$('proxyrep')) return;
+  if(inited || !$('proxyrep')) return;
+  inited=true;
   $('prSend').addEventListener('click', function(){ navSend($('prUrl').value, $('prMethod').value); });
   $('prUrl').addEventListener('keydown', function(ev){ if(ev.key==='Enter') navSend($('prUrl').value, $('prMethod').value); });
-  $('prClear').addEventListener('click', function(){ crawlStop=true; if(inst) instEnd(); hist=[]; byId={}; openH={}; listLim=LIST_STEP; selId=null; render(); status('Historial limpio.'); });
+  $('prClear').addEventListener('click', function(){ crawlStop=true; if(inst) instEnd(); hist=[]; byId={}; openH={}; listLim=LIST_STEP; hhLim=1000; selId=null; repBase=null; latestAutoSelId=0; selectionLocked=false; render(); status('Historial limpio.'); });
   var qT=0;
-  $('prQ').addEventListener('input', function(){ clearTimeout(qT); qT=setTimeout(function(){ listLim=LIST_STEP; renderList(); }, 150); });
-  $('prFilt').addEventListener('change', function(){ listLim=LIST_STEP; renderList(); });
+  function refreshHistoryFilters(){ listLim=LIST_STEP; hhLim=1000; renderList(); renderHH(); }
+  $('prQ').addEventListener('input', function(){ clearTimeout(qT); qT=setTimeout(refreshHistoryFilters,150); });
+  $('prFilt').addEventListener('change', refreshHistoryFilters);
+  $('prMethodFilt').addEventListener('change', refreshHistoryFilters);
   $('prList').addEventListener('click', function(ev){
     if(ev.target.closest('.pr-hdrs')) return;
     if(ev.target.closest('#prMore')){ listLim+=LIST_STEP; renderList(); return; }
     var row=ev.target.closest('.pr-row'); if(!row) return;
-    selId=+row.getAttribute('data-id'); render();
+    toRep(findE(+row.getAttribute('data-id')),false);
+  });
+  $('prList').addEventListener('keydown', function(ev){
+    var row=ev.target.closest('.pr-row');
+    if(!row || (ev.key!=='Enter' && ev.key!==' ')) return;
+    ev.preventDefault(); toRep(findE(+row.getAttribute('data-id')),false);
   });
   $('prLinks').addEventListener('click', function(ev){
     var c=ev.target.closest('.pr-chip'); if(!c) return;
@@ -42749,8 +43650,15 @@ function init(){
     var btn=ev.target.closest('button[data-act="rep"]');
     if(btn){ ev.stopPropagation(); toRep(findE(+btn.getAttribute('data-id'))); return; }
     var r=ev.target.closest('.hh-row'); if(!r) return;
-    selId=+r.getAttribute('data-id'); render(); tab('req');
+    toRep(findE(+r.getAttribute('data-id')),false);
   });
+  $('prHHTable').addEventListener('keydown', function(ev){
+    var r=ev.target.closest('.hh-row');
+    if(!r || (ev.target.closest('button')) || (ev.key!=='Enter' && ev.key!==' ')) return;
+    ev.preventDefault(); toRep(findE(+r.getAttribute('data-id')),false);
+  });
+  $('prHHMore').addEventListener('click', function(){ hhLim+=LIST_STEP; renderHH(); });
+  $('prHHToRep').addEventListener('click', function(){ toRep(findE(selId)); });
   $('prHHCsv').addEventListener('click', hhCsv);
   $('prCmpGo').addEventListener('click', compare);
   $('prDecEnc').addEventListener('click', function(){ $('prDecOut').textContent=decodeT($('prDecT').value,'enc',$('prDecIn').value); });
@@ -43586,5 +44494,1508 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
   renderScopes();
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4eee34dfc01c877',t:'MTc5MjczOTA2OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script id="ts-universal-pdf-suite">
+(function(){
+  "use strict";
+  if (window.__tsUniversalPdfSuiteLoaded) return;
+  window.__tsUniversalPdfSuiteLoaded = true;
+
+  /* ── Inject sleek universal CSS for all engine PDF buttons + Global Dossier FAB ── */
+  var css = document.createElement("style");
+  css.id = "ts-universal-pdf-css";
+  css.textContent = [
+    ".ts-eng-pdf-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:8px 13px;border-radius:4px;",
+    "border:1px solid rgba(255,26,46,.55);background:linear-gradient(135deg,rgba(255,26,46,.16),rgba(123,79,255,.12));",
+    "color:#ffd6db;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.04em;",
+    "text-transform:uppercase;white-space:nowrap;transition:transform .15s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease;vertical-align:middle;}",
+    ".ts-eng-pdf-btn:hover{border-color:#ff1a2e;background:linear-gradient(135deg,rgba(255,26,46,.32),rgba(123,79,255,.22));",
+    "color:#fff;box-shadow:0 0 16px rgba(255,26,46,.38);transform:translateY(-1px);}",
+    ".ts-eng-pdf-btn.compact{padding:5px 10px;font-size:10px;}",
+    "#ts-global-pdf-fab{position:fixed;bottom:16px;left:16px;z-index:9990;display:inline-flex;align-items:center;gap:8px;",
+    "padding:9px 14px;border-radius:999px;border:1px solid rgba(255,26,46,.6);background:rgba(14,4,8,.92);",
+    "backdrop-filter:blur(10px);color:#fff;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;",
+    "cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 18px rgba(255,26,46,.25);transition:all .18s ease;}",
+    "#ts-global-pdf-fab:hover{border-color:#00ffa3;box-shadow:0 8px 28px rgba(0,0,0,.75),0 0 22px rgba(0,255,163,.3);transform:translateY(-2px);}",
+    "#ts-global-pdf-count{padding:1px 7px;border-radius:999px;background:#ff1a2e;color:#fff;font-size:10px;font-weight:800;}",
+    "@media(max-width:768px){#ts-global-pdf-fab{bottom:10px;left:10px;padding:7px 11px;font-size:10px;}}"
+  ].join("");
+  document.head.appendChild(css);
+
+  function $(id){ return document.getElementById(id); }
+  function val(id, fb){ var e=$(id); return e && typeof e.value==="string" && e.value.trim() ? e.value.trim() : (fb || ""); }
+  function txt(id, fb){
+    var e=$(id);
+    if(!e) return fb || "";
+    if(e.children && e.children.length > 1){
+      var parts = [];
+      for(var ci=0; ci<e.children.length; ci++){
+        var ct = (e.children[ci].innerText || e.children[ci].textContent || "").replace(/\s+/g," ").trim();
+        if(ct) parts.push(ct);
+      }
+      if(parts.length) return parts.join("  ·  ");
+    }
+    var s = (e.innerText || e.textContent || "").replace(/\s+/g," ").trim();
+    return s || (fb || "");
+  }
+  function rawTxt(id, maxLen){
+    var e=$(id);
+    if(!e) return "";
+    var t = (e.innerText || e.textContent || "").replace(/\r/g,"").replace(/\n{3,}/g,"\n\n").trim();
+    return t.slice(0, maxLen || 6000);
+  }
+  function tableRowsFromDom(containerId, colCount) {
+    var root = $(containerId);
+    if (!root) return [];
+    var rows = [];
+    var trs = root.querySelectorAll("tr");
+    trs.forEach(function(tr) {
+      var cells = tr.querySelectorAll("td");
+      if (!cells.length) return;
+      var arr = [];
+      for (var i = 0; i < cells.length; i++) arr.push((cells[i].innerText || cells[i].textContent || "").replace(/\s+/g, " ").trim());
+      if (arr.join("").trim()) {
+        while (arr.length < colCount) arr.push("-");
+        if (arr.length > colCount) arr = arr.slice(0, colCount - 1).concat([arr.slice(colCount - 1).join(" · ")]);
+        rows.push(arr);
+      }
+    });
+    if (rows.length) return rows;
+    /* Fallback: parse structured cards / list items / blocks inside container */
+    var cards = root.querySelectorAll("[class*='card'], [class*='row'], [class*='item'], li, article, section, .sf-card, .wr-row");
+    cards.forEach(function(c) {
+      if (c.querySelector("[class*='card']")) return;
+      var t = (c.innerText || c.textContent || "").replace(/\s+/g, " ").trim();
+      if (!t || t.length < 4) return;
+      var sevM = t.match(/\b(CRITICAL|CRÍTICO|CRIT|HIGH|ALTO|MEDIUM|MEDIO|MED|LOW|BAJO|INFO|OK|PASS|VULN|EXPUESTO|P1|P2|P3|200|301|302|403|404|500)\b/i);
+      var sev = sevM ? sevM[1].toUpperCase() : "DETALLE";
+      var headEl = c.querySelector("h1,h2,h3,h4,h5,b,strong,.sf-name,.wr-ttl,code");
+      var head = headEl ? (headEl.textContent || "").replace(/\s+/g, " ").trim().slice(0, 65) : t.slice(0, 52);
+      var detail = t.replace(head, "").replace(/^\s*[·:\-|]+\s*/, "").trim() || t;
+      if (colCount === 2) rows.push([head, detail.slice(0, 320)]);
+      else if (colCount === 3) rows.push([sev, head, detail.slice(0, 320)]);
+      else rows.push([sev, head, "-", detail.slice(0, 320)]);
+    });
+    if (rows.length) return rows.slice(0, 160);
+    /* Fallback: line-by-line terminal/log parser */
+    var lines = (root.innerText || root.textContent || "").split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 2 && !/^\/\//.test(l); });
+    lines.slice(0, 140).forEach(function(line, idx) {
+      var sm = line.match(/\b(CRIT|HIGH|MED|LOW|OK|WARN|ERR|200|301|302|401|403|500|VULN|PASS|FAIL)\b/i);
+      var tag = sm ? sm[1].toUpperCase() : ("#" + (idx + 1));
+      if (colCount === 2) rows.push([tag, line.slice(0, 340)]);
+      else if (colCount === 3) rows.push([tag, "Evento " + (idx + 1), line.slice(0, 340)]);
+      else rows.push([tag, "Fase", "Evento " + (idx + 1), line.slice(0, 340)]);
+    });
+    return rows;
+  }
+
+  function extractPills(containerId) {
+    var el = $(containerId);
+    if (!el) return [];
+    var out = [];
+    el.querySelectorAll("span, div, b, strong, .pill, .badge").forEach(function(n) {
+      if (n.children.length > 2) return;
+      var s = (n.textContent || "").replace(/\s+/g, " ").trim();
+      if (s && s.length >= 2 && s.length <= 46 && out.indexOf(s) === -1) out.push(s);
+    });
+    return out.slice(0, 6);
+  }
+
+  function ensureFallbackRow(rows, colsLen, targetLabel, engineName) {
+    if (rows && rows.length) return rows;
+    var base = ["CONFIGURADO", engineName, "Motor listo / esperando ejecución activa sobre " + (targetLabel || "objetivo configurado")];
+    while (base.length < colsLen) base.splice(2, 0, targetLabel || "-");
+    return [base.slice(0, colsLen)];
+  }
+
+  /* ── 38 Dedicated Deep Engine Extractors Covering 100% of TudelaSec Red Ops ── */
+  var EXTRACTORS = {
+    mammoth: function() {
+      var d = window.tudelaSecMammothData || {};
+      var target = d.url || val("mmt-target", "wordpress-target");
+      var plugins = d.plugins || {};
+      var themes = d.themes || {};
+      var users = Array.isArray(d.users) ? d.users : Object.keys(d.users || {});
+      var files = Array.isArray(d.files) ? d.files : Object.keys(d.files || {});
+      var cves = Array.isArray(d.cves) ? d.cves : [];
+      var rows = [];
+      rows.push([d.isWP ? "CONFIRMADO" : (d.status || "INFO").toUpperCase(), "WordPress Core", d.wpVersion ? ("WP " + d.wpVersion) : "No detectado / oculto", "Estado: " + (d.status || "listo") + " · WP2Shell: " + (d.wp2shell ? "VULNERABLE" : "No")]);
+      Object.keys(themes).forEach(function(tk) {
+        rows.push(["TEMA", tk, String(themes[tk] || "sin versión"), "Tema WordPress detectado en wp-content/themes/" + tk]);
+      });
+      Object.keys(plugins).forEach(function(pk) {
+        rows.push(["PLUGIN", pk, String(plugins[pk] || "sin versión"), "Plugin enumerado en wp-content/plugins/" + pk]);
+      });
+      users.forEach(function(u) {
+        var uname = typeof u === "object" ? (u.slug || u.name || JSON.stringify(u)) : String(u);
+        rows.push(["ALTO", "Usuario Enumerado", uname, "Fuga de identidad vía REST API wp/v2/users o author archive"]);
+      });
+      files.forEach(function(f) {
+        var fp = typeof f === "object" ? (f.path || f.url || JSON.stringify(f)) : String(f);
+        rows.push(["MEDIO", "Archivo Expuesto", fp, "Recurso sensible accesible públicamente en el servidor WordPress"]);
+      });
+      cves.forEach(function(cv) {
+        rows.push([(cv.severity || "CRÍTICO").toUpperCase(), cv.id || cv.cve || "CVE WordPress", cv.component || cv.slug || "Core/Plugin", cv.title || cv.summary || JSON.stringify(cv)]);
+      });
+      if (rows.length <= 1) rows = rows.concat(tableRowsFromDom("mmt-body", 4));
+      return {
+        engine: "MAMMOTH v4.2 TURBO EDGE · WORDPRESS AUDIT",
+        title: "Auditoría Integral de Seguridad WordPress — MAMMOTH",
+        subtitle: "Reconocimiento profundo de Core, Temas, Plugins, Usuarios REST, XML-RPC, Archivos Sensibles y Matriz CVE",
+        target: target,
+        verdict: txt("mmt-summary", "Estado MAMMOTH: " + (d.status || "Listo") + " · Core WP: " + (d.wpVersion || "N/D") + " · CVEs: " + cves.length),
+        verdictColor: cves.length > 0 ? "#ff1a2e" : (Object.keys(plugins).length || users.length ? "#ffb020" : "#00ffa3"),
+        stats: [
+          { label: "Core WordPress", value: d.wpVersion ? ("WP " + d.wpVersion) : "N/D", color: "#00ffa3" },
+          { label: "Plugins", value: String(Object.keys(plugins).length), color: "#7b4fff" },
+          { label: "Temas", value: String(Object.keys(themes).length), color: "#60a5fa" },
+          { label: "Usuarios", value: String(users.length), color: users.length ? "#ffb020" : "#00ffa3" },
+          { label: "Archivos Exp.", value: String(files.length), color: files.length ? "#ffb020" : "#00ffa3" },
+          { label: "CVEs / Reqs", value: cves.length + " / " + (d.requests || 0), color: cves.length ? "#ff1a2e" : "#f0eef8" }
+        ],
+        columns: ["Severidad / Tipo", "Componente", "Versión / ID", "Detalle Técnico Auditado"],
+        rows: ensureFallbackRow(rows, 4, target, "MAMMOTH v4.2"),
+        recommendations: [
+          "Actualizar inmediatamente el Core de WordPress, temas y plugins enumerados a su última rama soportada.",
+          "Bloquear enumeración anónima en /wp-json/wp/v2/users y redirecciones ?author=N a nivel de WAF / Nginx.",
+          "Deshabilitar xmlrpc.php si no es estrictamente requerido y denegar acceso HTTP a readme.html, debug.log y *.bak."
+        ],
+        evidence: rawTxt("mmt-body", 7000),
+        footer: "Generado por MAMMOTH WordPress Engine v4.2 Turbo Edge · TudelaSec Red Ops"
+      };
+    },
+
+    osint: function() {
+      var target = val("osint-input", "objetivo-osint");
+      var rows = tableRowsFromDom("osint-sections", 3).concat(tableRowsFromDom("osint-findings-log", 3));
+      return {
+        engine: "OSINT MULTI-FUENTE v4 · 32 FUENTES + ACTIVE RECON",
+        title: "Dossier de Inteligencia de Fuentes Abiertas (OSINT)",
+        subtitle: "DNS/DoH, Subdominios, Certificados TLS, WHOIS/RDAP, Shodan InternetDB, Cloud Buckets, Typosquatting y Riesgo",
+        target: target,
+        verdict: txt("osint-status", "Dossier OSINT generado · Hallazgos registrados: " + txt("ofp-count", "0")),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Objetivo", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Hallazgos", value: txt("ofp-count", String(rows.length)), color: "#ff1a2e" },
+          { label: "Fuentes OSINT", value: "32 APIs", color: "#7b4fff" },
+          { label: "Registros PDF", value: String(rows.length), color: "#ffb020" }
+        ],
+        columns: ["Categoría / Estado", "Fuente OSINT", "Inteligencia Recolectada"],
+        rows: ensureFallbackRow(rows, 3, target, "OSINT Engine v4"),
+        recommendations: [
+          "Auditar subdominios huérfanos y registros CNAME apuntando a servicios cloud desaprovisionados (Subdomain Takeover).",
+          "Restringir exposición de puertos administrativos detectados en Shodan InternetDB mediante listas blancas / VPN Zero Trust.",
+          "Monitorear dominios typosquatting activos con resolución A/MX para prevenir campañas de phishing dirigido."
+        ],
+        evidence: (rawTxt("osint-findings-log", 3500) + "\n" + rawTxt("osint-sections", 4500)).trim(),
+        footer: "Generado por TudelaSec OSINT Multi-Fuente v4"
+      };
+    },
+
+    waflab: function() {
+      var target = val("atkTarget", "waf-target");
+      var pills = extractPills("atkSummary");
+      var rows = tableRowsFromDom("atkBody", 4);
+      return {
+        engine: "WAF LAB v3.2 OVERDRIVE · EVASIÓN & FINGERPRINTING",
+        title: "Auditoría de Resiliencia y Evasión de Firewall Web (WAF)",
+        subtitle: "Pruebas de mutación de codificación, fragmentación semántica y bypass de reglas sobre parámetro '" + val("atkParam", "q") + "'",
+        target: target,
+        verdict: txt("atkSummary", "Evaluación WAF sobre " + target + " (" + rows.length + " vectores registrados)"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Parámetro", value: val("atkParam", "q"), color: "#00ffa3" },
+          { label: "Vectores Tabla", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Resumen #1", value: (pills[0] || "WAF v3.2").slice(0, 16), color: "#ffb020" },
+          { label: "Resumen #2", value: (pills[1] || "Auditado").slice(0, 16), color: "#7b4fff" }
+        ],
+        columns: ["Resultado", "Vector / Familia", "HTTP / Estado", "Payload & Evidencia Técnica"],
+        rows: ensureFallbackRow(rows, 4, target, "WAF Lab v3.2"),
+        recommendations: [
+          "Normalizar canónicamente URL-encoding doble, comentarios inline y Unicode antes de evaluar reglas CRS OWASP.",
+          "Nunca depender únicamente del WAF como sustituto de consultas parametrizadas y codificación contextual en backend."
+        ],
+        evidence: rawTxt("atkProgress", 5500),
+        footer: "Generado por WAF Lab v3.2 Overdrive · TudelaSec Red Ops"
+      };
+    },
+
+    venom: function() {
+      var target = val("vnTarget", "xss-target");
+      var pills = extractPills("vnSummary");
+      var rows = tableRowsFromDom("vnBody", 4);
+      return {
+        engine: "VENOM v3.3 ANNIHILATOR · MOTOR XSS OFENSIVO",
+        title: "Reporte Técnico de Cross-Site Scripting (XSS) — VENOM",
+        subtitle: "Barrido multi-contexto GET/POST/Headers/Path, Mutation Forge, verificación Verbatim 12/12 y DOM Sinks",
+        target: target,
+        verdict: txt("vnSummary", "Auditoría XSS sobre " + target + " · " + rows.length + " resultados analizados"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Parámetro", value: val("vnParam", "auto"), color: "#00ffa3" },
+          { label: "Hallazgos / Filas", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Indicador 1", value: (pills[0] || "VENOM v3.3").slice(0, 16), color: "#ffb020" },
+          { label: "Indicador 2", value: (pills[1] || "Verbatim").slice(0, 16), color: "#7b4fff" }
+        ],
+        columns: ["Severidad", "Vector / Contexto", "Parámetro", "Payload Verificado & Evidencia"],
+        rows: ensureFallbackRow(rows, 4, target, "VENOM v3.3"),
+        recommendations: [
+          "Aplicar escape contextual estricto en HTML body, atributos entrecomillados, literales JS y URLs (DOMPurify / plantillas auto-escaped).",
+          "Implementar Content-Security-Policy estricta basada en nonces criptográficos ('strict-dynamic') sin 'unsafe-inline'."
+        ],
+        evidence: rawTxt("vnProgress", 6000),
+        footer: "Generado por VENOM v3.3 Annihilator · TudelaSec Red Ops"
+      };
+    },
+
+    siren: function() {
+      var target = val("srTarget", "redirect-target");
+      var rows = tableRowsFromDom("srBody", 4);
+      return {
+        engine: "SIREN v4.0 LETAL · OPEN REDIRECT & OAUTH CHAIN",
+        title: "Auditoría de Redirección Abierta y Fuga de Tokens — SIREN",
+        subtitle: "Evaluación de 240+ parámetros, bypass de listas blancas, cabeceras Location, Meta-Refresh y DOM Redirect",
+        target: target,
+        verdict: txt("srSummary", "Análisis Open Redirect sobre " + target + " (" + rows.length + " filas)"),
+        verdictColor: "#ffb020",
+        stats: [
+          { label: "Parámetro", value: val("srParam", "auto"), color: "#00ffa3" },
+          { label: "Vectores Tabla", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Canary RFC2606", value: ".invalid", color: "#7b4fff" },
+          { label: "Confirmación", value: "5/5 Rondas", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Técnica / Vector", "Destino / Código", "Detalle Técnico"],
+        rows: ensureFallbackRow(rows, 4, target, "SIREN v4.0"),
+        recommendations: [
+          "Permitir únicamente rutas relativas estrictas que inicien con '/' seguido de carácter alfanumérico (/^\\/[a-zA-Z0-9]/).",
+          "Validar exactamente redirect_uri por igualdad estricta de cadena en flujos OAuth2 / OIDC."
+        ],
+        evidence: rawTxt("srProgress", 5500),
+        footer: "Generado por SIREN v4.0 Letal · TudelaSec Red Ops"
+      };
+    },
+
+    basilisk: function() {
+      var target = val("bsTarget", "sqli-target");
+      var rows = tableRowsFromDom("bsBody", 4);
+      return {
+        engine: "BASILISK v5.2 AMMIT OMEGA · SQL INJECTION ENGINE",
+        title: "Reporte Forense de Inyección SQL (SQLi) — BASILISK",
+        subtitle: "Detección Error-Based, Boolean-Blind, Differential Timing y Fingerprinting de Motor de Base de Datos",
+        target: target,
+        verdict: txt("bsSummary", "Auditoría SQLi sobre " + target) + (txt("bsDetail") ? " · " + txt("bsDetail").slice(0, 90) : ""),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Parámetro", value: val("bsParam", "auto"), color: "#00ffa3" },
+          { label: "Vectores / Filas", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Modo Seguro", value: "Read-Only Meta", color: "#7b4fff" },
+          { label: "Estado", value: rows.length ? "Auditado" : "Listo", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Vector / Técnica SQLi", "Parámetro / DBMS", "Evidencia & Comportamiento"],
+        rows: ensureFallbackRow(rows, 4, target, "BASILISK v5.2"),
+        recommendations: [
+          "Reemplazar toda concatenación dinámica de SQL por Prepared Statements / consultas parametrizadas nativas.",
+          "Suprimir trazas de errores SQL en producción y ejecutar la cuenta de aplicación con privilegios mínimos (sin FILE/XP_CMDSHELL)."
+        ],
+        evidence: (rawTxt("bsDetail", 2500) + "\n" + rawTxt("bsProgress", 5500)).trim(),
+        footer: "Generado por BASILISK v5.2 Ammit Omega · TudelaSec Red Ops"
+      };
+    },
+
+    wraith: function() {
+      var target = val("wrUrl", "wraith-target");
+      var rows = tableRowsFromDom("wrResult", 3);
+      return {
+        engine: "WRAITH · PASSIVE & EXPOSED FILE RECON",
+        title: "Reconocimiento de Superficie HTTP y Archivos Expuestos — WRAITH",
+        subtitle: "Inspección de cabeceras de seguridad, tecnologías expuestas y recursos sensibles (.git, .env, security.txt, robots.txt)",
+        target: target,
+        verdict: txt("wrStatus", "Superficie WRAITH analizada para " + target),
+        verdictColor: "#7b4fff",
+        stats: [
+          { label: "Objetivo", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Elementos", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Archivos Sens.", value: ($("wrFiles") && $("wrFiles").checked) ? "Activo" : "Opcional", color: "#7b4fff" },
+          { label: "Estado", value: txt("wrStatus", "Listo").slice(0, 16), color: "#ffb020" }
+        ],
+        columns: ["Estado / Sev.", "Categoría", "Detalle Técnico Detectado"],
+        rows: ensureFallbackRow(rows, 3, target, "WRAITH Recon"),
+        recommendations: [
+          "Bloquear en el servidor web cualquier acceso a directorios ocultos (/.git, /.svn) y archivos de entorno (.env, backups).",
+          "Ocultar versiones exactas en cabeceras Server y X-Powered-By."
+        ],
+        evidence: rawTxt("wrResult", 5500),
+        footer: "Generado por WRAITH Recon Engine · TudelaSec Red Ops"
+      };
+    },
+
+    nimbus: function() {
+      var target = val("nbTarget", "cloud-target");
+      var rows = tableRowsFromDom("nbBody", 4);
+      return {
+        engine: "NIMBUS CLOUD RECON · 15 OLEADAS MULTI-CLOUD",
+        title: "Auditoría de Superficie Cloud (AWS / GCP / Azure / K8s) — NIMBUS",
+        subtitle: "Enumeración de Buckets S3/GCS/Blob, Firebase, Cognito, Supabase, K8s/Docker, CNAME Takeover y Fuga de Credenciales",
+        target: target,
+        verdict: txt("nbSummary", "Auditoría Cloud NIMBUS sobre " + target + " (" + rows.length + " hallazgos)"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Dominio Cloud", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Hallazgos Cloud", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Cobertura", value: "15 Oleadas", color: "#7b4fff" },
+          { label: "Proveedores", value: "AWS/GCP/AZ/K8s", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Oleada / Servicio Cloud", "Recurso", "Evidencia & Permisos"],
+        rows: ensureFallbackRow(rows, 4, target, "NIMBUS Cloud"),
+        recommendations: [
+          "Activar S3 Block Public Access a nivel de cuenta AWS y auditar políticas IAM / ACLs de buckets públicos.",
+          "Revocar y rotar de inmediato claves API, archivos .env, terraform.tfstate o credenciales Firebase/Supabase expuestas."
+        ],
+        evidence: rawTxt("nbLog", 6000),
+        footer: "Generado por NIMBUS Multi-Cloud Engine · TudelaSec Red Ops"
+      };
+    },
+
+    proxyrep: function() {
+      var target = val("prUrl", "http-proxy-target");
+      var rows = tableRowsFromDom("prHHTable", 4);
+      if (!rows.length) rows = tableRowsFromDom("prList", 4);
+      if (!rows.length) rows = tableRowsFromDom("prIOut", 4);
+      var anRows = tableRowsFromDom("prAnOut", 4);
+      rows = rows.concat(anRows);
+      return {
+        engine: "TUDELASEC INTERCEPTOR · PROXY / REPEATER / INTRUDER",
+        title: "Registro Forense HTTP, Repeater & Intruder — Proxy Suite",
+        subtitle: "Historial de tráfico HTTP(S), peticiones repetidas, payloads Intruder y hallazgos del Analizador Pasivo",
+        target: val("prMethod", "GET") + " " + target,
+        verdict: "Peticiones totales: " + txt("hudReq", "0") + " · 2XX/OK: " + txt("hudOk", "0") + " · Errores: " + txt("hudErr", "0") + " · Latencia media: " + txt("hudLat", "-"),
+        verdictColor: "#7b4fff",
+        stats: [
+          { label: "Requests HUD", value: txt("hudReq", "0"), color: "#00ffa3" },
+          { label: "Respuestas OK", value: txt("hudOk", "0"), color: "#00ffa3" },
+          { label: "Errores", value: txt("hudErr", "0"), color: "#ff1a2e" },
+          { label: "Hosts Únicos", value: txt("hudHosts", "0"), color: "#7b4fff" },
+          { label: "Latencia", value: txt("hudLat", "0ms"), color: "#ffb020" }
+        ],
+        columns: ["Estado / ID", "Método / Fase", "URL / Endpoint", "Detalles de Tráfico & Seguridad"],
+        rows: ensureFallbackRow(rows, 4, target, "HTTP Proxy / Repeater"),
+        recommendations: [
+          "Verificar controles de autorización (BOLA/IDOR) repitiendo peticiones sensibles con sesiones de menor privilegio.",
+          "Inspeccionar cabeceras Set-Cookie (HttpOnly, Secure, SameSite) y CORS en todas las respuestas autenticadas."
+        ],
+        evidence: [
+          "=== RAW REQUEST ===\n" + rawTxt("prReqRaw", 2000),
+          "=== RAW RESPONSE ===\n" + rawTxt("prResRaw", 2500),
+          "=== REPEATER WIRE ===\n" + rawTxt("prRepOut", 2000)
+        ].join("\n\n").trim(),
+        footer: "Generado por TudelaSec Proxy / Repeater / Intruder Suite"
+      };
+    },
+
+    taint: function() {
+      if (!val("trCode") && $("trSample")) $("trSample").click();
+      if (!rawTxt("trBody", 100) && $("trRun")) $("trRun").click();
+      var code = val("trCode", "");
+      var lineCount = code ? code.split("\n").length : 0;
+      var rows = tableRowsFromDom("trBody", 4);
+      return {
+        engine: "TAINT RADAR · SAST ZERO TRUST DATAFLOW ENGINE",
+        title: "Auditoría Estática de Flujo de Datos Contaminados (SAST) — Taint Radar",
+        subtitle: "Trazabilidad Source -> Sink de inyecciones SQL, Command Execution, Eval, XSS DOM, Path Traversal y SSRF en código fuente",
+        target: "Código auditado (" + lineCount + " líneas)",
+        verdict: txt("trSummary", "Análisis estático Zero Trust completado · " + rows.length + " flujos peligrosos detectados"),
+        verdictColor: rows.length ? "#ff1a2e" : "#00ffa3",
+        stats: [
+          { label: "Líneas Auditadas", value: String(lineCount), color: "#00ffa3" },
+          { label: " Sinks Críticos", value: String(rows.length), color: rows.length ? "#ff1a2e" : "#00ffa3" },
+          { label: "Política", value: "Zero Trust", color: "#7b4fff" },
+          { label: "Motor", value: "AST / Taint", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Vulnerabilidad / CWE", "Ubicación", "Flujo Source -> Sink & Remediación"],
+        rows: ensureFallbackRow(rows, 4, "Source Code", "Taint Radar SAST"),
+        recommendations: [
+          "Sanitizar y validar con esquemas estrictos (allowlist) toda entrada de usuario antes de alcanzar cualquier sink sensible.",
+          "Eliminar el uso de eval(), Function(), innerHTML sin sanitizador y concatenación directa en shells o SQL."
+        ],
+        evidence: rawTxt("trLog", 5500),
+        footer: "Generado por Taint Radar SAST Zero Trust · TudelaSec Red Ops"
+      };
+    },
+
+    breach: function() {
+      var target = val("brInput", "identidad-auditada");
+      var rows = tableRowsFromDom("brBody", 3).concat(tableRowsFromDom("brPlan", 3));
+      return {
+        engine: "BREACH RADAR & PASSWORD k-ANONYMITY v4",
+        title: "Informe de Exposición de Credenciales y Filtraciones — Breach Radar",
+        subtitle: "Inteligencia de bases filtradas (XposedOrNot) + Auditoría k-Anonymity SHA-1 / NTLM sin exponer la clave en red",
+        target: target,
+        verdict: txt("brSummary", "Evaluación de exposición para " + target + " (" + rows.length + " registros)"),
+        verdictColor: rows.length ? "#ff1a2e" : "#00ffa3",
+        stats: [
+          { label: "Objetivo", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Registros", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Privacidad Hash", value: "k-Anonymity", color: "#7b4fff" },
+          { label: "Fuentes", value: "SHA1+NTLM+XON", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Fuente / Brecha", "Detalle de Exposición & Plan de Acción"],
+        rows: ensureFallbackRow(rows, 3, target, "Breach Radar v4"),
+        recommendations: [
+          "Rotar inmediatamente cualquier credencial expuesta en brechas históricas y prohibir reutilización de contraseñas.",
+          "Exigir autenticación multifactor resistente a phishing (FIDO2 / Passkeys) en todas las cuentas corporativas."
+        ],
+        evidence: rawTxt("brLog", 5500),
+        footer: "Generado por Breach Radar & Password Auditor v4 · TudelaSec Red Ops"
+      };
+    },
+
+    dns: function() {
+      var target = val("dasDomain", val("brInput", "dominio.com"));
+      var rows = tableRowsFromDom("dasResults", 3);
+      return {
+        engine: "DNS & MAIL ANTI-SPOOFING AUDITOR",
+        title: "Auditoría de Postura DNS y Anti-Suplantación de Correo",
+        subtitle: "Evaluación técnica de registros SPF, DMARC, DKIM, MX, BIMI, MTA-STS, TLS-RPT y CAA",
+        target: target,
+        verdict: "Score de Seguridad DNS/Mail: " + txt("dasScoreNum", "N/D") + "/100 · Calificación: " + txt("dasGrade", "Pendiente"),
+        verdictColor: "#ffb020",
+        stats: [
+          { label: "Dominio", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Puntaje", value: txt("dasScoreNum", "-"), color: "#ff1a2e" },
+          { label: "Grado", value: txt("dasGrade", "-"), color: "#ffb020" },
+          { label: "Controles", value: String(rows.length), color: "#7b4fff" }
+        ],
+        columns: ["Estado", "Protocolo DNS / Mail", "Configuración Actual & Riesgo de Spoofing"],
+        rows: ensureFallbackRow(rows, 3, target, "DNS Mail Auditor"),
+        recommendations: [
+          "Publicar política DMARC en modo p=reject con rua/ruf activos y alineamiento estricto adkim=s; aspf=s.",
+          "Cerrar el registro SPF con '-all' (HardFail), mantener < 10 búsquedas DNS y habilitar MTA-STS en modo enforce."
+        ],
+        evidence: rawTxt("dasLog", 5000),
+        footer: "Generado por DNS & Mail Anti-Spoofing Auditor · TudelaSec Red Ops"
+      };
+    },
+
+    nexusactive: function() {
+      var target = val("nxaMethod", "GET") + " " + val("nxaUrl", "https://endpoint");
+      var rows = tableRowsFromDom("nxaRows", 4);
+      return {
+        engine: "NEXUS ACTIVE · REPLAY, MUTATION, IDOR & RACE",
+        title: "Auditoría Activa de Lógica de Negocio y Autorización — NEXUS Active",
+        subtitle: "Comparación Baseline vs Replay, Mutación de Parámetros, Sustitución de Identificadores (BOLA/IDOR) y Ráfagas de Concurrencia",
+        target: target,
+        verdict: txt("nxaStatus", "Estado NEXUS Active") + " · " + txt("nxaVerdicts", "Pruebas registradas: " + txt("nxaCount", String(rows.length))),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Método", value: val("nxaMethod", "GET"), color: "#00ffa3" },
+          { label: "Pruebas Ejec.", value: txt("nxaCount", String(rows.length)), color: "#ff1a2e" },
+          { label: "Modo Ruta", value: val("nxaRoute", "proxy"), color: "#7b4fff" },
+          { label: "Filas Tabla", value: String(rows.length), color: "#ffb020" }
+        ],
+        columns: ["Veredicto", "Modo / Vector", "Código / Latencia", "Diferencial Baseline vs Mutación"],
+        rows: ensureFallbackRow(rows, 4, target, "NEXUS Active"),
+        recommendations: [
+          "Validar propiedad del recurso (ownership check) en cada controlador de API frente a ataques BOLA / IDOR.",
+          "Aplicar bloqueos pesimistas / llaves de idempotencia transaccionales ante ráfagas concurrentes (Race Conditions)."
+        ],
+        evidence: rawTxt("nxaVerdicts", 3500),
+        footer: "Generado por NEXUS Active Engine · TudelaSec Red Ops"
+      };
+    },
+
+    gasr: function() {
+      var target = val("gasrInput", "superficie-global");
+      var rows = tableRowsFromDom("gasrRiskList", 3).concat(tableRowsFromDom("gasrResults", 3));
+      return {
+        engine: "GASR · GLOBAL ATTACK SURFACE RADAR",
+        title: "Dossier de Superficie de Ataque Global — GASR",
+        subtitle: "Correlación de Shodan InternetDB, Netlas, LeakIX, Censys, Hunter.how y FOFA",
+        target: target,
+        verdict: txt("gasrThreatTitle", "Nivel de Amenaza: " + txt("gasrGaugeLvl", "Evaluado")) + " · Estado: " + txt("gasrState", "Listo"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "IPs / Activos", value: txt("gasrS_ips", "0"), color: "#00ffa3" },
+          { label: "Puertos Abiertos", value: txt("gasrS_ports", "0"), color: "#ffb020" },
+          { label: "Score Riesgo", value: txt("gasrS_risk", "0"), color: "#ff1a2e" },
+          { label: "CVEs Detectados", value: txt("gasrS_cve", "0"), color: "#ff1a2e" },
+          { label: "Leaks / Exp.", value: txt("gasrS_leak", "0"), color: "#7b4fff" }
+        ],
+        columns: ["Severidad / Puerto", "Activo / Servicio", "Detalle de Exposición & CVEs"],
+        rows: ensureFallbackRow(rows, 3, target, "GASR Radar"),
+        recommendations: [
+          "Cerrar inmediatamente servicios de base de datos, Docker API, Redis, Elasticsearch o paneles expuestos a Internet.",
+          "Aplicar parches prioritarios sobre servicios con CVEs públicos confirmados en Shodan InternetDB / NVD."
+        ],
+        evidence: rawTxt("gasrLog", 5500),
+        footer: "Generado por GASR Global Attack Surface Radar · TudelaSec Red Ops"
+      };
+    },
+
+    mailsec: function() {
+      if (!rawTxt("msBody", 60) && $("msSample") && $("msRun")) { $("msSample").click(); $("msRun").click(); }
+      var fromHdr = val("msFrom", "remitente@dominio.tld");
+      var rows = tableRowsFromDom("msBody", 3).concat(tableRowsFromDom("mpFlags", 3));
+      return {
+        engine: "MAIL REAPER & PHISHING FORENSIC SIMULATOR",
+        title: "Análisis Forense de Suplantación de Correo (BEC / Phishing) — Mail Reaper",
+        subtitle: "Inspección de desalineamiento From / Return-Path / Reply-To, homógrafos, urgencia social y Playbook Blue/Red Team",
+        target: fromHdr + " -> " + val("msRcpt", "destinatario"),
+        verdict: txt("msSummary", "Análisis de suplantación completado para '" + val("msSubject", "Sin asunto") + "'"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "From Header", value: fromHdr.slice(0, 18), color: "#ff1a2e" },
+          { label: "Envelope From", value: val("msEnv", "-").slice(0, 18), color: "#ffb020" },
+          { label: "Reply-To", value: val("msReplyTo", "-").slice(0, 18), color: "#7b4fff" },
+          { label: "Indicadores", value: String(rows.length), color: "#00ffa3" }
+        ],
+        columns: ["Riesgo", "Vector de Ingeniería Social / Header", "Análisis Técnico"],
+        rows: ensureFallbackRow(rows, 3, fromHdr, "Mail Reaper"),
+        recommendations: [
+          "Insertar banner de alerta automática en el gateway de correo cuando From difiera de Return-Path o Reply-To externo.",
+          "Bloquear dominios lookalike / punycode (IDN homograph) y exigir verificación fuera de banda ante cambios bancarios (BEC)."
+        ],
+        evidence: rawTxt("msLog", 5000),
+        footer: "Generado por Mail Reaper Forensic Suite · TudelaSec Red Ops"
+      };
+    },
+
+    sphinx: function() {
+      var target = val("spxTarget", "ssti-target");
+      var rows = tableRowsFromDom("spxBody", 4);
+      return {
+        engine: "SPHINX v2.1 PHARAOH PRIME · MOTOR SSTI",
+        title: "Auditoría de Server-Side Template Injection (SSTI) — SPHINX",
+        subtitle: "Evaluación aritmética diferencial y fingerprinting de motores Jinja2, Twig, Freemarker, Velocity, Smarty, ERB y Pug",
+        target: target,
+        verdict: txt("spxSummary", "Auditoría SSTI sobre " + target + " (" + rows.length + " vectores evaluados)"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Parámetro", value: val("spxParam", "auto"), color: "#00ffa3" },
+          { label: "Hallazgos / Filas", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Motores Plantilla", value: "10+ Engines", color: "#7b4fff" },
+          { label: "Modo", value: "Safe Eval", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Motor / Sintaxis", "Parámetro", "Evaluación & Evidencia"],
+        rows: ensureFallbackRow(rows, 4, target, "SPHINX v2.1"),
+        recommendations: [
+          "Nunca concatenar datos de usuario directamente dentro del string fuente de la plantilla (pasar siempre como contexto de datos).",
+          "Activar SandboxedEnvironment estricto en Jinja2 / Freemarker deshabilitando acceso a reflexión y clases internas."
+        ],
+        evidence: rawTxt("spxProgress", 5500),
+        footer: "Generado por SPHINX v2.1 Pharaoh Prime · TudelaSec Red Ops"
+      };
+    },
+
+    chimera: function() {
+      var target = val("chmTarget", "ssrf-target");
+      var rows = tableRowsFromDom("chmBody", 4);
+      return {
+        engine: "CHIMERA v1.5 CERBERUS ULTIMA · MOTOR SSRF",
+        title: "Auditoría de Server-Side Request Forgery (SSRF) — CHIMERA",
+        subtitle: "Pruebas contra IMDSv1/v2 Cloud Metadata (AWS/GCP/Azure/OCI), bypass IP decimal/octal/IPv6 y servicios internos",
+        target: target,
+        verdict: txt("chmSummary", "Auditoría SSRF sobre " + target + " (" + rows.length + " pruebas registradas)"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Objetivo", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Pruebas / Filas", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Cloud Metadata", value: "AWS/GCP/AZ", color: "#7b4fff" },
+          { label: "Bypass IP", value: "Hex/Oct/IPv6", color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Destino / Metadata", "Vector", "Respuesta & Evidencia Técnica"],
+        rows: ensureFallbackRow(rows, 4, target, "CHIMERA v1.5"),
+        recommendations: [
+          "Exigir IMDSv2 obligatorio (HttpPutResponseHopLimit = 1, HttpTokens = required) en todas las instancias EC2.",
+          "Resolver el DNS una sola vez y bloquear rangos RFC1918, Link-Local 169.254.0.0/16 y loopback en el cliente HTTP saliente."
+        ],
+        evidence: rawTxt("chmProgress", 5500),
+        footer: "Generado por CHIMERA v1.5 Cerberus Ultima · TudelaSec Red Ops"
+      };
+    },
+
+    crawler: function() {
+      var target = val("crw-input", "crawler-target");
+      var rows = tableRowsFromDom("crw-results", 3);
+      return {
+        engine: "CRAWLER v3 OMEGA · SPIDER, ENDPOINTS & SECRET HARVESTER",
+        title: "Mapa de Superficie Web, Endpoints JS y Secretos — CRAWLER v3",
+        subtitle: "Rastreo profundo de rutas, formularios, bundles JavaScript, rutas API ocultas y tokens expuestos",
+        target: target,
+        verdict: txt("crw-status-text", "Rastreo CRAWLER v3 sobre " + target + " · Profundidad: " + val("crw-depth", "2")),
+        verdictColor: "#7b4fff",
+        stats: [
+          { label: "Objetivo", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Profundidad", value: "Nivel " + val("crw-depth", "2"), color: "#7b4fff" },
+          { label: "Artefactos", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Estado", value: txt("crw-status-text", "Listo").slice(0, 16), color: "#ffb020" }
+        ],
+        columns: ["Categoría", "Tipo de Recurso", "Endpoint / Secreto Descubierto"],
+        rows: ensureFallbackRow(rows, 3, target, "CRAWLER v3 Omega"),
+        recommendations: [
+          "Eliminar claves privadas, secretos de API y mapas de código (.map) de todos los bundles JavaScript compilados para producción.",
+          "Aplicar autenticación y rate-limiting uniforme sobre endpoints internos descubiertos en el cliente."
+        ],
+        evidence: rawTxt("crw-results", 6000),
+        footer: "Generado por CRAWLER v3 Omega · TudelaSec Red Ops"
+      };
+    },
+
+    kraken: function() {
+      var target = val("kr-input", "dominio-kraken");
+      var rows = tableRowsFromDom("kr-term", 3);
+      return {
+        engine: "KRAKEN · SUBDOMAIN ENUMERATION, DoH & TAKEOVER ENGINE",
+        title: "Enumeración Activa/Pasiva de Subdominios y Takeover — KRAKEN",
+        subtitle: "Correlación de fuentes pasivas, fuerza bruta DNS sobre DoH, sondeo HTTP vivo y detección de CNAME huérfanos",
+        target: target,
+        verdict: "Total subdominios: " + txt("kr-st-total", "0") + " · Vivos DNS: " + txt("kr-st-alive", "0") + " · HTTP activos: " + txt("kr-st-http", "0") + " · Riesgo Takeover: " + txt("kr-st-takeover", "0"),
+        verdictColor: parseInt(txt("kr-st-takeover", "0"), 10) > 0 ? "#ff1a2e" : "#00ffa3",
+        stats: [
+          { label: "Total Subdom.", value: txt("kr-st-total", "0"), color: "#f0eef8" },
+          { label: "DNS Vivos", value: txt("kr-st-alive", "0"), color: "#00ffa3" },
+          { label: "HTTP Activos", value: txt("kr-st-http", "0"), color: "#7b4fff" },
+          { label: "Takeover", value: txt("kr-st-takeover", "0"), color: "#ff1a2e" },
+          { label: "Fuentes", value: txt("kr-st-src", "0"), color: "#ffb020" }
+        ],
+        columns: ["Estado HTTP / DNS", "Fase", "Subdominio / CNAME / IP Detectada"],
+        rows: ensureFallbackRow(rows, 3, target, "KRAKEN Engine"),
+        recommendations: [
+          "Eliminar inmediatamente registros CNAME/A en el servidor DNS autoritativo antes de dar de baja recursos cloud externos.",
+          "Aislar entornos de staging/dev/qa detrás de VPN o Zero Trust Access (Cloudflare Access / Tailscale)."
+        ],
+        evidence: rawTxt("kr-term", 6500),
+        footer: "Generado por KRAKEN Subdomain Engine · TudelaSec Red Ops"
+      };
+    },
+
+    cerberus: function() {
+      var target = val("crb-target", "cerberus-target");
+      var rows = tableRowsFromDom("crb-results-body", 4);
+      return {
+        engine: "CERBERUS · DIRECTORY & SENSITIVE FILE BRUTE FORCE",
+        title: "Auditoría de Descubrimiento de Rutas y Archivos Ocultos — CERBERUS",
+        subtitle: "Fuerza bruta inteligente de directorios, paneles administrativos, backups, logs y endpoints sensibles",
+        target: target,
+        verdict: txt("crb-status-line", "Progreso: " + txt("crb-progress-label", "Listo")) + " · 2XX: " + txt("crb-hit-2xx", "0") + " · 3XX: " + txt("crb-hit-3xx", "0") + " · 403: " + txt("crb-hit-403", "0"),
+        verdictColor: parseInt(txt("crb-hit-2xx", "0"), 10) > 0 ? "#ff1a2e" : "#ffb020",
+        stats: [
+          { label: "Hits 2XX OK", value: txt("crb-hit-2xx", "0"), color: "#00ffa3" },
+          { label: "Redir 3XX", value: txt("crb-hit-3xx", "0"), color: "#ffb020" },
+          { label: "Denegados 403", value: txt("crb-hit-403", "0"), color: "#7b4fff" },
+          { label: "Progreso", value: txt("crb-progress-label", "0%").slice(0, 16), color: "#ff1a2e" }
+        ],
+        columns: ["Código HTTP", "Ruta Descubierta", "Tamaño / Tipo", "Impacto / Clasificación"],
+        rows: ensureFallbackRow(rows, 4, target, "CERBERUS DirBrute"),
+        recommendations: [
+          "Eliminar respaldos (.sql, .zip, .bak, .old) y artefactos de despliegue del document root público.",
+          "Deshabilitar directory listing (autoindex off) y restringir paneles administrativos por IP / MFA."
+        ],
+        evidence: rawTxt("crb-results-body", 5500),
+        footer: "Generado por CERBERUS Directory Brute Force · TudelaSec Red Ops"
+      };
+    },
+
+    medusa: function() {
+      var rows = []
+        .concat(tableRowsFromDom("md-overview", 3))
+        .concat(tableRowsFromDom("md-panel-pe", 3))
+        .concat(tableRowsFromDom("md-panel-iocs", 3))
+        .concat(tableRowsFromDom("md-panel-apis", 3))
+        .concat(tableRowsFromDom("md-panel-doc", 3));
+      return {
+        engine: "MEDUSA · INGENIERÍA INVERSA BINARIA & TRIAJE ESTÁTICO",
+        title: "Informe de Triaje Estático e Ingeniería Inversa Binaria — MEDUSA",
+        subtitle: "Análisis local de cabeceras PE32/PE64/ELF, entropía de secciones, hashes criptográficos, APIs sospechosas, strings e IOCs",
+        target: txt("md-progress-line", "Muestra binaria analizada localmente en navegador"),
+        verdict: rows.length ? ("Triaje binario completado · " + rows.length + " indicadores técnicos extraídos") : "Motor MEDUSA listo para triaje forense local (100% client-side)",
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Indicadores", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Privacidad", value: "100% Local", color: "#00ffa3" },
+          { label: "Formatos", value: "PE/ELF/PDF/DOC", color: "#7b4fff" },
+          { label: "Strings", value: String((rawTxt("md-strings-list", 4000).match(/\n/g) || []).length), color: "#ffb020" }
+        ],
+        columns: ["Categoría / Riesgo", "Atributo / Sección / API", "Valor Técnico / Indicador (IOC)"],
+        rows: ensureFallbackRow(rows, 3, "Binary Sample", "MEDUSA Binary Triage"),
+        recommendations: [
+          "Ejecutar muestras con alta entropía (> 7.0, posible empaquetado UPX/custom packer) únicamente en VM aislada sin red.",
+          "Correlacionar hashes SHA-256 e IOCs de red extraídos con fuentes Threat Intelligence y reglas YARA."
+        ],
+        evidence: rawTxt("md-strings-list", 5000),
+        footer: "Generado por MEDUSA Binary Reverse Engineering · TudelaSec Red Ops"
+      };
+    },
+
+    scanner: function() {
+      var target = val("scan-input", "leviatan-target");
+      var crit = txt("stat-crit", "0"), high = txt("stat-high", "0"), med = txt("stat-med", "0"), low = txt("stat-low", "0");
+      var rows = [];
+      var fWrap = $("scan-findings");
+      if (fWrap) {
+        fWrap.querySelectorAll(".sf-card").forEach(function(card) {
+          var sev = card.classList.contains("crit") ? "CRÍTICO" : card.classList.contains("high") ? "ALTO" : card.classList.contains("med") ? "MEDIO" : "BAJO";
+          var nm = (card.querySelector(".sf-name") ? card.querySelector(".sf-name").textContent : "").trim();
+          var ds = (card.querySelector(".sf-desc") ? card.querySelector(".sf-desc").textContent : card.textContent.replace(nm, "")).trim();
+          rows.push([sev, nm || "Hallazgo", ds || "-"]);
+        });
+      }
+      return {
+        engine: "LEVIATÁN v9.0 · ESCÁNER OFENSIVO INTEGRAL (350 FASES)",
+        title: "Auditoría Ejecutiva de Pentesting Web — LEVIATÁN v9.0",
+        subtitle: "Estado: " + txt("scan-prog-status", "Listo") + " · Progreso: " + txt("scan-progress-pct", "0%") + " · " + txt("scan-prog-counter", "350 fases"),
+        target: target,
+        verdict: "Resumen Severidades — CRÍTICOS: " + crit + " · ALTOS: " + high + " · MEDIOS: " + med + " · BAJOS: " + low,
+        verdictColor: parseInt(crit, 10) > 0 ? "#ff1a2e" : (parseInt(high, 10) > 0 ? "#ffb020" : "#00ffa3"),
+        stats: [
+          { label: "Críticos", value: crit, color: "#ff1a2e" },
+          { label: "Altos", value: high, color: "#ff7849" },
+          { label: "Medios", value: med, color: "#ffb020" },
+          { label: "Bajos", value: low, color: "#60a5fa" },
+          { label: "Progreso", value: txt("scan-progress-pct", "0%"), color: "#00ffa3" }
+        ],
+        columns: ["Severidad", "Vulnerabilidad Detectada", "Detalle Técnico & Evidencia"],
+        rows: ensureFallbackRow(rows, 3, target, "LEVIATÁN v9.0"),
+        recommendations: [
+          "Priorizar remediación inmediata (< 48h) de todos los hallazgos CRÍTICOS y ALTOS verificados por LEVIATÁN.",
+          "Re-ejecutar el modo PRO/FURIA tras aplicar parches para certificar el cierre efectivo de cada vector OWASP Top 10."
+        ],
+        evidence: rawTxt("scan-term-body", 7500),
+        footer: "Generado por LEVIATÁN v9.0 Autonomous Red Ops Scanner"
+      };
+    },
+
+    recon: function() {
+      var target = val("rce-input", "recon-target");
+      var rows = tableRowsFromDom("rce-results", 3);
+      return {
+        engine: "RECON ENGINE · 12 FUENTES DE INTELIGENCIA PASIVA",
+        title: "Reporte de Reconocimiento Pasivo y Fugas Documentales — Recon Engine",
+        subtitle: "Certificados CT, DNS histórico, Wayback URLs, subdominios pasivos, ASN/BGP y Google/Git Dorks",
+        target: target,
+        verdict: txt("rce-status-text", "Reconocimiento pasivo para " + target + " (" + rows.length + " hallazgos)"),
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Dominio", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Fuentes", value: "12 Fuentes", color: "#7b4fff" },
+          { label: "Resultados", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Estado", value: txt("rce-status-text", "Listo").slice(0, 16), color: "#ffb020" }
+        ],
+        columns: ["Fuente / Tipo", "Activo", "Dato Recolectado"],
+        rows: ensureFallbackRow(rows, 3, target, "Passive Recon Engine"),
+        recommendations: [
+          "Auditar URLs históricas indexadas en Internet Archive que aún respondan con endpoints legados sin autenticación.",
+          "Solicitar remoción y rotar credenciales de cualquier documento PDF/XLSX/ENV indexado públicamente."
+        ],
+        evidence: rawTxt("rce-results", 6000),
+        footer: "Generado por TudelaSec Passive Recon Engine"
+      };
+    },
+
+    cve: function() {
+      var q = val("cve-input", val("cve-vendor-select", "Catálogo Crítico NVD"));
+      var rows = tableRowsFromDom("cve-results", 3);
+      if (!rows.length) rows = tableRowsFromDom("cve-preloaded", 3);
+      return {
+        engine: "BUSCADOR NVD NIST · INTELIGENCIA CVE & CVSS v3/v4",
+        title: "Boletín Técnico de Vulnerabilidades CVE (NIST NVD)",
+        subtitle: "Consulta en tiempo real de identificadores CVE, severidad CVSS, vectores de ataque y estado de explotación",
+        target: q,
+        verdict: txt("cve-status-txt", "Vulnerabilidades CVE compiladas: " + rows.length + " registros para '" + q + "'"),
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Búsqueda", value: q.slice(0, 18), color: "#00ffa3" },
+          { label: "CVEs en Reporte", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Fuente Oficial", value: "NIST NVD 2.0", color: "#7b4fff" },
+          { label: "Métrica", value: "CVSS v3.1/v4", color: "#ffb020" }
+        ],
+        columns: ["Severidad / CVSS", "Identificador CVE", "Descripción Técnica & Impacto"],
+        rows: ensureFallbackRow(rows, 3, q, "NIST NVD Search"),
+        recommendations: [
+          "Cruzar CVEs con el catálogo CISA Known Exploited Vulnerabilities (KEV) para priorizar parcheo de emergencia.",
+          "Aplicar mitigaciones compensatorias en WAF / segmentación de red cuando el parche oficial requiera ventana de mantenimiento."
+        ],
+        evidence: rawTxt("cve-results", 5000) || rawTxt("cve-preloaded", 4000),
+        footer: "Generado por TudelaSec NVD CVE Intelligence Search"
+      };
+    },
+
+    warroom: function() {
+      var rows = tableRowsFromDom("wr-list", 4);
+      var activeKc = document.querySelector("#warroom .kc-panel.active, #kc-optus");
+      var kcRows = activeKc ? tableRowsFromDom(activeKc.id, 4) : [];
+      return {
+        engine: "BUG BOUNTY WAR ROOM & KILL-CHAIN TRACKER",
+        title: "Reporte Ejecutivo de Operaciones Bug Bounty & Kill-Chains — War Room",
+        subtitle: "Registro consolidado de hallazgos, activos comprometidos, recompensas estimadas (USD) y cadenas de ataque reales",
+        target: txt("wr-assets", "0") + " activos en alcance",
+        verdict: txt("wr-map-total", "Hallazgos: " + txt("wr-n", "0") + " · Recompensa acumulada: " + txt("wr-usd", "$0") + " · P1 Críticos: " + txt("wr-p1", "0")),
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Hallazgos", value: txt("wr-n", "0"), color: "#ff1a2e" },
+          { label: "Activos", value: txt("wr-assets", "0"), color: "#7b4fff" },
+          { label: "Bounty USD", value: txt("wr-usd", "$0"), color: "#00ffa3" },
+          { label: "P1 Críticos", value: txt("wr-p1", "0"), color: "#ffb020" }
+        ],
+        columns: ["Severidad", "Hallazgo / Fase Kill-Chain", "Activo / Bounty", "Detalle Operativo"],
+        rows: ensureFallbackRow(rows.concat(kcRows), 4, "War Room Operations", "Bug Bounty War Room"),
+        recommendations: [
+          "Documentar cada hallazgo P1/P2 con PoC reproducible mínima, impacto de negocio cuantificado y CVSS vector string.",
+          "Romper cadenas de ataque (Kill-Chains) aislando credenciales internas y validando autorización en cada salto."
+        ],
+        evidence: activeKc ? (activeKc.innerText || "").slice(0, 4000) : "",
+        footer: "Generado por TudelaSec Bug Bounty War Room"
+      };
+    },
+
+    hackertools: function() {
+      var rows = [];
+      if (val("enc-input") || val("enc-output-encode")) {
+        rows.push(["ENCODER", "Entrada Original", val("enc-input", "-").slice(0, 220)]);
+        rows.push(["ENCODED", "Salida Codificada", val("enc-output-encode", "-").slice(0, 220)]);
+        if (val("enc-output-decode")) rows.push(["DECODED", "Salida Decodificada", val("enc-output-decode", "-").slice(0, 220)]);
+      }
+      if (val("jwt-input") || rawTxt("jwt-payload", 50)) {
+        rows.push(["JWT HEADER", "Cabecera Decodificada", rawTxt("jwt-header", 300) || "-"]);
+        rows.push(["JWT PAYLOAD", "Claims / Cuerpo", rawTxt("jwt-payload", 350) || "-"]);
+        rows.push(["JWT AUDIT", "Vectores de Ataque JWT", rawTxt("jwt-attacks", 350) || txt("jwt-sig", "-")]);
+      }
+      if (val("cidr-input") || rawTxt("cidr-results", 40)) {
+        rows = rows.concat(tableRowsFromDom("cidr-results", 3));
+      }
+      if (val("ip-lookup-inp") || rawTxt("ip-lookup-result", 40)) {
+        rows = rows.concat(tableRowsFromDom("ip-lookup-result", 3));
+      }
+      rows = rows.concat(tableRowsFromDom("xss-payload-list", 3).slice(0, 20));
+      return {
+        engine: "HACKER TOOLS SUITE · ENCODER · XSS · JWT · CIDR · IP LOOKUP",
+        title: "Reporte Técnico de Utilidades Ofensivas y Análisis de Tokens — Hacker Tools",
+        subtitle: "Resultados consolidados de Codificación, Inspector Forense JWT, Calculadora de Subredes CIDR, IP Lookup y Arsenal XSS",
+        target: val("jwt-input") ? "Token JWT Auditado" : (val("cidr-input") || val("ip-lookup-inp") || "Suite Criptográfica & Red"),
+        verdict: "Suite Hacker Tools · " + rows.length + " artefactos y cálculos técnicos compilados en el reporte",
+        verdictColor: "#7b4fff",
+        stats: [
+          { label: "Artefactos", value: String(rows.length), color: "#00ffa3" },
+          { label: "Subred CIDR", value: val("cidr-input", "-"), color: "#7b4fff" },
+          { label: "IP Consultada", value: val("ip-lookup-inp", "-"), color: "#ffb020" },
+          { label: "JWT Presente", value: val("jwt-input") ? "Sí" : "No", color: "#ff1a2e" }
+        ],
+        columns: ["Módulo", "Parámetro / Campo", "Resultado Técnico"],
+        rows: ensureFallbackRow(rows, 3, "Hacker Tools", "Hacker Tools Suite"),
+        recommendations: [
+          "Rechazar explícitamente alg='none' y fijar lista blanca de algoritmos esperados al verificar firmas JWT en servidor.",
+          "Segmentar subredes internas críticas (/24, /28) con listas de control de acceso estrictas entre VLANs."
+        ],
+        evidence: [rawTxt("jwt-header", 1200), rawTxt("jwt-payload", 1500), rawTxt("cidr-results", 1500), rawTxt("ip-lookup-result", 1500)].filter(Boolean).join("\n\n"),
+        footer: "Generado por TudelaSec Hacker Tools Suite"
+      };
+    },
+
+    cheatsheet: function() {
+      var target = val("cs-target", val("ad-ip", "10.10.10.10"));
+      var rows = tableRowsFromDom("cs-grid", 3);
+      return {
+        engine: "RED TEAM & ACTIVE DIRECTORY PLAYBOOK DINÁMICO",
+        title: "Playbook Operativo de Comandos Red Team & Active Directory",
+        subtitle: "Comandos parametrizados dinámicamente para enumeración, Kerberoasting, movimiento lateral y post-explotación",
+        target: target + (val("ad-domain") ? " (" + val("ad-domain") + ")" : ""),
+        verdict: "Playbook generado con " + rows.length + " bloques operativos adaptados al objetivo",
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Target / IP", value: target.slice(0, 18), color: "#00ffa3" },
+          { label: "Dominio AD", value: val("ad-domain", "-").slice(0, 18), color: "#7b4fff" },
+          { label: "Usuario AD", value: val("ad-user", "-").slice(0, 16), color: "#ffb020" },
+          { label: "Comandos", value: String(rows.length), color: "#ff1a2e" }
+        ],
+        columns: ["Categoría", "Herramienta / Fase", "Comando Operativo Parametrizado"],
+        rows: ensureFallbackRow(rows, 3, target, "Red Team Cheatsheet"),
+        evidence: rawTxt("cs-term", 4000),
+        footer: "Generado por TudelaSec Red Team & AD Dynamic Playbook"
+      };
+    },
+
+    revshell: function() {
+      var ip = val("rsg-ip", "10.10.14.2"), port = val("rsg-port", "4444"), lang = txt("rsg-active-lang", "bash");
+      return {
+        engine: "REVERSE SHELL & LISTENER GENERATOR",
+        title: "Especificación Técnica de Payload Reverse Shell (Laboratorio Autorizado)",
+        subtitle: "Configuración de listener y one-liner de conexión reversa para pruebas de post-explotación autorizadas",
+        target: ip + ":" + port + " (" + lang + ")",
+        verdict: "Payload generado para " + lang.toUpperCase() + " apuntando a " + ip + ":" + port,
+        verdictColor: "#7b4fff",
+        stats: [
+          { label: "LHOST", value: ip, color: "#00ffa3" },
+          { label: "LPORT", value: port, color: "#ffb020" },
+          { label: "Lenguaje", value: lang.toUpperCase(), color: "#ff1a2e" },
+          { label: "Listener", value: txt("rsg-listener-cmd", "nc -lvnp " + port).slice(0, 18), color: "#7b4fff" }
+        ],
+        columns: ["Componente", "Rol", "Comando Exacto"],
+        rows: [
+          ["LISTENER", "Receptor Local", txt("rsg-listener-cmd", "nc -lvnp " + port)],
+          ["PAYLOAD", "One-Liner (" + lang + ")", rawTxt("rsg-code", 1500) || "Payload listo"]
+        ],
+        recommendations: [
+          "Restringir tráfico saliente (Egress Filtering) desde servidores de aplicación hacia Internet en firewall perimetral."
+        ],
+        evidence: rawTxt("rsg-code", 3000),
+        footer: "Generado por TudelaSec Reverse Shell Lab Generator"
+      };
+    },
+
+    hashcalc: function() {
+      var inp = val("hash-input", "TudelaSec-Sample");
+      return {
+        engine: "CRYPTOGRAPHIC HASH CALCULATOR · WEBCRYPTO NATIVE",
+        title: "Certificado de Huellas Criptográficas (SHA-1 / SHA-256 / SHA-512)",
+        subtitle: "Cálculo íntegro en navegador mediante WebCrypto API para verificación forense y cadena de custodia",
+        target: " Longitud de entrada: " + inp.length + " caracteres",
+        verdict: "Digests criptográficos verificados localmente (0 bytes transmitidos por red)",
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Caracteres", value: String(inp.length), color: "#00ffa3" },
+          { label: "SHA-256", value: txt("h-sha256", "Listo").slice(0, 14) + "…", color: "#7b4fff" },
+          { label: "SHA-512", value: txt("h-sha512", "Listo").slice(0, 14) + "…", color: "#ffb020" },
+          { label: "Privacidad", value: "Local WebCrypto", color: "#00ffa3" }
+        ],
+        columns: ["Algoritmo", "Uso Recomendado", "Digest Hexadecimal Completo"],
+        rows: [
+          ["ENTRADA", "Muestra (primeros 120 chars)", inp.slice(0, 120)],
+          ["SHA-1 (160-bit)", "Legado / k-Anonymity HIBP", txt("h-sha1", "Escribí texto en el calculador para generar SHA-1")],
+          ["SHA-256 (256-bit)", "Estándar Forense / Integridad IOC", txt("h-sha256", "Escribí texto en el calculador para generar SHA-256")],
+          ["SHA-512 (512-bit)", "Alta Entropía / Custodia", txt("h-sha512", "Escribí texto en el calculador para generar SHA-512")]
+        ],
+        footer: "Generado por TudelaSec Cryptographic Hash Calculator"
+      };
+    },
+
+    headers: function() {
+      var cat = val("hdrs-select", "Todas las categorías");
+      var rows = tableRowsFromDom("hdrs-grid", 3);
+      return {
+        engine: "HTTP SECURITY HEADERS HARDENING MATRIX",
+        title: "Guía Maestra de Endurecimiento de Cabeceras HTTP",
+        subtitle: "Directivas recomendadas, riesgos de mala configuración y compatibilidad de navegadores",
+        target: "Categoría: " + cat,
+        verdict: rows.length + " cabeceras de seguridad HTTP documentadas para implementación en producción",
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Categoría", value: cat.slice(0, 18), color: "#00ffa3" },
+          { label: "Cabeceras", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Estándar", value: "OWASP ASVS", color: "#7b4fff" }
+        ],
+        columns: ["Clasificación", "Cabecera HTTP", "Directiva Recomendada & Riesgo"],
+        rows: ensureFallbackRow(rows, 3, cat, "Security Headers Reference"),
+        footer: "Generado por TudelaSec Security Headers Hardening Reference"
+      };
+    },
+
+    payloads: function() {
+      var rows = tableRowsFromDom("pay-grid", 3);
+      return {
+        engine: "ARSENAL DE PAYLOADS OFENSIVOS · RED OPS VAULT",
+        title: "Catálogo Técnico de Vectores de Prueba para Pentesting Web",
+        subtitle: "Vectores de auditoría para validación controlada de controles de entrada y codificación de salida",
+        target: "Categoría activa en Arsenal de Payloads",
+        verdict: rows.length + " vectores de prueba compilados desde la bóveda activa",
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Vectores", value: String(rows.length), color: "#ff1a2e" },
+          { label: "Modo", value: "Auditoría Ética", color: "#00ffa3" }
+        ],
+        columns: ["Categoría", "Nombre / Contexto", "Vector / Payload Técnico"],
+        rows: ensureFallbackRow(rows, 3, "Payloads Vault", "Payloads Vault"),
+        footer: "Generado por TudelaSec Payloads Vault"
+      };
+    },
+
+    arsenal: function() {
+      var q = val("tool-search", "Catálogo Completo");
+      var rows = tableRowsFromDom("tools-grid", 3);
+      return {
+        engine: "ARSENAL RED TEAM & OSINT DIRECTORY",
+        title: "Directorio Curado de Herramientas Ofensivas, OSINT & Blue Team",
+        subtitle: "Filtro activo: " + q + " · " + txt("tool-count", rows.length + " herramientas"),
+        target: q,
+        verdict: rows.length + " herramientas especializadas incluidas en el dossier",
+        verdictColor: "#7b4fff",
+        stats: [
+          { label: "Filtro", value: q.slice(0, 18), color: "#00ffa3" },
+          { label: "Herramientas", value: String(rows.length), color: "#7b4fff" }
+        ],
+        columns: ["Categoría", "Herramienta", "Descripción Operativa"],
+        rows: ensureFallbackRow(rows, 3, q, "Arsenal Directory"),
+        footer: "Generado por TudelaSec Arsenal Directory"
+      };
+    },
+
+    conocimiento: function() {
+      var q = val("kb-search", "Base Completa OWASP / CVE");
+      var rows = tableRowsFromDom("kb-grid", 3);
+      return {
+        engine: "KNOWLEDGE BASE · ENCICLOPEDIA DE VULNERABILIDADES",
+        title: "Compendio Técnico de Vulnerabilidades Web & Infraestructura",
+        subtitle: "Total base: " + txt("kb-total", "-") + " · Críticas: " + txt("kb-crit-n", "-") + " · Altas: " + txt("kb-high-n", "-"),
+        target: q,
+        verdict: rows.length + " fichas técnicas de vulnerabilidad exportadas",
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Total Fichas", value: txt("kb-total", String(rows.length)), color: "#f0eef8" },
+          { label: "Críticas", value: txt("kb-crit-n", "-"), color: "#ff1a2e" },
+          { label: "Altas", value: txt("kb-high-n", "-"), color: "#ffb020" },
+          { label: "Categorías", value: txt("kb-cats-n", "-"), color: "#7b4fff" }
+        ],
+        columns: ["Severidad", "Vulnerabilidad", "Impacto Técnico & Mitigación"],
+        rows: ensureFallbackRow(rows, 3, q, "Knowledge Base"),
+        footer: "Generado por TudelaSec Vulnerability Knowledge Base"
+      };
+    },
+
+    hallazgos: function() {
+      var rows = tableRowsFromDom("hallazgos", 3);
+      return {
+        engine: "TUDELASEC VERIFIED BUG BOUNTY HALL OF FAME",
+        title: "Portafolio de Hallazgos Críticos Verificados y Recompensas",
+        subtitle: "Historial verificable de vulnerabilidades reportadas éticamente en plataformas internacionales",
+        target: "Programas Bug Bounty Internacionales",
+        verdict: rows.length + " hitos y reportes técnicos documentados en el portafolio",
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Registros", value: String(rows.length), color: "#00ffa3" },
+          { label: "Divulgación", value: "Ética Responsable", color: "#7b4fff" }
+        ],
+        columns: ["Clasificación", "Caso / Programa", "Resumen de Impacto"],
+        rows: ensureFallbackRow(rows, 3, "Bug Bounty Portfolio", "Verified Findings"),
+        footer: "Generado por TudelaSec Portfolio Report"
+      };
+    },
+
+    termlab: function() {
+      var osBtn = document.querySelector("#termlab .tlab-os.active");
+      var osName = osBtn ? osBtn.textContent.trim() : "Bash";
+      var rows = tableRowsFromDom("tlab-ref-list", 3);
+      return {
+        engine: "TERMINAL LAB INTERACTIVO · " + osName.toUpperCase(),
+        title: "Bitácora de Sesión de Terminal Ofensiva (" + osName + ") — Terminal Lab",
+        subtitle: "Transcripción íntegra de comandos ejecutados y referencia rápida de consola (" + txt("tlab-title", "kali") + ")",
+        target: txt("tlab-title", "tudelasec@kali: ~"),
+        verdict: "Sesión interactiva " + osName + " exportada con transcripción completa de consola",
+        verdictColor: "#00ffa3",
+        stats: [
+          { label: "Entorno", value: osName, color: "#00ffa3" },
+          { label: "Host Prompt", value: txt("tlab-title", "kali").slice(0, 18), color: "#7b4fff" },
+          { label: "Guías Ref.", value: String(rows.length), color: "#ffb020" }
+        ],
+        columns: ["Módulo", "Comando", "Propósito Técnico"],
+        rows: ensureFallbackRow(rows, 3, osName, "Terminal Lab"),
+        evidence: rawTxt("tlab-output", 6500),
+        footer: "Generado por TudelaSec Multi-OS Terminal Lab"
+      };
+    },
+
+    laboratorio: function() {
+      var p1 = val("lab-input1", "(sin entrada)"), p2 = val("lab-input2", "(sin payload)");
+      var rows = [
+        ["CAMPO 1", txt("lab-label1", "Usuario / Entrada"), p1],
+        ["CAMPO 2", txt("lab-label2", "Contraseña / Payload"), p2]
+      ].concat(tableRowsFromDom("lab-pipeline", 3));
+      return {
+        engine: "OFFENSIVE SECURITY LAB · SIMULADOR DE EXPLOTACIÓN SEGURA",
+        title: "Informe de Práctica de Explotación Controlada — Laboratorio Ofensivo",
+        subtitle: txt("lab-form-title", "Desafío de Autenticación / Inyección"),
+        target: txt("lab-form-title", "Login Vulnerable Sandbox"),
+        verdict: "Evidencia de vector inyectado y trazabilidad del pipeline backend capturada sin ejecución XSS en el DOM",
+        verdictColor: "#ff1a2e",
+        stats: [
+          { label: "Escenario", value: txt("lab-form-title", "Login Lab").slice(0, 18), color: "#00ffa3" },
+          { label: "Input #1", value: p1.slice(0, 16), color: "#ffb020" },
+          { label: "Payload #2", value: p2.slice(0, 16), color: "#ff1a2e" }
+        ],
+        columns: ["Etapa", "Componente", "Estado / Vector Analizado"],
+        rows: rows,
+        recommendations: [
+          "Separar estrictamente código SQL/HTML de los datos ingresados mediante sentencias preparadas y escape contextual."
+        ],
+        evidence: rawTxt("lab-term-body", 5500),
+        footer: "Generado por TudelaSec Offensive Lab Simulator"
+      };
+    }
+  };
+  EXTRACTORS.brpass = EXTRACTORS.breach;
+
+  window.tsOpenEnginePDF = function(engineKey, autoDownload) {
+    var fn = EXTRACTORS[engineKey];
+    if (!fn) return false;
+    var data = fn();
+    data._reset = true;
+    if (autoDownload) data.autoDownloadPdf = true;
+    return window.tsReportPDF(data);
+  };
+
+  /* ── Master Global Dossier Consolidator: Combines Bus + All Active Engines in 1 Multi-Page PDF! ── */
+  window.tsExportGlobalDossierPDF = function(autoDownload) {
+    var bus = [];
+    try { bus = JSON.parse(localStorage.getItem("tudelasec_findings_bus") || "[]") || []; } catch(_){}
+    var scopes = [];
+    try { scopes = JSON.parse(localStorage.getItem("tudelasec_scopes") || "[]") || []; } catch(_){}
+
+    var busRows = bus.map(function(b) {
+      return [
+        String(b.severity || b.sev || "HIGH").toUpperCase(),
+        String(b.source || b.tool || "ENGINE"),
+        String(b.host || b.target || b.domain || "-").slice(0, 42),
+        String(b.title || b.type || "Hallazgo") + (b.evidence || b.detail ? " — " + String(b.evidence || b.detail).slice(0, 180) : "")
+      ];
+    });
+
+    /* Always start fresh for the Master Dossier, then append all populated engine reports! */
+    window.tsReportPDF({
+      _reset: true,
+      engine: "TUDELASEC RED OPS v5 · MASTER EXECUTIVE DOSSIER",
+      title: "Dossier Ejecutivo Consolidado de Auditoría Ofensiva & Pentesting",
+      subtitle: "Consolidación integral del Bus Global de Hallazgos y todos los motores ejecutados en la sesión",
+      target: scopes.length ? scopes.join(", ").slice(0, 60) : "Sesión Global Multi-Motor",
+      verdict: "Hallazgos consolidados en el Bus Global: " + bus.length + " · Dominios autorizados en Scope: " + scopes.length,
+      verdictColor: bus.length > 0 ? "#ff1a2e" : "#00ffa3",
+      stats: [
+        { label: "Hallazgos Bus", value: String(bus.length), color: "#ff1a2e" },
+        { label: "Scopes Activos", value: String(scopes.length), color: "#00ffa3" },
+        { label: "Motores Suite", value: "30+ Activos", color: "#7b4fff" },
+        { label: "Alertas XSS DOM", value: "0 (Sanitizado)", color: "#00ffa3" }
+      ],
+      columns: ["Severidad", "Motor Origen", "Objetivo", "Hallazgo & Evidencia Consolidada"],
+      rows: busRows.length ? busRows : [["LISTO", "TUDELASEC SUITE", scopes.join(", ") || "Global", "Bus global inicializado — se adjuntan a continuación los reportes técnicos de los módulos activos."]],
+      recommendations: [
+        "Atender con prioridad P1 cualquier vulnerabilidad crítica confirmada de forma cruzada por múltiples motores (ej. MAMMOTH + LEVIATÁN + VENOM/BASILISK).",
+        "Conservar este Dossier Ejecutivo junto a los logs crudos de evidencia para verificación de cierre (Retest)."
+      ],
+      footer: "Portada Ejecutiva · TudelaSec Red Ops Master Dossier"
+    });
+
+    /* Append every engine that currently holds active target/results (or core flagship engines) */
+    var order = [
+      ["mammoth", function(){ return !!(window.tudelaSecMammothData && window.tudelaSecMammothData.requests) || !!val("mmt-target"); }],
+      ["scanner", function(){ return !!val("scan-input") || rawTxt("scan-term-body", 40).length > 20; }],
+      ["osint",   function(){ return !!val("osint-input") || rawTxt("osint-sections", 40).length > 20; }],
+      ["waflab",  function(){ return !!val("atkTarget") || rawTxt("atkBody", 30).length > 10; }],
+      ["venom",   function(){ return !!val("vnTarget") || rawTxt("vnBody", 30).length > 10; }],
+      ["siren",   function(){ return !!val("srTarget") || rawTxt("srBody", 30).length > 10; }],
+      ["basilisk",function(){ return !!val("bsTarget") || rawTxt("bsBody", 30).length > 10; }],
+      ["sphinx",  function(){ return !!val("spxTarget") || rawTxt("spxBody", 30).length > 10; }],
+      ["chimera", function(){ return !!val("chmTarget") || rawTxt("chmBody", 30).length > 10; }],
+      ["nimbus",  function(){ return !!val("nbTarget") || rawTxt("nbBody", 30).length > 10; }],
+      ["wraith",  function(){ return !!val("wrUrl") || rawTxt("wrResult", 30).length > 10; }],
+      ["proxyrep",function(){ return txt("hudReq","0") !== "0" || !!val("prUrl"); }],
+      ["taint",   function(){ return !!val("trCode") || rawTxt("trBody", 30).length > 10; }],
+      ["breach",  function(){ return !!val("brInput") || rawTxt("brBody", 30).length > 10; }],
+      ["dns",     function(){ return !!val("dasDomain") || rawTxt("dasResults", 30).length > 10; }],
+      ["nexusactive", function(){ return txt("nxaCount","0") !== "0" || rawTxt("nxaRows", 30).length > 10; }],
+      ["gasr",    function(){ return !!val("gasrInput") || rawTxt("gasrResults", 30).length > 10; }],
+      ["mailsec", function(){ return !!val("msFrom") || rawTxt("msBody", 30).length > 10; }],
+      ["crawler", function(){ return !!val("crw-input") || rawTxt("crw-results", 30).length > 10; }],
+      ["kraken",  function(){ return !!val("kr-input") || txt("kr-st-total","0") !== "0"; }],
+      ["cerberus",function(){ return !!val("crb-target") || rawTxt("crb-results-body", 30).length > 25; }],
+      ["medusa",  function(){ return rawTxt("md-overview", 30).length > 10; }],
+      ["recon",   function(){ return !!val("rce-input") || rawTxt("rce-results", 30).length > 10; }],
+      ["cve",     function(){ return !!val("cve-input") || rawTxt("cve-results", 30).length > 10; }],
+      ["warroom", function(){ return txt("wr-n","0") !== "0"; }]
+    ];
+    var added = 0;
+    order.forEach(function(pair) {
+      try {
+        if (pair[1]()) {
+          var secData = EXTRACTORS[pair[0]]();
+          secData._append = true;
+          window.tsReportPDF(secData);
+          added++;
+        }
+      } catch(_){}
+    });
+    if (added === 0) {
+      ["mammoth", "scanner", "warroom"].forEach(function(k) {
+        var s = EXTRACTORS[k]();
+        s._append = true;
+        window.tsReportPDF(s);
+      });
+    }
+    if (autoDownload) window.tsDownloadPDF("TudelaSec-Dossier-Ejecutivo-Global.pdf");
+    return true;
+  };
+
+  /* ── Mount Clean Native PDF Buttons Across EVERY SINGLE Section Toolbar on the Page! ── */
+  function addBtnAfter(anchorId, btnId, engineKey, label, extraClass) {
+    if ($(btnId)) return;
+    var anchor = $(anchorId);
+    if (!anchor) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.id = btnId;
+    b.className = "ts-eng-pdf-btn" + (extraClass ? " " + extraClass : "");
+    b.setAttribute("data-ts-pdf", engineKey);
+    b.title = "Abrir vista previa ejecutiva y descargar reporte PDF completo (Shift+Click = descarga directa .PDF)";
+    b.innerHTML = "📄 " + label;
+    b.addEventListener("click", function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      window.tsOpenEnginePDF(engineKey, !!ev.shiftKey);
+    });
+    anchor.insertAdjacentElement("afterend", b);
+  }
+
+  var MOUNTS = [
+    ["osint-btn",          "pdf-osint",       "osint",       "PDF",             ""],
+    ["runAttack",          "pdf-waflab",      "waflab",      "REPORTE PDF",     ""],
+    ["runVenom",           "pdf-venom",       "venom",       "REPORTE PDF",     ""],
+    ["runSiren",           "pdf-siren",       "siren",       "REPORTE PDF",     ""],
+    ["runBasilisk",        "pdf-basilisk",    "basilisk",    "REPORTE PDF",     ""],
+    ["wrGo",               "pdf-wraith",      "wraith",      "REPORTE PDF",     ""],
+    ["nbRun",              "pdf-nimbus",      "nimbus",      "REPORTE PDF",     ""],
+    ["prExport",           "pdf-proxyrep",    "proxyrep",    "PDF↓",            "compact"],
+    ["trRun",              "pdf-taint",       "taint",       "EXPORTAR PDF",    ""],
+    ["brRun",              "pdf-breach",      "breach",      "REPORTE PDF",     ""],
+    ["brPassRun",          "pdf-brpass",      "brpass",      "PDF",             "compact"],
+    ["dasRun",             "pdf-dns",         "dns",         "REPORTE PDF",     ""],
+    ["nxaCurl",            "pdf-nexusactive", "nexusactive", "REPORTE PDF",     ""],
+    ["gasrDossier",        "pdf-gasr",        "gasr",        "EXPORTAR PDF",    "compact"],
+    ["msRun",              "pdf-mailsec",     "mailsec",     "REPORTE PDF",     ""],
+    ["mpPlaybookBtn",      "pdf-mailplaybook","mailsec",     "PDF",             "compact"],
+    ["runSphinx",          "pdf-sphinx",      "sphinx",      "REPORTE PDF",     ""],
+    ["runChimera",         "pdf-chimera",     "chimera",     "REPORTE PDF",     ""],
+    ["mmt-export",         "pdf-mammoth",     "mammoth",     "EXPORT PDF",      ""],
+    ["crw-btn",            "pdf-crawler",     "crawler",     "EXPORTAR PDF",    ""],
+    ["kr-download",        "pdf-kraken",      "kraken",      "EXPORTAR PDF",    ""],
+    ["crb-export-csv-btn", "pdf-cerberus",    "cerberus",    "PDF",             "compact"],
+    ["scan-btn",           "pdf-scanner",     "scanner",     "REPORTE PDF",     ""],
+    ["cs-hint",            "pdf-cheatsheet",  "cheatsheet",  "PLAYBOOK PDF",    "compact"],
+    ["tool-count",         "pdf-arsenal",     "arsenal",     "EXPORTAR PDF",    "compact"],
+    ["kb-count",           "pdf-conocimiento","conocimiento","EXPORTAR PDF",    "compact"],
+    ["rsg-copy",           "pdf-revshell",    "revshell",    "PDF",             "compact"],
+    ["hash-clear",         "pdf-hashcalc",    "hashcalc",    "PDF",             "compact"],
+    ["wr-export",          "pdf-warroom",     "warroom",     "EXPORTAR PDF",    "compact"],
+    ["hdrs-select",        "pdf-headers",     "headers",     "EXPORTAR PDF",    "compact"],
+    ["rce-docs-btn",       "pdf-recon",       "recon",       "EXPORTAR PDF",    ""],
+    ["cve-btn",            "pdf-cve",         "cve",         "EXPORTAR PDF",    ""],
+    ["pl-bar",             "pdf-payloads",    "payloads",    "ARSENAL PDF",     "compact"],
+    ["tlab-clear",         "pdf-termlab",     "termlab",     "PDF",             "compact"],
+    ["lab-reset",          "pdf-laboratorio", "laboratorio", "REPORTE PDF",     ""]
+  ];
+  MOUNTS.forEach(function(m) { addBtnAfter(m[0], m[1], m[2], m[3], m[4]); });
+
+  /* Mount dedicated buttons inside #medusa, #hackertools, and #hallazgos headers/toolbars */
+  var mdDrop = $("md-dropzone");
+  if (mdDrop && !$("pdf-medusa")) {
+    var mdWrap = document.createElement("div");
+    mdWrap.style.cssText = "display:flex;justify-content:flex-end;margin:10px 0;";
+    mdWrap.innerHTML = '<button type="button" id="pdf-medusa" class="ts-eng-pdf-btn" data-ts-pdf="medusa">📄 EXPORTAR REPORTE FORENSE PDF</button>';
+    mdDrop.insertAdjacentElement("afterend", mdWrap);
+    $("pdf-medusa").addEventListener("click", function(ev){ ev.preventDefault(); window.tsOpenEnginePDF("medusa", !!ev.shiftKey); });
+  }
+
+  var htSec = $("hackertools");
+  if (htSec && !$("pdf-hackertools")) {
+    var htabs = htSec.querySelector(".htabs") || $("htool-encoder");
+    if (htabs) {
+      var htBtn = document.createElement("button");
+      htBtn.type = "button";
+      htBtn.id = "pdf-hackertools";
+      htBtn.className = "ts-eng-pdf-btn compact";
+      htBtn.innerHTML = "📄 EXPORTAR SUITE PDF";
+      htBtn.addEventListener("click", function(ev){ ev.preventDefault(); window.tsOpenEnginePDF("hackertools", !!ev.shiftKey); });
+      htabs.appendChild(htBtn);
+    }
+  }
+
+  var halSec = $("hallazgos");
+  if (halSec && !$("pdf-hallazgos")) {
+    var halHead = halSec.querySelector("h2, .section-head, .sec-head");
+    if (halHead) {
+      var halBtn = document.createElement("button");
+      halBtn.type = "button";
+      halBtn.id = "pdf-hallazgos";
+      halBtn.className = "ts-eng-pdf-btn compact";
+      halBtn.style.marginTop = "10px";
+      halBtn.innerHTML = "📄 EXPORTAR PORTAFOLIO PDF";
+      halBtn.addEventListener("click", function(ev){ ev.preventDefault(); window.tsOpenEnginePDF("hallazgos", !!ev.shiftKey); });
+      halHead.insertAdjacentElement("afterend", halBtn);
+    }
+  }
+
+  /* Ensure #scan-pdf-btn is ALWAYS visible & works anytime, AND #nxPDF auto-initializes if clicked before sample load! */
+  var scanPdf = $("scan-pdf-btn");
+  if (scanPdf) {
+    scanPdf.style.display = "inline-flex";
+    scanPdf.addEventListener("click", function(ev) {
+      var modal = $("ts-pdf-modal");
+      setTimeout(function() {
+        if (!modal || modal.style.display === "none") window.tsOpenEnginePDF("scanner", false);
+      }, 30);
+    });
+  }
+  var nxPdfBtn = $("nxPDF");
+  if (nxPdfBtn) {
+    nxPdfBtn.addEventListener("click", function() {
+      if (!rawTxt("nxVerdict", 30)) {
+        var sampleBtn = document.querySelector("#nexus [data-sample], #nexus .nx-sample, #nexus button");
+        if (sampleBtn && sampleBtn.id !== "nxPDF") sampleBtn.click();
+        if ($("nxRun")) $("nxRun").click();
+      }
+    }, true);
+  }
+
+  /* ── Mount Global Master Dossier Floating Button (#ts-global-pdf-fab) with Live Bus Counter ── */
+  if (!$("ts-global-pdf-fab")) {
+    var fab = document.createElement("button");
+    fab.type = "button";
+    fab.id = "ts-global-pdf-fab";
+    fab.title = "Generar Dossier Ejecutivo Consolidado en PDF con todos los motores y hallazgos (Shift+Click = descarga directa .PDF)";
+    fab.innerHTML = '<span>📄 DOSSIER PDF GLOBAL</span><span id="ts-global-pdf-count">0</span>';
+    fab.addEventListener("click", function(ev) {
+      ev.preventDefault();
+      window.tsExportGlobalDossierPDF(!!ev.shiftKey);
+    });
+    document.body.appendChild(fab);
+
+    var refreshFabCount = function() {
+      try {
+        var b = JSON.parse(localStorage.getItem("tudelasec_findings_bus") || "[]") || [];
+        var cntEl = $("ts-global-pdf-count");
+        if (cntEl) cntEl.textContent = String(b.length);
+      } catch(_){}
+    };
+    refreshFabCount();
+    window.addEventListener("ts:store", refreshFabCount);
+    setInterval(refreshFabCount, 2500);
+  }
+})();
+</script>
+
+<!-- ══ TUDELASEC VIDEO-GAME GRAPHICS MANAGER (ULTRA | MEDIO | BAJO) ══ -->
+<script id="ts-gfx-engine">
+(function(){
+  'use strict';
+
+  var GFX_STORAGE_KEY = 'tudela_gfx_tier';
+  var VALID_TIERS = { ultra: true, medium: true, low: true };
+
+  function forceInstantVisibilityAndCounters() {
+    /* 1. Forzar todos los contenedores de reveal inmediatamente visibles sin depender de GSAP */
+    var revealNodes = document.querySelectorAll(
+      '.reveal, .fr-reveal, .reveal-wrap, .reveal-inner, h2.h2-anim, ' +
+      '#hero-tag, #hero-h1 .line span, #hero-sub, #hero-ctas, #hero-scroll, #hero-bounty'
+    );
+    for (var i = 0; i < revealNodes.length; i++) {
+      var el = revealNodes[i];
+      el.classList.add('is-visible');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    }
+
+    /* 2. Renderizar instantáneamente los valores finales de contadores (ej. US$16.800) */
+    if (window.__tsBountyTimer) {
+      clearTimeout(window.__tsBountyTimer);
+      window.__tsBountyTimer = 0;
+    }
+    if (window.__tsBountyTween && typeof window.__tsBountyTween.kill === 'function') {
+      try { window.__tsBountyTween.kill(); } catch(e){}
+      window.__tsBountyTween = null;
+    }
+    var bc = document.getElementById('bc-amount');
+    if (bc) bc.textContent = 'US$16.800';
+
+    if (typeof window.__tsRenderStatBigImmediate === 'function') {
+      window.__tsRenderStatBigImmediate();
+    } else {
+      document.querySelectorAll('.stat-big[data-target]').forEach(function(statEl){
+        var target = +statEl.dataset.target;
+        var pre = statEl.dataset.prefix || '';
+        var suf = statEl.dataset.suffix || '';
+        var fmt = statEl.dataset.format || '';
+        statEl.style.opacity = '1';
+        statEl.style.transform = 'none';
+        statEl.textContent = pre + (fmt === 'k' ? (target / 1000).toFixed(1) + 'K' : target) + suf;
+      });
+    }
+
+    /* 3. Cerrar preloader si seguía montado */
+    var pl = document.getElementById('preloader');
+    if (pl && !pl.classList.contains('done')) {
+      pl.classList.add('exit', 'done');
+      pl.style.display = 'none';
+    }
+  }
+
+  function syncNavButtons(tier) {
+    var btns = document.querySelectorAll('[data-gfx-set]');
+    for (var i = 0; i < btns.length; i++) {
+      var active = btns[i].getAttribute('data-gfx-set') === tier;
+      btns[i].classList.toggle('is-active', active);
+      btns[i].setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+  }
+
+  function applyGfxTier(tier, persist) {
+    var cleanTier = VALID_TIERS[tier] ? tier : 'ultra';
+    document.body.setAttribute('data-gfx', cleanTier);
+
+    if (persist) {
+      try { localStorage.setItem(GFX_STORAGE_KEY, cleanTier); } catch(e){}
+      window.__TS_SAVED_GFX = cleanTier;
+    }
+
+    syncNavButtons(cleanTier);
+
+    if (cleanTier === 'ultra') {
+      if (window.__tsHeroCanvasCtl) window.__tsHeroCanvasCtl.start();
+      var matrixWin = document.getElementById('ctfMatrix');
+      var gate = document.getElementById('ctfGate');
+      if (window.__tsMatrixCtl && gate && !gate.classList.contains('gate-closed') && matrixWin && matrixWin.classList.contains('on')) {
+        window.__tsMatrixCtl.start();
+      }
+    } else if (cleanTier === 'medium') {
+      /* Detener todos los requestAnimationFrame de canvas (Matrix, partículas, cursor) */
+      if (window.__tsHeroCanvasCtl) window.__tsHeroCanvasCtl.stop();
+      if (window.__tsMatrixCtl) window.__tsMatrixCtl.stop();
+      if (window.__tsCursorCtl) window.__tsCursorCtl.stop();
+    } else {
+      /* Modo BAJO (Sala / PC Básico): detener todos los canvas loops, reveals y contadores instantáneos */
+      if (window.__tsHeroCanvasCtl) window.__tsHeroCanvasCtl.stop();
+      if (window.__tsMatrixCtl) window.__tsMatrixCtl.stop();
+      if (window.__tsCursorCtl) window.__tsCursorCtl.stop();
+      forceInstantVisibilityAndCounters();
+    }
+
+    try {
+      window.dispatchEvent(new CustomEvent('ts:gfxchange', { detail: { tier: cleanTier, persisted: !!persist } }));
+    } catch(e){}
+    return cleanTier;
+  }
+
+  /* Conectar botones del selector en <nav id="main-nav"> */
+  document.addEventListener('click', function(ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest('[data-gfx-set]') : null;
+    if (!btn) return;
+    ev.preventDefault();
+    var chosen = btn.getAttribute('data-gfx-set');
+    applyGfxTier(chosen, true);
+  });
+
+  /* Reiniciar siempre en ULTRA; MEDIO/BAJO quedan disponibles para selección manual durante esta visita. */
+  var bootTier = 'ultra';
+  document.body.setAttribute('data-gfx', bootTier);
+  applyGfxTier(bootTier, false);
+
+  window.addEventListener('scroll', function(){
+    if (document.body.classList.contains('gate-open') && window.scrollY !== 0) {
+      window.scrollTo(0, 0);
+    }
+  }, { passive: true });
+
+  window.TudelaGfx = {
+    getTier: function(){ return document.body.getAttribute('data-gfx') || 'ultra'; },
+    setTier: function(t, persist){ return applyGfxTier(t, persist !== false); },
+    renderFinalCounters: forceInstantVisibilityAndCounters
+  };
+  window.setGfxTier = window.TudelaGfx.setTier;
+  window.getGfxTier = window.TudelaGfx.getTier;
+})();
+</script>
+</body>
 </html>

@@ -4372,6 +4372,13 @@ section#inicio h1.hero-name {
   font-size: clamp(44px, min(7.6vw, 10.6svh), 102px);
 }
 section#inicio h1.hero-name .line { width: 100%; text-align: center; }
+/* Las capas del glitch deben medir el texto y quedar ancladas a su centro, no al borde de la línea. */
+section#inicio h1.hero-name .line span.glitch-wrap {
+  position: relative;
+  display: inline-block;
+  width: max-content;
+  max-width: 100%;
+}
 /* Centrado real respecto al ancho del viewport, no solo al ancho del texto. */
 section#inicio .hero-content {
   flex: 0 0 100%;
@@ -16871,7 +16878,7 @@ else mmtWire();
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#a0cec9c3cfccc1d3d4d5c4c5ccc19997e0c7cdc1c9cc8ec3cfcd" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#0e60676d61626f7d7a7b6a6b626f37394e69636f6762206d6163" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -17519,7 +17526,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#76181f15191a1705020312131a174f4136111b171f1a5815191b" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="f997909a9695988a8d8c9d9c9598c0ceb99e94989095d79a9694">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#91fff8f2fefdf0e2e5e4f5f4fdf0a8a6d1f6fcf0f8fdbff2fefc" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="d4babdb7bbb8b5a7a0a1b0b1b8b5ede394b3b9b5bdb8fab7bbb9">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">
@@ -22810,12 +22817,12 @@ const toolsDB = [
  if(!h1) return;
  const spans = h1.querySelectorAll('.line span');
  spans.forEach(function(sp){
- const wrap = document.createElement('span');
- wrap.className = 'glitch-wrap';
- wrap.dataset.text = sp.textContent;
- wrap.textContent = sp.textContent;
- sp.textContent = '';
- sp.appendChild(wrap);
+   /* Solo decorar nodos hoja; así no se elimina el <span class="accent">Tudela</span>. */
+   if (sp.children.length) return;
+   const text = (sp.textContent || '').trim();
+   if (!text) return;
+   sp.classList.add('glitch-wrap');
+   sp.dataset.text = text;
  });
  function triggerGlitch(){
  h1.querySelectorAll('.glitch-wrap').forEach(function(w){
@@ -46018,5 +46025,5 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
   window.getGfxTier = window.TudelaGfx.getTier;
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f59f5b4aba0552',t:'MTc5MjgwOTY4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4f5a6c9bdbeceee',t:'MTc5MjgwOTk5MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

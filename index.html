@@ -5584,6 +5584,278 @@ body[data-gfx="low"] #certModal .cert-drawer-foot{background:var(--bg1,#100508) 
 </div>
 
 <main>
+<style id="ts-apk-cta-style">
+/* ════════════════════════════════════════════════════════════════
+   TS · CTA "SANGRÍN" — DESCARGA APK (compacto, terminal + sangre)
+   ════════════════════════════════════════════════════════════════ */
+@media (min-width:769px){
+  section#inicio.hero{ height:auto; min-height:100vh; }
+}
+.ts-apk-cta{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  margin:24px auto 0;
+  padding-bottom:14px;              /* espacio para que gotee */
+  opacity:1 !important;
+  transform:none !important;
+  visibility:visible !important;
+}
+
+/* ── la píldora ── */
+.ts-apk-card{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  text-decoration:none;
+  isolation:isolate;
+  background:
+    radial-gradient(120% 220% at 8% 50%, rgba(190,0,18,.30), transparent 62%),
+    linear-gradient(180deg,#170509,#0a0205 65%);
+  border:1px solid rgba(255,26,46,.52);
+  box-shadow:
+    0 0 0 1px rgba(255,26,46,.10) inset,
+    0 0 16px -5px rgba(255,0,24,.65),
+    0 10px 24px -16px rgba(150,0,12,.95);
+  animation:tsBloodPulse 3.4s ease-in-out infinite;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, border-color .25s ease;
+}
+.ts-apk-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(255,40,60,.9);
+  box-shadow:
+    0 0 0 1px rgba(255,26,46,.18) inset,
+    0 0 26px -3px rgba(255,0,24,.95),
+    0 14px 30px -16px rgba(190,0,15,1);
+}
+.ts-apk-card:active{ transform:translateY(0) scale(.985); }
+.ts-apk-card:focus-visible{ outline:2px solid #ff2d78; outline-offset:5px; }
+
+@keyframes tsBloodPulse{
+  0%,100%{ box-shadow:0 0 0 1px rgba(255,26,46,.10) inset,0 0 12px -6px rgba(255,0,24,.55),0 10px 24px -16px rgba(150,0,12,.9); }
+  50%    { box-shadow:0 0 0 1px rgba(255,26,46,.16) inset,0 0 24px -2px rgba(255,0,24,.85),0 12px 26px -16px rgba(190,0,15,1); }
+}
+
+/* ── interior + scanlines ── */
+.ts-apk-in{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 15px 8px 11px;
+  border-radius:999px;
+  overflow:hidden;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px);
+}
+
+/* ── ícono ── */
+.ts-apk-ico{
+  flex:0 0 auto;
+  width:24px; height:24px;
+  display:grid; place-items:center;
+  color:#ff3346;
+  filter:drop-shadow(0 0 6px rgba(255,26,46,.85));
+  animation:tsIcoBlink 4.6s steps(1,end) infinite;
+}
+.ts-apk-ico svg{ width:19px; height:19px; display:block; }
+@keyframes tsIcoBlink{
+  0%,92%,100%{ opacity:1; }
+  94%{ opacity:.35; }
+  96%{ opacity:1; }
+  97%{ opacity:.5; }
+}
+
+/* ── prompt terminal ── */
+.ts-apk-p{
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:700;
+  color:var(--green);
+  text-shadow:0 0 8px rgba(0,255,163,.8);
+  animation:tsCurBlink 1.05s steps(1,end) infinite;
+}
+@keyframes tsCurBlink{ 0%,50%{opacity:1;} 51%,100%{opacity:.15;} }
+
+/* ── frase ── */
+.ts-apk-q{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.02em;
+  color:rgba(213,238,228,.74);
+  white-space:nowrap;
+}
+.ts-apk-q b{ color:rgba(255,90,105,.92); font-weight:400; }
+
+/* ── separador ── */
+.ts-apk-sep{
+  font-family:var(--mono);
+  font-size:10px;
+  color:rgba(255,26,46,.55);
+  margin:0 1px;
+}
+
+/* ── CTA ── */
+.ts-apk-btn{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:var(--mono);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#ff2638;
+  text-shadow:0 0 8px rgba(255,0,30,.85),0 0 18px rgba(255,0,30,.35);
+  white-space:nowrap;
+  animation:tsBtnGlitch 6s steps(1,end) infinite;
+}
+.ts-apk-btn::after{
+  content:"";
+  width:1px; height:11px;
+  background:#ff2638;
+  box-shadow:0 0 6px #ff2638;
+  animation:tsCurBlink 1.05s steps(1,end) infinite;
+  animation-delay:.4s;
+}
+@keyframes tsBtnGlitch{
+  0%,88%,100%{ transform:translateX(0); text-shadow:0 0 8px rgba(255,0,30,.85),0 0 18px rgba(255,0,30,.35); }
+  89%{ transform:translateX(-2px); text-shadow:-2px 0 #00ffa3,2px 0 #ff1a2e; }
+  90%{ transform:translateX(2px); text-shadow:2px 0 #00ffa3,-2px 0 #7b4fff; }
+  91%{ transform:translateX(-1px); text-shadow:-1px 0 #ff1a2e; }
+}
+.ts-apk-card:hover .ts-apk-btn{
+  color:#fff;
+  text-shadow:0 0 10px #ff0020,0 0 26px rgba(255,0,32,.8);
+}
+.ts-apk-card:hover .ts-apk-btn::after{ background:#fff; box-shadow:0 0 10px #fff; }
+
+/* ── flecha descarga ── */
+.ts-apk-dl{
+  flex:0 0 auto;
+  display:grid; place-items:center;
+  width:20px; height:20px;
+  color:#ff5a6a;
+  animation:tsDlDrop 1.8s ease-in-out infinite;
+}
+.ts-apk-dl svg{ width:13px; height:13px; display:block; }
+@keyframes tsDlDrop{
+  0%,100%{ transform:translateY(-1.5px); opacity:.7; }
+  50%    { transform:translateY(1.5px); opacity:1; }
+}
+
+/* ── SANGRE: goteo bajo la píldora ── */
+.ts-apk-drips{
+  position:absolute;
+  left:0; right:0; bottom:-1px;
+  height:0;
+  pointer-events:none;
+  z-index:2;
+}
+.ts-apk-drips i{
+  position:absolute;
+  top:-2px;
+  display:block;
+  width:3px;
+  height:11px;
+  border-radius:38% 38% 55% 55% / 6% 6% 100% 100%;
+  background:linear-gradient(180deg,#d1000f,#9a000a 55%,#5e0006);
+  box-shadow:0 0 7px rgba(255,0,24,.6);
+  transform-origin:top center;
+  animation:tsDrip 4.6s ease-in-out infinite;
+}
+.ts-apk-drips i::before{      /* une la gota con el borde de la píldora */
+  content:"";
+  position:absolute;
+  top:-1px; left:50%;
+  width:6px; height:4px;
+  margin-left:-3px;
+  border-radius:50%;
+  background:#d1000f;
+  box-shadow:0 0 7px rgba(255,0,24,.65);
+}
+.ts-apk-drips i::after{       /* gota que cae */
+  content:"";
+  position:absolute;
+  left:50%; bottom:-2px;
+  width:4px; height:4px;
+  margin-left:-2px;
+  border-radius:50%;
+  background:#b0000d;
+  box-shadow:0 0 7px rgba(255,0,24,.7);
+}
+.ts-apk-drips i:nth-child(1){ left:9%;  height:9px;  animation-delay:-.4s;  animation-duration:4.2s; }
+.ts-apk-drips i:nth-child(2){ left:24%; height:16px; width:2px;   animation-delay:-1.9s; animation-duration:5.6s; }
+.ts-apk-drips i:nth-child(3){ left:43%; height:11px; animation-delay:-.9s;  animation-duration:4.8s; }
+.ts-apk-drips i:nth-child(4){ left:64%; height:19px; width:2.5px; animation-delay:-2.6s; animation-duration:6.2s; }
+.ts-apk-drips i:nth-child(5){ left:84%; height:8px;  animation-delay:-1.2s; animation-duration:4.4s; }
+@keyframes tsDrip{
+  0%,10%   { transform:scaleY(.18); opacity:0; }
+  20%      { opacity:1; }
+  45%      { transform:scaleY(.75); opacity:1; }
+  70%      { transform:scaleY(1.05); opacity:1; }
+  88%      { transform:scaleY(1.55); opacity:.85; }
+  100%     { transform:scaleY(1.9);  opacity:0; }
+}
+
+/* ── pool de sangre / resplandor bajo el botón ── */
+.ts-apk-card::after{
+  content:"";
+  position:absolute;
+  left:8%; right:8%; bottom:-9px;
+  height:9px;
+  border-radius:50%;
+  background:radial-gradient(50% 100% at 50% 0%,rgba(190,0,18,.55),transparent 72%);
+  filter:blur(3px);
+  pointer-events:none;
+  z-index:-1;
+  animation:tsPool 4.6s ease-in-out infinite;
+}
+@keyframes tsPool{
+  0%,100%{ opacity:.45; transform:scaleX(.96); }
+  50%    { opacity:.9;  transform:scaleX(1.04); }
+}
+
+/* ── responsive ── */
+@media (max-width:768px){
+  section#inicio.hero{ height:auto; min-height:100svh; }
+  .ts-apk-cta{ margin-top:18px; padding-bottom:12px; }
+  .ts-apk-in{ gap:7px; padding:7px 12px 7px 9px; }
+  .ts-apk-q{ font-size:9px; }
+  .ts-apk-btn{ font-size:9px; letter-spacing:.11em; }
+  .ts-apk-p{ font-size:10px; }
+  .ts-apk-ico{ width:21px; height:21px; }
+  .ts-apk-ico svg{ width:17px; height:17px; }
+}
+@media (max-width:359px){
+  .ts-apk-q{ display:none; }
+  .ts-apk-sep{ display:none; }
+}
+
+/* ── rendimiento / accesibilidad ── */
+body[data-gfx="low"] .ts-apk-card,
+body[data-gfx="low"] .ts-apk-ico,
+body[data-gfx="low"] .ts-apk-p,
+body[data-gfx="low"] .ts-apk-btn,
+body[data-gfx="low"] .ts-apk-btn::after,
+body[data-gfx="low"] .ts-apk-dl,
+body[data-gfx="low"] .ts-apk-drips i,
+body[data-gfx="low"] .ts-apk-card::after{ animation:none !important; }
+
+@media (prefers-reduced-motion: reduce){
+  .ts-apk-card,
+  .ts-apk-ico,
+  .ts-apk-p,
+  .ts-apk-btn,
+  .ts-apk-btn::after,
+  .ts-apk-dl,
+  .ts-apk-drips i,
+  .ts-apk-card::after{ animation:none !important; }
+  .ts-apk-card:hover{ transform:none; }
+  .ts-apk-drips i{ opacity:1; }
+}
+</style>
 <section class="hero" id="inicio">
   <canvas id="hero-canvas"></canvas>
   <div class="hero-dragon-wrap">
@@ -5692,6 +5964,27 @@ body[data-gfx="low"] #certModal .cert-drawer-foot{background:var(--bg1,#100508) 
     <div class="hero-ctas" id="hero-ctas">
       <a href="#hallazgos" class="btn-lusion primary">Ver Hallazgos</a>
       <a href="#contacto" class="btn-lusion ghost">Contactar</a>
+    </div>
+    <!-- ══ CTA SANGRÍN · DESCARGA APK (TudelaSec Mobile) → MediaFire ══ -->
+    <div class="ts-apk-cta" id="ts-apk-cta">
+      <a class="ts-apk-card"
+         href="https://www.mediafire.com/file/fslxqdogcbdl4ye/Tudelasec_mobile.apk/file"
+         target="_blank"
+         rel="noopener noreferrer nofollow"
+         aria-label="Descargar el APK de TudelaSec Mobile para Android (se abre MediaFire)">
+        <span class="ts-apk-in">
+          <span class="ts-apk-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.14-.52.38.38 0 0 0-.52.14l-1.86 3.22a11.5 11.5 0 0 0-9.84 0L5.22 5.92a.38.38 0 0 0-.52-.14.38.38 0 0 0-.14.52L6.4 9.48A10.9 10.9 0 0 0 .7 18.3h22.6a10.9 10.9 0 0 0-5.7-8.82zM6.1 15.7a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8zm11.8 0a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8z"/></svg>
+          </span>
+          <span class="ts-apk-p" aria-hidden="true">&gt;_</span>
+          <span class="ts-apk-q">llévate la suite al celu <b>//</b></span>
+          <span class="ts-apk-btn">descargar apk</span>
+          <span class="ts-apk-dl" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>
+          </span>
+        </span>
+        <span class="ts-apk-drips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </a>
     </div>
     <div class="platform-cards">
       <a href="https://hackerone.com/tudelasec" target="_blank" class="pc" rel="noopener noreferrer">
@@ -60169,5 +60462,5 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
 }
 </style>
 
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a568f533d993481f',t:'MTc5NDAxOTA2NA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a568f533d993481f',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

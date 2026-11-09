@@ -5449,6 +5449,7 @@ body[data-gfx="low"] #certModal .cert-drawer-foot{background:var(--bg1,#100508) 
     <a href="#taint">TAINT RADAR</a>
     <a href="#breach">BREACH</a>
     <a href="#mailsec">MAIL REAPER</a>
+    <a href="#valkyrie-cli" title="VALKYRIE-CLI · terminal ofensiva remota">VALKYRIE</a>
     <a href="#hallazgos">Hallazgos</a>
     <a href="#cert-roadmap">Certificaciones</a>
     <a href="#contacto">Contacto</a>
@@ -5497,6 +5498,7 @@ body[data-gfx="low"] #certModal .cert-drawer-foot{background:var(--bg1,#100508) 
 <a href="#nexus"        class="mega-link">🧬 NEXUS Flow Reverse</a>
 <a href="#nexusactive"  class="mega-link">⚔ NEXUS Active</a>
 <a href="#gasr"           class="mega-link">🛰 Global Asset Recon</a>
+      <a href="#valkyrie-cli" class="mega-link">🖥 VALKYRIE-CLI Terminal Node</a>
       <a href="#crawler" class="mega-link">🕸 Endpoint Crawler</a>
       <a href="#kraken" class="mega-link">🐙 Kraken Subdomains</a>
       <a href="#cerberus" class="mega-link">🐺 Cerberus Fuzzer</a>
@@ -5576,6 +5578,7 @@ body[data-gfx="low"] #certModal .cert-drawer-foot{background:var(--bg1,#100508) 
   <a href="#sphinx" class="mm-link">SPHINX</a>
   <a href="#chimera" class="mm-link">CHIMERA</a>
   <a href="#mammoth" class="mm-link">MAMMOTH</a>
+  <a href="#valkyrie-cli" class="mm-link">VALKYRIE-CLI</a>
   <a href="#cheatsheet" class="mm-link">Cheatsheet</a>
   <a href="#hallazgos" class="mm-link">Hallazgos</a>
   <a href="#cert-roadmap" class="mm-link">Ruta de certificaciones</a>
@@ -6098,6 +6101,7 @@ body[data-gfx="low"] .ts-apk-card::after{ animation:none !important; }
   </div></div>
   </div>
 </section>
+
 
 
 <section id="waflab">
@@ -21193,6 +21197,640 @@ else mmtWire();
 
 
 <!-- ══ ENDPOINT CRAWLER ══ -->
+<style id="valkyrie-cli-style">
+/* ══════════════════════════════════════════════════════════════════
+   VALKYRIE-CLI // OFFENSIVE TERMINAL NODE — estilos scoped (vk-*)
+   ══════════════════════════════════════════════════════════════════ */
+#valkyrie-cli{ position:relative; scroll-margin-top:84px; }
+#valkyrie-cli .vk-intro{
+  max-width:860px;
+  font-family:var(--body);
+  font-size:14.5px;
+  line-height:1.75;
+  color:var(--muted);
+  margin:-26px 0 28px;
+}
+#valkyrie-cli .vk-intro b{ color:var(--text); font-weight:600; }
+#valkyrie-cli .vk-intro em{ color:var(--acc); font-style:normal; }
+
+/* ── tarjetas de metadatos ── */
+.vk-meta{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 16px;
+}
+.vk-meta-card{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px 13px;
+  background:linear-gradient(160deg,#100509,#070205 70%);
+  box-shadow:inset 0 0 26px rgba(0,0,0,.55);
+  transition:border-color .25s, box-shadow .25s;
+}
+.vk-meta-card:hover{
+  border-color:rgba(255,26,46,.45);
+  box-shadow:inset 0 0 26px rgba(0,0,0,.55), 0 0 20px -8px rgba(255,26,46,.7);
+}
+.vk-meta-k{
+  font-family:var(--mono);
+  font-size:8.5px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:rgba(255,26,46,.62);
+}
+.vk-meta-v{
+  display:flex; align-items:center; gap:7px;
+  margin-top:5px;
+  font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:.03em;
+  color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.vk-led{
+  width:6px; height:6px; flex:0 0 auto;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:vkLed 2.1s ease-in-out infinite;
+}
+.vk-led.amber{ background:var(--amber); box-shadow:0 0 8px var(--amber); }
+.vk-led.violet{ background:var(--violet); box-shadow:0 0 8px var(--violet); }
+@keyframes vkLed{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+/* ── marco de la terminal ── */
+.vk-term{
+  position:relative;
+  border:1px solid rgba(255,26,46,.35);
+  border-radius:9px;
+  overflow:hidden;
+  background:#070408;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,26,46,.06),
+    0 24px 70px -34px rgba(255,26,46,.65),
+    0 0 46px -24px rgba(255,26,46,.45);
+}
+.vk-bar{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px;
+  background:linear-gradient(180deg,#150609,#0b0408);
+  border-bottom:1px solid rgba(255,26,46,.22);
+}
+.vk-dots{ display:flex; gap:6px; flex:0 0 auto; }
+.vk-dots span{ width:10px; height:10px; border-radius:50%; display:block; }
+.vk-dots .r{ background:#ff3355; box-shadow:0 0 8px rgba(255,51,85,.85); }
+.vk-dots .y{ background:#ffb020; box-shadow:0 0 8px rgba(255,176,32,.85); }
+.vk-dots .g{ background:#00ffa3; box-shadow:0 0 8px rgba(0,255,163,.85); }
+.vk-title{
+  flex:1 1 auto;
+  min-width:0;
+  text-align:center;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:rgba(240,238,248,.6);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.vk-title b{ color:var(--acc); font-weight:400; }
+.vk-tools{ display:flex; gap:6px; flex:0 0 auto; }
+.vk-tool{
+  width:26px; height:26px;
+  display:grid; place-items:center;
+  border:1px solid rgba(255,26,46,.3);
+  border-radius:5px;
+  background:rgba(255,26,46,.05);
+  color:#ff6b7d;
+  font-family:var(--mono);
+  font-size:12px; line-height:1;
+  cursor:pointer;
+  transition:.2s;
+}
+.vk-tool:hover{
+  color:#fff;
+  border-color:rgba(255,26,46,.75);
+  background:rgba(255,26,46,.16);
+  box-shadow:0 0 14px rgba(255,26,46,.45);
+}
+.vk-tool:active{ transform:scale(.94); }
+
+/* ── pantalla / iframe ── */
+.vk-screen{
+  position:relative;
+  height:540px;
+  background:#020005;
+  overflow:hidden;
+}
+.vk-screen iframe{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  border:none;
+  background:#020005;
+  display:block;
+}
+.vk-crt, .vk-sweep{ position:absolute; inset:0; pointer-events:none; }
+.vk-crt{
+  z-index:3;
+  background:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.30) 0 1px,transparent 1px 3px),
+    radial-gradient(120% 120% at 50% 50%,transparent 52%,rgba(0,0,0,.55) 100%);
+  opacity:.42;
+}
+.vk-sweep{
+  z-index:4;
+  height:24%;
+  inset:auto 0 auto 0;
+  background:linear-gradient(180deg,rgba(255,26,46,0),rgba(255,26,46,.07),rgba(255,26,46,0));
+  animation:vkSweep 7.5s linear infinite;
+}
+@keyframes vkSweep{ 0%{ top:-26%; } 100%{ top:106%; } }
+
+/* ── boot log ── */
+.vk-boot{
+  position:absolute; inset:0;
+  z-index:5;
+  display:flex; flex-direction:column; justify-content:center;
+  gap:7px;
+  padding:24px clamp(16px,4vw,34px);
+  background:radial-gradient(circle at 50% 45%,#0a0207,#020005 70%);
+  font-family:var(--mono);
+  font-size:11.5px;
+  line-height:1.5;
+  color:rgba(0,255,163,.72);
+  transition:opacity .55s ease, visibility .55s ease;
+}
+.vk-boot.done{ opacity:0; visibility:hidden; }
+.vk-boot-line{
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .28s ease, transform .28s ease;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.vk-boot-line.on{ opacity:1; transform:none; }
+.vk-boot-line i{ color:rgba(255,26,46,.85); font-style:normal; }
+.vk-boot-line s{ color:rgba(255,176,32,.9); text-decoration:none; }
+.vk-boot-cursor{
+  margin-top:6px;
+  color:var(--green);
+  animation:vkCursor 1.05s steps(1,end) infinite;
+}
+@keyframes vkCursor{ 0%,50%{opacity:1;} 51%,100%{opacity:.1;} }
+
+/* ── fallback ── */
+.vk-fallback{
+  position:absolute; inset:0;
+  z-index:6;
+  display:none;
+  flex-direction:column; align-items:center; justify-content:center;
+  gap:12px;
+  padding:26px;
+  text-align:center;
+  background:radial-gradient(circle at 50% 40%,rgba(255,26,46,.14),rgba(3,0,6,.95) 68%),rgba(3,0,6,.9);
+}
+.vk-fallback.on{ display:flex; }
+.vk-fb-ico{
+  font-size:22px;
+  color:var(--amber);
+  text-shadow:0 0 18px rgba(255,176,32,.8);
+}
+.vk-fb-t{
+  font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--amber);
+}
+.vk-fb-p{
+  max-width:460px;
+  font-family:var(--body);
+  font-size:12.5px;
+  line-height:1.7;
+  color:var(--muted);
+}
+.vk-fb-btn{
+  margin-top:4px;
+  padding:10px 18px;
+  border-radius:6px;
+  border:1px solid rgba(255,26,46,.55);
+  background:linear-gradient(160deg,#2a0710,#150408);
+  color:#fff;
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:.2s;
+}
+.vk-fb-actions{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:4px; }
+.vk-fb-actions .vk-fb-btn{ margin-top:0; }
+.vk-fb-btn.ghost{ background:transparent; border-color:rgba(255,255,255,.18); color:var(--muted); }
+.vk-fb-btn.ghost:hover{ color:#fff; border-color:var(--acc); }
+.vk-fallback .vk-fb-ico{ font-size:26px; color:var(--green); text-shadow:0 0 18px rgba(0,255,163,.6); }
+.vk-fallback .vk-fb-t{ color:var(--green); }
+.vk-fb-btn:hover{
+  border-color:var(--acc);
+  box-shadow:0 0 24px rgba(255,26,46,.55);
+  transform:translateY(-1px);
+}
+
+/* ── barra de credenciales / estado ── */
+.vk-hints{
+  display:flex; flex-wrap:wrap; align-items:center;
+  gap:10px 22px;
+  padding:12px 16px;
+  background:#080305;
+  border-top:1px solid rgba(255,26,46,.16);
+}
+.vk-cred{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.03em;
+  color:rgba(240,238,248,.5);
+}
+.vk-cred b{ color:#fff; font-weight:600; }
+.vk-copy{
+  padding:3px 8px;
+  border-radius:4px;
+  border:1px solid rgba(255,26,46,.35);
+  background:transparent;
+  color:#ff6b7d;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:.2s;
+}
+.vk-copy:hover{ background:rgba(255,26,46,.12); color:#fff; box-shadow:0 0 12px rgba(255,26,46,.4); }
+.vk-copy.ok{ border-color:var(--green); color:var(--green); box-shadow:0 0 12px rgba(0,255,163,.35); }
+.vk-status{
+  margin-left:auto;
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--green);
+}
+.vk-status .vk-led{ animation-duration:1.6s; }
+.vk-status.warn{ color:var(--amber); }
+.vk-status.warn .vk-led{ background:var(--amber); box-shadow:0 0 8px var(--amber); }
+.vk-status.off{ color:#ff5a6a; }
+
+/* ── nota al pie ── */
+.vk-note{
+  margin-top:14px;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.05em;
+  line-height:1.8;
+  color:rgba(138,122,135,.85);
+}
+.vk-note b{ color:rgba(255,26,46,.85); font-weight:400; }
+.vk-note-warn{ margin-top:6px; color:rgba(255,176,32,.72); }
+.vk-note-warn b{ color:var(--amber); }
+
+/* ── pantalla completa ── */
+.vk-chip{
+  position:absolute; right:10px; bottom:10px; z-index:4;
+  padding:5px 11px; border-radius:999px;
+  border:1px solid rgba(255,26,46,.45);
+  background:rgba(8,3,6,.75);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  color:#ff8d99; font-family:var(--mono); font-size:9.5px; letter-spacing:.12em;
+  text-transform:uppercase; cursor:pointer; opacity:.6; transition:.2s;
+}
+.vk-chip:hover{ opacity:1; color:#fff; border-color:var(--acc); box-shadow:0 0 16px rgba(255,26,46,.5); }
+.vk-term:fullscreen{
+  display:flex; flex-direction:column;
+  background:#070408;
+  border:none; border-radius:0;
+}
+.vk-term:fullscreen .vk-screen{ flex:1 1 auto; height:auto; }
+
+/* ── responsive ── */
+@media (max-width:1024px){
+  .vk-meta{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .vk-screen{ height:460px; }
+}
+@media (max-width:768px){
+  #valkyrie-cli .vk-intro{ font-size:13.5px; margin-top:-12px; }
+  .vk-screen{ height:420px; min-height:380px; }
+  .vk-title{ font-size:9.5px; letter-spacing:.05em; }
+  .vk-hints{ gap:9px 16px; padding:11px 13px; }
+  .vk-status{ margin-left:0; width:100%; }
+  .vk-boot{ font-size:10px; gap:5px; padding:16px; }
+}
+@media (max-width:480px){
+  .vk-meta{ grid-template-columns:1fr 1fr; gap:8px; }
+  .vk-meta-card{ padding:8px 10px; }
+  .vk-meta-v{ font-size:10.5px; }
+  .vk-screen{ height:380px; min-height:380px; }
+  .vk-cred{ font-size:9.5px; width:100%; }
+}
+
+/* ── accesibilidad / rendimiento ── */
+@media (prefers-reduced-motion: reduce){
+  .vk-sweep, .vk-led, .vk-boot-cursor{ animation:none !important; }
+  .vk-boot-line{ transition:none; }
+}
+body[data-gfx="low"] .vk-sweep,
+body[data-gfx="low"] .vk-led,
+body[data-gfx="low"] .vk-boot-cursor{ animation:none !important; }
+body[data-gfx="low"] .vk-crt{ opacity:.22; }
+
+/* ── AJUSTES MÓVIL ── */
+#valkyrie-cli .sec-title{ text-wrap:balance; }
+@media (max-width:600px){
+  #valkyrie-cli .sec-title{ font-size:clamp(24px,7.6vw,32px); line-height:1.12; }
+  #valkyrie-cli .vk-bar{ flex-wrap:wrap; gap:8px 10px; padding:10px 12px; }
+  #valkyrie-cli .vk-title{ order:3; flex:1 0 100%; white-space:normal; text-align:left; font-size:10px; line-height:1.45; letter-spacing:.06em; overflow:visible; text-overflow:clip; }
+  #valkyrie-cli .vk-tools{ margin-left:auto; }
+  #valkyrie-cli .vk-hints{ flex-direction:column; align-items:flex-start; gap:8px; }
+  #valkyrie-cli .vk-cred{ max-width:100%; flex-wrap:wrap; }
+  #valkyrie-cli .vk-fallback{ padding:18px 14px; gap:9px; }
+  #valkyrie-cli .vk-fb-p{ font-size:12px; line-height:1.6; }
+  #valkyrie-cli .vk-fb-actions{ width:100%; }
+  #valkyrie-cli .vk-fb-actions .vk-fb-btn{ flex:1 1 100%; }
+  #valkyrie-cli .vk-chip{ display:none; }
+  #valkyrie-cli .vk-meta{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #valkyrie-cli .vk-meta-card{ min-width:0; }
+  #valkyrie-cli .vk-meta-v{ overflow-wrap:anywhere; font-size:11.5px; }
+}
+</style>
+
+<!-- ══════════════════════════════════════════════════════════
+     MÓDULO: VALKYRIE-CLI // OFFENSIVE TERMINAL NODE
+     Terminal PTY (ttyd) embebida — conexión diferida (lazy)
+══════════════════════════════════════════════════════════ -->
+<section id="valkyrie-cli" aria-labelledby="valkyrie-heading">
+  <div class="wrap">
+    <div class="sec-num reveal-wrap"><div class="reveal-inner">50 — Acceso operativo</div></div>
+    <h2 class="sec-title h2-anim" id="valkyrie-heading"
+        data-l1="VALKYRIE-CLI" data-l2="// Offensive Terminal Node"
+        aria-label="VALKYRIE-CLI Offensive Terminal Node"></h2>
+
+    <p class="vk-intro">
+      Instancia remota persistente sobre <b>Alpine Linux 3.20</b> ejecutando el arsenal completo de auditoría
+      y Bug Bounty: <em>Subfinder, Katana, Nuclei, FFUF, SQLMap</em> y diccionarios SecLists.
+      La sesión corre en un contenedor Docker <b>tudelasec/hunter-node</b> con volumen persistente en
+      <b>~/data</b>, expuesta por un PTY real vía ttyd.
+    </p>
+
+    <div class="vk-meta">
+      <div class="vk-meta-card">
+        <div class="vk-meta-k">Nodo</div>
+        <div class="vk-meta-v"><span class="vk-led"></span> VALKYRIE-08</div>
+      </div>
+      <div class="vk-meta-card">
+        <div class="vk-meta-k">Sistema base</div>
+        <div class="vk-meta-v"><span class="vk-led violet"></span> Alpine 3.20 · x86_64</div>
+      </div>
+      <div class="vk-meta-card">
+        <div class="vk-meta-k">Transporte</div>
+        <div class="vk-meta-v"><span class="vk-led amber"></span> HTTPS · ttyd PTY</div>
+      </div>
+      <div class="vk-meta-card">
+        <div class="vk-meta-k">Persistencia</div>
+        <div class="vk-meta-v"><span class="vk-led"></span> volumen ~/data</div>
+      </div>
+    </div>
+
+    <div class="vk-term" id="vk-term">
+      <div class="vk-bar">
+        <div class="vk-dots" aria-hidden="true"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="vk-title">root@tudelasec:~ <b>//</b> VALKYRIE-CLI · Alpine PTY Active</div>
+        <div class="vk-tools">
+          <button type="button" class="vk-tool" data-vk="reconnect" title="Reconectar sesión" aria-label="Reconectar sesión">&#x21bb;</button>
+          <button type="button" class="vk-tool" data-vk="fs" title="Pantalla completa" aria-label="Pantalla completa">&#x26F6;</button>
+          <button type="button" class="vk-tool" data-vk="open" title="Abrir en pestaña nueva" aria-label="Abrir en pestaña nueva">&#x2197;</button>
+        </div>
+      </div>
+
+      <div class="vk-screen">
+        <iframe id="vk-frame"
+                data-src="https://bug-free-meme-qvqjj4pj4g9w34w6v-7681.app.github.dev/"
+                title="VALKYRIE-CLI · terminal interactiva del nodo ofensivo"
+                allow="clipboard-read; clipboard-write"
+                referrerpolicy="no-referrer"
+                loading="lazy"></iframe>
+        <div class="vk-crt" aria-hidden="true"></div>
+        <div class="vk-sweep" aria-hidden="true"></div>
+
+        <div class="vk-boot" id="vk-boot" aria-hidden="true">
+          <div class="vk-boot-line" data-line="0"><i>[t+0.000]</i> init valkyrie-cli :: node-08</div>
+          <div class="vk-boot-line" data-line="1"><i>[t+0.114]</i> tls handshake ...................... <s>ok</s></div>
+          <div class="vk-boot-line" data-line="2"><i>[t+0.238]</i> alpine 3.20 · x86_64 · pty/1.4</div>
+          <div class="vk-boot-line" data-line="3"><i>[t+0.351]</i> mount ~/data ....................... <s>rw</s></div>
+          <div class="vk-boot-line" data-line="4"><i>[t+0.470]</i> arsenal: subfinder katana nuclei ffuf sqlmap</div>
+          <div class="vk-boot-line" data-line="5"><i>[t+0.588]</i> auth chain: basic &#x2192; shell &#x2192; root</div>
+          <div class="vk-boot-line" data-line="6"><i>[t+0.702]</i> attach ttyd socket ................ waiting</div>
+          <div class="vk-boot-cursor">&#x258A;</div>
+        </div>
+
+        <div class="vk-fallback on" id="vk-fallback">
+          <div class="vk-fb-ico" aria-hidden="true">&#x2328;</div>
+          <div class="vk-fb-t">Nodo remoto listo</div>
+          <p class="vk-fb-p">
+            GitHub Codespaces normalmente <b>bloquea el embebido</b> (su login no permite iframes), por eso lo más fiable es abrir la terminal en una pestaña aparte.
+            Si el puerto está en <b>Visibility: Public</b> puedes intentar cargarla aquí mismo.
+          </p>
+          <div class="vk-fb-actions">
+            <button type="button" class="vk-fb-btn" data-vk="open">Abrir terminal &#x2197;</button>
+            <button type="button" class="vk-fb-btn ghost" data-vk="embed">Cargar aquí</button>
+          </div>
+        </div>
+
+        <button type="button" class="vk-chip" data-vk="open" title="Abrir el nodo en una pestaña nueva">&#x2197; abrir nodo</button>
+      </div>
+
+      <div class="vk-hints">
+        <span class="vk-cred">auth web <b>tudela</b> / <b>tudelasec2026</b>
+          <button type="button" class="vk-copy" data-vk="copy" data-vk-val="tudela:tudelasec2026">copiar</button>
+        </span>
+        <span class="vk-cred">sudo pass <b>tudela123</b>
+          <button type="button" class="vk-copy" data-vk="copy" data-vk-val="tudela123">copiar</button>
+        </span>
+        <span class="vk-cred">home <b>~/data</b></span>
+        <span class="vk-status" id="vk-status"><span class="vk-led"></span><span class="vk-status-tx">esperando conexión</span></span>
+      </div>
+    </div>
+
+    <p class="vk-note">
+      <b>//</b> Nodo de laboratorio personal · uso exclusivamente autorizado sobre objetivos propios o con permiso escrito.
+      La sesión es persistente: lo que escribas en <b>~/data</b> queda entre reconexiones.
+    </p>
+    <p class="vk-note vk-note-warn">
+      <b>!</b> Si el iframe queda en negro o muestra el login de GitHub, el puerto del Codespace no está público
+      (Ports → Visibility: <b>Public</b>) o el nodo está detenido. Usa <b>&#x2197;</b> para abrirlo en una pestaña nueva.
+    </p>
+  </div>
+</section>
+
+<script id="valkyrie-cli-js">
+/* ══════════════════════════════════════════════════════════════════
+   VALKYRIE-CLI // NODE CONTROLLER — vanilla JS, sin dependencias
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+  var root = document.getElementById('valkyrie-cli');
+  if(!root || root.getAttribute('data-vk-ready') === '1') return;
+  root.setAttribute('data-vk-ready','1');
+
+  var frame    = root.querySelector('#vk-frame');
+  var boot     = root.querySelector('#vk-boot');
+  var fallback = root.querySelector('#vk-fallback');
+  var statusEl = root.querySelector('#vk-status');
+  var statusTx = statusEl ? statusEl.querySelector('.vk-status-tx') : null;
+  var NODE_URL = frame ? (frame.getAttribute('data-src') || '') : '';
+  var booted = false;
+  var loadTimer = null;
+
+  function setStatus(txt, cls){
+    if(!statusEl) return;
+    statusEl.classList.remove('warn','off');
+    if(cls) statusEl.classList.add(cls);
+    if(statusTx) statusTx.textContent = txt;
+  }
+
+  /* ── secuencia de arranque ── */
+  var BOOT_LINES = 7;
+  function runBootLog(){
+    if(!boot) return;
+    for(var i = 0; i < BOOT_LINES; i++){
+      var el = boot.querySelector('[data-line="' + i + '"]');
+      if(el) el.classList.remove('on');
+    }
+    boot.classList.remove('done');
+    for(var j = 0; j < BOOT_LINES; j++){
+      (function(idx){
+        setTimeout(function(){
+          var line = boot.querySelector('[data-line="' + idx + '"]');
+          if(line) line.classList.add('on');
+        }, 130 + idx * 190);
+      })(j);
+    }
+  }
+
+  /* arranque visual: solo el log de boot, el iframe NO se carga solo (evita la pantalla negra) */
+  function connect(){
+    if(!frame || booted) return;
+    booted = true;
+    runBootLog();
+    setStatus('nodo listo · abre la terminal', 'warn');
+  }
+
+  /* carga explícita del iframe (botón "Cargar aquí" / reconectar) */
+  function embed(){
+    if(!frame || !NODE_URL) return;
+    frame.removeAttribute('data-vk-loaded');
+    if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+    if(fallback) fallback.classList.remove('on');
+    setStatus('handshake…', 'warn');
+    frame.src = 'about:blank';
+    setTimeout(function(){
+      frame.src = NODE_URL;
+      loadTimer = setTimeout(function(){
+        setStatus('sin respuesta · usa abrir nodo', 'warn');
+        if(boot) boot.classList.remove('done');
+        if(fallback) fallback.classList.add('on');
+      }, 9000);
+    }, 120);
+  }
+
+  if(frame){
+    frame.addEventListener('load', function(){
+      if(!booted) return;
+      if(frame.getAttribute('src') === 'about:blank' || !frame.getAttribute('src')) return;
+      frame.setAttribute('data-vk-loaded','1');
+      if(loadTimer){ clearTimeout(loadTimer); loadTimer = null; }
+      setTimeout(function(){ if(boot) boot.classList.add('done'); }, 750);
+      if(fallback) fallback.classList.remove('on');
+      setStatus('cargado · si ves negro, abre el nodo ↗', 'warn');
+    });
+  }
+
+  /* ── conexión diferida: solo cuando el módulo entra al viewport ── */
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      for(var i = 0; i < entries.length; i++){
+        if(entries[i].isIntersecting){ connect(); io.disconnect(); break; }
+      }
+    }, { rootMargin: '500px 0px' });
+    io.observe(root);
+  } else {
+    connect();
+  }
+
+  /* ── portapapeles con fallback ── */
+  function copyText(text, btn){
+    function done(){
+      if(!btn) return;
+      var old = btn.textContent;
+      btn.textContent = 'copiado ✓';
+      btn.classList.add('ok');
+      setTimeout(function(){ btn.textContent = old; btn.classList.remove('ok'); }, 1500);
+    }
+    function legacy(){
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly','');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        done();
+      }catch(e){}
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, legacy);
+    } else {
+      legacy();
+    }
+  }
+
+  /* ── controles de la barra ── */
+  root.addEventListener('click', function(ev){
+    var btn = ev.target && ev.target.closest ? ev.target.closest('[data-vk]') : null;
+    if(!btn) return;
+    var act = btn.getAttribute('data-vk');
+
+    if(act === 'copy'){
+      copyText(btn.getAttribute('data-vk-val') || '', btn);
+      return;
+    }
+    if(act === 'open'){
+      if(NODE_URL) window.open(NODE_URL, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if(act === 'fs'){
+      var term = root.querySelector('#vk-term');
+      if(!term) return;
+      if(document.fullscreenElement){
+        if(document.exitFullscreen) document.exitFullscreen();
+      } else if(term.requestFullscreen){
+        term.requestFullscreen();
+      }
+      return;
+    }
+    if(act === 'embed' || act === 'reconnect'){
+      embed();
+      return;
+    }
+  });
+
+  document.addEventListener('fullscreenchange', function(){
+    var term = root.querySelector('#vk-term');
+    if(term) term.classList.toggle('vk-fs', !!document.fullscreenElement);
+  });
+})();
+</script>
+
 <section id="crawler">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">21 — Aggressive Crawler</div></div>
@@ -30619,7 +31257,7 @@ var op = '';
       </div></div>
     </div>
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;" class="reveal-wrap"><div class="reveal-inner" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <a href="/cdn-cgi/l/email-protection#b2dcdbd1ddded3c1c6c7d6d7ded38b85f2d5dfd3dbde9cd1dddf" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
+      <a href="/cdn-cgi/l/email-protection#c0aea9a3afaca1b3b4b5a4a5aca1f9f780a7ada1a9aceea3afad" class="btn-lusion primary"><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Solicitar auditoría</a>
       <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">Disponible para trabajos privados · Entrega de reporte en 5-10 días hábiles</span>
     </div></div>
   </div>
@@ -31255,6 +31893,7 @@ dig assets.lime.bike CNAME</div></div></div>
   </div>
 </section>
 
+
 <section id="contacto">
   <div class="wrap">
     <div class="sec-num reveal-wrap"><div class="reveal-inner">48 — Canal seguro</div></div>
@@ -31267,7 +31906,7 @@ dig assets.lime.bike CNAME</div></div></div>
           <a href="https://bugbounty.intigriti.com/researcher/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon inc"><i class="fa-solid fa-crosshairs"></i></div><div class="slink-info"><span class="slink-lbl">Intigriti</span><span class="slink-val">intigriti.com/tudelasec</span></div></a>
           <a href="https://github.com/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon ghc"><i class="fa-brands fa-github"></i></div><div class="slink-info"><span class="slink-lbl">GitHub</span><span class="slink-val">github.com/tudelasec</span></div></a>
           <a href="https://linkedin.com/in/tudelasec" target="_blank" rel="noopener noreferrer" class="slink"><div class="icon linc"><i class="fa-brands fa-linkedin"></i></div><div class="slink-info"><span class="slink-lbl">LinkedIn</span><span class="slink-val">linkedin.com/in/tudelasec</span></div></a>
-          <a href="/cdn-cgi/l/email-protection#85ebece6eae9e4f6f1f0e1e0e9e4bcb2c5e2e8e4ece9abe6eae8" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="7b15121814171a080f0e1f1e171a424c3b1c161a121755181416">[email&#160;protected]</span></span></div></a>
+          <a href="/cdn-cgi/l/email-protection#7c12151f13101d0f08091819101d454b3c1b111d1510521f1311" class="slink"><div class="icon emc"><i class="fa-solid fa-envelope"></i></div><div class="slink-info"><span class="slink-lbl">Email</span><span class="slink-val"><span class="__cf_email__" data-cfemail="cfa1a6aca0a3aebcbbbaabaaa3aef6f88fa8a2aea6a3e1aca0a2">[email&#160;protected]</span></span></div></a>
         </div>
       </div></div>
       <div class="reveal-wrap"><div class="reveal-inner">
@@ -38303,6 +38942,7 @@ var NAV_ITEMS = [
  {id:'nexus',       icon:'\uD83E\uDDEC', label:'NEXUS Flow Reverse'},
  {id:'nexusactive', icon:'\u2694',        label:'NEXUS Active'},
  {id:'gasr',        icon:'\uD83D\uDEF0', label:'Global Asset Recon'},
+ {id:'valkyrie-cli', icon:'\uD83D\uDDA5',  label:'VALKYRIE-CLI Terminal Node'},
  {id:'crawler',      icon:'\uD83D\uDD78',  label:'Endpoint Crawler'},
  {id:'kraken',       icon:'\uD83D\uDC19',  label:'Kraken Subdomains'},
  {id:'cerberus',     icon:'\uD83D\uDC3A',  label:'Cerberus Fuzzer'},
@@ -60268,8 +60908,10 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
       }).join('');
       el.setAttribute('data-l1',masked);
       if(n>=source.length) restore(el,rec);
-    },26);
+    },16);
     runs.set(el,rec);
+    /* QA: red de seguridad — nunca dejar el título cifrado */
+    window.setTimeout(function(){ restore(el,rec); },2600);
   }
   function reveal(el){
     el.classList.add('is-visible');
@@ -60460,7 +61102,153 @@ nav:not(#main-nav) > .mega-overlay{ pointer-events:auto; }
   .hash-input-wrap>button{flex:0 0 auto;align-self:center;margin:0 8px 10px 0;}
   .hash-input-wrap .hash-clear{margin:0 0 10px 14px;}
 }
+
+/* 9 · ESCRITORIO: los botones flotantes tapaban "scroll", el contador de recompensas y el threat level */
+@media (min-width:901px){
+  .hero-scroll{bottom:96px !important;}
+  .threat-widget{bottom:96px !important;}
+  .hero-bounty{right:104px !important;}
+}
 </style>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a568f533d993481f',t:'MTc5NDAxOTA2NA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a568f533d993481f',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script id="ts-qa-guards">
+/* ══════════════════════════════════════════════════════════════════
+   TUDELASEC · QA GUARDS (pass 1)
+   1. Títulos de módulo: si el efecto "decrypt" quedó a medio camino,
+      restaura el texto original (evita secciones sin nombre).
+   2. Reenlaces/reveals: si un bloque quedó con opacidad baja, lo
+      fuerza visible (evita texto "fantasma").
+   3. Accesibilidad: aria-label en botones que sólo tienen ícono.
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+  if(window.__tsQaGuards) return;
+  window.__tsQaGuards = true;
+
+  /* ── 1 · títulos ── */
+  var TITLES = [];
+  function collectTitles(){
+    Array.prototype.forEach.call(document.querySelectorAll('h2.sec-title[data-l1]'), function(el){
+      for(var i=0;i<TITLES.length;i++) if(TITLES[i].el === el) return;
+      TITLES.push({ el:el, original:el.getAttribute('data-l1'), since:0 });
+    });
+  }
+  collectTitles();
+  window.addEventListener('load', collectTitles, { once:true });
+
+  function guardTitles(){
+    var now = Date.now();
+    for(var i=0;i<TITLES.length;i++){
+      var t = TITLES[i], el = t.el;
+      if(!el || !el.isConnected) continue;
+      var cur = el.getAttribute('data-l1');
+      if(cur === t.original){ t.since = 0; continue; }
+      if(!t.since) t.since = now;
+      if(now - t.since > 3000){           /* 3 s cifrado = demasiado */
+        el.setAttribute('data-l1', t.original);
+        t.since = 0;
+      }
+    }
+  }
+  setInterval(guardTitles, 500);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) guardTitles(); });
+
+  /* ── 2 · opacidad de reveals ── */
+  var SEL = '.reveal-inner, .exp-ttl, .hero-tag, .hero-sub, .hero-ctas, .sec-title, .fr-reveal, .reveal';
+  function guardOpacity(){
+    var nodes = document.querySelectorAll(SEL);
+    for(var i=0;i<nodes.length;i++){
+      var el = nodes[i], s = getComputedStyle(el);
+      if(s.display === 'none' || s.visibility === 'hidden') continue;
+      var op = parseFloat(s.opacity);
+      var r = el.getBoundingClientRect();
+      var onScreen = r.bottom > -200 && r.top < (window.innerHeight + 200);
+      if(!onScreen) continue;
+      if(op < 0.92){
+        if(!el.__tsOpSince) el.__tsOpSince = Date.now();
+        else if(Date.now() - el.__tsOpSince > 2600){
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+          el.classList.add('is-visible');
+          el.__tsOpSince = 0;
+        }
+      } else { el.__tsOpSince = 0; }
+    }
+  }
+  setInterval(guardOpacity, 700);
+
+  /* ── 3 · accesibilidad de botones icon-only ── */
+  var LABELS = {
+    'hash-copy':'Copiar hash', 'xss-pcopy':'Copiar payload', 'cert-copy-all':'Copiar todo',
+    'cert-close-bottom':'Cerrar', 'xhelp-x':'Cerrar ayuda', 'mdd-x':'Cerrar',
+    'nx-help-x':'Cerrar ayuda', 'copy':'Copiar'
+  };
+  function labelButtons(){
+    Array.prototype.forEach.call(document.querySelectorAll('button'), function(b){
+      if((b.textContent||'').trim()) return;
+      if(b.getAttribute('aria-label') || b.title) return;
+      var cls = (b.className||'').toString().split(/\s+/);
+      for(var i=0;i<cls.length;i++){
+        if(LABELS[cls[i]]){ b.setAttribute('aria-label', LABELS[cls[i]]); return; }
+      }
+      b.setAttribute('aria-label', 'Acción');
+    });
+  }
+  labelButtons();
+  setInterval(labelButtons, 3000);
+})();
+</script>
+
+<style id="ts-design-fixes">
+/* ══════════════════════════════════════════════════════════════════
+   TUDELASEC · QA DE DISEÑO (pass 3)
+   1. Las capas decorativas (dragones ambientales, orbes) pasan a
+      pintarse SIEMPRE por debajo del contenido → ningún título queda
+      "apagado" por un overlay encima.
+   2. Contraste forzado en las tarjetas de experiencia/historia.
+   3. Texto legible sobre cualquier fondo animado.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1 · decoración siempre detrás ── */
+.sec-dragon-ambient{ z-index:-1 !important; }
+.bg-orb{ z-index:-1 !important; }
+section > .hero-dragon-wrap,
+.bg-deco, .ambient-layer{ z-index:-1 !important; }
+
+/* ── 2 · tarjetas de experiencia (#sobre-mi) ── */
+.exp-item{ z-index:1; }
+.exp-item .exp-num{
+  color:rgba(255,26,46,.85) !important;
+  opacity:1 !important;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-shadow:0 0 14px rgba(255,26,46,.35);
+}
+.exp-item .exp-ttl{
+  color:#f7f5fb !important;
+  opacity:1 !important;
+  filter:none !important;
+  mix-blend-mode:normal !important;
+  text-shadow:0 0 22px rgba(255,26,46,.22);
+}
+.exp-item .exp-dsc{
+  color:rgba(206,196,204,.92) !important;
+  opacity:1 !important;
+  mix-blend-mode:normal !important;
+}
+.exp-item:hover .exp-ttl{
+  color:#fff !important;
+  text-shadow:0 0 24px rgba(255,26,46,.55);
+}
+
+/* ── 3 · red de seguridad global de legibilidad ── */
+.reveal-inner,
+.reveal-wrap{ mix-blend-mode:normal !important; }
+h2.sec-title,
+.sec-title .tline1,
+.sec-title .tline2{ mix-blend-mode:normal !important; }
+</style>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a57ac1e08cdc06d5',t:'MTc5NDIwNTcwNg=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a57ac1e08cdc06d5',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
